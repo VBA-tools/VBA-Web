@@ -9,14 +9,14 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' RestRequest v0.2.1
-' (c) Tim Hall - https://github.com/timhall/ExcelExperiments
+' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Create a request for use with a rest client
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
 ' @version 0.2.1
-' @date 20120826
+' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

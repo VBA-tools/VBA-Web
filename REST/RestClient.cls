@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' RestClient v0.2.1
-' (c) Tim Hall - https://github.com/timhall/ExcelExperiments
+' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Interact with REST web services from Excel
 '
@@ -28,7 +28,7 @@ Option Explicit
 ' --------------------------------------------- '
 ' Constants and Private Variables
 ' --------------------------------------------- '
-Private Const UserAgent As String = "Excel Client v0.2.0 (tim.hall.engr@gmail.com)"
+Private Const UserAgent As String = "Excel Client v0.2.1 (tim.hall.engr@gmail.com)"
 
 ' --------------------------------------------- '
 ' Types

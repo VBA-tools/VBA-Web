@@ -6,19 +6,19 @@ Attribute VB_Name = "OAuth2Authenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
 ' OAuth2 Authenticator v0.2.1
-' (c) Tim Hall - https://github.com/timhall/ExcelExperiments
+' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Utilize OAuth2 authentication
 ' (Currently using client credentials flow only)
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.0
-' @date 20120724
+' @version 0.2.1
+' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

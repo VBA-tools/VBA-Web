@@ -1,14 +1,14 @@
-Attribute VB_Name = "RestHelpers"
+Attribute VB_Name = "EH_RestHelpers"
 ''
 ' RestHelpers v0.2.1
-' (c) Tim Hall - https://github.com/timhall/ExcelExperiments
+' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
-' Common helpers and factories for RestClient
+' Common helpers RestClient
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
 ' @version 0.2.1
-' @date 20120724
+' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
@@ -28,30 +28,6 @@ Public Enum StatusCodes
     ServiceUnavailable = 503
     GatewayTimeout = 504
 End Enum
-
-' ============================================= '
-' Factories
-' ============================================= '
-
-'Public Function HttpBasic(Username As String, Password As String) As HttpBasicAuthenticator
-'    Set HttpBasic = New HttpBasicAuthenticator
-'    Call HttpBasic.Setup(Username, Password)
-'End Function
-'
-'Public Function OAuth1(ConsumerKey As String, ConsumerSecret As String, _
-'    Token As String, TokenSecret As String, Optional Realm As String = "") As OAuth1Authenticator
-'    Set OAuth1 = New OAuth1Authenticator
-'    Call OAuth1.Setup(ConsumerKey, ConsumerSecret, Token, TokenSecret, Realm)
-'End Function
-'
-'Public Function OAuth2(ClientId As String, ClientSecret As String, _
-'    Username As String, Password As String, _
-'    TokenUrl As String, Optional TokenKey As String) As OAuth2Authenticator
-'
-'    Set OAuth2 = New OAuth2Authenticator
-'    Call OAuth2.Setup(ClientId, ClientSecret, Username, Password)
-'    Call OAuth2.SetupTokenUrl(TokenUrl, TokenKey)
-'End Function
 
 
 ' ============================================= '

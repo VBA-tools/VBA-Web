@@ -7,6 +7,20 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+''
+' RestResponse v0.2.1
+' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
+'
+' Wrapper for http responses
+'
+' @dependencies
+' @author tim.hall.engr@gmail.com
+' @version 0.2.1
+' @date 20121024
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+'
+' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
 Public StatusCode As StatusCodes
 Public StatusDescription As String
 Public Content As String

@@ -10,14 +10,14 @@ Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
 ' HttpBasicAuthenticator v0.2.1
-' (c) Tim Hall - https://github.com/timhall/ExcelExperiments
+' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Utilize http basic authentication
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.0
-' @date 20120724
+' @version 0.2.1
+' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
