@@ -35,6 +35,7 @@ Private Const SignatureMethod As String = "HMAC-SHA1"
 ' --------------------------------------------- '
 ' Types
 ' --------------------------------------------- '
+
 Private Type SYSTEMTIME
     wYear As Integer
     wMonth As Integer
@@ -63,6 +64,7 @@ End Enum
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
+
 Public ConsumerKey As String
 Public ConsumerSecret As String
 Public Token As String
@@ -129,8 +131,8 @@ Private Function CreateHeader(request As EH_RestRequest) As String
         header = "OAuth "
     End If
     
-	' Construct header parts
-	' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
+    ' Construct header parts
+    ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
     header = header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34)
     header = header & ", oauth_nonce=" & Chr(34) & nonce & Chr(34)
     header = header & ", oauth_signature=" & Chr(34) & URLEncode(signature) & Chr(34)

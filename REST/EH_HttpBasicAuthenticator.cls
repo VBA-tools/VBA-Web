@@ -26,6 +26,7 @@ Option Explicit
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
+
 Public Username As String
 Public Password As String
 
@@ -56,12 +57,12 @@ End Sub
 
 Private Sub EH_IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Use http open with username and password values set
-	' (This is used in addition to setting request header, as some services required this)
+    ' (This is used in addition to setting request header, as some services required this)
     Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync, Me.Username, Me.Password)
 End Sub
 
 Private Function CreateHeader() As String
-	' Create Basic Auth request header
+    ' Create Basic Auth request header
     Dim header As String
     header = "Basic " & EncodeStringToBase64(Me.Username & ":" & Me.Password)
     CreateHeader = header

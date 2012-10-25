@@ -21,6 +21,10 @@ Attribute VB_Exposed = True
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
+' --------------------------------------------- '
+' Properties
+' --------------------------------------------- '
+
 Public StatusCode As StatusCodes
 Public StatusDescription As String
 Public Content As String

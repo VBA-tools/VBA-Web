@@ -25,6 +25,7 @@ Option Explicit
 ' --------------------------------------------- '
 ' Constants and Private Variables
 ' --------------------------------------------- '
+
 Private Const cacheBreakerKey As String = "ehcb"
 Private pHeaders As Dictionary
 Private pParameters As Dictionary
@@ -36,6 +37,7 @@ Private pHttpRequest As MSXML2.ServerXMLHTTP
 ' --------------------------------------------- '
 ' Types
 ' --------------------------------------------- '
+
 Public Enum AvailableMethods
     httpGET
     httpPOST
@@ -50,6 +52,7 @@ End Enum
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
+
 Public Resource As String
 Public Method As AvailableMethods
 Public Format As AvailableFormats
@@ -106,7 +109,7 @@ Public Property Get FormattedResource(Optional includeCacheBreaker As Boolean = 
     ' Add cache breaker to GET requests
     ' [MSXML2.XMLHTTP refresh](http://www.tek-tips.com/viewthread.cfm?qid=1563400)
     ' Looks like a last-modified could work here too, but may also require control over server response
-	' Also, with update to ServerXMLHTTP, neither may be needed
+    ' Also, with update to ServerXMLHTTP, neither may be needed
     If Me.Method = httpGET And includeCacheBreaker Then
         If Me.Parameters Is Nothing Then
             Me.Parameters = New Dictionary
@@ -119,14 +122,14 @@ Public Property Get FormattedResource(Optional includeCacheBreaker As Boolean = 
         If Me.Parameters.count > 0 Or Me.QuerystringParams.count > 0 Then
             FormattedResource = FormattedResource & "?"
             
-			' Only load parameters to querystring if GET request (otherwise they are added to the body)
+            ' Only load parameters to querystring if GET request (otherwise they are added to the body)
             If Me.Method = httpGET Then
                 For Each parameterKey In Me.Parameters.keys()
                     If Right(FormattedResource, 1) <> "?" Then: FormattedResource = FormattedResource & "&"
                     FormattedResource = FormattedResource & URLEncode(parameterKey) & "=" & URLEncode(Me.Parameters(parameterKey))
                 Next parameterKey
             End If
-			
+            
             For Each parameterKey In Me.QuerystringParams.keys()
                 If Right(FormattedResource, 1) <> "?" Then: FormattedResource = FormattedResource & "&"
                 FormattedResource = FormattedResource & URLEncode(parameterKey) & "=" & URLEncode(Me.QuerystringParams(parameterKey))
@@ -136,12 +139,12 @@ Public Property Get FormattedResource(Optional includeCacheBreaker As Boolean = 
 End Property
 
 Public Property Get Body() As String
-	' Add body if it's defined or parameters have been set and it is not a GET request
+    ' Add body if it's defined or parameters have been set and it is not a GET request
     If Not pBody Is Nothing Or (Not Me.Parameters Is Nothing And Me.Method <> httpGET) Then
         Select Case Me.Format
-		' (Currently only JSON is supported)
+        ' (Currently only JSON is supported)
         Case Else
-			' Combine defined body and parameters and convert to JSON
+            ' Combine defined body and parameters and convert to JSON
             Body = EH_RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
         End Select
     End If
@@ -152,8 +155,8 @@ Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
     If Right(Me.BaseUrl, 1) <> "/" Then
         Me.BaseUrl = Me.BaseUrl & "/"
     End If
-	
-	' If protocol is missing from base url, add it based on RequireHTTPS property
+    
+    ' If protocol is missing from base url, add it based on RequireHTTPS property
     If Left(Me.BaseUrl, 7) <> "http://" And Left(Me.BaseUrl, 8) <> "https://" Then
         If Me.RequireHTTPS Then
             Me.BaseUrl = "https://" & Me.BaseUrl
@@ -216,6 +219,7 @@ End Property
 ' @param {String} key
 ' @param {String} value
 ' --------------------------------------------- '
+
 Public Sub AddHeader(key As String, value As String)
     If Not Me.Headers.Exists(key) Then
         Me.Headers.Add key, value
@@ -230,6 +234,7 @@ End Sub
 ' @param {String} key
 ' @param {String} value
 ' --------------------------------------------- '
+
 Public Sub AddUrlSegment(segment As String, value As String)
     If Not Me.UrlSegments.Exists(segment) Then
         Me.UrlSegments.Add segment, value
@@ -244,6 +249,7 @@ End Sub
 ' @param {String} key
 ' @param {String} value
 ' --------------------------------------------- '
+
 Public Sub AddParameter(key As String, value As String)
     If Not Me.Parameters.Exists(key) Then
         Me.Parameters.Add key, value
@@ -258,6 +264,7 @@ End Sub
 ' @param {String} key
 ' @param {String} value
 ' --------------------------------------------- '
+
 Public Sub AddQuerystringParam(key As String, value As String)
     If Not Me.QuerystringParams.Exists(key) Then
         Me.QuerystringParams.Add key, value
@@ -271,6 +278,7 @@ End Sub
 '
 ' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
 ' --------------------------------------------- '
+
 Public Function AddBody(bodyVal As Dictionary)
     Set pBody = bodyVal
 End Function
@@ -279,19 +287,20 @@ End Function
 ' Process asynchronous requests
 '
 ' --------------------------------------------- '
+
 Public Sub ReadyStageChangeHandler()
 Attribute ReadyStageChangeHandler.VB_UserMemId = 0
-	' During development, uncomment to watch changes in ready state
+    ' During development, uncomment to watch changes in ready state
     ' Debug.Print "ReadyStageChangeHandler: " & Me.HttpRequest.readyState
 
-	' ReadyStates [The XMLHttpRequest Object](http://www.w3.org/TR/2006/WD-XMLHttpRequest-20060405/):
-	' 0. Uninintialized
-	' 1. Open
-	' 2. Sent
-	' 3. Receiving
-	' 4. Loaded
-	
-	' Once loaded, process result
+    ' ReadyStates [The XMLHttpRequest Object](http://www.w3.org/TR/2006/WD-XMLHttpRequest-20060405/):
+    ' 0. Uninintialized
+    ' 1. Open
+    ' 2. Sent
+    ' 3. Receiving
+    ' 4. Loaded
+    
+    ' Once loaded, process result
     If Me.HttpRequest.readyState = 4 Then
         ' Handle response
         Dim response As New EH_RestResponse
@@ -301,27 +310,27 @@ Attribute ReadyStageChangeHandler.VB_UserMemId = 0
         
         ' Serialize the response content
         Select Case Me.Format
-		' Currently, JSON is the only supported format
+        ' Currently, JSON is the only supported format
         Case Else
             Set response.Data = EH_RestHelpers.ParseJSON(response.Content)
         End Select
         
         ' Callback
         If Me.Callback <> "" Then
-			' Run callback function (needs to be a public function),
-			' passing in response and any defined callback arguments
-			'
-			' callback({RestResponse})
-			' OR callback({RestResponse}, {Variant})
-			'
-			' Example:
-			' Public Function Callback(response As RestResponse, args As Variant)
-			'     Debug.Print "Callback: " & response.StatusCode
-			' 	  For i = LBound(args) To UBound(args)
-			'         Debug.Print args(i) & " was passed into async execute"
-			'     Next i
-			' End Function
-			' 
+            ' Run callback function (needs to be a public function),
+            ' passing in response and any defined callback arguments
+            '
+            ' callback({RestResponse})
+            ' OR callback({RestResponse}, {Variant})
+            '
+            ' Example:
+            ' Public Function Callback(response As RestResponse, args As Variant)
+            '     Debug.Print "Callback: " & response.StatusCode
+            '     For i = LBound(args) To UBound(args)
+            '         Debug.Print args(i) & " was passed into async execute"
+            '     Next i
+            ' End Function
+            ' 
             Application.Run Me.Callback, response, Me.CallbackArgs
         End If
         
@@ -333,8 +342,9 @@ Attribute ReadyStageChangeHandler.VB_UserMemId = 0
 End Sub
 
 ' ============================================= '
-' Static Helpers / Private Functions
+' Private Functions
 ' ============================================= '
+
 Private Sub Class_Terminate()
     ' Clean up
     If Not Me.HttpRequest Is Nothing Then: Set Me.HttpRequest = Nothing

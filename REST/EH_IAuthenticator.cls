@@ -31,6 +31,7 @@ Option Explicit
 '
 ' @param {EH_RestRequest} request The request about to be executed
 ' --------------------------------------------- '
+
 Public Sub BeforeExecute(ByRef request As EH_RestRequest)
     ' ...
     ' Add header
@@ -45,6 +46,7 @@ End Sub
 ' @param {String} BaseUrl
 ' @param {Boolean} [useAsync=False]
 ' --------------------------------------------- '
+
 Public Sub HttpOpen(ByRef http As MSXML2.IXMLHTTPRequest, ByRef request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Use standard http open by default
     Call http.Open(request.GetMethodName(request.Method), request.GetFullUrl(BaseUrl), useAsync)

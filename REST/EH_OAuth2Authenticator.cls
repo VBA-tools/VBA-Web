@@ -27,6 +27,7 @@ Option Explicit
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
+
 Public ClientId As String
 Public ClientSecret As String
 Public Username As String
@@ -74,29 +75,29 @@ End Sub
 Private Sub EH_IAuthenticator_BeforeExecute(request As EH_RestRequest)
     On Error GoTo ErrorHandling
     
-	' If don't already have a token and token url and key are setup, request new token
-	If Me.Token = "" And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
+    ' If don't already have a token and token url and key are setup, request new token
+    If Me.Token = "" And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         Dim http As MSXML2.ServerXMLHTTP
         Set http = New MSXML2.ServerXMLHTTP
         
-		' Request token
+        ' Request token
         Call http.Open("POST", CreateTokenRequest, False)
         Call http.send
         
-		' If request fails, throw error
+        ' If request fails, throw error
         If http.Status <> 200 Then
             ' Error getting OAuth2 token
             Err.Raise 1, Description:="Failed to retrieve OAuth2 Token"
         End If
         
-		' Parse response and retrieve token by defined key
+        ' Parse response and retrieve token by defined key
         Dim response As Dictionary
         Set response = EH_RestHelpers.ParseJSON(http.responseText)
         If Not response Is Nothing Then
             If response.Exists(Me.TokenKey) Then
                 Me.Token = response(Me.TokenKey)
-			Else
-				Err.Raise 2, Description:="Failed to read OAuth2 Token"
+            Else
+                Err.Raise 2, Description:="Failed to read OAuth2 Token"
             End If
             
             ' (Salesforce specific, but shouldn't affect any other OAuth2 clients)
@@ -104,20 +105,20 @@ Private Sub EH_IAuthenticator_BeforeExecute(request As EH_RestRequest)
                 request.BaseUrl = response("instance_url")
             End If
         Else
-			' Failed to parse response
+            ' Failed to parse response
             Err.Raise 2, Description:="Failed to read OAuth2 Token"
         End If
     End If
-	
-	' Add Authorization header to request
+    
+    ' Add Authorization header to request
     Call request.AddHeader("Authorization", CreateHeader())
     Exit Sub
     
 ErrorHandling:
 
     If Not http Is Nothing Then: Set http = Nothing
-	' TODO: Handle errors better
-	
+    ' TODO: Handle errors better
+    
 End Sub
 
 Private Sub EH_IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
@@ -126,16 +127,16 @@ Private Sub EH_IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request A
 End Sub
 
 Private Function CreateHeader() As String
-	' Create standard OAuth2 header
+    ' Create standard OAuth2 header
     CreateHeader = "OAuth " & Me.Token
 End Function
 
 Private Function CreateTokenRequest() As String
-	' Generate token request using client credentials flow
-	' This is currently setup using Salesforce's implementation, but may need to be generalized
-	' [Digging Deeper into OAuth 2.0 on Force.com](http://wiki.developerforce.com/page/Digging_Deeper_into_OAuth_2.0_at_Salesforce.com)
+    ' Generate token request using client credentials flow
+    ' This is currently setup using Salesforce's implementation, but may need to be generalized
+    ' [Digging Deeper into OAuth 2.0 on Force.com](http://wiki.developerforce.com/page/Digging_Deeper_into_OAuth_2.0_at_Salesforce.com)
     CreateTokenRequest = Me.TokenUrl
-	If Right(FormattedResource, 1) <> "?" Then: CreateTokenRequest = CreateTokenRequest & "?"
+    If Right(FormattedResource, 1) <> "?" Then: CreateTokenRequest = CreateTokenRequest & "?"
     CreateTokenRequest = CreateTokenRequest & "&client_id=" & Me.ClientId
     CreateTokenRequest = CreateTokenRequest & "&client_secret=" & Me.ClientSecret
     CreateTokenRequest = CreateTokenRequest & "&username=" & Me.Username

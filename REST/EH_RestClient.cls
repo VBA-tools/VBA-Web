@@ -30,6 +30,7 @@ Private Const UserAgent As String = "Excel Client v0.2.2 (https://github.com/tim
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
+
 Public BaseUrl As String
 Public Authenticator As EH_IAuthenticator
 
@@ -61,9 +62,9 @@ Public Function Execute(request As EH_RestRequest) As EH_RestResponse
     response.StatusDescription = http.statusText
     response.Content = http.responseText
     
-	' Parse response
-	Select Case request.Format
-	' Currently, JSON is the only supported format
+    ' Parse response
+    Select Case request.Format
+    ' Currently, JSON is the only supported format
     Case Else
         Set response.Data = EH_RestHelpers.ParseJSON(response.Content)
     End Select
@@ -118,6 +119,7 @@ End Function
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
+
 Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As EH_RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
     http.setTimeouts 5 * 1000, 5 * 1000, 5 * 1000, 5 * 1000
@@ -126,7 +128,7 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As EH_Re
     Call request.AddHeader("User-Agent", UserAgent)
     Call request.AddHeader("Content-Type", request.ContentType())
     
-	' If async, pass http to request and setup onreadystatechange
+    ' If async, pass http to request and setup onreadystatechange
     If useAsync Then
         request.HttpRequest = http
         http.onreadystatechange = request
@@ -147,9 +149,3 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As EH_Re
         Call http.setRequestHeader(headerKey, request.Headers(headerKey))
     Next headerKey
 End Sub
-
-
-
-
-
-
