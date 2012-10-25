@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' EH_RestClient v0.2.1
+' EH_RestClient v0.2.2
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Interact with REST web services from Excel
@@ -16,16 +16,15 @@ Attribute VB_Exposed = True
 ' @dependencies
 '   Microsoft Scripting Runtime
 '   Microsoft XML, v3+
-'   JSONLib (http://code.google.com/p/vba-json/)
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.1
+' @version 0.2.2
 ' @date 20120826
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v0.2.1 (https://github.com/timhall/ExcelHelpers)"
+Private Const UserAgent As String = "Excel Client v0.2.2 (https://github.com/timhall/ExcelHelpers)"
 
 
 ' --------------------------------------------- '
@@ -41,9 +40,10 @@ Public Authenticator As EH_IAuthenticator
 ''
 ' Execute the specified request
 '
-' @param request    The request to execute
-' @return           Server response for request
+' @param {EH_RestRequest} request The request to execute
+' @return {EH_RestResponse} Wrapper of server response for request
 ' --------------------------------------------- '
+
 Public Function Execute(request As EH_RestRequest) As EH_RestResponse
     Dim response As New EH_RestResponse
     Dim http As MSXML2.ServerXMLHTTP
@@ -56,11 +56,14 @@ Public Function Execute(request As EH_RestRequest) As EH_RestResponse
     ' Send the request
     Call http.send(request.Body)
     
-    ' Handle response...
+    ' Handle response
     response.StatusCode = http.Status
     response.StatusDescription = http.statusText
     response.Content = http.responseText
-    Select Case request.Format
+    
+	' Parse response
+	Select Case request.Format
+	' Currently, JSON is the only supported format
     Case Else
         Set response.Data = EH_RestHelpers.ParseJSON(response.Content)
     End Select
@@ -72,8 +75,8 @@ Public Function Execute(request As EH_RestRequest) As EH_RestResponse
     
 ErrorHandling:
 
-    If Not http Is Nothing Then Set http = Nothing
-    ' Do something with error...
+    If Not http Is Nothing Then: Set http = Nothing
+    ' TODO: Handle error better
     
 End Function
 
@@ -82,14 +85,15 @@ End Function
 '
 ' @param {EH_RestRequest} request The request to execute
 ' @param {String} callback Name of function to call when request completes (specify "" if none)
-' @param {Variant} callbackArgs Variable array of arguments that get passed directly to callback function
+' @param {Variant} [callbackArgs] Variable array of arguments that get passed directly to callback function
 ' @return {Boolean} Status of initiating request
 ' --------------------------------------------- '
+
 Public Function ExecuteAsync(request As EH_RestRequest, callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     Dim response As New EH_RestResponse
     Dim http As MSXML2.ServerXMLHTTP
     
-    ' On Error GoTo ErrorHandling
+    On Error GoTo ErrorHandling
     
     ' Setup the request
     Set http = New MSXML2.ServerXMLHTTP
@@ -101,14 +105,13 @@ Public Function ExecuteAsync(request As EH_RestRequest, callback As String, Opti
     Call http.send(request.Body)
     
     ' Clean up and return
-    ' Set http = Nothing
     ExecuteAsync = True
     Exit Function
     
 ErrorHandling:
 
-    Set http = Nothing
-    ' Do something with error...
+    If Not http Is Nothing Then: Set http = Nothing
+    ' TODO: Handle error better
     
 End Function
 
@@ -123,6 +126,7 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As EH_Re
     Call request.AddHeader("User-Agent", UserAgent)
     Call request.AddHeader("Content-Type", request.ContentType())
     
+	' If async, pass http to request and setup onreadystatechange
     If useAsync Then
         request.HttpRequest = http
         http.onreadystatechange = request
@@ -133,11 +137,11 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As EH_Re
         Me.Authenticator.BeforeExecute request
         Me.Authenticator.HttpOpen http, request, Me.BaseUrl, useAsync
     Else
-        ' Create new http object and open
+        ' Nothing hooked in so open http object
         Call http.Open(request.MethodName(), request.FullUrl(Me.BaseUrl), useAsync)
     End If
     
-    ' Set headers
+    ' Set request headers
     Dim headerKey As Variant
     For Each headerKey In request.Headers.keys()
         Call http.setRequestHeader(headerKey, request.Headers(headerKey))

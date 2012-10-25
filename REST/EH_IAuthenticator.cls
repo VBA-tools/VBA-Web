@@ -8,14 +8,14 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' EH_IAuthenticator v0.2.1
+' EH_IAuthenticator v0.2.2
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Interface for creating authenticators for rest client
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.1
+' @version 0.2.2
 ' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -29,7 +29,7 @@ Option Explicit
 ''
 ' Hook for taking action before a request is executed
 '
-' @param request    The request about to be executed
+' @param {EH_RestRequest} request The request about to be executed
 ' --------------------------------------------- '
 Public Sub BeforeExecute(ByRef request As EH_RestRequest)
     ' ...
@@ -40,9 +40,12 @@ End Sub
 ''
 ' Hook for overriding standard http open (used for HTTP Basic)
 '
-' @param request    The request about to be executed
+' @param {MSXML2.IXMLHTTPRequest} http
+' @param {EH_RestRequest} request The request about to be opened
+' @param {String} BaseUrl
+' @param {Boolean} [useAsync=False]
 ' --------------------------------------------- '
 Public Sub HttpOpen(ByRef http As MSXML2.IXMLHTTPRequest, ByRef request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
-    ' Open http
+    ' Use standard http open by default
     Call http.Open(request.GetMethodName(request.Method), request.GetFullUrl(BaseUrl), useAsync)
 End Sub

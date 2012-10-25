@@ -9,14 +9,14 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements EH_IAuthenticator
 ''
-' OAuth1 Authenticator v0.2.1
+' OAuth1 Authenticator v0.2.2
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Utilize OAuth1 authentication
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.1
+' @version 0.2.2
 ' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -72,6 +72,17 @@ Public Realm As String
 ' ============================================= '
 ' Public Methods
 ' ============================================= '
+
+''
+' Helper for setting required parameters at once
+'
+' @param {String} ConsumerKey
+' @param {String} ConsumerSecret
+' @param {String} Token
+' @param {String} TokenSecret
+' @param {String} [Realm]
+' --------------------------------------------- '
+
 Public Sub Setup(ConsumerKey As String, ConsumerSecret As String, _
     Token As String, TokenSecret As String, Optional Realm As String = "")
     
@@ -87,11 +98,12 @@ End Sub
 ' ============================================= '
 
 Private Sub EH_IAuthenticator_BeforeExecute(request As EH_RestRequest)
+	' Add authorization header to request
     Call request.AddHeader("Authorization", CreateHeader(request))
 End Sub
 
 Private Sub EH_IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
-    ' Open http
+    ' Standard http open
     Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync)
 End Sub
 
@@ -103,6 +115,7 @@ Private Function CreateHeader(request As EH_RestRequest) As String
     Dim signingKey As String
     Dim signature As String
     
+	' Create needed parts of authorization header
     nonce = CreateNonce()
     timestamp = CreateTimestamp()
     base = CreateBaseString(nonce, timestamp, request)
@@ -116,6 +129,8 @@ Private Function CreateHeader(request As EH_RestRequest) As String
         header = "OAuth "
     End If
     
+	' Construct header parts
+	' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
     header = header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34)
     header = header & ", oauth_nonce=" & Chr(34) & nonce & Chr(34)
     header = header & ", oauth_signature=" & Chr(34) & URLEncode(signature) & Chr(34)
@@ -158,15 +173,15 @@ Private Function CreateSignature(base As String, signingKey As String) As String
     ' Debug.Print (vbNewLine & "Signature: " & CreateOAuth1Signature & vbNewLine)
 End Function
 
+Private Function CreateTimestamp() As String
+    CreateTimestamp = CStr(DateDiff("s", #1/1/1970#, GetGMT()))
+End Function
+
 ' ======================================================================================== '
 '
 ' Time Calculations
 '
 ' ======================================================================================== '
-Private Function CreateTimestamp() As String
-    CreateTimestamp = CStr(DateDiff("s", #1/1/1970#, GetGMT()))
-End Function
-
 Function GetGMT(Optional LocalTime As Date) As Date
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' http://www.cpearson.com/excel/TimeZoneAndDaylightTime.aspx

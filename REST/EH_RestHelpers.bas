@@ -1,13 +1,15 @@
 Attribute VB_Name = "EH_RestHelpers"
 ''
-' EH_RestHelpers v0.2.1
+' EH_RestHelpers v0.2.2
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Common helpers EH_RestClient
 '
 ' @dependencies
+'   JSONLib (http://code.google.com/p/vba-json/)
+'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.1
+' @version 0.2.2
 ' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -34,11 +36,25 @@ End Enum
 ' Shared Helpers
 ' ============================================= '
 
+''
+' Parse given JSON string into object (Dictionary or Collection)
+'
+' @param {String} jsonStr
+' @return {Object} 
+' --------------------------------------------- '
+
 Public Function ParseJSON(jsonStr As String) As Object
     Dim lib As New JSONLib
     Set ParseJSON = lib.parse(jsonStr)
     Set lib = Nothing
 End Function
+
+''
+' Convert object to JSON string
+'
+' @param {Object}
+' @return {String}
+' --------------------------------------------- '
 
 Public Function ConvertToJSON(obj As Object) As String
     Dim lib As New JSONLib
@@ -49,10 +65,11 @@ End Function
 ''
 ' URL Encode the given raw values
 '
-' @param rawVal         The raw string to encode
-' @param (spaceAsPlus)  Use plus sign for encoded spaces
-' @return               Encoded string
+' @param {Variant} rawVal The raw string to encode
+' @param {Boolean} [spaceAsPlus=False] Use plus sign for encoded spaces (otherwise %20)
+' @return {String} Encoded string
 ' --------------------------------------------- '
+
 Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = False) As String
     Dim urlVal As String
     Dim stringLen As Long
@@ -99,10 +116,11 @@ End Function
 ''
 ' Combine two objects
 '
-' @param origObj    Original object to add values to
-' @param newObj     New object containing values to add to original object
-' @param (overwriteOriginal) Overwrite any values that already exist in the original object
+' @param {Dictionary} origObj Original object to add values to
+' @param {Dictionary} newObj New object containing values to add to original object
+' @param {Boolean} [overwriteOriginal=True] Overwrite any values that already exist in the original object
 ' --------------------------------------------- '
+
 Public Function CombineObjects(ByVal origObj As Dictionary, ByVal newObj As Dictionary, _
     Optional overwriteOriginal As Boolean = True) As Dictionary
     
@@ -128,9 +146,10 @@ End Function
 ''
 ' Apply whitelist to given model to filter out unwanted key/values
 '
-' @param original   Original model to filter
-' @param whitelist  Array of values to retain in the model
+' @param {Dictionary} original Original model to filter
+' @param {Variant} whitelist Array of values to retain in the model
 ' --------------------------------------------- '
+
 Public Function UpdateModel(ByVal original As Dictionary, whitelist As Variant) As Dictionary
     Dim updated As New Dictionary
     Dim i As Integer
@@ -155,7 +174,17 @@ End Function
 ' Crytography and encoding
 '
 ' ======================================================================================== '
-Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey As String)
+
+'' 
+' Generate a keyed hash value using the HMAC method and SHA1 algorithm
+' [Does VBA have a Hash_HMAC](http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac)
+' 
+' @param {String} sTextToHash
+' @param {String} sSharedSecretKey 
+' @return {String} 
+' --------------------------------------------- '
+
+Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey  As String) As String
     Dim asc As Object, enc As Object
     Dim TextToHash() As Byte
     Dim SharedSecretKey() As Byte
@@ -163,7 +192,7 @@ Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecret
     Set enc = CreateObject("System.Security.Cryptography.HMACSHA1")
 
     TextToHash = asc.Getbytes_4(sTextToHash)
-    SharedSecretKey = asc.Getbytes_4(sSharedSecretKey)
+    SharedSecretKey = asc.Getbytes_4(sSharedSecretKey )
     enc.key = SharedSecretKey
 
     Dim bytes() As Byte
@@ -172,6 +201,13 @@ Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecret
     Set asc = Nothing
     Set enc = Nothing
 End Function
+
+''
+' Base64 encode data
+'
+' @param {Byte Array} arrData
+' @return {String} Encoded string
+' --------------------------------------------- '
 
 Public Function EncodeBase64(ByRef arrData() As Byte) As String
     Dim objXML As MSXML2.DOMDocument
@@ -188,6 +224,13 @@ Public Function EncodeBase64(ByRef arrData() As Byte) As String
     Set objXML = Nothing
 End Function
 
+''
+' Base64 encode string value
+'
+' @param {String} Data
+' @return {String} Encoded string
+' --------------------------------------------- '
+
 Public Function EncodeStringToBase64(ByVal Data As String) As String
     Dim asc As Object
     Dim bytes() As Byte
@@ -196,6 +239,13 @@ Public Function EncodeStringToBase64(ByVal Data As String) As String
     EncodeStringToBase64 = EncodeBase64(bytes)
     Set asc = Nothing
 End Function
+
+''
+' Create random alphanumeric nonce
+'
+' @param {Integer} [NonceLength=32]
+' @return {String} Randomly generated nonce
+' --------------------------------------------- '
 
 Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Dim str As String

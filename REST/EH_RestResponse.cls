@@ -8,14 +8,14 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' EH_RestResponse v0.2.1
+' EH_RestResponse v0.2.2
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Wrapper for http responses
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.1
+' @version 0.2.2
 ' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
