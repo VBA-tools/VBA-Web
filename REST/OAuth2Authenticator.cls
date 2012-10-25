@@ -2,12 +2,12 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "OAuth2Authenticator"
+Attribute VB_Name = "EH_OAuth2Authenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Implements IAuthenticator
+Implements EH_IAuthenticator
 ''
 ' OAuth2 Authenticator v0.2.1
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
@@ -54,7 +54,7 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
+Private Sub EH_IAuthenticator_BeforeExecute(request As EH_RestRequest)
     On Error GoTo ErrorHandling
     If Me.Token = "" And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         ' Get new token
@@ -70,7 +70,7 @@ Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
         End If
         
         Dim response As Dictionary
-        Set response = RestHelpers.ParseJSON(http.responseText)
+        Set response = EH_RestHelpers.ParseJSON(http.responseText)
         If Not response Is Nothing Then
             If response.Exists(Me.TokenKey) Then
                 Me.Token = response(Me.TokenKey)
@@ -93,7 +93,7 @@ ErrorHandling:
     On Error GoTo 0
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Private Sub EH_IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Open http
     Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync)
 End Sub

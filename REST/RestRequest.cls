@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RestRequest"
+Attribute VB_Name = "EH_EH_RestRequest"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v0.2.1
+' EH_EH_RestRequest v0.2.1
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Create a request for use with a rest client
@@ -278,7 +278,7 @@ Attribute ReadyStageChangeHandler.VB_UserMemId = 0
 
     If Me.HttpRequest.readyState = 4 Then
         ' Handle response
-        Dim response As New RestResponse
+        Dim response As New EH_RestResponse
         response.StatusCode = Me.HttpRequest.Status
         response.StatusDescription = Me.HttpRequest.statusText
         response.Content = Me.HttpRequest.responseText

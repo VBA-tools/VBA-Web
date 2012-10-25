@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RestClient"
+Attribute VB_Name = "EH_RestClient"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v0.2.1
+' EH_RestClient v0.2.1
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Interact with REST web services from Excel
@@ -25,21 +25,14 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-' --------------------------------------------- '
-' Constants and Private Variables
-' --------------------------------------------- '
-Private Const UserAgent As String = "Excel Client v0.2.1 (tim.hall.engr@gmail.com)"
-
-' --------------------------------------------- '
-' Types
-' --------------------------------------------- '
+Private Const UserAgent As String = "Excel Client v0.2.1 (https://github.com/timhall/ExcelHelpers)"
 
 
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
 Public BaseUrl As String
-Public Authenticator As IAuthenticator
+Public Authenticator As EH_IAuthenticator
 
 ' ============================================= '
 ' Public Methods
@@ -51,8 +44,8 @@ Public Authenticator As IAuthenticator
 ' @param request    The request to execute
 ' @return           Server response for request
 ' --------------------------------------------- '
-Public Function Execute(request As RestRequest) As RestResponse
-    Dim response As New RestResponse
+Public Function Execute(request As EH_RestRequest) As EH_RestResponse
+    Dim response As New EH_RestResponse
     Dim http As MSXML2.ServerXMLHTTP
     Dim headerKey As Variant
     
@@ -69,7 +62,7 @@ Public Function Execute(request As RestRequest) As RestResponse
     response.Content = http.responseText
     Select Case request.Format
     Case Else
-        Set response.Data = RestHelpers.ParseJSON(response.Content)
+        Set response.Data = EH_RestHelpers.ParseJSON(response.Content)
     End Select
     
     ' Clean up and return
@@ -87,11 +80,13 @@ End Function
 ''
 ' Execute the specified request asynchronously
 '
-' @param request    The request to execute
-' @return           Server response for request
+' @param {EH_RestRequest} request The request to execute
+' @param {String} callback Name of function to call when request completes (specify "" if none)
+' @param {Variant} callbackArgs Variable array of arguments that get passed directly to callback function
+' @return {Boolean} Status of initiating request
 ' --------------------------------------------- '
-Public Function ExecuteAsync(request As RestRequest, callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
-    Dim response As New RestResponse
+Public Function ExecuteAsync(request As EH_RestRequest, callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
+    Dim response As New EH_RestResponse
     Dim http As MSXML2.ServerXMLHTTP
     
     ' On Error GoTo ErrorHandling
@@ -120,7 +115,7 @@ End Function
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
-Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As RestRequest, Optional useAsync As Boolean = False)
+Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As EH_RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
     http.setTimeouts 5 * 1000, 5 * 1000, 5 * 1000, 5 * 1000
     

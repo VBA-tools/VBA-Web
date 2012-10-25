@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "IAuthenticator"
+Attribute VB_Name = "EH_IAuthenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' IAuthenticator v0.2.1
+' EH_IAuthenticator v0.2.1
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Interface for creating authenticators for rest client
@@ -31,7 +31,7 @@ Option Explicit
 '
 ' @param request    The request about to be executed
 ' --------------------------------------------- '
-Public Sub BeforeExecute(ByRef request As RestRequest)
+Public Sub BeforeExecute(ByRef request As EH_RestRequest)
     ' ...
     ' Add header
     ' etc.
@@ -42,7 +42,7 @@ End Sub
 '
 ' @param request    The request about to be executed
 ' --------------------------------------------- '
-Public Sub HttpOpen(ByRef http As MSXML2.IXMLHTTPRequest, ByRef request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Public Sub HttpOpen(ByRef http As MSXML2.IXMLHTTPRequest, ByRef request As EH_RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Open http
     Call http.Open(request.GetMethodName(request.Method), request.GetFullUrl(BaseUrl), useAsync)
 End Sub

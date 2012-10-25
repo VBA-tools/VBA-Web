@@ -1,9 +1,9 @@
 Attribute VB_Name = "EH_RestHelpers"
 ''
-' RestHelpers v0.2.1
+' EH_RestHelpers v0.2.1
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
-' Common helpers RestClient
+' Common helpers EH_RestClient
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com

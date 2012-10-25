@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RestResponse"
+Attribute VB_Name = "EH_RestResponse"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestResponse v0.2.1
+' EH_RestResponse v0.2.1
 ' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
 '
 ' Wrapper for http responses
