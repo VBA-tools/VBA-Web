@@ -9,15 +9,13 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' HttpBasicAuthenticator v0.2.2
-' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
+' HttpBasicAuthenticator v0.9.0
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize http basic authentication
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.2
-' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

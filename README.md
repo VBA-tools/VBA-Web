@@ -1,9 +1,6 @@
-Excel Helpers
-=============
-A helping hand to those who like to push the limits of Excel and VBA
+Excel-REST: Excel REST Client
+=============================
 
-1. Excel REST Client
-----------------------
 It seems like everything has a REST webservice these days and there is no reason to leave Excel out of the fun. Also, as of V0.2 there's async support! (Example workbook coming in a jiffy)
 
 (API design based heavily on the awesome [RestSharp](http://restsharp.org/))
@@ -49,14 +46,4 @@ Sub HandleSearchResults(response As RestResponse)
 		response.StatusCode & " (" & response.StatusDescription & "): " _
 		& response.Content
 End Sub
-```
-
-2. Excel Testing Library
---------------------------
-Bring the reliability of other programming realms to Excel.
-
-(API design based heavily on [Jasmine](http://pivotal.github.com/jasmine/))
-
-```VB
-'... (coming soon :))
 ```

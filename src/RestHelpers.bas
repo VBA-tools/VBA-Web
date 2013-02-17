@@ -1,7 +1,7 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v0.2.2
-' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
+' RestHelpers v0.9.0
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
 '
@@ -9,8 +9,6 @@ Attribute VB_Name = "RestHelpers"
 '   JSONLib (http://code.google.com/p/vba-json/)
 '   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.2
-' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

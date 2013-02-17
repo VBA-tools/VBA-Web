@@ -8,15 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' IAuthenticator v0.2.2
-' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
+' IAuthenticator v0.9.0
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interface for creating authenticators for rest client
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.2
-' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

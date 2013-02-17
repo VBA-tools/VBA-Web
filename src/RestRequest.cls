@@ -8,15 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v0.2.2
-' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
+' RestRequest v0.9.0
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
 '
 ' @dependencies
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.2
-' @date 20121024
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
@@ -26,7 +24,7 @@ Option Explicit
 ' Constants and Private Variables
 ' --------------------------------------------- '
 
-Private Const cacheBreakerKey As String = "ehcb"
+Private Const cacheBreakerKey As String = "cachebreaker"
 Private pHeaders As Dictionary
 Private pParameters As Dictionary
 Private pQuerystringParams As Dictionary

@@ -8,8 +8,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v0.2.2
-' (c) Tim Hall - https://github.com/timhall/ExcelHelpers
+' RestClient v0.9.0
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
 '
@@ -17,14 +17,12 @@ Attribute VB_Exposed = True
 '   Microsoft Scripting Runtime
 '   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
-' @version 0.2.2
-' @date 20120826
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v0.2.2 (https://github.com/timhall/ExcelHelpers)"
+Private Const UserAgent As String = "Excel Client v0.9.0 (https://github.com/timhall/Excel-REST)"
 
 
 ' --------------------------------------------- '
