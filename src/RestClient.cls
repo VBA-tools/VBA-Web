@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v0.9.0
+' RestClient v0.9.1
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
@@ -55,27 +55,26 @@ Public Function Execute(request As RestRequest) As RestResponse
     ' Send the request
     Call http.send(request.Body)
     
-    ' Handle response
-    response.StatusCode = http.Status
+    ' Handle response...
+    response.StatusCode = http.status
     response.StatusDescription = http.statusText
     response.Content = http.responseText
-    
-    ' Parse response
     Select Case request.Format
-    ' Currently, JSON is the only supported format
     Case Else
         Set response.Data = RestHelpers.ParseJSON(response.Content)
     End Select
-    
-    ' Clean up and return
-    Set http = Nothing
     Set Execute = response
-    Exit Function
     
 ErrorHandling:
 
-    If Not http Is Nothing Then: Set http = Nothing
-    ' TODO: Handle error better
+    ' Cleanup http handler
+    If Not http Is Nothing Then Set http = Nothing
+    
+    ' Handle any errors
+    If Err.Number > 0 Then
+        ' Rethrow error
+        Err.Raise Err.Number, description:=Err.description
+    End If
     
 End Function
 
@@ -88,7 +87,7 @@ End Function
 ' @return {Boolean} Status of initiating request
 ' --------------------------------------------- '
 
-Public Function ExecuteAsync(request As RestRequest, callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
+Public Function ExecuteAsync(request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     Dim response As New RestResponse
     Dim http As MSXML2.ServerXMLHTTP
     
@@ -97,20 +96,27 @@ Public Function ExecuteAsync(request As RestRequest, callback As String, Optiona
     ' Setup the request
     Set http = New MSXML2.ServerXMLHTTP
     Call HttpSetup(http, request, True)
-    request.callback = callback
+    request.Callback = Callback
     request.CallbackArgs = CallbackArgs
     
     ' Send the request
     Call http.send(request.Body)
     
     ' Clean up and return
+    ' Set http = Nothing
     ExecuteAsync = True
     Exit Function
     
 ErrorHandling:
 
-    If Not http Is Nothing Then: Set http = Nothing
-    ' TODO: Handle error better
+    ' Cleanup http handler
+    If Not http Is Nothing Then Set http = Nothing
+    
+    ' Handle any errors
+    If Err.Number > 0 Then
+        ' Rethrow error
+        Err.Raise Err.Number, description:=Err.description
+    End If
     
 End Function
 

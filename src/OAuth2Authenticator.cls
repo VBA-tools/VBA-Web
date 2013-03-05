@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' OAuth2 Authenticator v0.9.0
+' OAuth2 Authenticator v0.9.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth2 authentication
@@ -33,6 +33,7 @@ Public Password As String
 Public TokenUrl As String
 Public TokenKey As String
 Public Token As String
+Public CacheToken As Boolean
 
 ' ============================================= '
 ' Public Methods
@@ -72,51 +73,44 @@ End Sub
 
 Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
     On Error GoTo ErrorHandling
-    
-    ' If don't already have a token and token url and key are setup, request new token
-    If Me.Token = "" And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
+    If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
+        ' Get new token
         Dim http As MSXML2.ServerXMLHTTP
         Set http = New MSXML2.ServerXMLHTTP
-        
-        ' Request token
+             
         Call http.Open("POST", CreateTokenRequest, False)
         Call http.send
         
-        ' If request fails, throw error
-        If http.Status <> 200 Then
+        If http.status <> 200 Then
             ' Error getting OAuth2 token
-            Err.Raise 1, Description:="Failed to retrieve OAuth2 Token"
+            Err.Raise http.status, description:="Failed to retrieve OAuth2 Token - " & http.status & ": " & http.responseText
         End If
         
-        ' Parse response and retrieve token by defined key
         Dim response As Dictionary
         Set response = RestHelpers.ParseJSON(http.responseText)
         If Not response Is Nothing Then
-            If response.Exists(Me.TokenKey) Then
+            If response.exists(Me.TokenKey) Then
                 Me.Token = response(Me.TokenKey)
-            Else
-                Err.Raise 2, Description:="Failed to read OAuth2 Token"
             End If
             
             ' (Salesforce specific, but shouldn't affect any other OAuth2 clients)
-            If response.Exists("instance_url") Then
+            If response.exists("instance_url") Then
                 request.BaseUrl = response("instance_url")
             End If
         Else
-            ' Failed to parse response
-            Err.Raise 2, Description:="Failed to read OAuth2 Token"
+            Err.Raise 2, description:="Failed to read OAuth2 Token"
         End If
     End If
-    
-    ' Add Authorization header to request
     Call request.AddHeader("Authorization", CreateHeader())
-    Exit Sub
     
 ErrorHandling:
-
-    If Not http Is Nothing Then: Set http = Nothing
-    ' TODO: Handle errors better
     
+    If Not http Is Nothing Then Set http = Nothing
+    If Not response Is Nothing Then Set response = Nothing
+    
+    If Err.Number > 0 Then
+        Err.Raise Err.Number, description:=Err.description
+    End If
 End Sub
 
 Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
@@ -134,7 +128,7 @@ Private Function CreateTokenRequest() As String
     ' This is currently setup using Salesforce's implementation, but may need to be generalized
     ' [Digging Deeper into OAuth 2.0 on Force.com](http://wiki.developerforce.com/page/Digging_Deeper_into_OAuth_2.0_at_Salesforce.com)
     CreateTokenRequest = Me.TokenUrl
-    If Right(FormattedResource, 1) <> "?" Then: CreateTokenRequest = CreateTokenRequest & "?"
+    If InStr(1, CreateTokenRequest, "?") < 1 Then: CreateTokenRequest = CreateTokenRequest & "?"
     CreateTokenRequest = CreateTokenRequest & "&client_id=" & Me.ClientId
     CreateTokenRequest = CreateTokenRequest & "&client_secret=" & Me.ClientSecret
     CreateTokenRequest = CreateTokenRequest & "&username=" & Me.Username
