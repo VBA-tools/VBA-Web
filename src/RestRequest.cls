@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v1.0.0
+' RestRequest v1.0.1
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
@@ -194,9 +194,9 @@ Public Property Get ContentType() As String
     Select Case Me.Format
     Case Else
         If Me.Method <> httpGET And Me.Parameters.count > 0 Then
-            ContentType = "application/x-www-form-urlencoded"
+            ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
         Else
-            ContentType = "application/json"
+            ContentType = "application/json;charset=UTF-8"
         End If
     End Select
 End Property
