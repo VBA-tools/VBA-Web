@@ -72,7 +72,7 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
+Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
     On Error GoTo ErrorHandling
     If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         ' Get new token
@@ -82,44 +82,44 @@ Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
         Call http.Open("POST", CreateTokenRequest, False)
         Call http.send
         
-        If http.status <> 200 Then
+        If http.Status <> 200 Then
             ' Error getting OAuth2 token
-            Err.Raise vbObjectError + http.status, _
-                description:="Failed to retrieve OAuth2 Token - " & http.status & ": " & http.responseText
+            Err.Raise vbObjectError + http.Status, _
+                Description:="Failed to retrieve OAuth2 Token - " & http.Status & ": " & http.responseText
         End If
         
-        Dim response As Dictionary
-        Set response = RestHelpers.ParseJSON(http.responseText)
-        If Not response Is Nothing Then
-            If response.exists(Me.TokenKey) Then
-                Me.Token = response(Me.TokenKey)
+        Dim Response As Dictionary
+        Set Response = RestHelpers.ParseJSON(http.responseText)
+        If Not Response Is Nothing Then
+            If Response.Exists(Me.TokenKey) Then
+                Me.Token = Response(Me.TokenKey)
             End If
             
             ' (Salesforce specific, but shouldn't affect any other OAuth2 clients)
-            If response.exists("instance_url") Then
-                request.BaseUrl = response("instance_url")
+            If Response.Exists("instance_url") Then
+                Request.BaseUrl = Response("instance_url")
             End If
         Else
             Err.Raise vbObjectError + 2, _
-                description:="Failed to read OAuth2 Token"
+                Description:="Failed to read OAuth2 Token"
         End If
     End If
-    Call request.AddHeader("Authorization", CreateHeader())
+    Call Request.AddHeader("Authorization", CreateHeader())
     
 ErrorHandling:
     
     If Not http Is Nothing Then Set http = Nothing
-    If Not response Is Nothing Then Set response = Nothing
+    If Not Response Is Nothing Then Set Response = Nothing
     
-    If Err.Number > 0 Then
+    If Err.Number <> 0 Then
         ' Rethrow error
-        Err.Raise Err.Number, description:=Err.description
+        Err.Raise Err.Number, Description:=Err.Description
     End If
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, Request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Perform standard http open
-    Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync)
+    Call http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), useAsync)
 End Sub
 
 Private Function CreateHeader() As String
@@ -138,4 +138,6 @@ Private Function CreateTokenRequest() As String
     CreateTokenRequest = CreateTokenRequest & "&username=" & Me.Username
     CreateTokenRequest = CreateTokenRequest & "&password=" & Me.Password
 End Function
+
+
 
