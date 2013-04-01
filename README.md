@@ -67,6 +67,9 @@ Function DirectionsRequest(Origin As String, Destination As String) As RestReque
     ' (GET, POST, PUT, DELETE, PATCH)
     DirectionsRequest.Method = httpGET
     
+    ' Request will be the following:
+    ' GET https://maps.googleapis.com/maps/api/directions/json?origin=Origin&destination=Destination&sensor=false
+    
 End Function
 ```
 
@@ -95,7 +98,7 @@ Public Sub ProcessDirections(Response As RestResponse)
         StartAddress = Route("start_address")
         EndAddress = Route("end_address")
     
-        Debug.Print "It will take " & Duration & " to travel " & Distance & " from " & StartAddress & " to "; EndAddress
+        Debug.Print "It will take " & Duration & " to travel " & Distance & " from " & StartAddress & " to " & EndAddress
     End If
 End Sub
 ```
