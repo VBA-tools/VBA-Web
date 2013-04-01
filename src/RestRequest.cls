@@ -32,6 +32,8 @@ Private pParameters As Dictionary
 Private pQuerystringParams As Dictionary
 Private pUrlSegments As Dictionary
 Private pBody As Dictionary
+Private pBodyString As String
+Private pContentType As String
 Private pHttpRequest As MSXML2.ServerXMLHTTP
 
 ' --------------------------------------------- '
@@ -66,32 +68,32 @@ Public Property Get Headers() As Dictionary
     If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
     Set Headers = pHeaders
 End Property
-Public Property Let Headers(value As Dictionary)
-    Set pHeaders = value
+Public Property Let Headers(Value As Dictionary)
+    Set pHeaders = Value
 End Property
 
 Public Property Get Parameters() As Dictionary
     If pParameters Is Nothing Then: Set pParameters = New Dictionary
     Set Parameters = pParameters
 End Property
-Public Property Let Parameters(value As Dictionary)
-    Set pParameters = value
+Public Property Let Parameters(Value As Dictionary)
+    Set pParameters = Value
 End Property
 
 Public Property Get QuerystringParams() As Dictionary
     If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Dictionary
     Set QuerystringParams = pQuerystringParams
 End Property
-Public Property Let QuerystringParams(value As Dictionary)
-    Set pQuerystringParams = value
+Public Property Let QuerystringParams(Value As Dictionary)
+    Set pQuerystringParams = Value
 End Property
 
 Public Property Get UrlSegments() As Dictionary
     If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
     Set UrlSegments = pUrlSegments
 End Property
-Public Property Let UrlSegments(value As Dictionary)
-    Set pUrlSegments = value
+Public Property Let UrlSegments(Value As Dictionary)
+    Set pUrlSegments = Value
 End Property
 
 Public Property Get FormattedResource(Optional includeCacheBreaker As Boolean = True) As String
@@ -140,12 +142,20 @@ End Property
 
 Public Property Get Body() As String
     ' Add body if it's defined or parameters have been set and it is not a GET request
-    If Not pBody Is Nothing Or (Not Me.Parameters Is Nothing And Me.Method <> httpGET) Then
+    If Not pBody Is Nothing Or pBodyString <> "" Or (Me.Parameters.count > 0 And Me.Method <> httpGET) Then
         Select Case Me.Format
         ' (Currently only JSON is supported)
         Case Else
-            ' Combine defined body and parameters and convert to JSON
-            Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+            If pBodyString <> "" Then
+                If Me.Parameters.count > 0 And Me.Method <> httpGET Then
+                    Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body string and parameters"
+                Else
+                    Body = pBodyString
+                End If
+            Else
+                ' Combine defined body and parameters and convert to JSON
+                Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+            End If
         End Select
     End If
 End Property
@@ -191,21 +201,28 @@ Public Property Get FormatName() As String
 End Property
 
 Public Property Get ContentType() As String
-    Select Case Me.Format
-    Case Else
-        If Me.Method <> httpGET And Me.Parameters.count > 0 Then
-            ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
-        Else
-            ContentType = "application/json;charset=UTF-8"
-        End If
-    End Select
+    If pContentType <> "" Then
+        ContentType = pContentType
+    Else
+        Select Case Me.Format
+        Case Else
+            If Me.Method <> httpGET And Me.Parameters.count > 0 Then
+                ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
+            Else
+                ContentType = "application/json"
+            End If
+        End Select
+    End If
+End Property
+Public Property Let ContentType(Value As String)
+    pContentType = Value
 End Property
 
 Public Property Get HttpRequest() As MSXML2.ServerXMLHTTP
     Set HttpRequest = pHttpRequest
 End Property
-Public Property Let HttpRequest(ByVal value As MSXML2.ServerXMLHTTP)
-    Set pHttpRequest = value
+Public Property Let HttpRequest(ByVal Value As MSXML2.ServerXMLHTTP)
+    Set pHttpRequest = Value
 End Property
 
 
@@ -220,11 +237,11 @@ End Property
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddHeader(Key As String, value As String)
+Public Sub AddHeader(Key As String, Value As String)
     If Not Me.Headers.Exists(Key) Then
-        Me.Headers.Add Key, value
+        Me.Headers.Add Key, Value
     Else
-        Me.Headers(Key) = value
+        Me.Headers(Key) = Value
     End If
 End Sub
 
@@ -235,11 +252,11 @@ End Sub
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddUrlSegment(segment As String, value As String)
+Public Sub AddUrlSegment(segment As String, Value As String)
     If Not Me.UrlSegments.Exists(segment) Then
-        Me.UrlSegments.Add segment, value
+        Me.UrlSegments.Add segment, Value
     Else
-        Me.UrlSegments(segment) = value
+        Me.UrlSegments(segment) = Value
     End If
 End Sub
 
@@ -250,11 +267,11 @@ End Sub
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddParameter(Key As String, value As String)
+Public Sub AddParameter(Key As String, Value As String)
     If Not Me.Parameters.Exists(Key) Then
-        Me.Parameters.Add Key, value
+        Me.Parameters.Add Key, Value
     Else
-        Me.Parameters(Key) = value
+        Me.Parameters(Key) = Value
     End If
 End Sub
 
@@ -265,11 +282,11 @@ End Sub
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddQuerystringParam(Key As String, value As String)
+Public Sub AddQuerystringParam(Key As String, Value As String)
     If Not Me.QuerystringParams.Exists(Key) Then
-        Me.QuerystringParams.Add Key, value
+        Me.QuerystringParams.Add Key, Value
     Else
-        Me.QuerystringParams(Key) = value
+        Me.QuerystringParams(Key) = Value
     End If
 End Sub
 
@@ -281,6 +298,16 @@ End Sub
 
 Public Function AddBody(bodyVal As Dictionary)
     Set pBody = bodyVal
+End Function
+
+''
+' Add body as string
+'
+' @param {String} bodyVal
+' --------------------------------------------- '
+
+Public Function AddBodyString(bodyVal As String)
+    pBodyString = bodyVal
 End Function
 
 ''
