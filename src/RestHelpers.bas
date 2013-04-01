@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v1.0.0
+' RestHelpers v1.0.1
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
@@ -38,7 +38,7 @@ End Enum
 ' Parse given JSON string into object (Dictionary or Collection)
 '
 ' @param {String} jsonStr
-' @return {Object} 
+' @return {Object}
 ' --------------------------------------------- '
 
 Public Function ParseJSON(jsonStr As String) As Object
@@ -131,7 +131,7 @@ Public Function CombineObjects(ByVal origObj As Dictionary, ByVal newObj As Dict
         Set combined = New Dictionary
     End If
     For Each newKey In newObj.keys()
-        If combined.exists(newKey) And overwriteOriginal Then
+        If combined.Exists(newKey) And overwriteOriginal Then
             combined(newKey) = newObj(newKey)
         Else
             combined.Add newKey, newObj(newKey)
@@ -154,12 +154,12 @@ Public Function UpdateModel(ByVal original As Dictionary, whitelist As Variant) 
     
     If IsArray(whitelist) Then
         For i = LBound(whitelist) To UBound(whitelist)
-            If original.exists(whitelist(i)) Then
+            If original.Exists(whitelist(i)) Then
                 updated.Add whitelist(i), original(whitelist(i))
             End If
         Next i
     ElseIf VarType(whitelist) = vbString Then
-        If original.exists(whitelist) Then
+        If original.Exists(whitelist) Then
             updated.Add whitelist, original(whitelist)
         End If
     End If
@@ -173,16 +173,16 @@ End Function
 '
 ' ======================================================================================== '
 
-'' 
+''
 ' Generate a keyed hash value using the HMAC method and SHA1 algorithm
 ' [Does VBA have a Hash_HMAC](http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac)
-' 
+'
 ' @param {String} sTextToHash
-' @param {String} sSharedSecretKey 
-' @return {String} 
+' @param {String} sSharedSecretKey
+' @return {String}
 ' --------------------------------------------- '
 
-Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey  As String) As String
+Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey As String) As String
     Dim asc As Object, enc As Object
     Dim TextToHash() As Byte
     Dim SharedSecretKey() As Byte
@@ -190,8 +190,8 @@ Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecret
     Set enc = CreateObject("System.Security.Cryptography.HMACSHA1")
 
     TextToHash = asc.Getbytes_4(sTextToHash)
-    SharedSecretKey = asc.Getbytes_4(sSharedSecretKey )
-    enc.key = SharedSecretKey
+    SharedSecretKey = asc.Getbytes_4(sSharedSecretKey)
+    enc.Key = SharedSecretKey
 
     Dim bytes() As Byte
     bytes = enc.ComputeHash_2((TextToHash))
@@ -234,7 +234,7 @@ Public Function EncodeStringToBase64(ByVal Data As String) As String
     Dim bytes() As Byte
     Set asc = CreateObject("System.Text.UTF8Encoding")
     bytes = asc.Getbytes_4(Data)
-    EncodeStringToBase64 = EncodeBase64(bytes)
+    EncodeStringToBase64 = Replace(EncodeBase64(bytes), vbLf, "")
     Set asc = Nothing
 End Function
 
@@ -260,3 +260,5 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Next
     CreateNonce = result
 End Function
+
+
