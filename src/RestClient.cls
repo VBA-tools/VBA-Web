@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v0.9.1
+' RestClient v1.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
@@ -22,7 +22,8 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v0.9.0 (https://github.com/timhall/Excel-REST)"
+Private Const UserAgent As String = "Excel Client v1.0.0 (https://github.com/timhall/Excel-REST)"
+Private Const Timeoutms As Integer = 5000
 
 
 ' --------------------------------------------- '
@@ -67,10 +68,9 @@ Public Function Execute(request As RestRequest) As RestResponse
     
 ErrorHandling:
 
-    ' Cleanup http handler
     If Not http Is Nothing Then Set http = Nothing
+    If Not response Is Nothing Then Set response = Nothing
     
-    ' Handle any errors
     If Err.Number > 0 Then
         ' Rethrow error
         Err.Raise Err.Number, description:=Err.description
@@ -109,10 +109,9 @@ Public Function ExecuteAsync(request As RestRequest, Callback As String, Optiona
     
 ErrorHandling:
 
-    ' Cleanup http handler
     If Not http Is Nothing Then Set http = Nothing
+    If Not response Is Nothing Then Set response = Nothing
     
-    ' Handle any errors
     If Err.Number > 0 Then
         ' Rethrow error
         Err.Raise Err.Number, description:=Err.description
@@ -126,7 +125,7 @@ End Function
 
 Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef request As RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
-    http.setTimeouts 5 * 1000, 5 * 1000, 5 * 1000, 5 * 1000
+    http.setTimeouts Timeoutms, Timeoutms, Timeoutms, Timeoutms
     
     ' Add general headers to request
     Call request.AddHeader("User-Agent", UserAgent)

@@ -9,13 +9,14 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' OAuth2 Authenticator v0.9.2
+' OAuth2 Authenticator v1.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth2 authentication
 ' (Currently using client credentials flow only)
 '
 ' @dependencies
+'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -83,7 +84,8 @@ Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
         
         If http.status <> 200 Then
             ' Error getting OAuth2 token
-            Err.Raise http.status, description:="Failed to retrieve OAuth2 Token - " & http.status & ": " & http.responseText
+            Err.Raise vbObjectError + http.status, _
+                description:="Failed to retrieve OAuth2 Token - " & http.status & ": " & http.responseText
         End If
         
         Dim response As Dictionary
@@ -98,7 +100,8 @@ Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
                 request.BaseUrl = response("instance_url")
             End If
         Else
-            Err.Raise 2, description:="Failed to read OAuth2 Token"
+            Err.Raise vbObjectError + 2, _
+                description:="Failed to read OAuth2 Token"
         End If
     End If
     Call request.AddHeader("Authorization", CreateHeader())
@@ -109,6 +112,7 @@ ErrorHandling:
     If Not response Is Nothing Then Set response = Nothing
     
     If Err.Number > 0 Then
+        ' Rethrow error
         Err.Raise Err.Number, description:=Err.description
     End If
 End Sub

@@ -8,12 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' IAuthenticator v0.9.0
+' IAuthenticator v1.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interface for creating authenticators for rest client
 '
 ' @dependencies
+'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -47,5 +48,5 @@ End Sub
 
 Public Sub HttpOpen(ByRef http As MSXML2.IXMLHTTPRequest, ByRef request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Use standard http open by default
-    Call http.Open(request.GetMethodName(request.Method), request.GetFullUrl(BaseUrl), useAsync)
+    Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync)
 End Sub

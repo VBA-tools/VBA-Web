@@ -9,12 +9,13 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' OAuth1 Authenticator v0.9.0
+' OAuth1 Authenticator v1.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth1 authentication
 '
 ' @dependencies
+'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -139,7 +140,6 @@ Private Function CreateHeader(request As RestRequest) As String
     header = header & ", oauth_token=" & Chr(34) & Me.Token & Chr(34)
     header = header & ", oauth_version=" & Chr(34) & "1.0" & Chr(34)
     CreateHeader = header
-    Debug.Print (vbNewLine & "OAuth1 Authorization: " & header)
 End Function
 
 Private Function CreateBaseString(nonce As String, timestamp As String, request As RestRequest) As String
@@ -161,7 +161,6 @@ Private Function CreateBaseString(nonce As String, timestamp As String, request 
     End If
     
     CreateBaseString = request.MethodName() & "&" & URLEncode(request.FormattedResource()) & "&" & URLEncode(base)
-    ' Debug.Print (vbNewLine & "Base string: " & CreateOAuth1BaseString & vbNewLine)
 End Function
 
 Private Function CreateSigningKey() As String
@@ -170,7 +169,6 @@ End Function
 
 Private Function CreateSignature(base As String, signingKey As String) As String
     CreateSignature = Base64_HMACSHA1(base, signingKey)
-    ' Debug.Print (vbNewLine & "Signature: " & CreateOAuth1Signature & vbNewLine)
 End Function
 
 Private Function CreateTimestamp() As String

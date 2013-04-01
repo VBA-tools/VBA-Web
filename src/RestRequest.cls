@@ -8,12 +8,14 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v0.9.0
+' RestRequest v1.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
 '
 ' @dependencies
+'   Microsoft Scripting Runtime
+'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -218,11 +220,11 @@ End Property
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddHeader(key As String, value As String)
-    If Not Me.Headers.Exists(key) Then
-        Me.Headers.Add key, value
+Public Sub AddHeader(Key As String, value As String)
+    If Not Me.Headers.Exists(Key) Then
+        Me.Headers.Add Key, value
     Else
-        Me.Headers(key) = value
+        Me.Headers(Key) = value
     End If
 End Sub
 
@@ -248,11 +250,11 @@ End Sub
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddParameter(key As String, value As String)
-    If Not Me.Parameters.Exists(key) Then
-        Me.Parameters.Add key, value
+Public Sub AddParameter(Key As String, value As String)
+    If Not Me.Parameters.Exists(Key) Then
+        Me.Parameters.Add Key, value
     Else
-        Me.Parameters(key) = value
+        Me.Parameters(Key) = value
     End If
 End Sub
 
@@ -263,11 +265,11 @@ End Sub
 ' @param {String} value
 ' --------------------------------------------- '
 
-Public Sub AddQuerystringParam(key As String, value As String)
-    If Not Me.QuerystringParams.Exists(key) Then
-        Me.QuerystringParams.Add key, value
+Public Sub AddQuerystringParam(Key As String, value As String)
+    If Not Me.QuerystringParams.Exists(Key) Then
+        Me.QuerystringParams.Add Key, value
     Else
-        Me.QuerystringParams(key) = value
+        Me.QuerystringParams(Key) = value
     End If
 End Sub
 
@@ -286,8 +288,8 @@ End Function
 '
 ' --------------------------------------------- '
 
-Public Sub ReadyStageChangeHandler()
-Attribute ReadyStageChangeHandler.VB_UserMemId = 0
+Public Sub ReadyStateChangeHandler()
+Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     ' During development, uncomment to watch changes in ready state
     ' Debug.Print "ReadyStageChangeHandler: " & Me.HttpRequest.readyState
 
@@ -301,16 +303,16 @@ Attribute ReadyStageChangeHandler.VB_UserMemId = 0
     ' Once loaded, process result
     If Me.HttpRequest.readyState = 4 Then
         ' Handle response
-        Dim response As New RestResponse
-        response.StatusCode = Me.HttpRequest.Status
-        response.StatusDescription = Me.HttpRequest.statusText
-        response.Content = Me.HttpRequest.responseText
+        Dim Response As New RestResponse
+        Response.StatusCode = Me.HttpRequest.Status
+        Response.StatusDescription = Me.HttpRequest.statusText
+        Response.Content = Me.HttpRequest.responseText
         
         ' Serialize the response content
         Select Case Me.Format
         ' Currently, JSON is the only supported format
         Case Else
-            Set response.Data = RestHelpers.ParseJSON(response.Content)
+            Set Response.Data = RestHelpers.ParseJSON(Response.Content)
         End Select
         
         ' Callback
@@ -328,8 +330,8 @@ Attribute ReadyStageChangeHandler.VB_UserMemId = 0
             '         Debug.Print args(i) & " was passed into async execute"
             '     Next i
             ' End Function
-            ' 
-            Application.Run Me.Callback, response, Me.CallbackArgs
+            '
+            Application.Run Me.Callback, Response, Me.CallbackArgs
         End If
         
         ' Request is finished, clean up
@@ -347,3 +349,4 @@ Private Sub Class_Terminate()
     ' Clean up
     If Not Me.HttpRequest Is Nothing Then: Set Me.HttpRequest = Nothing
 End Sub
+
