@@ -40,10 +40,11 @@ Public Property Get Token() As String
         Dim Client As New RestClient
         Dim Response As RestResponse
         
+        ' Request a new token
         Client.BaseUrl = "https://api.twitter.com/"
         Set Response = Client.Execute(TokenRequest)
         
-        ' Add token as authorization header if successful, otherwise throw error
+        ' Store token if successful, otherwise throw error
         If Response.StatusCode = Ok Then
             pToken = Response.Data("access_token")
         Else
@@ -52,6 +53,7 @@ Public Property Get Token() As String
         End If
     End If
     
+    ' Return token
     Token = pToken
     
 CleanUp:
