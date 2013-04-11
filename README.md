@@ -84,3 +84,4 @@ Author: Tim Hall
 
 License: MIT
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/304523f72ecef00eae1840dcac0c16bd "githalytics.com")](http://githalytics.com/timhall/Excel-REST)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/timhall/Excel-REST/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
