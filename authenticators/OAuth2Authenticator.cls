@@ -68,10 +68,6 @@ Public Sub SetupTokenUrl(TokenUrl As String, Optional TokenKey As String = "acce
     Me.TokenKey = TokenKey
 End Sub
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
     On Error GoTo ErrorHandling
     If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
@@ -122,9 +118,13 @@ Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, Request As R
     Call http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), useAsync)
 End Sub
 
+' ============================================= '
+' Private Methods
+' ============================================= '
+
 Private Function CreateHeader() As String
     ' Create standard OAuth2 header
-    CreateHeader = "OAuth " & Me.Token
+    CreateHeader = "Bearer " & Me.Token
 End Function
 
 Private Function CreateTokenRequest() As String
