@@ -376,4 +376,3 @@ Private Sub Class_Terminate()
     ' Clean up
     If Not Me.HttpRequest Is Nothing Then: Set Me.HttpRequest = Nothing
 End Sub
-

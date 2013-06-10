@@ -22,7 +22,7 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v1.0.0 (https://github.com/timhall/Excel-REST)"
+Private Const UserAgent As String = "Excel Client v1.0.1 (https://github.com/timhall/Excel-REST)"
 Private Const Timeoutms As Integer = 5000
 
 
@@ -152,4 +152,3 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestR
         Call http.setRequestHeader(headerKey, Request.Headers(headerKey))
     Next headerKey
 End Sub
-

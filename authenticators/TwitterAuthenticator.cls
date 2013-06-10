@@ -12,7 +12,7 @@ Implements IAuthenticator
 ' Twitter Authenticator v1.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
-' Custom IAuthenticator for application-only authentication in Twitter's V1.1. REST API
+' Custom IAuthenticator for application-only authentication in Twitter's V1.1 REST API
 '
 ' - https://dev.twitter.com/docs/auth/application-only-auth
 ' - https://github.com/timhall/Excel-REST/wiki/Implementing-your-own-IAuthenticator
@@ -106,7 +106,7 @@ Private Function TokenRequest() As RestRequest
     TokenRequest.AddHeader "Authorization", _
         "Basic " & RestHelpers.EncodeStringToBase64(Me.ConsumerKey & ":" & Me.ConsumerSecret)
 
-    ' 2. include grant_type in body
+    ' 2. Include grant_type in body
     TokenRequest.AddBodyString "grant_type=client_credentials"
 
     ' 3. Set content-type as form-urlencoded
