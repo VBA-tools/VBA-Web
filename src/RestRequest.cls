@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v1.0.1
+' RestRequest v1.0.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
@@ -63,6 +63,7 @@ Public Callback As String
 Public BaseUrl As String
 Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
+Public IncludeCacheBreaker As Boolean
 
 Public Property Get Headers() As Dictionary
     If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
@@ -96,7 +97,7 @@ Public Property Let UrlSegments(Value As Dictionary)
     Set pUrlSegments = Value
 End Property
 
-Public Property Get FormattedResource(Optional includeCacheBreaker As Boolean = True) As String
+Public Property Get FormattedResource() As String
     Dim segment As Variant
     Dim parameterKey As Variant
     
@@ -112,7 +113,7 @@ Public Property Get FormattedResource(Optional includeCacheBreaker As Boolean = 
     ' [MSXML2.XMLHTTP refresh](http://www.tek-tips.com/viewthread.cfm?qid=1563400)
     ' Looks like a last-modified could work here too, but may also require control over server response
     ' Also, with update to ServerXMLHTTP, neither may be needed
-    If Me.Method = httpGET And includeCacheBreaker Then
+    If Me.Method = httpGET And Me.IncludeCacheBreaker Then
         If Me.Parameters Is Nothing Then
             Me.Parameters = New Dictionary
         End If
@@ -264,10 +265,10 @@ End Sub
 ' Add parameter to request (querystring for GET, body for POST)
 '
 ' @param {String} key
-' @param {String} value
+' @param {Variant} value
 ' --------------------------------------------- '
 
-Public Sub AddParameter(Key As String, Value As String)
+Public Sub AddParameter(Key As String, Value As Variant)
     If Not Me.Parameters.Exists(Key) Then
         Me.Parameters.Add Key, Value
     Else
@@ -279,10 +280,10 @@ End Sub
 ' Add querystring parameter to request
 '
 ' @param {String} key
-' @param {String} value
+' @param {Variant} value
 ' --------------------------------------------- '
 
-Public Sub AddQuerystringParam(Key As String, Value As String)
+Public Sub AddQuerystringParam(Key As String, Value As Variant)
     If Not Me.QuerystringParams.Exists(Key) Then
         Me.QuerystringParams.Add Key, Value
     Else
@@ -371,6 +372,11 @@ End Sub
 ' ============================================= '
 ' Private Functions
 ' ============================================= '
+
+Private Sub Class_Initialize()
+    ' Set default values
+    Me.IncludeCacheBreaker = True
+End Sub
 
 Private Sub Class_Terminate()
     ' Clean up
