@@ -16,9 +16,10 @@ Attribute VB_Exposed = False
 '
 ' Features:
 '   JSON parse and toString
-'   Small changes
+'   Changes for Excel-REST:
 '   - Updated parseNumber to reduce chance of overflow
 '   - Swapped Mid for Mid$
+'   - Handle colon in object key
 '
 ' Required References: None
 '
@@ -31,14 +32,6 @@ Const INVALID_ARRAY     As Long = 3
 Const INVALID_BOOLEAN   As Long = 4
 Const INVALID_NULL      As Long = 5
 Const INVALID_KEY       As Long = 6
-
-Private Sub Class_Initialize()
-
-End Sub
-
-Private Sub Class_Terminate()
-
-End Sub
 
 '
 '   parse string and create JSON object (Dictionary or Collection in VB)
@@ -83,10 +76,10 @@ Private Function parseObject(ByRef str As String, ByRef index As Long) As Object
             Call skipChar(str, index)
         End If
         
-        Dim key As String
+        Dim Key As String
         
         ' add key/value pair
-        parseObject.Add key:=parseKey(str, index), Item:=parseValue(str, index)
+        parseObject.Add Key:=parseKey(str, index), Item:=parseValue(str, index)
         
     Loop
 
@@ -206,25 +199,25 @@ End Function
 '
 Private Function parseNumber(ByRef str As String, ByRef index As Long)
 
-    Dim value   As String
+    Dim Value   As String
     Dim char    As String
     
     Call skipChar(str, index)
     Do While index > 0 And index <= Len(str)
         char = Mid$(str, index, 1)
         If InStr("+-0123456789.eE", char) Then
-            value = value & char
+            Value = Value & char
             index = index + 1
         Else
-            If InStr(value, ".") Or InStr(value, "e") Or InStr(value, "E") Then
-                parseNumber = CDbl(value)
+            If InStr(Value, ".") Or InStr(Value, "e") Or InStr(Value, "E") Then
+                parseNumber = CDbl(Value)
             Else
-                If Len(value) < 5 Then
-                    parseNumber = CInt(value)
-                ElseIf Len(value) < 10 Then
-                    parseNumber = CLng(value)
+                If Len(Value) < 5 Then
+                    parseNumber = CInt(Value)
+                ElseIf Len(Value) < 10 Then
+                    parseNumber = CLng(Value)
                 Else
-                    parseNumber = CDec(value)
+                    parseNumber = CDec(Value)
                 End If
             End If
             Exit Function
@@ -299,6 +292,10 @@ Private Function parseKey(ByRef str As String, ByRef index As Long) As String
             If Not dquote And Not squote Then
                 index = index + 1
                 Exit Do
+            Else
+                ' Colon in key name
+                parseKey = parseKey & char
+                index = index + 1
             End If
         Case Else
             If InStr(vbCrLf & vbCr & vbLf & vbTab & " ", char) Then
@@ -342,18 +339,18 @@ Public Function ToString(ByRef obj As Variant) As String
                 keys = obj.keys
                 For i = 0 To obj.count - 1
                     If bFI Then bFI = False Else ToString = ToString & ","
-                    Dim key
-                    key = keys(i)
-                    ToString = ToString & """" & key & """:" & ToString(obj(key))
+                    Dim Key
+                    Key = keys(i)
+                    ToString = ToString & """" & Key & """:" & ToString(obj(Key))
                 Next i
                 ToString = ToString & "}"
             ElseIf TypeName(obj) = "Collection" Then
                 ToString = ToString & "["
-                Dim value
-                For Each value In obj
+                Dim Value
+                For Each Value In obj
                     If bFI Then bFI = False Else ToString = ToString & ","
-                    ToString = ToString & ToString(value)
-                Next value
+                    ToString = ToString & ToString(Value)
+                Next Value
                 ToString = ToString & "]"
             End If
         Case vbBoolean
