@@ -3,7 +3,7 @@
 Salesforce Documentation:
 [http://www.salesforce.com/us/developer/docs/api_rest/Content/intro_defining_remote_access_applications.htm](http://www.salesforce.com/us/developer/docs/api_rest/Content/intro_defining_remote_access_applications.htm)
 
-1. Create developer account at [developer.salesforce.com](developer.salesforce.com)
+1. Create developer account at [developer.salesforce.com](https://developer.salesforce.com)
 2. From the Setup page for your develop account, select App Setup > Create > Apps
 3. Click New in the Connected Apps section
 4. If necessary, create a prefix for your developer account
