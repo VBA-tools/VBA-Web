@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v1.0.1
+' RestHelpers v1.0.3
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
@@ -109,6 +109,26 @@ Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = F
         Next i
         URLEncode = Join(result, "")
     End If
+End Function
+
+
+''
+' Join Url with /
+'
+' @param {String} LeftSide
+' @param {String} RightSide
+' @return {String} Joined url
+' --------------------------------------------- '
+
+Public Function JoinUrl(LeftSide As String, RightSide As String) As String
+    If Left(RightSide, 1) = "/" Then
+        RightSide = Right(RightSide, Len(RightSide) - 1)
+    End If
+    If Right(LeftSide, 1) = "/" Then
+        LeftSide = Left(LeftSide, Len(LeftSide) - 1)
+    End If
+    
+    JoinUrl = LeftSide & "/" & RightSide
 End Function
 
 ''

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestResponse v1.0.0
+' RestResponse v1.0.3
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Wrapper for http responses

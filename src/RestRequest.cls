@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v1.0.2
+' RestRequest v1.0.3
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
@@ -114,15 +114,12 @@ Public Property Get FormattedResource() As String
     ' Looks like a last-modified could work here too, but may also require control over server response
     ' Also, with update to ServerXMLHTTP, neither may be needed
     If Me.Method = httpGET And Me.IncludeCacheBreaker Then
-        If Me.Parameters Is Nothing Then
-            Me.Parameters = New Dictionary
-        End If
-        Me.Parameters(cacheBreakerKey) = Timer() * 100
+        Me.AddQuerystringParam cacheBreakerKey, Timer() * 100
     End If
     
     ' Add querystring
     If (Me.Method = httpGET And Not Me.Parameters Is Nothing) Or Not Me.QuerystringParams Is Nothing Then
-        If Me.Parameters.count > 0 Or Me.QuerystringParams.count > 0 Then
+        If (Me.Parameters.count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.count > 0 Then
             FormattedResource = FormattedResource & "?"
             
             ' Only load parameters to querystring if GET request (otherwise they are added to the body)
@@ -154,8 +151,12 @@ Public Property Get Body() As String
                     Body = pBodyString
                 End If
             Else
-                ' Combine defined body and parameters and convert to JSON
-                Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+                If Me.Method <> httpGET Then
+                    ' Combine defined body and parameters and convert to JSON
+                    Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+                Else
+                    Body = RestHelpers.ConvertToJSON(pBody)
+                End If
             End If
         End Select
     End If
@@ -163,9 +164,6 @@ End Property
 
 Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
     If Me.BaseUrl = "" Then Me.BaseUrl = ClientBaseUrl
-    If Right(Me.BaseUrl, 1) <> "/" Then
-        Me.BaseUrl = Me.BaseUrl & "/"
-    End If
     
     ' If protocol is missing from base url, add it based on RequireHTTPS property
     If Left(Me.BaseUrl, 7) <> "http://" And Left(Me.BaseUrl, 8) <> "https://" Then
@@ -176,7 +174,7 @@ Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
         End If
     End If
     
-    FullUrl = Me.BaseUrl & Me.FormattedResource
+    FullUrl = JoinUrl(Me.BaseUrl, Me.FormattedResource)
 End Property
 
 Public Property Get MethodName() As String
