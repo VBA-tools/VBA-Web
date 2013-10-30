@@ -98,6 +98,7 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     Request.CallbackArgs = CallbackArgs
     
     ' Send the request
+    Request.StartTimeoutTimer Me.TimeoutMS
     Call http.send(Request.Body)
     
     ' Clean up and return

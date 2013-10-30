@@ -12,6 +12,35 @@ Attribute VB_Name = "RestHelpers"
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
+' Declare SetTimer and KillTimer
+' See [SetTimer and VBA](http://www.mcpher.com/Home/excelquirks/classeslink/vbapromises/timercallbacks)
+' and [MSDN Article](http://msdn.microsoft.com/en-us/library/windows/desktop/ms644906(v=vs.85).aspx)
+' --------------------------------------------- '
+#If VBA7 And Win64 Then
+    ' 64-bit
+    Public Declare PtrSafe Function SetTimer Lib "user32" ( _
+        ByVal HWnd As Long, ByVal nIDEvent As Long, _
+        ByVal uElapse As Long, _
+        ByVal lpTimerFunc As Long) As Long
+    Public Declare PtrSafe Function KillTimer Lib "user32" ( _
+        ByVal HWnd As Long, _
+        ByVal nIDEvent As Long) As Long
+   
+#Else
+    '32-bit
+    Public Declare Function SetTimer Lib "user32" ( _
+        ByVal HWnd As Long, _
+        ByVal nIDEvent As Long, _
+        ByVal uElapse As Long, _
+        ByVal lpTimerFunc As Long) As Long
+    Public Declare Function KillTimer Lib "user32" ( _
+        ByVal HWnd As Long, _
+        ByVal nIDEvent As Long) As Long
+  
+#End If
+
+Private Timers As Object
+
 Public Enum StatusCodes
     Ok = 200
     Created = 201
@@ -75,7 +104,7 @@ Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = F
     stringLen = Len(urlVal)
     
     If stringLen > 0 Then
-        ReDim result(stringLen) As String
+        ReDim Result(stringLen) As String
         Dim i As Long, charCode As Integer
         Dim char As String, space As String
         
@@ -94,19 +123,19 @@ Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = F
             Select Case charCode
                 Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
                     ' Use original for AZaz09-._~
-                    result(i) = char
+                    Result(i) = char
                 Case 32
                     ' Add space
-                    result(i) = space
+                    Result(i) = space
                 Case 0 To 15
                     ' Convert to hex w/ leading 0
-                    result(i) = "%0" & Hex(charCode)
+                    Result(i) = "%0" & Hex(charCode)
                 Case Else
                     ' Convert to hex
-                    result(i) = "%" & Hex(charCode)
+                    Result(i) = "%" & Hex(charCode)
             End Select
         Next i
-        URLEncode = Join(result, "")
+        URLEncode = Join(Result, "")
     End If
 End Function
 
@@ -190,6 +219,71 @@ End Function
 
 ' ======================================================================================== '
 '
+' Timeout Timing
+'
+' ======================================================================================== '
+
+''
+' Start timeout timer for request
+'
+' @param {RestRequest} Request
+' @param {Long} TimeoutMS
+' --------------------------------------------- '
+Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
+    If Timers Is Nothing Then: Set Timers = CreateObject("Scripting.Dictionary")
+    
+    Dim Id As Long
+    Id = SetTimer(Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired)
+    
+    Timers.Add Id, Request
+    Request.TimerId = Id
+End Sub
+
+''
+' Stop timeout timer for request
+'
+' @param {RestRequest} Request
+' --------------------------------------------- '
+Public Sub StopTimeoutTimer(Request As RestRequest)
+    If Timers.Exists(Request.TimerId) Then
+        KillTimer Application.HWnd, Request.TimerId
+    
+        Timers.Remove Request.TimerId
+        Request.TimerId = -1
+    End If
+End Sub
+
+''
+' Handle timeout timers expiring
+'
+' See [MSDN Article](http://msdn.microsoft.com/en-us/library/windows/desktop/ms644907(v=vs.85).aspx)
+' --------------------------------------------- '
+#If VBA7 And Win64 Then
+Public Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal Msg As Long, _
+        ByVal Id As Long, ByVal dwTimer As Long)
+#Else
+Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal uMsg As Long, _
+        ByVal Id As Long, ByVal dwTimer As Long)
+#End If
+    
+    If Timers.Exists(Id) Then
+        Dim Request As RestRequest
+        Set Request = Timers.Item(Id)
+        
+        ' If request is found, stop timer and call TimedOut()
+        If Not Request Is Nothing Then
+            StopTimeoutTimer Request
+            Request.TimedOut
+        Else
+            KillTimer Application.HWnd, Id
+        End If
+    Else
+        KillTimer Application.HWnd, Id
+    End If
+End Sub
+
+' ======================================================================================== '
+'
 ' Crytography and encoding
 '
 ' ======================================================================================== '
@@ -269,17 +363,17 @@ End Function
 Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Dim str As String
     Dim count As Integer
-    Dim result As String
+    Dim Result As String
     Dim random As Integer
     
     str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
-    result = ""
+    Result = ""
     
     For count = 1 To NonceLength
         random = Int(((Len(str) - 1) * Rnd) + 1)
-        result = result + Mid$(str, random, 1)
+        Result = Result + Mid$(str, random, 1)
     Next
-    CreateNonce = result
+    CreateNonce = Result
 End Function
 
 

@@ -61,6 +61,7 @@ Public BaseUrl As String
 Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
+Public TimerId As Long
 
 Public Property Get Headers() As Object
     If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
@@ -111,7 +112,7 @@ Public Property Get FormattedResource() As String
     ' Looks like a last-modified could work here too, but may also require control over server response
     ' Also, with update to ServerXMLHTTP, neither may be needed
     If Me.Method = httpGET And Me.IncludeCacheBreaker Then
-        Me.AddQuerystringParam cacheBreakerKey, Timer() * 100
+        Me.AddQuerystringParam cacheBreakerKey, timer() * 100
     End If
     
     ' Add querystring
@@ -325,6 +326,8 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     
     ' Once loaded, process result
     If Me.HttpRequest.readyState = 4 Then
+        Me.StopTimeoutTimer
+        
         ' Handle response
         Dim Response As New RestResponse
         Response.StatusCode = Me.HttpRequest.Status
@@ -362,6 +365,44 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     End If
     
     ' TODO: Check for timeout and cleanup
+End Sub
+
+''
+' Start timeout timer
+'
+' --------------------------------------------- '
+
+Public Sub StartTimeoutTimer(TimeoutMS As Long)
+    RestHelpers.StartTimeoutTimer Me, TimeoutMS
+End Sub
+
+''
+' Stop timeout timer
+'
+' --------------------------------------------- '
+
+Public Sub StopTimeoutTimer()
+    RestHelpers.StopTimeoutTimer Me
+End Sub
+
+''
+' Handle timeouts
+'
+' --------------------------------------------- '
+
+Public Sub TimedOut()
+    ' Handle response
+    Dim Response As New RestResponse
+    Response.StatusCode = StatusCodes.GatewayTimeout
+    Response.StatusDescription = "Gateway Timeout"
+        
+    ' Callback
+    If Me.Callback <> "" Then
+        Application.Run Me.Callback, Response, Me.CallbackArgs
+    End If
+    
+    ' Request is finished, clean up
+    Set Me.HttpRequest = Nothing
 End Sub
 
 ' ============================================= '
