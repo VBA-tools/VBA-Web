@@ -31,10 +31,19 @@ app.get('/timeout', function(req, res) {
   }, ms);
 });
 
+// JSON
+app.get('/json', function(req, res) {
+  res.json({a: '1', b: 2, c: 3.14, d: false, e: [4, 5], f: {a: '1', b: 2}});
+});
+
 function standardResponse(req, res) {
   res.send(200, {
     method: req.route.method.toUpperCase(),
     query: req.query,
+    headers: {
+      'content-type': req.get('content-type'),
+      'custom': req.get('custom')
+    },
     body: req.text || req.body
   });
 }
