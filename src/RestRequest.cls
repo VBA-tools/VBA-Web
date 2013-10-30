@@ -61,7 +61,6 @@ Public BaseUrl As String
 Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
-Public TimerId As Long
 
 Public Property Get Headers() As Object
     If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
@@ -118,7 +117,9 @@ Public Property Get FormattedResource() As String
     ' Add querystring
     If (Me.Method = httpGET And Not Me.Parameters Is Nothing) Or Not Me.QuerystringParams Is Nothing Then
         If (Me.Parameters.count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.count > 0 Then
-            FormattedResource = FormattedResource & "?"
+            If InStr(FormattedResource, "?") <= 0 Then
+                FormattedResource = FormattedResource & "?"
+            End If
             
             ' Only load parameters to querystring if GET request (otherwise they are added to the body)
             If Me.Method = httpGET Then

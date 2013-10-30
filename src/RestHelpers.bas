@@ -39,8 +39,6 @@ Attribute VB_Name = "RestHelpers"
   
 #End If
 
-Private Timers As Object
-
 Public Enum StatusCodes
     Ok = 200
     Created = 201
@@ -230,13 +228,7 @@ End Function
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
 Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
-    If Timers Is Nothing Then: Set Timers = CreateObject("Scripting.Dictionary")
-    
-    Dim Id As Long
-    Id = SetTimer(Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired)
-    
-    Timers.Add Id, Request
-    Request.TimerId = Id
+    SetTimer Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired
 End Sub
 
 ''
@@ -245,12 +237,7 @@ End Sub
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
 Public Sub StopTimeoutTimer(Request As RestRequest)
-    If Timers.Exists(Request.TimerId) Then
-        KillTimer Application.HWnd, Request.TimerId
-    
-        Timers.Remove Request.TimerId
-        Request.TimerId = -1
-    End If
+    KillTimer Application.HWnd, ObjPtr(Request)
 End Sub
 
 ''
@@ -260,26 +247,14 @@ End Sub
 ' --------------------------------------------- '
 #If VBA7 And Win64 Then
 Public Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal Msg As Long, _
-        ByVal Id As Long, ByVal dwTimer As Long)
+        ByVal Request As RestRequest, ByVal dwTimer As Long)
 #Else
 Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal uMsg As Long, _
-        ByVal Id As Long, ByVal dwTimer As Long)
+        ByVal Request As RestRequest, ByVal dwTimer As Long)
 #End If
     
-    If Timers.Exists(Id) Then
-        Dim Request As RestRequest
-        Set Request = Timers.Item(Id)
-        
-        ' If request is found, stop timer and call TimedOut()
-        If Not Request Is Nothing Then
-            StopTimeoutTimer Request
-            Request.TimedOut
-        Else
-            KillTimer Application.HWnd, Id
-        End If
-    Else
-        KillTimer Application.HWnd, Id
-    End If
+    StopTimeoutTimer Request
+    Request.TimedOut
 End Sub
 
 ' ======================================================================================== '
