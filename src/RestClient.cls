@@ -62,17 +62,25 @@ Public Function Execute(Request As RestRequest) As RestResponse
     Case Else
         Set Response.Data = RestHelpers.ParseJSON(Response.Content)
     End Select
-    Set Execute = Response
     
 ErrorHandling:
 
     If Not http Is Nothing Then Set http = Nothing
-    If Not Response Is Nothing Then Set Response = Nothing
     
     If Err.Number <> 0 Then
-        ' Rethrow error
-        Err.Raise Err.Number, Description:=Err.Description
+        If InStr(Err.Description, "The operation timed out") > 0 Then
+            ' Return 504
+            Response.StatusCode = StatusCodes.GatewayTimeout
+            Response.StatusDescription = "Gateway Timeout"
+            
+            Err.Clear
+        Else
+            ' Rethrow error
+            Err.Raise Err.Number, Description:=Err.Description
+        End If
     End If
+    
+    Set Execute = Response
     
 End Function
 
@@ -102,7 +110,6 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     Call http.send(Request.Body)
     
     ' Clean up and return
-    ' Set http = Nothing
     ExecuteAsync = True
     Exit Function
     
@@ -130,7 +137,7 @@ Private Sub HttpSetup(ByRef http As Object, ByRef Request As RestRequest, Option
     Call Request.AddHeader("User-Agent", UserAgent)
     Call Request.AddHeader("Content-Type", Request.ContentType())
     
-    ' If async, pass http to request and setup onreadystatechange
+    ' Pass http to request and setup onreadystatechange
     If useAsync Then
         Set Request.HttpRequest = http
         http.onreadystatechange = Request
