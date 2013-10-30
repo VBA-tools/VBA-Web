@@ -13,8 +13,6 @@ Attribute VB_Exposed = True
 '
 ' Interface for creating authenticators for rest client
 '
-' @dependencies
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -31,7 +29,7 @@ Option Explicit
 ' @param {RestRequest} request The request about to be executed
 ' --------------------------------------------- '
 
-Public Sub BeforeExecute(ByRef request As RestRequest)
+Public Sub BeforeExecute(ByRef Request As RestRequest)
     ' ...
     ' Add header
     ' etc.
@@ -46,7 +44,7 @@ End Sub
 ' @param {Boolean} [useAsync=False]
 ' --------------------------------------------- '
 
-Public Sub HttpOpen(ByRef http As MSXML2.IXMLHTTPRequest, ByRef request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Public Sub HttpOpen(ByRef http As Object, ByRef Request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
     ' Use standard http open by default
-    Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync)
+    Call http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), useAsync)
 End Sub

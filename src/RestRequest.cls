@@ -13,8 +13,6 @@ Attribute VB_Exposed = True
 '
 ' Create a request for use with a rest client
 '
-' @dependencies
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -33,7 +31,7 @@ Private pUrlSegments As Object
 Private pBody As Object
 Private pBodyString As String
 Private pContentType As String
-Private pHttpRequest As MSXML2.ServerXMLHTTP
+Private pHttpRequest As Object
 
 ' --------------------------------------------- '
 ' Types
@@ -216,10 +214,10 @@ Public Property Let ContentType(Value As String)
     pContentType = Value
 End Property
 
-Public Property Get HttpRequest() As MSXML2.ServerXMLHTTP
+Public Property Get HttpRequest() As Object
     Set HttpRequest = pHttpRequest
 End Property
-Public Property Let HttpRequest(ByVal Value As MSXML2.ServerXMLHTTP)
+Public Property Set HttpRequest(ByVal Value As Object)
     Set pHttpRequest = Value
 End Property
 

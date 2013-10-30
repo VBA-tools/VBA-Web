@@ -7,7 +7,6 @@ Attribute VB_Name = "RestHelpers"
 '
 ' @dependencies
 '   JSONLib (http://code.google.com/p/vba-json/)
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -229,19 +228,19 @@ End Function
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 
-Public Function EncodeBase64(ByRef arrData() As Byte) As String
-    Dim objXML As MSXML2.DOMDocument
-    Dim objNode As MSXML2.IXMLDOMElement
-    Set objXML = New MSXML2.DOMDocument
+Public Function EncodeBase64(ByRef Data() As Byte) As String
+    Dim XML As Object
+    Dim Node As Object
+    Set XML = CreateObject("MSXML2.DOMDocument")
 
     ' byte array to base64
-    Set objNode = objXML.createElement("b64")
-    objNode.DataType = "bin.base64"
-    objNode.nodeTypedValue = arrData
-    EncodeBase64 = objNode.text
+    Set Node = XML.createElement("b64")
+    Node.DataType = "bin.base64"
+    Node.nodeTypedValue = Data
+    EncodeBase64 = Node.text
 
-    Set objNode = Nothing
-    Set objXML = Nothing
+    Set Node = Nothing
+    Set XML = Nothing
 End Function
 
 ''

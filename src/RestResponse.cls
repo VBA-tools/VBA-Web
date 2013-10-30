@@ -13,8 +13,6 @@ Attribute VB_Exposed = True
 '
 ' Wrapper for http responses
 '
-' @dependencies
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '

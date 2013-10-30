@@ -13,8 +13,6 @@ Attribute VB_Exposed = True
 '
 ' Interact with REST web services from Excel
 '
-' @dependencies
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -46,17 +44,17 @@ Public TimeoutMS As Integer
 
 Public Function Execute(Request As RestRequest) As RestResponse
     Dim Response As New RestResponse
-    Dim http As MSXML2.ServerXMLHTTP
+    Dim http As Object
     Dim headerKey As Variant
     
     On Error GoTo ErrorHandling
-    Set http = New MSXML2.ServerXMLHTTP
+    Set http = CreateObject("MSXML2.ServerXMLHTTP")
     Call HttpSetup(http, Request, False)
     
     ' Send the request
     Call http.send(Request.Body)
     
-    ' Handle response...
+    ' Handle response
     Response.StatusCode = http.Status
     Response.StatusDescription = http.statusText
     Response.Content = http.responseText
@@ -89,12 +87,12 @@ End Function
 
 Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     Dim Response As New RestResponse
-    Dim http As MSXML2.ServerXMLHTTP
+    Dim http As Object
     
     On Error GoTo ErrorHandling
     
     ' Setup the request
-    Set http = New MSXML2.ServerXMLHTTP
+    Set http = CreateObject("MSXML2.ServerXMLHTTP")
     Call HttpSetup(http, Request, True)
     Request.Callback = Callback
     Request.CallbackArgs = CallbackArgs
@@ -123,7 +121,7 @@ End Function
 ' Private Methods
 ' ============================================= '
 
-Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
+Private Sub HttpSetup(ByRef http As Object, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
     http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
@@ -133,7 +131,7 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestR
     
     ' If async, pass http to request and setup onreadystatechange
     If useAsync Then
-        Request.HttpRequest = http
+        Set Request.HttpRequest = http
         http.onreadystatechange = Request
     End If
     
