@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v1.0.3
+' RestHelpers v1.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
