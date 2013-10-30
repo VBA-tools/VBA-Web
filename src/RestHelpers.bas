@@ -1,17 +1,43 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v1.0.1
+' RestHelpers v1.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
 '
 ' @dependencies
 '   JSONLib (http://code.google.com/p/vba-json/)
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
+' Declare SetTimer and KillTimer
+' See [SetTimer and VBA](http://www.mcpher.com/Home/excelquirks/classeslink/vbapromises/timercallbacks)
+' and [MSDN Article](http://msdn.microsoft.com/en-us/library/windows/desktop/ms644906(v=vs.85).aspx)
+' --------------------------------------------- '
+#If VBA7 And Win64 Then
+    ' 64-bit
+    Public Declare PtrSafe Function SetTimer Lib "user32" ( _
+        ByVal HWnd As Long, ByVal nIDEvent As Long, _
+        ByVal uElapse As Long, _
+        ByVal lpTimerFunc As Long) As Long
+    Public Declare PtrSafe Function KillTimer Lib "user32" ( _
+        ByVal HWnd As Long, _
+        ByVal nIDEvent As Long) As Long
+   
+#Else
+    '32-bit
+    Public Declare Function SetTimer Lib "user32" ( _
+        ByVal HWnd As Long, _
+        ByVal nIDEvent As Long, _
+        ByVal uElapse As Long, _
+        ByVal lpTimerFunc As Long) As Long
+    Public Declare Function KillTimer Lib "user32" ( _
+        ByVal HWnd As Long, _
+        ByVal nIDEvent As Long) As Long
+  
+#End If
 
 Public Enum StatusCodes
     Ok = 200
@@ -37,13 +63,13 @@ End Enum
 ''
 ' Parse given JSON string into object (Dictionary or Collection)
 '
-' @param {String} jsonStr
+' @param {String} JSON
 ' @return {Object}
 ' --------------------------------------------- '
 
-Public Function ParseJSON(jsonStr As String) As Object
+Public Function ParseJSON(JSON As String) As Object
     Dim lib As New JSONLib
-    Set ParseJSON = lib.parse(jsonStr)
+    Set ParseJSON = lib.parse(JSON)
     Set lib = Nothing
 End Function
 
@@ -54,9 +80,9 @@ End Function
 ' @return {String}
 ' --------------------------------------------- '
 
-Public Function ConvertToJSON(obj As Object) As String
+Public Function ConvertToJSON(Obj As Object) As String
     Dim lib As New JSONLib
-    ConvertToJSON = lib.ToString(obj)
+    ConvertToJSON = lib.ToString(Obj)
     Set lib = Nothing
 End Function
 
@@ -76,7 +102,7 @@ Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = F
     stringLen = Len(urlVal)
     
     If stringLen > 0 Then
-        ReDim result(stringLen) As String
+        ReDim Result(stringLen) As String
         Dim i As Long, charCode As Integer
         Dim char As String, space As String
         
@@ -95,20 +121,40 @@ Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = F
             Select Case charCode
                 Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
                     ' Use original for AZaz09-._~
-                    result(i) = char
+                    Result(i) = char
                 Case 32
                     ' Add space
-                    result(i) = space
+                    Result(i) = space
                 Case 0 To 15
                     ' Convert to hex w/ leading 0
-                    result(i) = "%0" & Hex(charCode)
+                    Result(i) = "%0" & Hex(charCode)
                 Case Else
                     ' Convert to hex
-                    result(i) = "%" & Hex(charCode)
+                    Result(i) = "%" & Hex(charCode)
             End Select
         Next i
-        URLEncode = Join(result, "")
+        URLEncode = Join(Result, "")
     End If
+End Function
+
+
+''
+' Join Url with /
+'
+' @param {String} LeftSide
+' @param {String} RightSide
+' @return {String} Joined url
+' --------------------------------------------- '
+
+Public Function JoinUrl(LeftSide As String, RightSide As String) As String
+    If Left(RightSide, 1) = "/" Then
+        RightSide = Right(RightSide, Len(RightSide) - 1)
+    End If
+    If Right(LeftSide, 1) = "/" Then
+        LeftSide = Left(LeftSide, Len(LeftSide) - 1)
+    End If
+    
+    JoinUrl = LeftSide & "/" & RightSide
 End Function
 
 ''
@@ -119,53 +165,97 @@ End Function
 ' @param {Boolean} [overwriteOriginal=True] Overwrite any values that already exist in the original object
 ' --------------------------------------------- '
 
-Public Function CombineObjects(ByVal origObj As Dictionary, ByVal newObj As Dictionary, _
-    Optional overwriteOriginal As Boolean = True) As Dictionary
+Public Function CombineObjects(ByVal OriginalObj As Object, ByVal NewObj As Object, _
+    Optional OverwriteOriginal As Boolean = True) As Object
     
-    Dim combined As Dictionary
-    Dim newKey As Variant
+    Dim Combined As Object
+    Dim NewKey As Variant
     
-    If Not origObj Is Nothing Then
-        Set combined = origObj
+    If Not OriginalObj Is Nothing Then
+        Set Combined = OriginalObj
     Else
-        Set combined = New Dictionary
+        Set Combined = CreateObject("Scripting.Dictionary")
     End If
-    For Each newKey In newObj.keys()
-        If combined.Exists(newKey) And overwriteOriginal Then
-            combined(newKey) = newObj(newKey)
+    For Each NewKey In NewObj.keys()
+        If Combined.Exists(NewKey) And OverwriteOriginal Then
+            Combined(NewKey) = NewObj(NewKey)
         Else
-            combined.Add newKey, newObj(newKey)
+            Combined.Add NewKey, NewObj(NewKey)
         End If
-    Next newKey
+    Next NewKey
 
-    Set CombineObjects = combined
+    Set CombineObjects = Combined
 End Function
 
 ''
 ' Apply whitelist to given model to filter out unwanted key/values
 '
-' @param {Dictionary} original Original model to filter
-' @param {Variant} whitelist Array of values to retain in the model
+' @param {Dictionary} Original Original model to filter
+' @param {Variant} WhiteList Array of values to retain in the model
 ' --------------------------------------------- '
 
-Public Function UpdateModel(ByVal original As Dictionary, whitelist As Variant) As Dictionary
-    Dim updated As New Dictionary
+Public Function FilterModel(ByVal Original As Object, WhiteList As Variant) As Object
+    Dim Filtered As Object
     Dim i As Integer
     
-    If IsArray(whitelist) Then
-        For i = LBound(whitelist) To UBound(whitelist)
-            If original.Exists(whitelist(i)) Then
-                updated.Add whitelist(i), original(whitelist(i))
+    Set Filtered = CreateObject("Scripting.Dictionary")
+    
+    If IsArray(WhiteList) Then
+        For i = LBound(WhiteList) To UBound(WhiteList)
+            If Original.Exists(WhiteList(i)) Then
+                Filtered.Add WhiteList(i), Original(WhiteList(i))
             End If
         Next i
-    ElseIf VarType(whitelist) = vbString Then
-        If original.Exists(whitelist) Then
-            updated.Add whitelist, original(whitelist)
+    ElseIf VarType(WhiteList) = vbString Then
+        If Original.Exists(WhiteList) Then
+            Filtered.Add WhiteList, Original(WhiteList)
         End If
     End If
     
-    Set UpdateModel = updated
+    Set FilterModel = Filtered
 End Function
+
+' ======================================================================================== '
+'
+' Timeout Timing
+'
+' ======================================================================================== '
+
+''
+' Start timeout timer for request
+'
+' @param {RestRequest} Request
+' @param {Long} TimeoutMS
+' --------------------------------------------- '
+Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
+    SetTimer Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired
+End Sub
+
+''
+' Stop timeout timer for request
+'
+' @param {RestRequest} Request
+' --------------------------------------------- '
+Public Sub StopTimeoutTimer(Request As RestRequest)
+    KillTimer Application.HWnd, ObjPtr(Request)
+End Sub
+
+''
+' Handle timeout timers expiring
+'
+' See [MSDN Article](http://msdn.microsoft.com/en-us/library/windows/desktop/ms644907(v=vs.85).aspx)
+' --------------------------------------------- '
+#If VBA7 And Win64 Then
+Public Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal Msg As Long, _
+        ByVal Request As RestRequest, ByVal dwTimer As Long)
+#Else
+Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal uMsg As Long, _
+        ByVal Request As RestRequest, ByVal dwTimer As Long)
+#End If
+    
+    StopTimeoutTimer Request
+    Request.TimedOut
+End Sub
 
 ' ======================================================================================== '
 '
@@ -207,19 +297,19 @@ End Function
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 
-Public Function EncodeBase64(ByRef arrData() As Byte) As String
-    Dim objXML As MSXML2.DOMDocument
-    Dim objNode As MSXML2.IXMLDOMElement
-    Set objXML = New MSXML2.DOMDocument
+Public Function EncodeBase64(ByRef Data() As Byte) As String
+    Dim XML As Object
+    Dim Node As Object
+    Set XML = CreateObject("MSXML2.DOMDocument")
 
     ' byte array to base64
-    Set objNode = objXML.createElement("b64")
-    objNode.DataType = "bin.base64"
-    objNode.nodeTypedValue = arrData
-    EncodeBase64 = objNode.text
+    Set Node = XML.createElement("b64")
+    Node.DataType = "bin.base64"
+    Node.nodeTypedValue = Data
+    EncodeBase64 = Node.text
 
-    Set objNode = Nothing
-    Set objXML = Nothing
+    Set Node = Nothing
+    Set XML = Nothing
 End Function
 
 ''
@@ -248,17 +338,17 @@ End Function
 Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Dim str As String
     Dim count As Integer
-    Dim result As String
+    Dim Result As String
     Dim random As Integer
     
     str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
-    result = ""
+    Result = ""
     
     For count = 1 To NonceLength
         random = Int(((Len(str) - 1) * Rnd) + 1)
-        result = result + Mid$(str, random, 1)
+        Result = Result + Mid$(str, random, 1)
     Next
-    CreateNonce = result
+    CreateNonce = Result
 End Function
 
 

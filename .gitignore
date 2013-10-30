@@ -1,11 +1,5 @@
-# Build and Object Folders
-bin/
-obj/
+# node_modules should be installed with npm install
+specs/node_modules
 
-#User Specific Files
-*.user
-*.suo
-
-#Resource Caches
-_ReSharper.*
-*.sln.cache
+# Ignore temporary Excel files
+*/~$*

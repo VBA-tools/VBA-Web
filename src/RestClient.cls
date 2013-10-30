@@ -8,22 +8,19 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v1.0.1
+' RestClient v1.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
 '
-' @dependencies
-'   Microsoft Scripting Runtime
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v1.0.1 (https://github.com/timhall/Excel-REST)"
-Private Const Timeoutms As Integer = 5000
+Private Const UserAgent As String = "Excel Client v1.1.0 (https://github.com/timhall/Excel-REST)"
+Private Const DefaultTimeoutMS As Integer = 5000
 
 
 ' --------------------------------------------- '
@@ -32,6 +29,7 @@ Private Const Timeoutms As Integer = 5000
 
 Public BaseUrl As String
 Public Authenticator As IAuthenticator
+Public TimeoutMS As Integer
 
 ' ============================================= '
 ' Public Methods
@@ -46,17 +44,17 @@ Public Authenticator As IAuthenticator
 
 Public Function Execute(Request As RestRequest) As RestResponse
     Dim Response As New RestResponse
-    Dim http As MSXML2.ServerXMLHTTP
+    Dim http As Object
     Dim headerKey As Variant
     
     On Error GoTo ErrorHandling
-    Set http = New MSXML2.ServerXMLHTTP
+    Set http = CreateObject("MSXML2.ServerXMLHTTP")
     Call HttpSetup(http, Request, False)
     
     ' Send the request
     Call http.send(Request.Body)
     
-    ' Handle response...
+    ' Handle response
     Response.StatusCode = http.Status
     Response.StatusDescription = http.statusText
     Response.Content = http.responseText
@@ -64,17 +62,25 @@ Public Function Execute(Request As RestRequest) As RestResponse
     Case Else
         Set Response.Data = RestHelpers.ParseJSON(Response.Content)
     End Select
-    Set Execute = Response
     
 ErrorHandling:
 
     If Not http Is Nothing Then Set http = Nothing
-    If Not Response Is Nothing Then Set Response = Nothing
     
     If Err.Number <> 0 Then
-        ' Rethrow error
-        Err.Raise Err.Number, Description:=Err.Description
+        If InStr(Err.Description, "The operation timed out") > 0 Then
+            ' Return 504
+            Response.StatusCode = StatusCodes.GatewayTimeout
+            Response.StatusDescription = "Gateway Timeout"
+            
+            Err.Clear
+        Else
+            ' Rethrow error
+            Err.Raise Err.Number, Description:=Err.Description
+        End If
     End If
+    
+    Set Execute = Response
     
 End Function
 
@@ -89,21 +95,21 @@ End Function
 
 Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     Dim Response As New RestResponse
-    Dim http As MSXML2.ServerXMLHTTP
+    Dim http As Object
     
     On Error GoTo ErrorHandling
     
     ' Setup the request
-    Set http = New MSXML2.ServerXMLHTTP
+    Set http = CreateObject("MSXML2.ServerXMLHTTP")
     Call HttpSetup(http, Request, True)
     Request.Callback = Callback
     Request.CallbackArgs = CallbackArgs
     
     ' Send the request
+    Request.StartTimeoutTimer Me.TimeoutMS
     Call http.send(Request.Body)
     
     ' Clean up and return
-    ' Set http = Nothing
     ExecuteAsync = True
     Exit Function
     
@@ -123,17 +129,17 @@ End Function
 ' Private Methods
 ' ============================================= '
 
-Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
+Private Sub HttpSetup(ByRef http As Object, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
-    http.setTimeouts Timeoutms, Timeoutms, Timeoutms, Timeoutms
+    http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
     ' Add general headers to request
     Call Request.AddHeader("User-Agent", UserAgent)
     Call Request.AddHeader("Content-Type", Request.ContentType())
     
-    ' If async, pass http to request and setup onreadystatechange
+    ' Pass http to request and setup onreadystatechange
     If useAsync Then
-        Request.HttpRequest = http
+        Set Request.HttpRequest = http
         http.onreadystatechange = Request
     End If
     
@@ -151,4 +157,8 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestR
     For Each headerKey In Request.Headers.keys()
         Call http.setRequestHeader(headerKey, Request.Headers(headerKey))
     Next headerKey
+End Sub
+
+Private Sub Class_Initialize()
+    Me.TimeoutMS = DefaultTimeoutMS
 End Sub

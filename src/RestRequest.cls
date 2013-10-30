@@ -8,14 +8,11 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v1.0.2
+' RestRequest v1.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
 '
-' @dependencies
-'   Microsoft Scripting Runtime
-'   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -27,14 +24,14 @@ Option Explicit
 ' --------------------------------------------- '
 
 Private Const cacheBreakerKey As String = "cachebreaker"
-Private pHeaders As Dictionary
-Private pParameters As Dictionary
-Private pQuerystringParams As Dictionary
-Private pUrlSegments As Dictionary
-Private pBody As Dictionary
+Private pHeaders As Object
+Private pParameters As Object
+Private pQuerystringParams As Object
+Private pUrlSegments As Object
+Private pBody As Object
 Private pBodyString As String
 Private pContentType As String
-Private pHttpRequest As MSXML2.ServerXMLHTTP
+Private pHttpRequest As Object
 
 ' --------------------------------------------- '
 ' Types
@@ -48,7 +45,7 @@ Public Enum AvailableMethods
     httpPATCH
 End Enum
 Public Enum AvailableFormats
-    json
+    JSON
 End Enum
 
 ' --------------------------------------------- '
@@ -65,35 +62,35 @@ Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
 
-Public Property Get Headers() As Dictionary
-    If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
+Public Property Get Headers() As Object
+    If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
     Set Headers = pHeaders
 End Property
-Public Property Let Headers(Value As Dictionary)
+Public Property Let Headers(Value As Object)
     Set pHeaders = Value
 End Property
 
-Public Property Get Parameters() As Dictionary
-    If pParameters Is Nothing Then: Set pParameters = New Dictionary
+Public Property Get Parameters() As Object
+    If pParameters Is Nothing Then: Set pParameters = CreateObject("Scripting.Dictionary")
     Set Parameters = pParameters
 End Property
-Public Property Let Parameters(Value As Dictionary)
+Public Property Let Parameters(Value As Object)
     Set pParameters = Value
 End Property
 
-Public Property Get QuerystringParams() As Dictionary
-    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Dictionary
+Public Property Get QuerystringParams() As Object
+    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = CreateObject("Scripting.Dictionary")
     Set QuerystringParams = pQuerystringParams
 End Property
-Public Property Let QuerystringParams(Value As Dictionary)
+Public Property Let QuerystringParams(Value As Object)
     Set pQuerystringParams = Value
 End Property
 
-Public Property Get UrlSegments() As Dictionary
-    If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
+Public Property Get UrlSegments() As Object
+    If pUrlSegments Is Nothing Then: Set pUrlSegments = CreateObject("Scripting.Dictionary")
     Set UrlSegments = pUrlSegments
 End Property
-Public Property Let UrlSegments(Value As Dictionary)
+Public Property Let UrlSegments(Value As Object)
     Set pUrlSegments = Value
 End Property
 
@@ -114,16 +111,15 @@ Public Property Get FormattedResource() As String
     ' Looks like a last-modified could work here too, but may also require control over server response
     ' Also, with update to ServerXMLHTTP, neither may be needed
     If Me.Method = httpGET And Me.IncludeCacheBreaker Then
-        If Me.Parameters Is Nothing Then
-            Me.Parameters = New Dictionary
-        End If
-        Me.Parameters(cacheBreakerKey) = Timer() * 100
+        Me.AddQuerystringParam cacheBreakerKey, timer() * 100
     End If
     
     ' Add querystring
     If (Me.Method = httpGET And Not Me.Parameters Is Nothing) Or Not Me.QuerystringParams Is Nothing Then
-        If Me.Parameters.count > 0 Or Me.QuerystringParams.count > 0 Then
-            FormattedResource = FormattedResource & "?"
+        If (Me.Parameters.count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.count > 0 Then
+            If InStr(FormattedResource, "?") <= 0 Then
+                FormattedResource = FormattedResource & "?"
+            End If
             
             ' Only load parameters to querystring if GET request (otherwise they are added to the body)
             If Me.Method = httpGET Then
@@ -154,8 +150,12 @@ Public Property Get Body() As String
                     Body = pBodyString
                 End If
             Else
-                ' Combine defined body and parameters and convert to JSON
-                Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+                If Me.Method <> httpGET Then
+                    ' Combine defined body and parameters and convert to JSON
+                    Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+                Else
+                    Body = RestHelpers.ConvertToJSON(pBody)
+                End If
             End If
         End Select
     End If
@@ -163,9 +163,6 @@ End Property
 
 Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
     If Me.BaseUrl = "" Then Me.BaseUrl = ClientBaseUrl
-    If Right(Me.BaseUrl, 1) <> "/" Then
-        Me.BaseUrl = Me.BaseUrl & "/"
-    End If
     
     ' If protocol is missing from base url, add it based on RequireHTTPS property
     If Left(Me.BaseUrl, 7) <> "http://" And Left(Me.BaseUrl, 8) <> "https://" Then
@@ -176,7 +173,7 @@ Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
         End If
     End If
     
-    FullUrl = Me.BaseUrl & Me.FormattedResource
+    FullUrl = JoinUrl(Me.BaseUrl, Me.FormattedResource)
 End Property
 
 Public Property Get MethodName() As String
@@ -219,10 +216,10 @@ Public Property Let ContentType(Value As String)
     pContentType = Value
 End Property
 
-Public Property Get HttpRequest() As MSXML2.ServerXMLHTTP
+Public Property Get HttpRequest() As Object
     Set HttpRequest = pHttpRequest
 End Property
-Public Property Let HttpRequest(ByVal Value As MSXML2.ServerXMLHTTP)
+Public Property Set HttpRequest(ByVal Value As Object)
     Set pHttpRequest = Value
 End Property
 
@@ -297,7 +294,7 @@ End Sub
 ' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
 ' --------------------------------------------- '
 
-Public Function AddBody(bodyVal As Dictionary)
+Public Function AddBody(bodyVal As Object)
     Set pBody = bodyVal
 End Function
 
@@ -330,6 +327,8 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     
     ' Once loaded, process result
     If Me.HttpRequest.readyState = 4 Then
+        Me.StopTimeoutTimer
+        
         ' Handle response
         Dim Response As New RestResponse
         Response.StatusCode = Me.HttpRequest.Status
@@ -367,6 +366,44 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     End If
     
     ' TODO: Check for timeout and cleanup
+End Sub
+
+''
+' Start timeout timer
+'
+' --------------------------------------------- '
+
+Public Sub StartTimeoutTimer(TimeoutMS As Long)
+    RestHelpers.StartTimeoutTimer Me, TimeoutMS
+End Sub
+
+''
+' Stop timeout timer
+'
+' --------------------------------------------- '
+
+Public Sub StopTimeoutTimer()
+    RestHelpers.StopTimeoutTimer Me
+End Sub
+
+''
+' Handle timeouts
+'
+' --------------------------------------------- '
+
+Public Sub TimedOut()
+    ' Handle response
+    Dim Response As New RestResponse
+    Response.StatusCode = StatusCodes.GatewayTimeout
+    Response.StatusDescription = "Gateway Timeout"
+        
+    ' Callback
+    If Me.Callback <> "" Then
+        Application.Run Me.Callback, Response, Me.CallbackArgs
+    End If
+    
+    ' Request is finished, clean up
+    Set Me.HttpRequest = Nothing
 End Sub
 
 ' ============================================= '
