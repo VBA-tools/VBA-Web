@@ -1,14 +1,14 @@
 var express = require('express');
 var app = express();
 
-app.use(plain());
-app.use(express.json());
-app.use(express.urlencoded());
-
 app.use(function(req, res, next){
   console.log('%s %s', req.method, req.url);
   next();
 });
+
+app.use(plain());
+app.use(express.json());
+app.use(express.urlencoded());
 
 // Standard
 app.get('/get', standardResponse);

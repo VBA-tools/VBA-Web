@@ -13,21 +13,15 @@ Public Function Specs() As SpecSuite
     Client.BaseUrl = "http://localhost:3000"
     
     Dim Request As RestRequest
-    
-    With Specs.It("should wait")
-        Dim GoalTime As Long
-        GoalTime = GetTickCount() + 100
-        
-        Wait 100
-        .Expect(GetTickCount()).ToBeGTE GoalTime
-    End With
+    Dim WaitTime As Integer
+    WaitTime = 500
     
     With Specs.It("should pass response to callback")
         Set Request = New RestRequest
         Request.Resource = "get"
         
         Client.ExecuteAsync Request, "SimpleCallback"
-        Wait 200
+        Wait WaitTime * 2
         .Expect(AsyncResponse).ToBeDefined
     End With
     
@@ -36,7 +30,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "get"
         
         Client.ExecuteAsync Request, "ComplexCallback", Array("A", "B", "C")
-        Wait 200
+        Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If UBound(AsyncArgs) > 1 Then
             .Expect(AsyncArgs(0)).ToEqual "A"
@@ -53,25 +47,25 @@ Public Function Specs() As SpecSuite
         
         Request.AddUrlSegment "code", 200
         Client.ExecuteAsync Request, "SimpleCallback"
-        Wait 200
+        Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 200
         .Expect(AsyncResponse.StatusDescription).ToEqual "OK"
         
         Request.AddUrlSegment "code", 304
         Client.ExecuteAsync Request, "SimpleCallback"
-        Wait 200
+        Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 304
         .Expect(AsyncResponse.StatusDescription).ToEqual "Not Modified"
         
         Request.AddUrlSegment "code", 404
         Client.ExecuteAsync Request, "SimpleCallback"
-        Wait 200
+        Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 404
         .Expect(AsyncResponse.StatusDescription).ToEqual "Not Found"
         
         Request.AddUrlSegment "code", 500
         Client.ExecuteAsync Request, "SimpleCallback"
-        Wait 200
+        Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 500
         .Expect(AsyncResponse.StatusDescription).ToEqual "Internal Server Error"
     End With
@@ -81,9 +75,9 @@ Public Function Specs() As SpecSuite
         Request.Resource = "timeout"
         Request.AddQuerystringParam "ms", 2000
 
-        Client.TimeoutMS = 500
+        Client.TimeoutMS = 100
         Client.ExecuteAsync Request, "SimpleCallback"
-        Wait 1000
+        Wait 500
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
             .Expect(AsyncResponse.StatusCode).ToEqual 504
@@ -105,7 +99,7 @@ Public Sub ComplexCallback(Response As RestResponse, Args As Variant)
 End Sub
 
 Public Sub Reset()
-    Set AsyncResponse = Nothing
+    Set AsyncResponse = New RestResponse
     AsyncArgs = Array()
 End Sub
 

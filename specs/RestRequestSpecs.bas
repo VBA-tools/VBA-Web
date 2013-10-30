@@ -77,6 +77,17 @@ Public Function Specs() As SpecSuite
         
         .Expect(Request.FormattedResource).ToEqual "?A=123&B=456&C=789"
     End With
+    
+    With Specs.It("should not add ? if already in resource")
+        Set Request = New RestRequest
+        Request.IncludeCacheBreaker = False
+        
+        Request.AddParameter "B", "456"
+        Request.Method = httpGET
+        Request.Resource = "?A=123"
+        
+        .Expect(Request.FormattedResource).ToEqual "?A=123&B=456"
+    End With
 
     With Specs.It("should URL encode querystring")
         Set Request = New RestRequest
@@ -122,7 +133,8 @@ Public Function Specs() As SpecSuite
     With Specs.It("should only combine body and parameters if not GET Request")
         Set Request = New RestRequest
 
-        Dim Body As New Dictionary
+        Dim Body As Object
+        Set Body = CreateObject("Scripting.Dictionary")
         Body.Add "A", 123
         
         Request.AddBody Body
