@@ -14,7 +14,6 @@ Attribute VB_Exposed = True
 ' Interact with REST web services from Excel
 '
 ' @dependencies
-'   Microsoft Scripting Runtime
 '   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -22,8 +21,8 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v1.0.1 (https://github.com/timhall/Excel-REST)"
-Private Const Timeoutms As Integer = 5000
+Private Const UserAgent As String = "Excel Client v1.0.3 (https://github.com/timhall/Excel-REST)"
+Private Const DefaultTimeoutMS As Integer = 5000
 
 
 ' --------------------------------------------- '
@@ -32,6 +31,7 @@ Private Const Timeoutms As Integer = 5000
 
 Public BaseUrl As String
 Public Authenticator As IAuthenticator
+Public TimeoutMS As Integer
 
 ' ============================================= '
 ' Public Methods
@@ -125,7 +125,7 @@ End Function
 
 Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
-    http.setTimeouts Timeoutms, Timeoutms, Timeoutms, Timeoutms
+    http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
     ' Add general headers to request
     Call Request.AddHeader("User-Agent", UserAgent)
@@ -151,4 +151,8 @@ Private Sub HttpSetup(ByRef http As MSXML2.ServerXMLHTTP, ByRef Request As RestR
     For Each headerKey In Request.Headers.keys()
         Call http.setRequestHeader(headerKey, Request.Headers(headerKey))
     Next headerKey
+End Sub
+
+Private Sub Class_Initialize()
+    Me.TimeoutMS = DefaultTimeoutMS
 End Sub

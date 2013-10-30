@@ -14,7 +14,6 @@ Attribute VB_Exposed = True
 ' Create a request for use with a rest client
 '
 ' @dependencies
-'   Microsoft Scripting Runtime
 '   Microsoft XML, v3+
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -27,11 +26,11 @@ Option Explicit
 ' --------------------------------------------- '
 
 Private Const cacheBreakerKey As String = "cachebreaker"
-Private pHeaders As Dictionary
-Private pParameters As Dictionary
-Private pQuerystringParams As Dictionary
-Private pUrlSegments As Dictionary
-Private pBody As Dictionary
+Private pHeaders As Object
+Private pParameters As Object
+Private pQuerystringParams As Object
+Private pUrlSegments As Object
+Private pBody As Object
 Private pBodyString As String
 Private pContentType As String
 Private pHttpRequest As MSXML2.ServerXMLHTTP
@@ -48,7 +47,7 @@ Public Enum AvailableMethods
     httpPATCH
 End Enum
 Public Enum AvailableFormats
-    json
+    JSON
 End Enum
 
 ' --------------------------------------------- '
@@ -65,35 +64,35 @@ Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
 
-Public Property Get Headers() As Dictionary
-    If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
+Public Property Get Headers() As Object
+    If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
     Set Headers = pHeaders
 End Property
-Public Property Let Headers(Value As Dictionary)
+Public Property Let Headers(Value As Object)
     Set pHeaders = Value
 End Property
 
-Public Property Get Parameters() As Dictionary
-    If pParameters Is Nothing Then: Set pParameters = New Dictionary
+Public Property Get Parameters() As Object
+    If pParameters Is Nothing Then: Set pParameters = CreateObject("Scripting.Dictionary")
     Set Parameters = pParameters
 End Property
-Public Property Let Parameters(Value As Dictionary)
+Public Property Let Parameters(Value As Object)
     Set pParameters = Value
 End Property
 
-Public Property Get QuerystringParams() As Dictionary
-    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Dictionary
+Public Property Get QuerystringParams() As Object
+    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = CreateObject("Scripting.Dictionary")
     Set QuerystringParams = pQuerystringParams
 End Property
-Public Property Let QuerystringParams(Value As Dictionary)
+Public Property Let QuerystringParams(Value As Object)
     Set pQuerystringParams = Value
 End Property
 
-Public Property Get UrlSegments() As Dictionary
-    If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
+Public Property Get UrlSegments() As Object
+    If pUrlSegments Is Nothing Then: Set pUrlSegments = CreateObject("Scripting.Dictionary")
     Set UrlSegments = pUrlSegments
 End Property
-Public Property Let UrlSegments(Value As Dictionary)
+Public Property Let UrlSegments(Value As Object)
     Set pUrlSegments = Value
 End Property
 
@@ -295,7 +294,7 @@ End Sub
 ' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
 ' --------------------------------------------- '
 
-Public Function AddBody(bodyVal As Dictionary)
+Public Function AddBody(bodyVal As Object)
     Set pBody = bodyVal
 End Function
 

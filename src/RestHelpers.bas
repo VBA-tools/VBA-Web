@@ -37,13 +37,13 @@ End Enum
 ''
 ' Parse given JSON string into object (Dictionary or Collection)
 '
-' @param {String} jsonStr
+' @param {String} JSON
 ' @return {Object}
 ' --------------------------------------------- '
 
-Public Function ParseJSON(jsonStr As String) As Object
+Public Function ParseJSON(JSON As String) As Object
     Dim lib As New JSONLib
-    Set ParseJSON = lib.parse(jsonStr)
+    Set ParseJSON = lib.parse(JSON)
     Set lib = Nothing
 End Function
 
@@ -54,9 +54,9 @@ End Function
 ' @return {String}
 ' --------------------------------------------- '
 
-Public Function ConvertToJSON(obj As Object) As String
+Public Function ConvertToJSON(Obj As Object) As String
     Dim lib As New JSONLib
-    ConvertToJSON = lib.ToString(obj)
+    ConvertToJSON = lib.ToString(Obj)
     Set lib = Nothing
 End Function
 
@@ -139,52 +139,54 @@ End Function
 ' @param {Boolean} [overwriteOriginal=True] Overwrite any values that already exist in the original object
 ' --------------------------------------------- '
 
-Public Function CombineObjects(ByVal origObj As Dictionary, ByVal newObj As Dictionary, _
-    Optional overwriteOriginal As Boolean = True) As Dictionary
+Public Function CombineObjects(ByVal OriginalObj As Object, ByVal NewObj As Object, _
+    Optional OverwriteOriginal As Boolean = True) As Object
     
-    Dim combined As Dictionary
-    Dim newKey As Variant
+    Dim Combined As Object
+    Dim NewKey As Variant
     
-    If Not origObj Is Nothing Then
-        Set combined = origObj
+    If Not OriginalObj Is Nothing Then
+        Set Combined = OriginalObj
     Else
-        Set combined = New Dictionary
+        Set Combined = CreateObject("Scripting.Dictionary")
     End If
-    For Each newKey In newObj.keys()
-        If combined.Exists(newKey) And overwriteOriginal Then
-            combined(newKey) = newObj(newKey)
+    For Each NewKey In NewObj.keys()
+        If Combined.Exists(NewKey) And OverwriteOriginal Then
+            Combined(NewKey) = NewObj(NewKey)
         Else
-            combined.Add newKey, newObj(newKey)
+            Combined.Add NewKey, NewObj(NewKey)
         End If
-    Next newKey
+    Next NewKey
 
-    Set CombineObjects = combined
+    Set CombineObjects = Combined
 End Function
 
 ''
 ' Apply whitelist to given model to filter out unwanted key/values
 '
-' @param {Dictionary} original Original model to filter
-' @param {Variant} whitelist Array of values to retain in the model
+' @param {Dictionary} Original Original model to filter
+' @param {Variant} WhiteList Array of values to retain in the model
 ' --------------------------------------------- '
 
-Public Function UpdateModel(ByVal original As Dictionary, whitelist As Variant) As Dictionary
-    Dim updated As New Dictionary
+Public Function FilterModel(ByVal Original As Object, WhiteList As Variant) As Object
+    Dim Filtered As Object
     Dim i As Integer
     
-    If IsArray(whitelist) Then
-        For i = LBound(whitelist) To UBound(whitelist)
-            If original.Exists(whitelist(i)) Then
-                updated.Add whitelist(i), original(whitelist(i))
+    Set Filtered = CreateObject("Scripting.Dictionary")
+    
+    If IsArray(WhiteList) Then
+        For i = LBound(WhiteList) To UBound(WhiteList)
+            If Original.Exists(WhiteList(i)) Then
+                Filtered.Add WhiteList(i), Original(WhiteList(i))
             End If
         Next i
-    ElseIf VarType(whitelist) = vbString Then
-        If original.Exists(whitelist) Then
-            updated.Add whitelist, original(whitelist)
+    ElseIf VarType(WhiteList) = vbString Then
+        If Original.Exists(WhiteList) Then
+            Filtered.Add WhiteList, Original(WhiteList)
         End If
     End If
     
-    Set UpdateModel = updated
+    Set FilterModel = Filtered
 End Function
 
 ' ======================================================================================== '
