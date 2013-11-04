@@ -21,33 +21,27 @@ End If
 ' Include all standard Excel-REST modules
 Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls")
 
+' Open Excel
 KeepExcelOpen = OpenExcel(Excel)
-'Set Excel = GetObject(, "Excel.Application")
 Excel.Visible = True
 Excel.DisplayAlerts = False
 
 For i = LBound(Workbooks) To UBound(Workbooks)
   WScript.Echo "Importing Excel-REST into " & Workbooks(i)
   KeepWorkbookOpen = OpenWorkbook(Excel, FullPath(Workbooks(i)), Workbook)
-
-  For j = LBound(Modules) To UBound(Modules)
-    RemoveModule Workbook, RemoveExtension(Modules(j))
-    ImportModule Workbook, FullPath(".\src\" & Modules(j))
-  Next
-
-  If Not KeepWorkbookOpen Then
-    Workbook.Close True
-  End If
-
-  Set Workbook = Nothing
+  ImportModules Workbook, ".\src\", Modules
+  CloseWorkbook Workbook, KeepWorkbookOpen
 Next
 
-If Not KeepExcelOpen THen
-  Excel.Quit
-End If
+CloseExcel Excel, KeepExcelOpen
 
 Set Workbook = Nothing
 Set Excel = Nothing
+
+
+''
+' Module helpers
+' ------------------------------------ '
 
 Function RemoveModule(Workbook, Name)
   Dim Module
@@ -70,9 +64,22 @@ Function GetModule(Workbook, Name)
   Next
 End Function
 
-Sub ImportModule(Workbook, Path)
-  Workbook.VBProject.VBComponents.Import Path
+Sub ImportModule(Workbook, Folder, Filename)
+  RemoveModule Workbook, RemoveExtension(Filename)
+  Workbook.VBProject.VBComponents.Import FullPath(Folder & Filename)
 End Sub
+
+Sub ImportModules(Workbook, Folder, Filenames)
+  Dim i
+  For i = LBound(Filenames) To UBound(Filenames)
+    ImportModule Workbook, Folder, Filenames(i)
+  Next
+End Sub
+
+
+''
+' Excel helpers
+' ------------------------------------ '
 
 Function OpenWorkbook(Excel, Path, ByRef Workbook)
   On Error Resume Next
@@ -103,6 +110,27 @@ Function OpenExcel(Excel)
 
   Err.Clear
 End Function
+
+Sub CloseWorkbook(ByRef Workbook, KeepWorkbookOpen)
+  If Not KeepWorkbookOpen Then
+    Workbook.Close True
+  End If
+
+  Set Workbook = Nothing
+End Sub
+
+Sub CloseExcel(ByRef Excel, KeepExcelOpen)
+  If Not KeepExcelOpen Then
+    Excel.Quit
+  End If
+
+  Set Excel = Nothing
+End Sub
+
+
+''
+' Filesystem helpers
+' ------------------------------------ '
 
 Function FullPath(Path)
   Dim FSO

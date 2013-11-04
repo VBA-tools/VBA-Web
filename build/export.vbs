@@ -6,31 +6,39 @@ Dim OutputPath
 Dim Excel
 Dim Workbook
 Dim Modules
+Dim ExcelWasOpen
+Dim WorkbookWasOpen
 
 Set Args = Wscript.Arguments
-WBPath = Args(0)
-OutputPath = Args(1)
+If Args.Length > 0 Then
+  WBPath = Args(0)
+  OutputPath = Args(1)
+End If
 
 ' Setup modules to export
-Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls")
+Modules = Array(_
+  "RestHelpers.bas", _
+  "IAuthenticator.cls", _
+  "RestClient.cls", _
+  "RestRequest.cls", _
+  "RestResponse.cls" _
+)
 
 If WBPath <> "" And OutputPath <> "" Then
-  Set Excel = CreateObject("Excel.Application")
+  ExcelWasOpen = OpenExcel(Excel)
   Excel.Visible = True
   Excel.DisplayAlerts = False
 
   ' Get workbook path relative to root Excel-REST project
-  Dim FSO
-  Set FSO = CreateObject("Scripting.FileSystemObject")
-  WBPath = FSO.GetAbsolutePathName(WBPath)
-  OutputPath = FSO.GetAbsolutePathName(OutputPath)
+  WBPath = FullPath(WBPath)
+  OutputPath = FullPath(OutputPath)
 
   If Right(OutputPath, 1) <> "\" Then
     OutputPath = OutputPath & "\"
   End If
   
   ' Open workbook
-  Set Workbook = Excel.Workbooks.Open(WBPath)
+  WorkbookWasOpen = OpenWorkbook(Excel, WBPath, Workbook)
 
   Dim i
   Dim Module
@@ -42,15 +50,30 @@ If WBPath <> "" And OutputPath <> "" Then
     End If
   Next
 
-  Workbook.Close True
-  Excel.Quit
+  CloseWorkbook Workbook, WorkbookWasOpen
+  CloseExcel Excel, ExcelWasOpen
 
   Set Workbook = Nothing
   Set Excel = Nothing
 End If
 
+
+''
+' Module helpers
+' ------------------------------------ '
+
+Function RemoveModule(Workbook, Name)
+  Dim Module
+  Set Module = GetModule(Workbook, Name)
+
+  If Not Module Is Nothing Then
+    Workbook.VBProject.VBComponents.Remove Module
+  End If
+End Function
+
 Function GetModule(Workbook, Name)
   Dim Module
+  Set GetModule = Nothing
 
   For Each Module In Workbook.VBProject.VBComponents
     If Module.Name = Name Then
@@ -58,6 +81,87 @@ Function GetModule(Workbook, Name)
       Exit Function
     End If
   Next
+End Function
+
+Sub ImportModule(Workbook, Folder, Filename)
+  RemoveModule Workbook, RemoveExtension(Filename)
+  Workbook.VBProject.VBComponents.Import FullPath(Folder & Filename)
+End Sub
+
+Sub ImportModules(Workbook, Folder, Filenames)
+  Dim i
+  For i = LBound(Filenames) To UBound(Filenames)
+    ImportModule Workbook, Folder, Filenames(i)
+  Next
+End Sub
+
+
+''
+' Excel helpers
+' ------------------------------------ '
+
+Function OpenWorkbook(Excel, Path, ByRef Workbook)
+  On Error Resume Next
+
+  Set Workbook = Excel.Workbooks(GetFilename(Path))
+
+  If Workbook Is Nothing Or Err.Number <> 0 Then
+    Set Workbook = Excel.Workbooks.Open(Path)
+    OpenWorkbook = False
+  Else
+    OpenWorkbook = True
+  End If
+
+  Err.Clear
+End Function
+
+Function OpenExcel(Excel)
+  On Error Resume Next
+  
+  Set Excel = GetObject(, "Excel.Application")
+
+  If Excel Is Nothing Or Err.Number <> 0 Then
+    Set Excel = CreateObject("Excel.Application")
+    OpenExcel = False
+  Else
+    OpenExcel = True
+  End If
+
+  Err.Clear
+End Function
+
+Sub CloseWorkbook(ByRef Workbook, KeepWorkbookOpen)
+  If Not KeepWorkbookOpen Then
+    Workbook.Close True
+  End If
+
+  Set Workbook = Nothing
+End Sub
+
+Sub CloseExcel(ByRef Excel, KeepExcelOpen)
+  If Not KeepExcelOpen Then
+    Excel.Quit
+  End If
+
+  Set Excel = Nothing
+End Sub
+
+
+''
+' Filesystem helpers
+' ------------------------------------ '
+
+Function FullPath(Path)
+  Dim FSO
+  Set FSO = CreateObject("Scripting.FileSystemObject")
+  FullPath = FSO.GetAbsolutePathName(Path)
+End Function
+
+Function GetFilename(Path)
+  Dim Parts
+  Parts = Split(Path, "\")
+
+  GetFilename = Parts(UBound(Parts))
 End Function
 
 Function RemoveExtension(Name)
