@@ -25,6 +25,8 @@ Modules = Array(_
 )
 
 If WBPath <> "" And OutputPath <> "" Then
+  WScript.Echo "Exporting Excel-REST from " & WBPath & " to " & OutputPath
+
   ExcelWasOpen = OpenExcel(Excel)
   Excel.Visible = True
   Excel.DisplayAlerts = False
