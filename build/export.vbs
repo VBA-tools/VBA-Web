@@ -86,8 +86,10 @@ Function GetModule(Workbook, Name)
 End Function
 
 Sub ImportModule(Workbook, Folder, Filename)
-  RemoveModule Workbook, RemoveExtension(Filename)
-  Workbook.VBProject.VBComponents.Import FullPath(Folder & Filename)
+  If VarType(Workbook) = vbObject Then
+    RemoveModule Workbook, RemoveExtension(Filename)
+    Workbook.VBProject.VBComponents.Import FullPath(Folder & Filename)
+  End If
 End Sub
 
 Sub ImportModules(Workbook, Folder, Filenames)
@@ -133,7 +135,7 @@ Function OpenExcel(Excel)
 End Function
 
 Sub CloseWorkbook(ByRef Workbook, KeepWorkbookOpen)
-  If Not KeepWorkbookOpen Then
+  If Not KeepWorkbookOpen And VarType(Workbook) = vbObject Then
     Workbook.Close True
   End If
 
