@@ -43,36 +43,28 @@ Public TimeoutMS As Integer
 ' --------------------------------------------- '
 
 Public Function Execute(Request As RestRequest) As RestResponse
-    Dim Response As New RestResponse
-    Dim http As Object
+    Dim Response As RestResponse
+    Dim Http As Object
     Dim headerKey As Variant
     
     On Error GoTo ErrorHandling
-    Set http = CreateObject("MSXML2.ServerXMLHTTP")
-    Call HttpSetup(http, Request, False)
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP")
+    Call HttpSetup(Http, Request, False)
     
     ' Send the request
-    Call http.send(Request.Body)
+    Call Http.send(Request.Body)
     
     ' Handle response
-    Response.StatusCode = http.Status
-    Response.StatusDescription = http.statusText
-    Response.Content = http.responseText
-    Select Case Request.Format
-    Case Else
-        Set Response.Data = RestHelpers.ParseJSON(Response.Content)
-    End Select
+    Set Response = Request.CreateResponseFromHttp(Http)
     
 ErrorHandling:
 
-    If Not http Is Nothing Then Set http = Nothing
+    If Not Http Is Nothing Then Set Http = Nothing
     
     If Err.Number <> 0 Then
         If InStr(Err.Description, "The operation timed out") > 0 Then
             ' Return 504
-            Response.StatusCode = StatusCodes.GatewayTimeout
-            Response.StatusDescription = "Gateway Timeout"
-            
+            Set Response = Request.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
             Err.Clear
         Else
             ' Rethrow error
@@ -95,19 +87,19 @@ End Function
 
 Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     Dim Response As New RestResponse
-    Dim http As Object
+    Dim Http As Object
     
     On Error GoTo ErrorHandling
     
     ' Setup the request
-    Set http = CreateObject("MSXML2.ServerXMLHTTP")
-    Call HttpSetup(http, Request, True)
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP")
+    Call HttpSetup(Http, Request, True)
     Request.Callback = Callback
     Request.CallbackArgs = CallbackArgs
     
     ' Send the request
     Request.StartTimeoutTimer Me.TimeoutMS
-    Call http.send(Request.Body)
+    Call Http.send(Request.Body)
     
     ' Clean up and return
     ExecuteAsync = True
@@ -115,7 +107,7 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     
 ErrorHandling:
 
-    If Not http Is Nothing Then Set http = Nothing
+    If Not Http Is Nothing Then Set Http = Nothing
     If Not Response Is Nothing Then Set Response = Nothing
     
     If Err.Number <> 0 Then
@@ -129,9 +121,9 @@ End Function
 ' Private Methods
 ' ============================================= '
 
-Private Sub HttpSetup(ByRef http As Object, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
+Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional useAsync As Boolean = False)
     ' Set timeouts
-    http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
+    Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
     ' Add general headers to request
     Call Request.AddHeader("User-Agent", UserAgent)
@@ -139,23 +131,23 @@ Private Sub HttpSetup(ByRef http As Object, ByRef Request As RestRequest, Option
     
     ' Pass http to request and setup onreadystatechange
     If useAsync Then
-        Set Request.HttpRequest = http
-        http.onreadystatechange = Request
+        Set Request.HttpRequest = Http
+        Http.onreadystatechange = Request
     End If
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.BeforeExecute Request
-        Me.Authenticator.HttpOpen http, Request, Me.BaseUrl, useAsync
+        Me.Authenticator.HttpOpen Http, Request, Me.BaseUrl, useAsync
     Else
         ' Nothing hooked in so open http object
-        Call http.Open(Request.MethodName(), Request.FullUrl(Me.BaseUrl), useAsync)
+        Call Http.Open(Request.MethodName(), Request.FullUrl(Me.BaseUrl), useAsync)
     End If
     
     ' Set request headers
     Dim headerKey As Variant
     For Each headerKey In Request.Headers.keys()
-        Call http.setRequestHeader(headerKey, Request.Headers(headerKey))
+        Call Http.setRequestHeader(headerKey, Request.Headers(headerKey))
     Next headerKey
 End Sub
 

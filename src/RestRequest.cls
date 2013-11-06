@@ -309,6 +309,38 @@ Public Function AddBodyString(bodyVal As String)
 End Function
 
 ''
+' Helper for creating response
+'
+' @param {StatusCodes} StatusCode
+' @param {String} StatusDescription
+' @param {String} [Content=""]
+' @return {RestResponse}
+' --------------------------------------------- '
+
+Public Function CreateResponse(StatusCode As StatusCodes, StatusDescription As String, Optional Content As String = "") As RestResponse
+    Set CreateResponse = New RestResponse
+    CreateResponse.StatusCode = StatusCode
+    CreateResponse.StatusDescription = StatusDescription
+    CreateResponse.Content = Content
+    
+    Select Case Me.Format
+    Case Else
+        Set CreateResponse.Data = RestHelpers.ParseJSON(Content)
+    End Select
+End Function
+
+''
+' Helper for creating response
+'
+' @param {XMLHttpRequest} Http
+' @return {RestResponse}
+' --------------------------------------------- '
+
+Public Function CreateResponseFromHttp(Http As Object) As RestResponse
+    Set CreateResponseFromHttp = Me.CreateResponse(Http.Status, Http.StatusText, Http.ResponseText)
+End Function
+
+''
 ' Process asynchronous requests
 '
 ' --------------------------------------------- '
@@ -329,37 +361,8 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     If Me.HttpRequest.readyState = 4 Then
         Me.StopTimeoutTimer
         
-        ' Handle response
-        Dim Response As New RestResponse
-        Response.StatusCode = Me.HttpRequest.Status
-        Response.StatusDescription = Me.HttpRequest.statusText
-        Response.Content = Me.HttpRequest.responseText
-        
-        ' Serialize the response content
-        Select Case Me.Format
-        ' Currently, JSON is the only supported format
-        Case Else
-            Set Response.Data = RestHelpers.ParseJSON(Response.Content)
-        End Select
-        
         ' Callback
-        If Me.Callback <> "" Then
-            ' Run callback function (needs to be a public function),
-            ' passing in response and any defined callback arguments
-            '
-            ' callback({RestResponse})
-            ' OR callback({RestResponse}, {Variant})
-            '
-            ' Example:
-            ' Public Function Callback(response As RestResponse, args As Variant)
-            '     Debug.Print "Callback: " & response.StatusCode
-            '     For i = LBound(args) To UBound(args)
-            '         Debug.Print args(i) & " was passed into async execute"
-            '     Next i
-            ' End Function
-            '
-            Application.Run Me.Callback, Response, Me.CallbackArgs
-        End If
+        RunCallback Me.CreateResponseFromHttp(Me.HttpRequest)
         
         ' Request is finished, clean up
         Set Me.HttpRequest = Nothing
@@ -392,15 +395,8 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub TimedOut()
-    ' Handle response
-    Dim Response As New RestResponse
-    Response.StatusCode = StatusCodes.GatewayTimeout
-    Response.StatusDescription = "Gateway Timeout"
-        
     ' Callback
-    If Me.Callback <> "" Then
-        Application.Run Me.Callback, Response, Me.CallbackArgs
-    End If
+    RunCallback Me.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
     
     ' Request is finished, clean up
     Set Me.HttpRequest = Nothing
@@ -409,6 +405,30 @@ End Sub
 ' ============================================= '
 ' Private Functions
 ' ============================================= '
+
+Private Sub RunCallback(Response As RestResponse)
+    ' Run callback function (needs to be a public function),
+    ' passing in response and any defined callback arguments
+    '
+    ' callback({RestResponse})
+    ' OR callback({RestResponse}, {Variant})
+    '
+    ' Example:
+    ' Public Function Callback(response As RestResponse, args As Variant)
+    '     Debug.Print "Callback: " & response.StatusCode
+    '     For i = LBound(args) To UBound(args)
+    '         Debug.Print args(i) & " was passed into async execute"
+    '     Next i
+    ' End Function
+    '
+    If Me.Callback <> "" Then
+        If Not IsMissing(Me.CallbackArgs) Then
+            Application.Run Me.Callback, Response, Me.CallbackArgs
+        Else
+            Application.Run Me.Callback, Response
+        End If
+    End If
+End Sub
 
 Private Sub Class_Initialize()
     ' Set default values

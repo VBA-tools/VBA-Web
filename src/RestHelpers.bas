@@ -159,6 +159,7 @@ End Function
 ' @param {Dictionary} origObj Original object to add values to
 ' @param {Dictionary} newObj New object containing values to add to original object
 ' @param {Boolean} [overwriteOriginal=True] Overwrite any values that already exist in the original object
+' @return {Dictionary} Combined object
 ' --------------------------------------------- '
 
 Public Function CombineObjects(ByVal OriginalObj As Object, ByVal NewObj As Object, _
@@ -188,6 +189,7 @@ End Function
 '
 ' @param {Dictionary} Original Original model to filter
 ' @param {Variant} WhiteList Array of values to retain in the model
+' @return {Dictionary} Filtered object
 ' --------------------------------------------- '
 
 Public Function FilterObject(ByVal Original As Object, WhiteList As Variant) As Object
@@ -210,6 +212,8 @@ Public Function FilterObject(ByVal Original As Object, WhiteList As Variant) As 
     
     Set FilterObject = Filtered
 End Function
+
+
 
 ' ======================================================================================== '
 '
