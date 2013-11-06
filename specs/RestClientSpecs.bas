@@ -1,4 +1,15 @@
 Attribute VB_Name = "RestClientSpecs"
+''
+' RestClientSpecs
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
+'
+' General and sync specs for the RestClient class
+'
+' @author tim.hall.engr@gmail.com
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+'
+' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "RestClient"

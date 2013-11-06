@@ -1,4 +1,15 @@
 Attribute VB_Name = "RestClientAsyncSpecs"
+''
+' RestClientAsyncSpecs
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
+'
+' Async specs for the RestRequest class
+'
+' @author tim.hall.engr@gmail.com
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+'
+' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
 Private Declare Sub Sleep Lib "kernel32" (ByVal Milliseconds As Long)
 Private Declare Function GetTickCount Lib "kernel32" () As Long
 Dim AsyncResponse As RestResponse
