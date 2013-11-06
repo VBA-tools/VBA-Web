@@ -44,7 +44,7 @@ End Sub
 ' @param {Boolean} [useAsync=False]
 ' --------------------------------------------- '
 
-Public Sub HttpOpen(ByRef http As Object, ByRef Request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Public Sub HttpOpen(ByRef Http As Object, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Use standard http open by default
-    Call http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), useAsync)
+    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
 End Sub

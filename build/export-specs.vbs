@@ -17,16 +17,15 @@ End If
 
 ' Setup modules to export
 Modules = Array(_
-  "RestHelpers.bas", _
-  "IAuthenticator.cls", _
-  "RestClient.cls", _
-  "RestRequest.cls", _
-  "RestResponse.cls", _
-  "RestClientBase.bas" _
+  "RestClientSpecs.bas", _
+  "RestClientAsyncSpecs.bas", _
+  "RestRequestSpecs.bas", _
+  "RestHelpersSpecs.bas", _
+  "RestClientBaseSpecs.bas" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then
-  WScript.Echo "Exporting Excel-REST from " & WBPath & " to " & OutputPath
+  WScript.Echo "Exporting Excel-REST specs from " & WBPath & " to " & OutputPath
 
   ExcelWasOpen = OpenExcel(Excel)
   Excel.Visible = True
