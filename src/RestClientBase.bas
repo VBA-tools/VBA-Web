@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestClientBase"
 ''
-' RestClientBase v1.1.0
+' RestClientBase v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Extendable RestClientBase for developing custom client classes
@@ -15,7 +15,7 @@ Attribute VB_Name = "RestClientBase"
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v1.1.0 (https://github.com/timhall/Excel-REST)"
+Private Const UserAgent As String = "Excel Client v2.0.0 (https://github.com/timhall/Excel-REST)"
 Private Const TimeoutMS As Integer = 5000
 Private Initialized As Boolean
 
