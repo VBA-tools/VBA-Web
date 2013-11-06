@@ -45,14 +45,14 @@ Public TimeoutMS As Integer
 Public Function Execute(Request As RestRequest) As RestResponse
     Dim Response As RestResponse
     Dim Http As Object
-    Dim headerKey As Variant
+    Dim HeaderKey As Variant
     
     On Error GoTo ErrorHandling
     Set Http = CreateObject("MSXML2.ServerXMLHTTP")
-    Call HttpSetup(Http, Request, False)
+    HttpSetup Http, Request, False
     
     ' Send the request
-    Call Http.send(Request.Body)
+    Http.send Request.Body
     
     ' Handle response
     Set Response = Request.CreateResponseFromHttp(Http)
@@ -93,13 +93,13 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     
     ' Setup the request
     Set Http = CreateObject("MSXML2.ServerXMLHTTP")
-    Call HttpSetup(Http, Request, True)
+    HttpSetup Http, Request, True
     Request.Callback = Callback
     Request.CallbackArgs = CallbackArgs
     
     ' Send the request
     Request.StartTimeoutTimer Me.TimeoutMS
-    Call Http.send(Request.Body)
+    Http.send Request.Body
     
     ' Clean up and return
     ExecuteAsync = True
@@ -126,8 +126,8 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
     Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
     ' Add general headers to request
-    Call Request.AddHeader("User-Agent", UserAgent)
-    Call Request.AddHeader("Content-Type", Request.ContentType())
+    Request.AddHeader "User-Agent", UserAgent
+    Request.AddHeader "Content-Type", Request.ContentType()
     
     ' Pass http to request and setup onreadystatechange
     If UseAsync Then
@@ -141,14 +141,14 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
         Me.Authenticator.HttpOpen Http, Request, Me.BaseUrl, UseAsync
     Else
         ' Nothing hooked in so open http object
-        Call Http.Open(Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync)
+        Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
     End If
     
     ' Set request headers
-    Dim headerKey As Variant
-    For Each headerKey In Request.Headers.keys()
-        Call Http.setRequestHeader(headerKey, Request.Headers(headerKey))
-    Next headerKey
+    Dim HeaderKey As Variant
+    For Each HeaderKey In Request.Headers.keys()
+        Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
+    Next HeaderKey
 End Sub
 
 Private Sub Class_Initialize()

@@ -18,7 +18,7 @@ Dim AsyncArgs As Variant
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "RestClient Async"
-    Specs.BeforeEach "RestclientAsyncSpecs.Reset"
+    Specs.BeforeEach "RestClientAsyncSpecs.Reset"
     
     Dim Client As New RestClient
     Client.BaseUrl = "http://localhost:3000"
