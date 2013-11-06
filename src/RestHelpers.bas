@@ -39,6 +39,14 @@ Attribute VB_Name = "RestHelpers"
   
 #End If
 
+' Moved to top from JSONLib
+Private Const INVALID_JSON      As Long = 1
+Private Const INVALID_OBJECT    As Long = 2
+Private Const INVALID_ARRAY     As Long = 3
+Private Const INVALID_BOOLEAN   As Long = 4
+Private Const INVALID_NULL      As Long = 5
+Private Const INVALID_KEY       As Long = 6
+
 Public Enum StatusCodes
     Ok = 200
     Created = 201
@@ -67,8 +75,8 @@ End Enum
 ' @return {Object}
 ' --------------------------------------------- '
 
-Public Function ParseJSON(JSON As String) As Object
-    Set ParseJSON = json_parse(JSON)
+Public Function ParseJSON(json As String) As Object
+    Set ParseJSON = json_parse(json)
 End Function
 
 ''
@@ -166,21 +174,26 @@ Public Function CombineObjects(ByVal OriginalObj As Object, ByVal NewObj As Obje
     Optional OverwriteOriginal As Boolean = True) As Object
     
     Dim Combined As Object
-    Dim NewKey As Variant
+    Set Combined = CreateObject("Scripting.Dictionary")
+    
+    Dim OriginalKey As Variant
+    Dim Key As Variant
     
     If Not OriginalObj Is Nothing Then
-        Set Combined = OriginalObj
-    Else
-        Set Combined = CreateObject("Scripting.Dictionary")
+        For Each Key In OriginalObj.keys()
+            Combined.Add Key, OriginalObj(Key)
+        Next Key
     End If
-    For Each NewKey In NewObj.keys()
-        If Combined.Exists(NewKey) And OverwriteOriginal Then
-            Combined(NewKey) = NewObj(NewKey)
-        Else
-            Combined.Add NewKey, NewObj(NewKey)
-        End If
-    Next NewKey
-
+    If Not NewObj Is Nothing Then
+        For Each Key In NewObj.keys()
+            If Combined.Exists(Key) And OverwriteOriginal Then
+                Combined(Key) = NewObj(Key)
+            ElseIf Not Combined.Exists(Key) Then
+                Combined.Add Key, NewObj(Key)
+            End If
+        Next Key
+    End If
+    
     Set CombineObjects = Combined
 End Function
 
@@ -192,21 +205,21 @@ End Function
 ' @return {Dictionary} Filtered object
 ' --------------------------------------------- '
 
-Public Function FilterObject(ByVal Original As Object, WhiteList As Variant) As Object
+Public Function FilterObject(ByVal Original As Object, Whitelist As Variant) As Object
     Dim Filtered As Object
     Dim i As Integer
     
     Set Filtered = CreateObject("Scripting.Dictionary")
     
-    If IsArray(WhiteList) Then
-        For i = LBound(WhiteList) To UBound(WhiteList)
-            If Original.Exists(WhiteList(i)) Then
-                Filtered.Add WhiteList(i), Original(WhiteList(i))
+    If IsArray(Whitelist) Then
+        For i = LBound(Whitelist) To UBound(Whitelist)
+            If Original.Exists(Whitelist(i)) Then
+                Filtered.Add Whitelist(i), Original(Whitelist(i))
             End If
         Next i
-    ElseIf VarType(WhiteList) = vbString Then
-        If Original.Exists(WhiteList) Then
-            Filtered.Add WhiteList, Original(WhiteList)
+    ElseIf VarType(Whitelist) = vbString Then
+        If Original.Exists(Whitelist) Then
+            Filtered.Add Whitelist, Original(Whitelist)
         End If
     End If
     
@@ -389,12 +402,13 @@ End Function
 '
 ' ======================================================================================== '
 
-Private Const INVALID_JSON      As Long = 1
-Private Const INVALID_OBJECT    As Long = 2
-Private Const INVALID_ARRAY     As Long = 3
-Private Const INVALID_BOOLEAN   As Long = 4
-Private Const INVALID_NULL      As Long = 5
-Private Const INVALID_KEY       As Long = 6
+' (Moved to top of file)
+'Private Const INVALID_JSON      As Long = 1
+'Private Const INVALID_OBJECT    As Long = 2
+'Private Const INVALID_ARRAY     As Long = 3
+'Private Const INVALID_BOOLEAN   As Long = 4
+'Private Const INVALID_NULL      As Long = 5
+'Private Const INVALID_KEY       As Long = 6
 
 '
 '   parse string and create JSON object (Dictionary or Collection in VB)

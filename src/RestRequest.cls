@@ -45,7 +45,7 @@ Public Enum AvailableMethods
     httpPATCH
 End Enum
 Public Enum AvailableFormats
-    JSON
+    json
 End Enum
 
 ' --------------------------------------------- '
