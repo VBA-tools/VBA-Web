@@ -20,7 +20,8 @@ Modules = Array(_
   "RestClientSpecs.bas", _
   "RestClientAsyncSpecs.bas", _
   "RestRequestSpecs.bas", _
-  "RestHelpersSpecs.bas" _
+  "RestHelpersSpecs.bas", _
+  "RestClientBaseSpecs.bas" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then

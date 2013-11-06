@@ -1,17 +1,13 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "RestClient"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = True
+Attribute VB_Name = "RestClientBase"
 ''
-' RestClient v1.1.0
+' RestClientBase v1.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
-' Interact with REST web services from Excel
+' Extendable RestClientBase for developing custom client classes
+' - Embed authenticator logic with BeforeExecute and HttpOpen methods
+' - Add public methods and helpers for specific requests
+'
+' Look for ">" for points to customize
 '
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -20,19 +16,44 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Const UserAgent As String = "Excel Client v1.1.0 (https://github.com/timhall/Excel-REST)"
-Private Const DefaultTimeoutMS As Integer = 5000
-
+Private Const TimeoutMS As Integer = 5000
+Private Initialized As Boolean
 
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
 
 Public BaseUrl As String
-Public Authenticator As IAuthenticator
-Public TimeoutMS As Integer
 
 ' ============================================= '
 ' Public Methods
+' ============================================= '
+
+' > Customize with public methods and helpers here
+
+' ============================================= '
+' Extend RestClientBase
+' ============================================= '
+
+' > Customize to update request before execution (matches IAuthenticator)
+Private Sub BeforeExecute(ByRef Request As RestRequest)
+    
+End Sub
+
+' > Customize to perform special http open behavior (matches IAuthenticator)
+Private Sub HttpOpen(ByRef Http As Object, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
+    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+End Sub
+
+' > Customize with BaseUrl and other properties
+Private Sub Initialize()
+    ' If BaseUrl = "" Then: BaseUrl = "https://..."
+    
+    Initialized = True
+End Sub
+
+' ============================================= '
+' Internal Methods
 ' ============================================= '
 
 ''
@@ -73,7 +94,6 @@ ErrorHandling:
     End If
     
     Set Execute = Response
-    
 End Function
 
 ''
@@ -98,7 +118,7 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     Request.CallbackArgs = CallbackArgs
     
     ' Send the request
-    Request.StartTimeoutTimer Me.TimeoutMS
+    Request.StartTimeoutTimer TimeoutMS
     Call Http.send(Request.Body)
     
     ' Clean up and return
@@ -114,16 +134,13 @@ ErrorHandling:
         ' Rethrow error
         Err.Raise Err.Number, Description:=Err.Description
     End If
-    
 End Function
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional UseAsync As Boolean = False)
+    If Not Initialized Then: Initialize
+
     ' Set timeouts
-    Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
+    Http.setTimeouts TimeoutMS, TimeoutMS, TimeoutMS, TimeoutMS
     
     ' Add general headers to request
     Call Request.AddHeader("User-Agent", UserAgent)
@@ -136,13 +153,8 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
     End If
     
     ' Before execute and http open hooks for authenticator
-    If Not Me.Authenticator Is Nothing Then
-        Me.Authenticator.BeforeExecute Request
-        Me.Authenticator.HttpOpen Http, Request, Me.BaseUrl, UseAsync
-    Else
-        ' Nothing hooked in so open http object
-        Call Http.Open(Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync)
-    End If
+    BeforeExecute Request
+    HttpOpen Http, Request, BaseUrl, UseAsync
     
     ' Set request headers
     Dim headerKey As Variant
@@ -151,6 +163,3 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
     Next headerKey
 End Sub
 
-Private Sub Class_Initialize()
-    Me.TimeoutMS = DefaultTimeoutMS
-End Sub

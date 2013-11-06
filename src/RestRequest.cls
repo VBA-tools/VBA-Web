@@ -376,7 +376,7 @@ End Sub
 '
 ' --------------------------------------------- '
 
-Public Sub StartTimeoutTimer(TimeoutMS As Long)
+Public Sub StartTimeoutTimer(TimeoutMS As Integer)
     RestHelpers.StartTimeoutTimer Me, TimeoutMS
 End Sub
 

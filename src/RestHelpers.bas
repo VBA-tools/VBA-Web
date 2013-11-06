@@ -240,7 +240,7 @@ End Function
 ' @param {RestRequest} Request
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
-Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
+Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Integer)
     SetTimer Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired
 End Sub
 
