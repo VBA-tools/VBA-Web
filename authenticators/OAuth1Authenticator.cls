@@ -98,51 +98,51 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Sub IAuthenticator_BeforeExecute(request As RestRequest)
-	' Add authorization header to request
-    Call request.AddHeader("Authorization", CreateHeader(request))
+Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
+    ' Add authorization header to request
+    Request.AddHeader "Authorization", CreateHeader(Request)
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Private Sub IAuthenticator_HttpOpen(Http As Object, Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Standard http open
-    Call http.Open(request.MethodName(), request.FullUrl(BaseUrl), useAsync)
+    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
 End Sub
 
-Private Function CreateHeader(request As RestRequest) As String
-    Dim header As String
+Private Function CreateHeader(Request As RestRequest) As String
+    Dim Header As String
     Dim nonce As String
     Dim timestamp As String
     Dim base As String
     Dim signingKey As String
     Dim signature As String
     
-	' Create needed parts of authorization header
+    ' Create needed parts of authorization header
     nonce = CreateNonce()
     timestamp = CreateTimestamp()
-    base = CreateBaseString(nonce, timestamp, request)
+    base = CreateBaseString(nonce, timestamp, Request)
     signingKey = CreateSigningKey()
     signature = CreateSignature(base, signingKey)
     
     ' Add realm (if exists)
     If Me.Realm <> "" Then
-        header = "OAuth realm=" & Chr(34) & Me.Realm & Chr(34) & ", "
+        Header = "OAuth realm=" & Chr(34) & Me.Realm & Chr(34) & ", "
     Else
-        header = "OAuth "
+        Header = "OAuth "
     End If
     
     ' Construct header parts
     ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
-    header = header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34)
-    header = header & ", oauth_nonce=" & Chr(34) & nonce & Chr(34)
-    header = header & ", oauth_signature=" & Chr(34) & URLEncode(signature) & Chr(34)
-    header = header & ", oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34)
-    header = header & ", oauth_timestamp=" & Chr(34) & timestamp & Chr(34)
-    header = header & ", oauth_token=" & Chr(34) & Me.Token & Chr(34)
-    header = header & ", oauth_version=" & Chr(34) & "1.0" & Chr(34)
-    CreateHeader = header
+    Header = Header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34)
+    Header = Header & ", oauth_nonce=" & Chr(34) & nonce & Chr(34)
+    Header = Header & ", oauth_signature=" & Chr(34) & URLEncode(signature) & Chr(34)
+    Header = Header & ", oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34)
+    Header = Header & ", oauth_timestamp=" & Chr(34) & timestamp & Chr(34)
+    Header = Header & ", oauth_token=" & Chr(34) & Me.Token & Chr(34)
+    Header = Header & ", oauth_version=" & Chr(34) & "1.0" & Chr(34)
+    CreateHeader = Header
 End Function
 
-Private Function CreateBaseString(nonce As String, timestamp As String, request As RestRequest) As String
+Private Function CreateBaseString(nonce As String, timestamp As String, Request As RestRequest) As String
     Dim base As String
     Dim paramKey As Variant
     
@@ -152,15 +152,15 @@ Private Function CreateBaseString(nonce As String, timestamp As String, request 
     base = base & "&" & "oauth_timestamp" & "=" & timestamp
     base = base & "&" & "oauth_token" & "=" & Me.Token
     base = base & "&" & "oauth_version=1.0"
-    If Not IsMissing(request.Parameters) And Not request.Parameters Is Nothing Then
-        If request.Parameters.count > 0 Then
-            For Each paramKey In request.Parameters.keys
-                base = base & "&" & paramKey & "=" & URLEncode(request.Parameters(paramKey))
+    If Not IsMissing(Request.Parameters) And Not Request.Parameters Is Nothing Then
+        If Request.Parameters.count > 0 Then
+            For Each paramKey In Request.Parameters.keys
+                base = base & "&" & paramKey & "=" & URLEncode(Request.Parameters(paramKey))
             Next paramKey
         End If
     End If
     
-    CreateBaseString = request.MethodName() & "&" & URLEncode(request.FormattedResource()) & "&" & URLEncode(base)
+    CreateBaseString = Request.MethodName() & "&" & URLEncode(Request.FormattedResource()) & "&" & URLEncode(base)
 End Function
 
 Private Function CreateSigningKey() As String
@@ -204,4 +204,6 @@ Function GetGMT(Optional LocalTime As Date) As Date
     GMT = T + TimeSerial(0, TZI.Bias, 0) - IIf(DST = TIME_ZONE_DAYLIGHT, TimeSerial(1, 0, 0), 0)
     GetGMT = GMT
 End Function
+
+
 

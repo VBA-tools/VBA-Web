@@ -20,10 +20,10 @@ Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
 End Sub
 
 Private Sub IAuthenticator_HttpOpen( _
-    http As MSXML2.IXMLHTTPRequest, _
+    Http As Object, _
     Request As RestRequest, _
     BaseUrl As String, _
-    Optional useAsync As Boolean = False)
+    Optional UseAsync As Boolean = False)
 ' (Used to open the given http request, making any necessary modifications)
 
     ' Perform standard http open

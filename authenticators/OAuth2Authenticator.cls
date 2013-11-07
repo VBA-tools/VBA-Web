@@ -72,20 +72,20 @@ Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
     On Error GoTo ErrorHandling
     If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         ' Get new token
-        Dim http As MSXML2.ServerXMLHTTP
-        Set http = New MSXML2.ServerXMLHTTP
+        Dim Http As Object
+        Set Http = CreateObject("MSXML2.ServerXMLHTTP")
              
-        Call http.Open("POST", CreateTokenRequest, False)
-        Call http.send
+        Http.Open "POST", CreateTokenRequest, False
+        Http.send
         
-        If http.Status <> 200 Then
+        If Http.Status <> 200 Then
             ' Error getting OAuth2 token
-            Err.Raise vbObjectError + http.Status, _
-                Description:="Failed to retrieve OAuth2 Token - " & http.Status & ": " & http.responseText
+            Err.Raise vbObjectError + Http.Status, _
+                Description:="Failed to retrieve OAuth2 Token - " & Http.Status & ": " & Http.ResponseText
         End If
         
         Dim Response As Dictionary
-        Set Response = RestHelpers.ParseJSON(http.responseText)
+        Set Response = RestHelpers.ParseJSON(Http.ResponseText)
         If Not Response Is Nothing Then
             If Response.Exists(Me.TokenKey) Then
                 Me.Token = Response(Me.TokenKey)
@@ -104,7 +104,7 @@ Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
     
 ErrorHandling:
     
-    If Not http Is Nothing Then Set http = Nothing
+    If Not Http Is Nothing Then Set Http = Nothing
     If Not Response Is Nothing Then Set Response = Nothing
     
     If Err.Number <> 0 Then
@@ -113,9 +113,9 @@ ErrorHandling:
     End If
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(http As MSXML2.IXMLHTTPRequest, Request As RestRequest, BaseUrl As String, Optional useAsync As Boolean = False)
+Private Sub IAuthenticator_HttpOpen(Http As Object, Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
-    Call http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), useAsync)
+    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
 End Sub
 
 ' ============================================= '
