@@ -6,79 +6,125 @@ It seems like everything has a REST webservice these days and there is no reason
 Getting started
 ---------------
 
-1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the project as well as JSONLib from the lib/ directory
-2.  Add references (Tools > References in VBA) to Microsoft Scripting Runtime and Microsoft XML, v3.0 or above
-3.  In a new module or class, create a new RestClient for the service, create a new RestRequest to request something specific from the service,
+1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the project
+2.  In a new module or class, create a new RestClient for the service, create a new RestRequest to request something specific from the service,
     and then use the client to execute the request
     (See below for a simple example)
-4.  That's it! There are many advanced uses for Excel-REST, including asynchronous requests so that Excel isn't locked up, Authenticators for accessing
+3.  That's it! There are many advanced uses for Excel-REST, including asynchronous requests so that Excel isn't locked up, Authenticators for accessing
     services with Basic, OAuth1, and OAuth2 authentication, and detailed requests for complex APIs. Find out more in the [Wiki](https://github.com/timhall/Excel-REST/wiki)
 
-Steps 1 and 2 are tedious, so you may want to use the blank workbook provided with the project. Design based heavily on the awesome [RestSharp](http://restsharp.org/)
+The first step can be tedious, so you may want to use the blank workbook provided with the project. Design based heavily on the awesome [RestSharp](http://restsharp.org/)
 
 Example
 -------
 
 The following is a simple of example of calling the Google Maps API to get directions between two locations (including the travel time) and processing the results
 
-### Create a RestClient
+### Simple Example: Get directions
 ```VB
-Function MapsClient() As RestClient
-    Set MapsClient = New RestClient
+Function GetDirections(Origin As String, Destination As String) As String
+    ' Create a RestClient for executing requests
+    ' and set a base url that all requests will be appended to
+    Dim MapsClient As New RestClient
     MapsClient.BaseUrl = "https://maps.googleapis.com/maps/api/"
-    ' (all requests will be appended to this)
     
-End Function
-```
-
-### Create a RestRequest
-```VB
-Function DirectionsRequest(Origin As String, Destination As String) As RestRequest
-    Set DirectionsRequest = New RestRequest
+    ' Create a RestRequest for getting directions
+    Dim DirectionsRequest As New RestRequest
     DirectionsRequest.Resource = "directions/{format}"
-    
-    ' Set the request format (Set {format} segment, content-types, and parse the response)
-    DirectionsRequest.Format = json
-    
-    ' Replace any {...} url segments
-    ' e.g. Resource = "resource/{id}"
-    ' Request.AddUrlSegment("id", 123) -> "resource/123"
-    
-    ' Add parameters to the request (querystring for GET calls and body for everything else)
-    DirectionsRequest.AddParameter "origin", Origin
-    DirectionsRequest.AddParameter "destination", Destination
-    ' (or force as querystring)
-    DirectionsRequest.AddQuerystringParam "sensor", "false"
-    
-    ' (GET, POST, PUT, DELETE, PATCH)
     DirectionsRequest.Method = httpGET
     
-    ' => GET https://maps.googleapis.com/maps/api/directions/json?origin=...&destination=...&sensor=false
+    ' Set the request format -> Sets {format} segment, content-types, and parses the response
+    DirectionsRequest.Format = json
     
+    ' (Alternatively, replace {format} segment directly)
+    DirectionsRequest.AddUrlSegment "format", "json"
+    
+    ' Add parameters to the request (as querystring for GET calls and body otherwise)
+    DirectionsRequest.AddParameter "origin", Origin
+    DirectionsRequest.AddParameter "destination", Destination
+    
+    ' Force parameter as querystring for all requests
+    DirectionsRequest.AddQuerystringParam "sensor", "false"
+    
+    ' => GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false
+    
+    ' Execute the request and work with the response
+    Dim Response As RestResponse
+    Set Response = MapsClient.Execute(DirectionsRequest)
+    
+    If Response.StatusCode = 200 Then
+        ' Work directly with parsed json data
+        Dim Route As Object
+        Set Route = Response.Data("routes")(1)("legs")(1)
+        
+        GetDirections = "It will take " & Route("duration")("text") & _
+            " to travel " & Route("distance")("text") & _
+            " from " & Route("start_address") & _
+            " to " & Route("end_address")
+    Else
+        GetDirections = "Error: " & Response.Content
+    End If
 End Function
 ```
 
-### Execute and process a request
+### Async Example: Add async to getting directions
 ```VB
-Sub GetDirections()
-    ' Execute the request asynchonously and process later
-    MapsClient.ExecuteAsync DirectionsRequest("Raleigh, NC", "San Francisco, CA"), "ProcessDirections"
-End Sub
+Function GetDirections(Origin As String, Destination As String) As String
+    Dim MapsClient As New RestClient
+    Dim DirectionsRequest As New RestRequest
+    ' ... Create client and request using Simple Example
+    
+    ' Execute the request asynchronously with RestResponse being passed into callback
+    MapsClient.ExecuteAsync DirectionsRequest, "ProcessDirections"
+    
+    ' Keep working, handling response later
+End Function
 
 Public Sub ProcessDirections(Response As RestResponse)
+    ' Handle response once the request has returned
     If Response.StatusCode = Ok Then
-        Dim Route As Dictionary 
+        Dim Route As Dictionary
         Set Route = Response.Data("routes")(1)("legs")(1)
-    
+
         Debug.Print "It will take " & Route("duration")("text") & _
             " to travel " & Route("distance")("text") & _
             " from " & Route("start_address") & _
             " to " & Route("end_address")
+    Else
+        Debug.Print "Error: " & Response.Content
     End If
 End Sub
 ```
 
 For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wiki)
+
+### Release Notes
+
+#### v2.0.0
+
+- Remove JSONLib dependency (merged with RestHelpers)
+- Add RestClientBase for future use with extension for single-client applications
+- Add build scripts for import/export
+- New specs and bugfixes
+
+#### v1.1.0
+
+Major Changes:
+
+- Integrate Excel-TDD to fully test Excel-REST library
+- Handle timeouts for sync and async requests
+- Remove reference dependencies and use CreateObject instead
+
+Bugfixes:
+
+- Add cachebreaker as querystring param only
+- Add Join helpers to resolve double-slash issue between base and resource url
+- Only add "?" for querystring if querystring will be created and "?" isn't present
+- Only put parameters in body if there are parameters
+
+#### v0.2
+
+- Add async support
 
 Author: Tim Hall
 
