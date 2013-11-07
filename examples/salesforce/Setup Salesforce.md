@@ -15,8 +15,6 @@ Salesforce Documentation:
     
     **Contact Email**: Email used for any app related issues
 
-    If you receive the vague "Name: The Application API Name can only contain underscores and alphanumeric characters." error message, it is most likely referring to the "Developer Name" field
-
 6. Check Enable OAuth Settings
 7. For Callback URL, use https://login.salesforce.com/services/oauth2/callback
 
