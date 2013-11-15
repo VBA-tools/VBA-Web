@@ -6,7 +6,7 @@ It seems like everything has a REST webservice these days and there is no reason
 Getting started
 ---------------
 
-1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the project
+1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the workbook (`RestClientBase.bas` is optional)
 2.  In a new module or class, create a new RestClient for the service, create a new RestRequest to request something specific from the service,
     and then use the client to execute the request
     (See below for a simple example)
@@ -126,7 +126,9 @@ Bugfixes:
 
 - Add async support
 
-Author: Tim Hall
+### About
 
-License: MIT
+- Author: Tim Hall
+- License: MIT
+
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/304523f72ecef00eae1840dcac0c16bd "githalytics.com")](http://githalytics.com/timhall/Excel-REST)
