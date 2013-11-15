@@ -13,7 +13,7 @@ Getting started
 3.  That's it! There are many advanced uses for Excel-REST, including asynchronous requests so that Excel isn't locked up, Authenticators for accessing
     services with Basic, OAuth1, and OAuth2 authentication, and detailed requests for complex APIs. Find out more in the [Wiki](https://github.com/timhall/Excel-REST/wiki)
 
-The first step can be tedious, so you may want to use the blank workbook provided with the project. Design based heavily on the awesome [RestSharp](http://restsharp.org/)
+The first step can be tedious, so you may want to use the blank workbook provided with the project.
 
 Example
 -------
@@ -128,6 +128,7 @@ Bugfixes:
 
 ### About
 
+- Design based heavily on the awesome [RestSharp](http://restsharp.org/)
 - Author: Tim Hall
 - License: MIT
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/304523f72ecef00eae1840dcac0c16bd "githalytics.com")](http://githalytics.com/timhall/Excel-REST)
