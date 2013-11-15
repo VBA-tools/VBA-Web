@@ -130,5 +130,4 @@ Bugfixes:
 
 - Author: Tim Hall
 - License: MIT
-
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/304523f72ecef00eae1840dcac0c16bd "githalytics.com")](http://githalytics.com/timhall/Excel-REST)
