@@ -1,3 +1,8 @@
+' Export authenticators from given workbook to given folder
+'
+' Example:
+' (From cmd pointed to Excel-REST folder)
+' cscript build\export-auth.vbs "examples\Excel-REST - Example.xlsm" authenticators\
 Option Explicit
 
 Dim Args

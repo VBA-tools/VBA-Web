@@ -1,3 +1,12 @@
+' Import Excel-REST into your workbook or library workbooks
+'
+' Example:
+' (From cmd pointed to Excel-REST folder)
+' Import Excel-REST into your workbook
+' cscript build\import.vbs "C:\Your Workbook.xlsm"
+'
+' Import Excel-REST into library workbooks
+' cscript build\import.vbs
 Option Explicit
 
 Dim Args
@@ -19,7 +28,7 @@ Else
 End If
 
 ' Include all standard Excel-REST modules
-Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls")
+Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls", "RestClientBase.bas")
 
 ' Open Excel
 KeepExcelOpen = OpenExcel(Excel)

@@ -1,3 +1,8 @@
+' Export Excel-REST from given workbook to given folder
+'
+' Example:
+' (From cmd pointed to Excel-REST folder)
+' cscript build\export.vbs "specs\Excel-REST - Specs.xlsm" src\
 Option Explicit
 
 Dim Args
