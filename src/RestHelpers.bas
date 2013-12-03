@@ -456,8 +456,17 @@ Private Function json_parseObject(ByRef str As String, ByRef index As Long) As O
         Dim Key As String
         
         ' add key/value pair
-        json_parseObject.Add Key:=json_parseKey(str, index), Item:=json_parseValue(str, index)
         
+        '// Next line commented out as it throws error if key is repeated which is still valid json
+        'json_parseObject.Add Key:=json_parseKey(str, index), Item:=json_parseValue(str, index)
+        
+        '// The purpose of this fix is to test for key existence before adding so parser doesen't throw an error
+        ' which would cause the intended RestResponse.Data object to be 'nothing'
+        currentKey = json_parseKey(str, index)
+        currentItem = json_parseValue(str, index)
+        
+        If Not json_parseObject.Exists(currentKey) Then json_parseObject.Add Key:=currentKey, Item:=currentItem
+
     Loop
 
 End Function
