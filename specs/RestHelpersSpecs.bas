@@ -51,6 +51,16 @@ Public Function Specs() As SpecSuite
         End If
     End With
     
+    With Specs.It("should overwrite parsed json for duplicate keys")
+        json = "{""a"":1,""a"":2,""a"":3}"
+        Set Parsed = RestHelpers.ParseJSON(json)
+        
+        .Expect(Parsed).ToBeDefined
+        If Not Parsed Is Nothing Then
+            .Expect(Parsed("a")).ToEqual 3
+        End If
+    End With
+    
     With Specs.It("should convert to json")
         Set Obj = CreateObject("Scripting.Dictionary")
         Obj.Add "a", 1

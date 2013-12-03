@@ -106,6 +106,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 - Add RestClientBase for future use with extension for single-client applications
 - Add build scripts for import/export
 - New specs and bugfixes
+- __v2.0.1__ Handle duplicate keys when parsing json
 
 #### v1.1.0
 
