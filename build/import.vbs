@@ -19,7 +19,7 @@ Else
 End If
 
 ' Include all standard Excel-REST modules
-Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls")
+Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls", "RestClientBase.bas")
 
 ' Open Excel
 KeepExcelOpen = OpenExcel(Excel)

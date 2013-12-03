@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v2.0.0
+' RestHelpers v2.0.1
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
@@ -398,6 +398,7 @@ End Function
 ' - Updated json_parseNumber to reduce chance of overflow
 ' - Swapped Mid for Mid$
 ' - Handle colon in object key
+' - Handle duplicate keys in object parsing
 ' - Change methods to Private and prefix with json_
 '
 ' ======================================================================================== '
@@ -442,8 +443,9 @@ Private Function json_parseObject(ByRef str As String, ByRef index As Long) As O
     If Mid$(str, index, 1) <> "{" Then Err.Raise vbObjectError + INVALID_OBJECT, Description:="char " & index & " : " & Mid$(str, index)
     index = index + 1
     
-    Do
+    Dim Key As String
     
+    Do
         Call json_skipChar(str, index)
         If "}" = Mid$(str, index, 1) Then
             index = index + 1
@@ -453,11 +455,12 @@ Private Function json_parseObject(ByRef str As String, ByRef index As Long) As O
             Call json_skipChar(str, index)
         End If
         
-        Dim Key As String
-        
-        ' add key/value pair
-        json_parseObject.Add Key:=json_parseKey(str, index), Item:=json_parseValue(str, index)
-        
+        Key = json_parseKey(str, index)
+        If Not json_parseObject.Exists(Key) Then
+            json_parseObject.Add Key, json_parseValue(str, index)
+        Else
+            json_parseObject.Item(Key) = json_parseValue(str, index)
+        End If
     Loop
 
 End Function
