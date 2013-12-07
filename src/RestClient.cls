@@ -48,7 +48,7 @@ Public Function Execute(Request As RestRequest) As RestResponse
     Dim HeaderKey As Variant
     
     On Error GoTo ErrorHandling
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP")
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
     HttpSetup Http, Request, False
     
     ' Send the request
@@ -92,7 +92,7 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     On Error GoTo ErrorHandling
     
     ' Setup the request
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP")
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
     HttpSetup Http, Request, True
     Request.Callback = Callback
     Request.CallbackArgs = CallbackArgs
@@ -124,6 +124,10 @@ End Function
 Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional UseAsync As Boolean = False)
     ' Set timeouts
     Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
+    
+    ' Set default proxy
+    ' (http://msdn.microsoft.com/en-us/library/ms760236%28v=vs.85%29.aspx)
+    Http.setProxy 0 ' (SXH_PROXY_SET_DEFAULT/SXH_PROXY_SET_PRECONFIG)
     
     ' Add general headers to request
     Request.AddHeader "User-Agent", UserAgent
