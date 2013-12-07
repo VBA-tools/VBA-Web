@@ -63,8 +63,8 @@ ErrorHandling:
     
     If Err.Number <> 0 Then
         If InStr(Err.Description, "The operation timed out") > 0 Then
-            ' Return 504
-            Set Response = Request.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
+            ' Return 408
+            Set Response = Request.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
             Err.Clear
         Else
             ' Rethrow error

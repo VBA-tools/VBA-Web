@@ -116,15 +116,15 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("query")("d")).ToEqual "False"
     End With
     
-    With Specs.It("should return 504 on request timeout")
+    With Specs.It("should return 408 on request timeout")
         Set Request = New RestRequest
         Request.Resource = "timeout"
         Request.AddQuerystringParam "ms", 2000
 
         Client.TimeoutMS = 500
         Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual 504
-        .Expect(Response.StatusDescription).ToEqual "Gateway Timeout"
+        .Expect(Response.StatusCode).ToEqual 408
+        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
         Debug.Print Response.Content
     End With
     

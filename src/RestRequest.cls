@@ -396,7 +396,7 @@ End Sub
 
 Public Sub TimedOut()
     ' Callback
-    RunCallback Me.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
+    RunCallback Me.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
     
     ' Request is finished, clean up
     Set Me.HttpRequest = Nothing
