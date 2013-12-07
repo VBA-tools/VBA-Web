@@ -6,14 +6,14 @@ It seems like everything has a REST webservice these days and there is no reason
 Getting started
 ---------------
 
-1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the project
+1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the workbook (`RestClientBase.bas` is optional)
 2.  In a new module or class, create a new RestClient for the service, create a new RestRequest to request something specific from the service,
     and then use the client to execute the request
     (See below for a simple example)
 3.  That's it! There are many advanced uses for Excel-REST, including asynchronous requests so that Excel isn't locked up, Authenticators for accessing
     services with Basic, OAuth1, and OAuth2 authentication, and detailed requests for complex APIs. Find out more in the [Wiki](https://github.com/timhall/Excel-REST/wiki)
 
-The first step can be tedious, so you may want to use the blank workbook provided with the project. Design based heavily on the awesome [RestSharp](http://restsharp.org/)
+The first step can be tedious, so you may want to use the blank workbook provided with the project.
 
 Example
 -------
@@ -106,6 +106,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 - Add RestClientBase for future use with extension for single-client applications
 - Add build scripts for import/export
 - New specs and bugfixes
+- __v2.0.1__ Handle duplicate keys when parsing json
 
 #### v1.1.0
 
@@ -126,7 +127,9 @@ Bugfixes:
 
 - Add async support
 
-Author: Tim Hall
+### About
 
-License: MIT
+- Design based heavily on the awesome [RestSharp](http://restsharp.org/)
+- Author: Tim Hall
+- License: MIT
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/304523f72ecef00eae1840dcac0c16bd "githalytics.com")](http://githalytics.com/timhall/Excel-REST)
