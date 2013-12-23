@@ -86,7 +86,7 @@ Public Function Specs() As SpecSuite
         .Expect(AsyncResponse.StatusDescription).ToEqual "Internal Server Error"
     End With
     
-    With Specs.It("should return 504 and close request on request timeout")
+    With Specs.It("should return 408 and close request on request timeout")
         Set Request = New RestRequest
         Request.Resource = "timeout"
         Request.AddQuerystringParam "ms", 2000
@@ -96,8 +96,8 @@ Public Function Specs() As SpecSuite
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.StatusCode).ToEqual 504
-            .Expect(AsyncResponse.StatusDescription).ToEqual "Gateway Timeout"
+            .Expect(AsyncResponse.StatusCode).ToEqual 408
+            .Expect(AsyncResponse.StatusDescription).ToEqual "Request Timeout"
         End If
         .Expect(Request.HttpRequest).ToBeUndefined
     End With

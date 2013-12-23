@@ -39,6 +39,8 @@ Attribute VB_Name = "RestHelpers"
   
 #End If
 
+Private Const UserAgent As String = "Excel Client v2.0.1 (https://github.com/timhall/Excel-REST)"
+
 ' Moved to top from JSONLib
 Private Const INVALID_JSON      As Long = 1
 Private Const INVALID_OBJECT    As Long = 2
@@ -56,6 +58,7 @@ Public Enum StatusCodes
     Unauthorized = 401
     Forbidden = 403
     NotFound = 404
+    RequestTimeout = 408
     UnsupportedMediaType = 415
     InternalServerError = 500
     BadGateway = 502
@@ -226,6 +229,51 @@ Public Function FilterObject(ByVal Original As Object, Whitelist As Variant) As 
     Set FilterObject = Filtered
 End Function
 
+''
+' Prepare http request for execution
+'
+' @param {Object} Http request
+' @param {RestRequest} Request
+' @param {Integer} TimeoutMS
+' @param {Boolean} [UseAsync=False]
+' --------------------------------------------- '
+
+Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, TimeoutMS As Integer, Optional UseAsync As Boolean = False)
+    ' Set timeouts
+    Http.setTimeouts TimeoutMS, TimeoutMS, TimeoutMS, TimeoutMS
+    
+    ' Add general headers to request
+    Request.AddHeader "User-Agent", UserAgent
+    Request.AddHeader "Content-Type", Request.ContentType()
+    
+    If Request.IncludeContentLength Then
+        Request.AddHeader "Content-Length", Len(Request.Body)
+    Else
+        If Request.Headers.Exists("Content-Length") Then
+            Request.Headers.Remove "Content-Length"
+        End If
+    End If
+    
+    ' Pass http to request and setup onreadystatechange
+    If UseAsync Then
+        Set Request.HttpRequest = Http
+        Http.onreadystatechange = Request
+    End If
+End Sub
+
+''
+' Set headers to http object for given request
+'
+' @param {Object} Http request
+' @param {RestRequest} Request
+' --------------------------------------------- '
+
+Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
+    Dim HeaderKey As Variant
+    For Each HeaderKey In Request.Headers.keys()
+        Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
+    Next HeaderKey
+End Sub
 
 
 ' ======================================================================================== '

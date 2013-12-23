@@ -61,6 +61,7 @@ Public BaseUrl As String
 Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
+Public IncludeContentLength As Boolean
 
 Public Property Get Headers() As Object
     If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
@@ -396,7 +397,7 @@ End Sub
 
 Public Sub TimedOut()
     ' Callback
-    RunCallback Me.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
+    RunCallback Me.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
     
     ' Request is finished, clean up
     Set Me.HttpRequest = Nothing
@@ -433,6 +434,7 @@ End Sub
 Private Sub Class_Initialize()
     ' Set default values
     Me.IncludeCacheBreaker = True
+    Me.IncludeContentLength = True
 End Sub
 
 Private Sub Class_Terminate()
