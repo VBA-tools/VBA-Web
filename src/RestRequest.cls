@@ -31,6 +31,7 @@ Private pUrlSegments As Object
 Private pBody As Object
 Private pBodyString As String
 Private pContentType As String
+Private pContentLength As Long
 Private pHttpRequest As Object
 
 ' --------------------------------------------- '
@@ -215,6 +216,17 @@ Public Property Get ContentType() As String
 End Property
 Public Property Let ContentType(Value As String)
     pContentType = Value
+End Property
+
+Public Property Get ContentLength() As Long
+    If pContentLength > 0 Then
+        ContentLength = pContentLength
+    Else
+        ContentLength = Len(Me.Body)
+    End If
+End Property
+Public Property Let ContentLength(Value As Long)
+    Set pContentLength = Value
 End Property
 
 Public Property Get HttpRequest() As Object

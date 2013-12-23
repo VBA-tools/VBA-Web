@@ -244,10 +244,10 @@ Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, Time
     
     ' Add general headers to request
     Request.AddHeader "User-Agent", UserAgent
-    Request.AddHeader "Content-Type", Request.ContentType()
+    Request.AddHeader "Content-Type", Request.ContentType
     
     If Request.IncludeContentLength Then
-        Request.AddHeader "Content-Length", Len(Request.Body)
+        Request.AddHeader "Content-Length", Request.ContentLength
     Else
         If Request.Headers.Exists("Content-Length") Then
             Request.Headers.Remove "Content-Length"
