@@ -13,6 +13,7 @@ Attribute VB_Name = "RestRequestSpecs"
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Dim Request As RestRequest
+    Dim Body As Object
     
     Specs.Description = "RestRequest"
     
@@ -132,8 +133,7 @@ Public Function Specs() As SpecSuite
 
     With Specs.It("should only combine body and parameters if not GET Request")
         Set Request = New RestRequest
-
-        Dim Body As Object
+        
         Set Body = CreateObject("Scripting.Dictionary")
         Body.Add "A", 123
         
@@ -243,5 +243,23 @@ Public Function Specs() As SpecSuite
         .Expect(Request.FormattedResource).ToEqual "?A=20&B=3.14&C=True"
     End With
     
+    With Specs.It("should allow body or body string for GET requests")
+        Set Request = New RestRequest
+        Request.Method = httpGET
+        
+        Set Body = CreateObject("Scripting.Dictionary")
+        Body.Add "A", 123
+        
+        Request.AddBody Body
+        .Expect(Request.Body).ToEqual "{""A"":123}"
+        
+        Set Request = New RestRequest
+        Request.Method = httpGET
+        
+        Request.AddBodyString "Howdy!"
+        .Expect(Request.Body).ToEqual "Howdy!"
+    End With
+    
     InlineRunner.RunSuite Specs
 End Function
+

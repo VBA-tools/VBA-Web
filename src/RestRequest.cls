@@ -31,6 +31,7 @@ Private pUrlSegments As Object
 Private pBody As Object
 Private pBodyString As String
 Private pContentType As String
+Private pContentLength As Long
 Private pHttpRequest As Object
 
 ' --------------------------------------------- '
@@ -61,6 +62,7 @@ Public BaseUrl As String
 Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
+Public IncludeContentLength As Boolean
 
 Public Property Get Headers() As Object
     If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
@@ -214,6 +216,17 @@ Public Property Get ContentType() As String
 End Property
 Public Property Let ContentType(Value As String)
     pContentType = Value
+End Property
+
+Public Property Get ContentLength() As Long
+    If pContentLength > 0 Then
+        ContentLength = pContentLength
+    Else
+        ContentLength = Len(Me.Body)
+    End If
+End Property
+Public Property Let ContentLength(Value As Long)
+    Set pContentLength = Value
 End Property
 
 Public Property Get HttpRequest() As Object
@@ -396,7 +409,7 @@ End Sub
 
 Public Sub TimedOut()
     ' Callback
-    RunCallback Me.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
+    RunCallback Me.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
     
     ' Request is finished, clean up
     Set Me.HttpRequest = Nothing
@@ -433,6 +446,7 @@ End Sub
 Private Sub Class_Initialize()
     ' Set default values
     Me.IncludeCacheBreaker = True
+    Me.IncludeContentLength = True
 End Sub
 
 Private Sub Class_Terminate()

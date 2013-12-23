@@ -19,7 +19,6 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v2.0.1 (https://github.com/timhall/Excel-REST)"
 Private Const DefaultTimeoutMS As Integer = 5000
 
 
@@ -48,7 +47,7 @@ Public Function Execute(Request As RestRequest) As RestResponse
     Dim HeaderKey As Variant
     
     On Error GoTo ErrorHandling
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP")
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
     HttpSetup Http, Request, False
     
     ' Send the request
@@ -63,8 +62,8 @@ ErrorHandling:
     
     If Err.Number <> 0 Then
         If InStr(Err.Description, "The operation timed out") > 0 Then
-            ' Return 504
-            Set Response = Request.CreateResponse(StatusCodes.GatewayTimeout, "Gateway Timeout")
+            ' Return 408
+            Set Response = Request.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
             Err.Clear
         Else
             ' Rethrow error
@@ -92,7 +91,7 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     On Error GoTo ErrorHandling
     
     ' Setup the request
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP")
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
     HttpSetup Http, Request, True
     Request.Callback = Callback
     Request.CallbackArgs = CallbackArgs
@@ -122,18 +121,7 @@ End Function
 ' ============================================= '
 
 Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional UseAsync As Boolean = False)
-    ' Set timeouts
-    Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
-    
-    ' Add general headers to request
-    Request.AddHeader "User-Agent", UserAgent
-    Request.AddHeader "Content-Type", Request.ContentType()
-    
-    ' Pass http to request and setup onreadystatechange
-    If UseAsync Then
-        Set Request.HttpRequest = Http
-        Http.onreadystatechange = Request
-    End If
+    RestHelpers.PrepareHttpRequest Http, Request, Me.TimeoutMS, UseAsync
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then
@@ -144,11 +132,7 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
         Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
     End If
     
-    ' Set request headers
-    Dim HeaderKey As Variant
-    For Each HeaderKey In Request.Headers.keys()
-        Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
-    Next HeaderKey
+    RestHelpers.SetHeaders Http, Request
 End Sub
 
 Private Sub Class_Initialize()

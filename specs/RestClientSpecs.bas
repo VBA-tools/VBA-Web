@@ -17,6 +17,7 @@ Public Function Specs() As SpecSuite
     Dim Client As New RestClient
     Dim Request As RestRequest
     Dim Response As RestResponse
+    Dim Body As Object
     
     Client.BaseUrl = "localhost:3000/"
     
@@ -90,7 +91,6 @@ Public Function Specs() As SpecSuite
         
         .Expect(Client.Execute(Request).Data("body")).ToEqual "Howdy!"
         
-        Dim Body As Object
         Set Body = CreateObject("Scripting.Dictionary")
         Body.Add "a", 3.14
         
@@ -116,16 +116,46 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("query")("d")).ToEqual "False"
     End With
     
-    With Specs.It("should return 504 on request timeout")
+    With Specs.It("should return 408 on request timeout")
         Set Request = New RestRequest
         Request.Resource = "timeout"
         Request.AddQuerystringParam "ms", 2000
 
         Client.TimeoutMS = 500
         Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual 504
-        .Expect(Response.StatusDescription).ToEqual "Gateway Timeout"
+        .Expect(Response.StatusCode).ToEqual 408
+        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
         Debug.Print Response.Content
+    End With
+
+    With Specs.It("should add content-length header (if enabled)")
+        Set Request = New RestRequest
+        Request.Resource = "text"
+        Request.Method = httpPOST
+        Request.ContentType = "text/plain"
+        Request.AddBodyString "Howdy!"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Request.Headers("Content-Length")).ToEqual "6"
+        
+        Request.IncludeContentLength = False
+        Set Response = Client.Execute(Request)
+        .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
+        
+        Set Request = New RestRequest
+        Request.Resource = "post"
+        Request.Method = httpPOST
+        
+        Set Body = CreateObject("Scripting.Dictionary")
+        Body.Add "a", 3.14
+        Request.AddBody Body
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Request.Headers("Content-Length")).ToEqual "10"
+        
+        Request.IncludeContentLength = False
+        Set Response = Client.Execute(Request)
+        .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
     End With
     
     Set Client = Nothing
