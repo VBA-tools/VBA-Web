@@ -107,6 +107,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 - Add build scripts for import/export
 - New specs and bugfixes
 - __v2.0.1__ Handle duplicate keys when parsing json
+- __v2.0.2__ Add Content-Length header and 408 status code for timeout
 
 #### v1.1.0
 
