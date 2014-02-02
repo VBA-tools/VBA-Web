@@ -29,6 +29,10 @@ Private Const DefaultTimeoutMS As Integer = 5000
 Public BaseUrl As String
 Public Authenticator As IAuthenticator
 Public TimeoutMS As Integer
+Public ProxyServer As String
+Public ProxyUsername As String
+Public ProxyPassword As String
+Public ProxyBypassList As Variant
 
 ' ============================================= '
 ' Public Methods
@@ -116,12 +120,34 @@ ErrorHandling:
     
 End Function
 
+''
+' Set proxy for all requests
+'
+' @param {String} ProxyServer
+' @param {String} [Username=""]
+' @param {String} [Password=""]
+' @param {Variant} [BypassList]
+' --------------------------------------------- '
+
+Public Sub SetProxy(ProxyServer As String, _
+    Optional Username As String = "", Optional Password As String = "", Optional BypassList As Variant)
+    
+    Me.ProxyServer = ProxyServer
+    Me.ProxyUsername = Username
+    Me.ProxyPassword = Password
+    Me.ProxyBypassList = BypassList
+End Sub
+
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
 
 Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional UseAsync As Boolean = False)
     RestHelpers.PrepareHttpRequest Http, Request, Me.TimeoutMS, UseAsync
+    
+    If Me.ProxyServer <> "" Then
+        RestHelpers.PrepareProxyForHttpRequest Http, Me.ProxyServer, Me.ProxyUsername, Me.ProxyPassword, Me.ProxyBypassList
+    End If
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then

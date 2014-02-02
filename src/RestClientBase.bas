@@ -23,6 +23,10 @@ Private Initialized As Boolean
 ' --------------------------------------------- '
 
 Public BaseUrl As String
+Public ProxyServer As String
+Public ProxyUsername As String
+Public ProxyPassword As String
+Public ProxyBypassList As Variant
 
 ' ============================================= '
 ' Public Methods
@@ -46,7 +50,10 @@ End Sub
 
 ' > Customize with BaseUrl and other properties
 Private Sub Initialize()
-    ' If BaseUrl = "" Then: BaseUrl = "https://..."
+    ' BaseUrl = "https://..."
+    ' ProxyServer = "..."
+    ' ProxyUsername = "..."
+    ' ProxyPassword = "..."
     
     Initialized = True
 End Sub
@@ -139,6 +146,11 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
     If Not Initialized Then: Initialize
     
     RestHelpers.PrepareHttpRequest Http, Request, TimeoutMS, UseAsync
+    
+    
+    If ProxyServer <> "" Then
+        RestHelpers.PrepareProxyForHttpRequest Http, ProxyServer, ProxyUsername, ProxyPassword, ProxyBypassList
+    End If
     
     ' Before execute and http open hooks for authentication
     BeforeExecute Request
