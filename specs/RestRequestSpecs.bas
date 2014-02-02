@@ -5,7 +5,7 @@ Attribute VB_Name = "RestRequestSpecs"
 '
 ' Specs for the RestRequest class
 '
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

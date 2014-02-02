@@ -100,6 +100,11 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 
 ### Release Notes
 
+#### v2.1.0
+
+- Add Microsoft Scripting Runtime dependency (for Dictionary support)
+- Add `RestClient.SetProxy` for use in proxy environments
+
 #### v2.0.0
 
 - Remove JSONLib dependency (merged with RestHelpers)

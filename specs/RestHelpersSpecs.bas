@@ -5,7 +5,7 @@ Attribute VB_Name = "RestHelpersSpecs"
 '
 ' Specs for RestHelpers
 '
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

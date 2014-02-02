@@ -8,12 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v2.0.2
+' RestClient v2.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
 '
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

@@ -18,7 +18,7 @@ Implements IAuthenticator
 ' - https://github.com/timhall/Excel-REST/wiki/Implementing-your-own-IAuthenticator
 '
 ' @dependencies
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

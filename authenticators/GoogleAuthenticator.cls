@@ -18,7 +18,7 @@ Implements IAuthenticator
 ' - https://developers.google.com/accounts/docs/OAuth2InstalledApp
 '
 ' @dependencies
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '

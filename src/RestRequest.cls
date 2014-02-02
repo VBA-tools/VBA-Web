@@ -8,12 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v2.0.2
+' RestRequest v2.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
 '
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' @dependencies: Microsoft Scripting Runtime
 '

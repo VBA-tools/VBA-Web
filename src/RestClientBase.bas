@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestClientBase"
 ''
-' RestClientBase v2.0.2
+' RestClientBase v2.1.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Extendable RestClientBase for developing custom client classes
@@ -9,7 +9,7 @@ Attribute VB_Name = "RestClientBase"
 '
 ' Look for ">" for points to customize
 '
-' @author tim.hall.engr@gmail.com
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
