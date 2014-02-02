@@ -7,10 +7,11 @@ Getting started
 ---------------
 
 1.  In a new or existing workbook, open VBA (Alt+F11) and import all files from the src/ directory into the workbook (`RestClientBase.bas` is optional)
-2.  In a new module or class, create a new RestClient for the service, create a new RestRequest to request something specific from the service,
+2.  Add a reference to Microsoft Scripting Runtime: VBA Window > Tools > References > Select Microsoft Scripting Runtime
+3.  In a new module or class, create a new RestClient for the service, create a new RestRequest to request something specific from the service,
     and then use the client to execute the request
     (See below for a simple example)
-3.  That's it! There are many advanced uses for Excel-REST, including asynchronous requests so that Excel isn't locked up, Authenticators for accessing
+4.  That's it! There are many advanced uses for Excel-REST, including asynchronous requests so that Excel isn't locked up, Authenticators for accessing
     services with Basic, OAuth1, and OAuth2 authentication, and detailed requests for complex APIs. Find out more in the [Wiki](https://github.com/timhall/Excel-REST/wiki)
 
 The first step can be tedious, so you may want to use the blank workbook provided with the project.
