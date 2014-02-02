@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v2.0.1
+' RestClient v2.0.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
@@ -19,7 +19,6 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v2.0.1 (https://github.com/timhall/Excel-REST)"
 Private Const DefaultTimeoutMS As Integer = 5000
 
 
@@ -122,22 +121,7 @@ End Function
 ' ============================================= '
 
 Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional UseAsync As Boolean = False)
-    ' Set timeouts
-    Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
-    
-    ' Set default proxy
-    ' (http://msdn.microsoft.com/en-us/library/ms760236%28v=vs.85%29.aspx)
-    Http.setProxy 0 ' (SXH_PROXY_SET_DEFAULT/SXH_PROXY_SET_PRECONFIG)
-    
-    ' Add general headers to request
-    Request.AddHeader "User-Agent", UserAgent
-    Request.AddHeader "Content-Type", Request.ContentType()
-    
-    ' Pass http to request and setup onreadystatechange
-    If UseAsync Then
-        Set Request.HttpRequest = Http
-        Http.onreadystatechange = Request
-    End If
+    RestHelpers.PrepareHttpRequest Http, Request, Me.TimeoutMS, UseAsync
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then
@@ -148,11 +132,7 @@ Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Option
         Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
     End If
     
-    ' Set request headers
-    Dim HeaderKey As Variant
-    For Each HeaderKey In Request.Headers.keys()
-        Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
-    Next HeaderKey
+    RestHelpers.SetHeaders Http, Request
 End Sub
 
 Private Sub Class_Initialize()
