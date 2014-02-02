@@ -7,11 +7,15 @@
 '
 ' Import Excel-REST into library workbooks
 ' cscript build\import.vbs
+'
+' Import specs into specs workbook
+' cscript build\import.vbs "specs\Excel-REST - Specs.xlsm" specs
 Option Explicit
 
 Dim Args
 Dim Workbooks
 Dim Modules
+Dim Folder
 Dim Excel
 Dim Workbook
 Dim i
@@ -22,13 +26,22 @@ Dim KeepWorkbookOpen
 ' Optionally, pass workbook for import as argument
 Set Args = Wscript.Arguments
 If Args.Length > 0 Then
-  Workbooks = Array(Args(0))
+  Workbooks = Array(FullPath(Args(0)))
 Else
   Workbooks = Array("Excel-REST - Blank.xlsm", "examples\Excel-REST - Example.xlsm", "specs\Excel-REST - Specs.xlsm")
 End If
 
 ' Include all standard Excel-REST modules
 Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls", "RestClientBase.bas")
+Folder = ".\src\"
+
+' Overwrite modules and folder if 2nd argument is given'  
+If Args.Length > 1 Then
+  If Args(1) = "specs" Then
+    Modules = Array("RestClientAsyncSpecs.bas", "RestClientBaseSpecs.bas", "RestClientSpecs.bas", "RestHelpersSpecs.bas", "RestRequestSpecs.bas")
+    Folder = ".\specs\"
+  End If
+End If
 
 ' Open Excel
 KeepExcelOpen = OpenExcel(Excel)
@@ -38,7 +51,7 @@ Excel.DisplayAlerts = False
 For i = LBound(Workbooks) To UBound(Workbooks)
   WScript.Echo "Importing Excel-REST into " & Workbooks(i)
   KeepWorkbookOpen = OpenWorkbook(Excel, FullPath(Workbooks(i)), Workbook)
-  ImportModules Workbook, ".\src\", Modules
+  ImportModules Workbook, Folder, Modules
   CloseWorkbook Workbook, KeepWorkbookOpen
 Next
 
