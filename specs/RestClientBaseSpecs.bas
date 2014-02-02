@@ -100,4 +100,3 @@ Private Function Ceiling(Value As Double) As Long
     End If
 End Function
 
-

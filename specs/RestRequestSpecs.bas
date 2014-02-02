@@ -134,7 +134,7 @@ Public Function Specs() As SpecSuite
     With Specs.It("should only combine body and parameters if not GET Request")
         Set Request = New RestRequest
         
-        Set Body = CreateObject("Scripting.Dictionary")
+        Set Body = New Dictionary
         Body.Add "A", 123
         
         Request.AddBody Body
@@ -247,7 +247,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Method = httpGET
         
-        Set Body = CreateObject("Scripting.Dictionary")
+        Set Body = New Dictionary
         Body.Add "A", 123
         
         Request.AddBody Body
@@ -262,4 +262,5 @@ Public Function Specs() As SpecSuite
     
     InlineRunner.RunSuite Specs
 End Function
+
 

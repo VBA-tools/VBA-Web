@@ -15,6 +15,7 @@ Attribute VB_Exposed = True
 '
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+' @dependencies: Microsoft Scripting Runtime
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
@@ -24,11 +25,11 @@ Option Explicit
 ' --------------------------------------------- '
 
 Private Const cacheBreakerKey As String = "cachebreaker"
-Private pHeaders As Object
-Private pParameters As Object
-Private pQuerystringParams As Object
-Private pUrlSegments As Object
-Private pBody As Object
+Private pHeaders As Dictionary
+Private pParameters As Dictionary
+Private pQuerystringParams As Dictionary
+Private pUrlSegments As Dictionary
+Private pBody As Dictionary
 Private pBodyString As String
 Private pContentType As String
 Private pContentLength As Long
@@ -65,7 +66,7 @@ Public IncludeCacheBreaker As Boolean
 Public IncludeContentLength As Boolean
 
 Public Property Get Headers() As Object
-    If pHeaders Is Nothing Then: Set pHeaders = CreateObject("Scripting.Dictionary")
+    If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
     Set Headers = pHeaders
 End Property
 Public Property Let Headers(Value As Object)
@@ -73,7 +74,7 @@ Public Property Let Headers(Value As Object)
 End Property
 
 Public Property Get Parameters() As Object
-    If pParameters Is Nothing Then: Set pParameters = CreateObject("Scripting.Dictionary")
+    If pParameters Is Nothing Then: Set pParameters = New Dictionary
     Set Parameters = pParameters
 End Property
 Public Property Let Parameters(Value As Object)
@@ -81,7 +82,7 @@ Public Property Let Parameters(Value As Object)
 End Property
 
 Public Property Get QuerystringParams() As Object
-    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = CreateObject("Scripting.Dictionary")
+    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Dictionary
     Set QuerystringParams = pQuerystringParams
 End Property
 Public Property Let QuerystringParams(Value As Object)
@@ -89,7 +90,7 @@ Public Property Let QuerystringParams(Value As Object)
 End Property
 
 Public Property Get UrlSegments() As Object
-    If pUrlSegments Is Nothing Then: Set pUrlSegments = CreateObject("Scripting.Dictionary")
+    If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
     Set UrlSegments = pUrlSegments
 End Property
 Public Property Let UrlSegments(Value As Object)
@@ -307,7 +308,7 @@ End Sub
 ' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
 ' --------------------------------------------- '
 
-Public Function AddBody(bodyVal As Object)
+Public Function AddBody(bodyVal As Dictionary)
     Set pBody = bodyVal
 End Function
 

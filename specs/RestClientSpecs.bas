@@ -17,7 +17,7 @@ Public Function Specs() As SpecSuite
     Dim Client As New RestClient
     Dim Request As RestRequest
     Dim Response As RestResponse
-    Dim Body As Object
+    Dim Body As Dictionary
     
     Client.BaseUrl = "localhost:3000/"
     
@@ -91,7 +91,7 @@ Public Function Specs() As SpecSuite
         
         .Expect(Client.Execute(Request).Data("body")).ToEqual "Howdy!"
         
-        Set Body = CreateObject("Scripting.Dictionary")
+        Set Body = New Dictionary
         Body.Add "a", 3.14
         
         Set Request = New RestRequest
@@ -146,7 +146,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "post"
         Request.Method = httpPOST
         
-        Set Body = CreateObject("Scripting.Dictionary")
+        Set Body = New Dictionary
         Body.Add "a", 3.14
         Request.AddBody Body
         
@@ -162,3 +162,4 @@ Public Function Specs() As SpecSuite
     
     InlineRunner.RunSuite Specs
 End Function
+
