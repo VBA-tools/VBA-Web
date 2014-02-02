@@ -238,7 +238,9 @@ End Function
 ' @param {Boolean} [UseAsync=False]
 ' --------------------------------------------- '
 
-Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, TimeoutMS As Integer, Optional UseAsync As Boolean = False)
+Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, TimeoutMS As Integer, _
+    Optional UseAsync As Boolean = False)
+    
     ' Set timeouts
     Http.setTimeouts TimeoutMS, TimeoutMS, TimeoutMS, TimeoutMS
     
@@ -253,10 +255,6 @@ Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, Time
             Request.Headers.Remove "Content-Length"
         End If
     End If
-
-    ' Set default proxy
-    ' (http://msdn.microsoft.com/en-us/library/ms760236%28v=vs.85%29.aspx)
-    Http.setProxy 0 ' (SXH_PROXY_SET_DEFAULT/SXH_PROXY_SET_PRECONFIG)
     
     ' Pass http to request and setup onreadystatechange
     If UseAsync Then
@@ -279,6 +277,27 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     Next HeaderKey
 End Sub
 
+''
+' Prepare proxy for http object
+'
+' @param {String} ProxyServer
+' @param {Variant} [BypassList]
+' @param {String} [Username=""]
+' @param {String} [Password=""]
+' --------------------------------------------- '
+
+Public Sub PrepareProxyForHttpRequest(ByRef Http As Object, ProxyServer As String, _
+    Optional Username As String = "", Optional Password As String = "", Optional BypassList As Variant)
+    
+    If ProxyServer <> "" Then
+        Http.SetProxy 2, ProxyServer, BypassList
+        
+        If Username <> "" Then
+            Http.SetProxyCredentials Username, Password
+        End If
+    End If
+    
+End Sub
 
 ' ======================================================================================== '
 '

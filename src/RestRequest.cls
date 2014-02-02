@@ -226,7 +226,7 @@ Public Property Get ContentLength() As Long
     End If
 End Property
 Public Property Let ContentLength(Value As Long)
-    Set pContentLength = Value
+    pContentLength = Value
 End Property
 
 Public Property Get HttpRequest() As Object
