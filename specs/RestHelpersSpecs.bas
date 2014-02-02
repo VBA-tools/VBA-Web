@@ -62,7 +62,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should convert to json")
-        Set Obj = CreateObject("Scripting.Dictionary")
+        Set Obj = New Dictionary
         Obj.Add "a", 1
         Obj.Add "b", 3.14
         Obj.Add "c", "Howdy!"
@@ -72,7 +72,7 @@ Public Function Specs() As SpecSuite
         json = RestHelpers.ConvertToJSON(Obj)
         .Expect(json).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
         
-        Set Obj = CreateObject("Scripting.Dictionary")
+        Set Obj = New Dictionary
         Obj.Add "a", "Howdy!"
         
         Set Coll = New Collection
@@ -99,8 +99,8 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should combine objects, with overwrite option")
-        Set A = CreateObject("Scripting.Dictionary")
-        Set B = CreateObject("Scripting.Dictionary")
+        Set A = New Dictionary
+        Set B = New Dictionary
         
         A.Add "a", 1
         A.Add "b", 3.14
@@ -119,7 +119,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should filter object by whitelist")
-        Set Obj = CreateObject("Scripting.Dictionary")
+        Set Obj = New Dictionary
         Obj.Add "a", 1
         Obj.Add "b", 3.14
         Obj.Add "dangerous", "Howdy!"
@@ -144,3 +144,4 @@ Public Function Specs() As SpecSuite
     
     InlineRunner.RunSuite Specs
 End Function
+

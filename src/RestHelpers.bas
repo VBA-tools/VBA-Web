@@ -5,9 +5,8 @@ Attribute VB_Name = "RestHelpers"
 '
 ' Common helpers RestClient
 '
-' @dependencies
-'   JSONLib (http://code.google.com/p/vba-json/)
-' @author tim.hall.engr@gmail.com
+' @dependencies: Microsoft Scripting Runtime
+' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
@@ -167,17 +166,16 @@ End Function
 ''
 ' Combine two objects
 '
-' @param {Dictionary} origObj Original object to add values to
-' @param {Dictionary} newObj New object containing values to add to original object
-' @param {Boolean} [overwriteOriginal=True] Overwrite any values that already exist in the original object
+' @param {Dictionary} OriginalObj Original object to add values to
+' @param {Dictionary} NewObj New object containing values to add to original object
+' @param {Boolean} [OverwriteOriginal=True] Overwrite any values that already exist in the original object
 ' @return {Dictionary} Combined object
 ' --------------------------------------------- '
 
-Public Function CombineObjects(ByVal OriginalObj As Object, ByVal NewObj As Object, _
-    Optional OverwriteOriginal As Boolean = True) As Object
+Public Function CombineObjects(ByVal OriginalObj As Dictionary, ByVal NewObj As Dictionary, _
+    Optional OverwriteOriginal As Boolean = True) As Dictionary
     
-    Dim Combined As Object
-    Set Combined = CreateObject("Scripting.Dictionary")
+    Dim Combined As New Dictionary
     
     Dim OriginalKey As Variant
     Dim Key As Variant
@@ -203,16 +201,14 @@ End Function
 ''
 ' Apply whitelist to given object to filter out unwanted key/values
 '
-' @param {Dictionary} Original Original model to filter
+' @param {Dictionary} Original model to filter
 ' @param {Variant} WhiteList Array of values to retain in the model
 ' @return {Dictionary} Filtered object
 ' --------------------------------------------- '
 
-Public Function FilterObject(ByVal Original As Object, Whitelist As Variant) As Object
-    Dim Filtered As Object
+Public Function FilterObject(ByVal Original As Dictionary, Whitelist As Variant) As Dictionary
+    Dim Filtered As New Dictionary
     Dim i As Integer
-    
-    Set Filtered = CreateObject("Scripting.Dictionary")
     
     If IsArray(Whitelist) Then
         For i = LBound(Whitelist) To UBound(Whitelist)
@@ -505,9 +501,9 @@ End Function
 '
 '   parse collection of key/value (Dictionary in VB)
 '
-Private Function json_parseObject(ByRef str As String, ByRef index As Long) As Object
+Private Function json_parseObject(ByRef str As String, ByRef index As Long) As Dictionary
 
-    Set json_parseObject = CreateObject("Scripting.Dictionary")
+    Set json_parseObject = New Dictionary
     
     ' "{"
     Call json_skipChar(str, index)
