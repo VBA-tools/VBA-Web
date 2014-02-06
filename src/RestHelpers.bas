@@ -626,7 +626,7 @@ Private Function json_parseString(ByRef str As String, ByRef index As Long) As S
             Case "u"
                 index = index + 1
                 Code = Mid$(str, index, 4)
-                json_parseString = json_parseString & ChrW(val("&h" + Code))
+                json_parseString = json_parseString & ChrW(Val("&h" + Code))
                 index = index + 4
             End Select
         Case quote
@@ -656,17 +656,7 @@ Private Function json_parseNumber(ByRef str As String, ByRef index As Long)
             Value = Value & char
             index = index + 1
         Else
-            If InStr(Value, ".") Or InStr(Value, "e") Or InStr(Value, "E") Then
-                json_parseNumber = CDbl(Value)
-            Else
-                If Len(Value) < 5 Then
-                    json_parseNumber = CInt(Value)
-                ElseIf Len(Value) < 10 Then
-                    json_parseNumber = CLng(Value)
-                Else
-                    json_parseNumber = CDec(Value)
-                End If
-            End If
+            json_parseNumber = Val(Value)
             Exit Function
         End If
     Loop
