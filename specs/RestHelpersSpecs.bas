@@ -61,6 +61,21 @@ Public Function Specs() As SpecSuite
         End If
     End With
     
+    With Specs.It("should parse json numbers")
+        json = "{""a"":1,""b"":1.23,""c"":14.6000000000,""d"":14.6e6,""e"":14.6E6,""f"":10000000000000000000000}"
+        Set Parsed = RestHelpers.ParseJSON(json)
+        
+        .Expect(Parsed).ToBeDefined
+        If Not Parsed Is Nothing Then
+            .Expect(Parsed("a")).ToEqual 1
+            .Expect(Parsed("b")).ToEqual 1.23
+            .Expect(Parsed("c")).ToEqual 14.6
+            .Expect(Parsed("d")).ToEqual 14600000
+            .Expect(Parsed("e")).ToEqual 14600000
+            .Expect(Parsed("f")).ToEqual 1E+22
+        End If
+    End With
+    
     With Specs.It("should convert to json")
         Set Obj = New Dictionary
         Obj.Add "a", 1
