@@ -105,6 +105,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 
 - Add Microsoft Scripting Runtime dependency (for Dictionary support)
 - Add `RestClient.SetProxy` for use in proxy environments
+- __v2.1.1__ Use `Val` for number parsing in locale-dependent settings
 
 #### v2.0.0
 
