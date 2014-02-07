@@ -26,3 +26,4 @@ Public StatusCode As StatusCodes
 Public StatusDescription As String
 Public Content As String
 Public Data As Variant
+Public Body As Variant
