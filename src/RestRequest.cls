@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v2.1.1
+' RestRequest v2.1.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Create a request for use with a rest client
@@ -352,7 +352,7 @@ End Function
 ' --------------------------------------------- '
 
 Public Function CreateResponseFromHttp(Http As Object) As RestResponse
-    Set CreateResponseFromHttp = Me.CreateResponse(Http.Status, Http.StatusText, Http.responseBody, Http.ResponseText)
+    Set CreateResponseFromHttp = Me.CreateResponse(Http.Status, Http.StatusText, Http.ResponseBody, Http.ResponseText)
 End Function
 
 ''
