@@ -331,12 +331,13 @@ End Function
 ' @return {RestResponse}
 ' --------------------------------------------- '
 
-Public Function CreateResponse(StatusCode As StatusCodes, StatusDescription As String, Optional Content As String = "") As RestResponse
+Public Function CreateResponse(StatusCode As StatusCodes, StatusDescription As String, Optional Body As Variant, Optional Content As String = "") As RestResponse
     Set CreateResponse = New RestResponse
     CreateResponse.StatusCode = StatusCode
     CreateResponse.StatusDescription = StatusDescription
     CreateResponse.Content = Content
-    
+    CreateResponse.Body = Body
+
     Select Case Me.Format
     Case Else
         Set CreateResponse.Data = RestHelpers.ParseJSON(Content)
@@ -351,7 +352,7 @@ End Function
 ' --------------------------------------------- '
 
 Public Function CreateResponseFromHttp(Http As Object) As RestResponse
-    Set CreateResponseFromHttp = Me.CreateResponse(Http.Status, Http.StatusText, Http.ResponseText)
+    Set CreateResponseFromHttp = Me.CreateResponse(Http.Status, Http.StatusText, Http.responseBody, Http.ResponseText)
 End Function
 
 ''
