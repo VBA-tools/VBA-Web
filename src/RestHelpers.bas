@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v2.1.2
+' RestHelpers v2.1.3
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
@@ -38,7 +38,7 @@ Attribute VB_Name = "RestHelpers"
   
 #End If
 
-Private Const UserAgent As String = "Excel Client v2.1.2 (https://github.com/timhall/Excel-REST)"
+Private Const UserAgent As String = "Excel Client v2.1.3 (https://github.com/timhall/Excel-REST)"
 
 ' Moved to top from JSONLib
 Private Const INVALID_JSON      As Long = 1

@@ -101,23 +101,24 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 
 ### Release Notes
 
-#### v2.1.0
+#### 2.1.0
 
 - Add Microsoft Scripting Runtime dependency (for Dictionary support)
 - Add `RestClient.SetProxy` for use in proxy environments
-- __v2.1.1__ Use `Val` for number parsing in locale-dependent settings
-- __v2.1.2__ Add raw binary `Body` to `RestResponse` for handling files (thanks [@berkus](https://github.com/berkus))
+- __2.1.1__ Use `Val` for number parsing in locale-dependent settings
+- __2.1.2__ Add raw binary `Body` to `RestResponse` for handling files (thanks [@berkus](https://github.com/berkus))
+- __2.1.3__ Bugfixes and refactor
 
-#### v2.0.0
+#### 2.0.0
 
 - Remove JSONLib dependency (merged with RestHelpers)
 - Add RestClientBase for future use with extension for single-client applications
 - Add build scripts for import/export
 - New specs and bugfixes
-- __v2.0.1__ Handle duplicate keys when parsing json
-- __v2.0.2__ Add Content-Length header and 408 status code for timeout
+- __2.0.1__ Handle duplicate keys when parsing json
+- __2.0.2__ Add Content-Length header and 408 status code for timeout
 
-#### v1.1.0
+#### 1.1.0
 
 Major Changes:
 
@@ -132,7 +133,7 @@ Bugfixes:
 - Only add "?" for querystring if querystring will be created and "?" isn't present
 - Only put parameters in body if there are parameters
 
-#### v0.2
+#### 0.2
 
 - Add async support
 
