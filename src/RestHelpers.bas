@@ -228,14 +228,16 @@ End Function
 ''
 ' Prepare http request for execution
 '
-' @param {Object} Http request
 ' @param {RestRequest} Request
 ' @param {Integer} TimeoutMS
 ' @param {Boolean} [UseAsync=False]
+' @return {Object} Setup http object
 ' --------------------------------------------- '
 
-Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, TimeoutMS As Integer, _
-    Optional UseAsync As Boolean = False)
+Public Function PrepareHttpRequest(Request As RestRequest, TimeoutMS As Integer, _
+    Optional UseAsync As Boolean = False) As Object
+    Dim Http As Object
+    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
     
     ' Set timeouts
     Http.setTimeouts TimeoutMS, TimeoutMS, TimeoutMS, TimeoutMS
@@ -257,7 +259,9 @@ Public Sub PrepareHttpRequest(ByRef Http As Object, Request As RestRequest, Time
         Set Request.HttpRequest = Http
         Http.onreadystatechange = Request
     End If
-End Sub
+    
+    Set PrepareHttpRequest = Http
+End Function
 
 ''
 ' Set headers to http object for given request
@@ -277,9 +281,9 @@ End Sub
 ' Prepare proxy for http object
 '
 ' @param {String} ProxyServer
-' @param {Variant} [BypassList]
 ' @param {String} [Username=""]
 ' @param {String} [Password=""]
+' @param {Variant} [BypassList]
 ' --------------------------------------------- '
 
 Public Sub PrepareProxyForHttpRequest(ByRef Http As Object, ProxyServer As String, _
@@ -292,7 +296,67 @@ Public Sub PrepareProxyForHttpRequest(ByRef Http As Object, ProxyServer As Strin
             Http.SetProxyCredentials Username, Password
         End If
     End If
+End Sub
+
+''
+' Execute request synchronously
+'
+' @param {Object} Http
+' @param {RestRequest} Request The request to execute
+' @return {RestResponse} Wrapper of server response for request
+' --------------------------------------------- '
+
+Public Function ExecuteRequest(ByRef Http As Object, ByRef Request As RestRequest) As RestResponse
+    On Error GoTo ErrorHandling
+    Dim Response As RestResponse
+
+    ' Send the request and handle response
+    Http.Send Request.Body
+    Set Response = Request.CreateResponseFromHttp(Http)
     
+ErrorHandling:
+
+    If Not Http Is Nothing Then Set Http = Nothing
+    If Err.Number <> 0 Then
+        If InStr(Err.Description, "The operation timed out") > 0 Then
+            ' Return 408
+            Set Response = Request.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+            Err.Clear
+        Else
+            ' Rethrow error
+            Err.Raise Err.Number, Description:=Err.Description
+        End If
+    End If
+    
+    Set ExecuteRequest = Response
+End Function
+
+''
+' Execute request asynchronously
+'
+' @param {Object} Http
+' @param {RestRequest} Request The request to execute
+' @param {String} Callback Name of function to call when request completes (specify "" if none)
+' @param {Variant} [CallbackArgs] Variable array of arguments that get passed directly to callback function
+' --------------------------------------------- '
+
+Public Sub ExecuteRequestAsync(ByRef Http As Object, ByRef Request As RestRequest, TimeoutMS As Integer, Callback As String, Optional ByVal CallbackArgs As Variant)
+    On Error GoTo ErrorHandling
+
+    Request.Callback = Callback
+    Request.CallbackArgs = CallbackArgs
+    
+    ' Send the request
+    Request.StartTimeoutTimer TimeoutMS
+    Http.Send Request.Body
+    
+    Exit Sub
+    
+ErrorHandling:
+
+    ' Close http and rethrow error
+    If Not Http Is Nothing Then Set Http = Nothing
+    Err.Raise Err.Number, Description:=Err.Description
 End Sub
 
 ' ======================================================================================== '

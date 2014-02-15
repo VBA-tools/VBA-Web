@@ -46,37 +46,19 @@ Public ProxyBypassList As Variant
 ' --------------------------------------------- '
 
 Public Function Execute(Request As RestRequest) As RestResponse
-    Dim Response As RestResponse
-    Dim Http As Object
-    Dim HeaderKey As Variant
-    
     On Error GoTo ErrorHandling
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
-    HttpSetup Http, Request, False
+    Dim Http As Object
     
-    ' Send the request
-    Http.send Request.Body
-    
-    ' Handle response
-    Set Response = Request.CreateResponseFromHttp(Http)
+    Set Http = HttpSetup(Request, False)
+    Set Execute = RestHelpers.ExecuteRequest(Http, Request)
     
 ErrorHandling:
 
     If Not Http Is Nothing Then Set Http = Nothing
-    
     If Err.Number <> 0 Then
-        If InStr(Err.Description, "The operation timed out") > 0 Then
-            ' Return 408
-            Set Response = Request.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
-            Err.Clear
-        Else
-            ' Rethrow error
-            Err.Raise Err.Number, Description:=Err.Description
-        End If
+        ' Rethrow error
+        Err.Raise Err.Number, Description:=Err.Description
     End If
-    
-    Set Execute = Response
-    
 End Function
 
 ''
@@ -89,35 +71,20 @@ End Function
 ' --------------------------------------------- '
 
 Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
-    Dim Response As New RestResponse
+    On Error GoTo ErrorHandling
     Dim Http As Object
     
-    On Error GoTo ErrorHandling
-    
     ' Setup the request
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
-    HttpSetup Http, Request, True
-    Request.Callback = Callback
-    Request.CallbackArgs = CallbackArgs
-    
-    ' Send the request
-    Request.StartTimeoutTimer Me.TimeoutMS
-    Http.send Request.Body
-    
-    ' Clean up and return
+    Set Http = HttpSetup(Request, True)
+    RestHelpers.ExecuteRequestAsync Http, Request, TimeoutMS, Callback, CallbackArgs
     ExecuteAsync = True
     Exit Function
     
 ErrorHandling:
 
+    ' Close Http and rethrow error
     If Not Http Is Nothing Then Set Http = Nothing
-    If Not Response Is Nothing Then Set Response = Nothing
-    
-    If Err.Number <> 0 Then
-        ' Rethrow error
-        Err.Raise Err.Number, Description:=Err.Description
-    End If
-    
+    Err.Raise Err.Number, Description:=Err.Description
 End Function
 
 ''
@@ -142,24 +109,24 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Sub HttpSetup(ByRef Http As Object, ByRef Request As RestRequest, Optional UseAsync As Boolean = False)
-    RestHelpers.PrepareHttpRequest Http, Request, Me.TimeoutMS, UseAsync
+Private Function HttpSetup(ByRef Request As RestRequest, Optional UseAsync As Boolean = False) As Object
+    Set HttpSetup = RestHelpers.PrepareHttpRequest(Request, Me.TimeoutMS, UseAsync)
     
     If Me.ProxyServer <> "" Then
-        RestHelpers.PrepareProxyForHttpRequest Http, Me.ProxyServer, Me.ProxyUsername, Me.ProxyPassword, Me.ProxyBypassList
+        RestHelpers.PrepareProxyForHttpRequest HttpSetup, Me.ProxyServer, Me.ProxyUsername, Me.ProxyPassword, Me.ProxyBypassList
     End If
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.BeforeExecute Request
-        Me.Authenticator.HttpOpen Http, Request, Me.BaseUrl, UseAsync
+        Me.Authenticator.HttpOpen HttpSetup, Request, Me.BaseUrl, UseAsync
     Else
         ' Nothing hooked in so open http object
-        Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
+        HttpSetup.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
     End If
     
-    RestHelpers.SetHeaders Http, Request
-End Sub
+    RestHelpers.SetHeaders HttpSetup, Request
+End Function
 
 Private Sub Class_Initialize()
     Me.TimeoutMS = DefaultTimeoutMS
