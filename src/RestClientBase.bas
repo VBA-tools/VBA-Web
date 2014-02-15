@@ -16,7 +16,7 @@ Attribute VB_Name = "RestClientBase"
 Option Explicit
 
 ' > Customize with BaseUrl
-Private Const BaseUrl As String = ""
+Private Const DefaultBaseUrl As String = ""
 Private Const TimeoutMS As Integer = 5000
 Private Initialized As Boolean
 
@@ -24,6 +24,7 @@ Private Initialized As Boolean
 ' Properties
 ' --------------------------------------------- '
 
+Public BaseUrl As String
 Public ProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
@@ -51,8 +52,12 @@ End Sub
 
 
 Private Sub Initialize()
+    If BaseUrl = "" Then
+        BaseUrl = DefaultBaseUrl
+    End If
+    
     ' > Customize with any properties
-
+    
     Initialized = True
 End Sub
 
