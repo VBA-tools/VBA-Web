@@ -93,34 +93,34 @@ Public Function ConvertToJSON(Obj As Object) As String
 End Function
 
 ''
-' URL Encode the given raw values
+' URL Encode the given string
 '
 ' @param {Variant} rawVal The raw string to encode
 ' @param {Boolean} [spaceAsPlus=False] Use plus sign for encoded spaces (otherwise %20)
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 
-Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = False) As String
+Public Function URLEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = False) As String
     Dim urlVal As String
-    Dim stringLen As Long
+    Dim StringLen As Long
     
     urlVal = CStr(rawVal)
-    stringLen = Len(urlVal)
+    StringLen = Len(urlVal)
     
-    If stringLen > 0 Then
-        ReDim Result(stringLen) As String
+    If StringLen > 0 Then
+        ReDim Result(StringLen) As String
         Dim i As Long, charCode As Integer
         Dim char As String, space As String
         
         ' Set space value
-        If spaceAsPlus Then
+        If SpaceAsPlus Then
             space = "+"
         Else
             space = "%20"
         End If
         
         ' Loop through string characters
-        For i = 1 To stringLen
+        For i = 1 To StringLen
             ' Get character and ascii code
             char = Mid$(urlVal, i, 1)
             charCode = asc(char)
@@ -143,6 +143,40 @@ Public Function URLEncode(rawVal As Variant, Optional spaceAsPlus As Boolean = F
     End If
 End Function
 
+''
+' URL Decode the given encoded string
+'
+' @param {String} EncodedString
+' @return {String} Decoded string
+' --------------------------------------------- '
+
+Public Function URLDecode(EncodedString As String) As String
+    Dim StringLen As Long
+    StringLen = Len(EncodedString)
+    
+    If StringLen > 0 Then
+        Dim i As Long
+        Dim Result As String
+        Dim Temp As String
+        
+        For i = 1 To StringLen
+            Temp = Mid$(EncodedString, i, 1)
+            
+            If Temp = "+" Then
+                Temp = " "
+            ElseIf Temp = "%" And StringLen >= i + 2 Then
+                Temp = Mid$(EncodedString, i + 1, 2)
+                Temp = Chr(CDec("&H" & Temp))
+                
+                i = i + 2
+            End If
+                
+            Result = Result & Temp
+        Next i
+        
+        URLDecode = Result
+    End If
+End Function
 
 ''
 ' Join Url with /
@@ -275,6 +309,11 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     For Each HeaderKey In Request.Headers.keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
     Next HeaderKey
+    
+    Dim CookieKey As Variant
+    For Each CookieKey In Request.Cookies.keys()
+        Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
+    Next CookieKey
 End Sub
 
 ''
@@ -312,7 +351,7 @@ Public Function ExecuteRequest(ByRef Http As Object, ByRef Request As RestReques
 
     ' Send the request and handle response
     Http.Send Request.Body
-    Set Response = Request.CreateResponseFromHttp(Http)
+    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.Format)
     
 ErrorHandling:
 
@@ -320,7 +359,7 @@ ErrorHandling:
     If Err.Number <> 0 Then
         If InStr(Err.Description, "The operation timed out") > 0 Then
             ' Return 408
-            Set Response = Request.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+            Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
             Err.Clear
         Else
             ' Rethrow error
@@ -358,6 +397,109 @@ ErrorHandling:
     If Not Http Is Nothing Then Set Http = Nothing
     Err.Raise Err.Number, Description:=Err.Description
 End Sub
+
+''
+' Create response for http
+' @param {Object} Http
+' @param {AvailableFormats} [Format=json]
+' @return {RestResponse}
+' --------------------------------------------- '
+
+Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+    Set CreateResponseFromHttp = New RestResponse
+    
+    CreateResponseFromHttp.StatusCode = Http.Status
+    CreateResponseFromHttp.StatusDescription = Http.StatusText
+    CreateResponseFromHttp.Body = Http.ResponseBody
+    CreateResponseFromHttp.Content = Http.ResponseText
+    
+    ' Convert content to data by format
+    Select Case Format
+    Case Else
+        Set CreateResponseFromHttp.Data = RestHelpers.ParseJSON(Http.ResponseText)
+    End Select
+    
+    ' Extract cookies
+    Set CreateResponseFromHttp.Cookies = ExtractCookiesFromResponseHeaders(Http.getAllResponseHeaders)
+End Function
+
+''
+' Create simple response
+' @param {StatusCodes} StatusCode
+' @param {String} StatusDescription
+' @return {RestResponse}
+' --------------------------------------------- '
+
+Public Function CreateResponse(StatusCode As StatusCodes, StatusDescription As String) As RestResponse
+    Set CreateResponse = New RestResponse
+    CreateResponse.StatusCode = StatusCode
+    CreateResponse.StatusDescription = StatusDescription
+End Function
+
+''
+' Extract cookies from response headers
+'
+' @param {String} ResponseHeaders
+' @return {Dictionary} Cookies
+' --------------------------------------------- '
+
+Public Function ExtractCookiesFromResponseHeaders(ResponseHeaders As String) As Dictionary
+    Dim Cookies As New Dictionary
+    Dim Cookie As String
+    Dim Key As String
+    Dim Value As String
+    Dim Headers As Collection
+    Dim Header As Dictionary
+    
+    Set Headers = ExtractHeadersFromResponseHeaders(ResponseHeaders)
+    For Each Header In Headers
+        If Header("key") = "Set-Cookie" Then
+            Cookie = Header("value")
+            Key = Mid$(Cookie, 1, InStr(1, Cookie, "=") - 1)
+            Value = Mid$(Cookie, InStr(1, Cookie, "=") + 1, Len(Cookie))
+            
+            If InStr(1, Value, ";") Then
+                Value = Mid$(Value, 1, InStr(1, Value, ";") - 1)
+            End If
+            
+            If Cookies.Exists(Key) Then
+                Cookies(Key) = URLDecode(Value)
+            Else
+                Cookies.Add Key, URLDecode(Value)
+            End If
+        End If
+    Next Header
+    
+    Set ExtractCookiesFromResponseHeaders = Cookies
+End Function
+
+''
+' Extract headers from response headers
+'
+' @param {String} ResponseHeaders
+' @return {Collection} Headers
+' --------------------------------------------- '
+
+Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As Collection
+    Dim Headers As New Collection
+    Dim Header As Dictionary
+    
+    Dim Lines As Variant
+    Lines = Split(ResponseHeaders, vbCrLf)
+    
+    Dim i As Integer
+    For i = LBound(Lines) To UBound(Lines)
+        If Lines(i) <> "" And InStr(1, Lines(i), ":") > 0 Then
+            Set Header = New Dictionary
+            
+            Header.Add "key", Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1))
+            Header.Add "value", Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i))))
+            Headers.Add Header
+        End If
+    Next i
+    
+    Set ExtractHeadersFromResponseHeaders = Headers
+End Function
 
 ' ======================================================================================== '
 '

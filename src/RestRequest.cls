@@ -29,6 +29,7 @@ Private pHeaders As Dictionary
 Private pParameters As Dictionary
 Private pQuerystringParams As Dictionary
 Private pUrlSegments As Dictionary
+Private pCookies As Dictionary
 Private pBody As Dictionary
 Private pBodyString As String
 Private pContentType As String
@@ -65,36 +66,44 @@ Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
 Public IncludeContentLength As Boolean
 
-Public Property Get Headers() As Object
+Public Property Get Headers() As Dictionary
     If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
     Set Headers = pHeaders
 End Property
-Public Property Let Headers(Value As Object)
+Public Property Let Headers(Value As Dictionary)
     Set pHeaders = Value
 End Property
 
-Public Property Get Parameters() As Object
+Public Property Get Parameters() As Dictionary
     If pParameters Is Nothing Then: Set pParameters = New Dictionary
     Set Parameters = pParameters
 End Property
-Public Property Let Parameters(Value As Object)
+Public Property Let Parameters(Value As Dictionary)
     Set pParameters = Value
 End Property
 
-Public Property Get QuerystringParams() As Object
+Public Property Get QuerystringParams() As Dictionary
     If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Dictionary
     Set QuerystringParams = pQuerystringParams
 End Property
-Public Property Let QuerystringParams(Value As Object)
+Public Property Let QuerystringParams(Value As Dictionary)
     Set pQuerystringParams = Value
 End Property
 
-Public Property Get UrlSegments() As Object
+Public Property Get UrlSegments() As Dictionary
     If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
     Set UrlSegments = pUrlSegments
 End Property
-Public Property Let UrlSegments(Value As Object)
+Public Property Let UrlSegments(Value As Dictionary)
     Set pUrlSegments = Value
+End Property
+
+Public Property Get Cookies() As Dictionary
+    If pCookies Is Nothing Then: Set pCookies = New Dictionary
+    Set Cookies = pCookies
+End Property
+Public Property Let Cookies(Value As Dictionary)
+    Set pCookies = Value
 End Property
 
 Public Property Get FormattedResource() As String
@@ -303,6 +312,21 @@ Public Sub AddQuerystringParam(Key As String, Value As Variant)
 End Sub
 
 ''
+' Add cookie to request
+'
+' @param {String} key
+' @param {Variant} value
+' --------------------------------------------- '
+
+Public Sub AddCookie(Key As String, Value As Variant)
+    If Not Me.Cookies.Exists(Key) Then
+        Me.Cookies.Add Key, Value
+    Else
+        Me.Cookies(Key) = Value
+    End If
+End Sub
+
+''
 ' Add body to request
 '
 ' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
@@ -320,39 +344,6 @@ End Function
 
 Public Function AddBodyString(bodyVal As String)
     pBodyString = bodyVal
-End Function
-
-''
-' Helper for creating response
-'
-' @param {StatusCodes} StatusCode
-' @param {String} StatusDescription
-' @param {String} [Content=""]
-' @return {RestResponse}
-' --------------------------------------------- '
-
-Public Function CreateResponse(StatusCode As StatusCodes, StatusDescription As String, Optional Body As Variant, Optional Content As String = "") As RestResponse
-    Set CreateResponse = New RestResponse
-    CreateResponse.StatusCode = StatusCode
-    CreateResponse.StatusDescription = StatusDescription
-    CreateResponse.Content = Content
-    CreateResponse.Body = Body
-
-    Select Case Me.Format
-    Case Else
-        Set CreateResponse.Data = RestHelpers.ParseJSON(Content)
-    End Select
-End Function
-
-''
-' Helper for creating response
-'
-' @param {XMLHttpRequest} Http
-' @return {RestResponse}
-' --------------------------------------------- '
-
-Public Function CreateResponseFromHttp(Http As Object) As RestResponse
-    Set CreateResponseFromHttp = Me.CreateResponse(Http.Status, Http.StatusText, Http.ResponseBody, Http.ResponseText)
 End Function
 
 ''
@@ -377,7 +368,7 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
         Me.StopTimeoutTimer
         
         ' Callback
-        RunCallback Me.CreateResponseFromHttp(Me.HttpRequest)
+        RunCallback RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.Format)
         
         ' Request is finished, clean up
         Set Me.HttpRequest = Nothing
@@ -411,7 +402,7 @@ End Sub
 
 Public Sub TimedOut()
     ' Callback
-    RunCallback Me.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+    RunCallback RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
     
     ' Request is finished, clean up
     Set Me.HttpRequest = Nothing
