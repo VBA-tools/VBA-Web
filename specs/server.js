@@ -9,6 +9,7 @@ app.use(function(req, res, next){
 app.use(plain());
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(express.cookieParser('cookie-secret'));
 
 // Standard
 app.get('/get', standardResponse);
@@ -36,6 +37,21 @@ app.get('/json', function(req, res) {
   res.json({a: '1', b: 2, c: 3.14, d: false, e: [4, 5], f: {a: '1', b: 2}});
 });
 
+// Cookies
+app.get('/cookie', function(req, res) {
+  res.cookie('unsigned-cookie', 'simple-cookie');
+  res.cookie('signed-cookie', 'special-cookie', {signed: true});
+  res.cookie('tricky;cookie', 'includes; semi-colon and space at end ');
+  res.cookie('duplicate-cookie', 'A');
+  res.cookie('duplicate-cookie', 'B');
+  res.send(200);
+});
+
+// Simple text in body
+app.get('/howdy', function(req, res) {
+  res.send(200, 'Howdy!');
+});
+
 function standardResponse(req, res) {
   res.send(200, {
     method: req.route.method.toUpperCase(),
@@ -44,7 +60,9 @@ function standardResponse(req, res) {
       'content-type': req.get('content-type'),
       'custom': req.get('custom')
     },
-    body: req.text || req.body
+    body: req.text || req.body,
+    cookies: req.cookies,
+    signed_cookies: req.signedCookies
   });
 }
 

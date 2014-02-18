@@ -18,6 +18,9 @@ Set Args = Wscript.Arguments
 If Args.Length > 0 Then
   WBPath = Args(0)
   OutputPath = Args(1)
+Else
+  WBPath = "specs\Excel-REST - Specs.xlsm"
+  OutputPath = "specs\"
 End If
 
 ' Setup modules to export

@@ -23,6 +23,9 @@ Public Function Specs() As SpecSuite
     Dim Combined As Object
     Dim Whitelist As Variant
     Dim Filtered As Object
+    Dim ResponseHeaders As String
+    Dim Headers As Collection
+    Dim Cookies As Dictionary
     
     With Specs.It("should parse json")
         json = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
@@ -106,6 +109,10 @@ Public Function Specs() As SpecSuite
         .Expect(RestHelpers.URLEncode(" !""#$%&'")).ToEqual "%20%21%22%23%24%25%26%27"
     End With
     
+    With Specs.It("should decode url values")
+        .Expect(RestHelpers.URLDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
+    End With
+    
     With Specs.It("should join url with /")
         .Expect(RestHelpers.JoinUrl("a", "b")).ToEqual "a/b"
         .Expect(RestHelpers.JoinUrl("a/", "b")).ToEqual "a/b"
@@ -146,6 +153,30 @@ Public Function Specs() As SpecSuite
         .Expect(Filtered.Exists("a")).ToEqual True
         .Expect(Filtered.Exists("b")).ToEqual True
         .Expect(Filtered.Exists("dangerous")).ToEqual False
+    End With
+    
+    With Specs.It("should extract headers from response headers")
+        ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
+            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
+            "Content-Length: 2" & vbCrLf & _
+            "Content-Type: text/plain" & vbCrLf & _
+            "Set-Cookie: unsigned-cookie=simple-cookie; Path=/" & vbCrLf & _
+            "Set-Cookie: signed-cookie=s%3Aspecial-cookie.1Ghgw2qpDY93QdYjGFPDLAsa3%2FI0FCtO%2FvlxoHkzF%2BY; Path=/" & vbCrLf & _
+            "Set-Cookie: duplicate-cookie=A; Path=/" & vbCrLf & _
+            "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
+            "X-Powered-By: Express"
+            
+        Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
+        .Expect(Headers.count).ToEqual 9
+        .Expect(Headers.Item(5)("key")).ToEqual "Set-Cookie"
+        .Expect(Headers.Item(5)("value")).ToEqual "unsigned-cookie=simple-cookie; Path=/"
+    End With
+    
+    With Specs.It("should extract cookies from response headers")
+        Set Cookies = RestHelpers.ExtractCookiesFromResponseHeaders(ResponseHeaders)
+        .Expect(Cookies.count).ToEqual 3
+        .Expect(Cookies("unsigned-cookie")).ToEqual "simple-cookie"
+        .Expect(Cookies("duplicate-cookie")).ToEqual "B"
     End With
     
     With Specs.It("should encode string to base64")
