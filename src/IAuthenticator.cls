@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' IAuthenticator v2.2.0
+' IAuthenticator v2.2.1
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interface for creating authenticators for rest client

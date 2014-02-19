@@ -104,6 +104,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 #### 2.2.0
 
 - Add cookies support with `Request.AddCookie(key, value)` and `Response.Cookies`
+- __2.2.1__ Add `Response.Headers` collection of response headers
 
 #### 2.1.0
 
