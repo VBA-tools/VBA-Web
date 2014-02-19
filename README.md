@@ -101,6 +101,10 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 
 ### Release Notes
 
+#### 2.2.0
+
+- Add cookies support with `Request.AddCookie(key, value)` and `Response.Cookies`
+
 #### 2.1.0
 
 - Add Microsoft Scripting Runtime dependency (for Dictionary support)
