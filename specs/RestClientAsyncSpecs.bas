@@ -32,6 +32,8 @@ Public Function Specs() As SpecSuite
     SimpleCallback = "RestClientAsyncSpecs.SimpleCallback"
     ComplexCallback = "RestClientAsyncSpecs.ComplexCallback"
     
+    Dim BodyToString As String
+    
     With Specs.It("should pass response to callback")
         Set Request = New RestRequest
         Request.Resource = "get"
@@ -86,6 +88,68 @@ Public Function Specs() As SpecSuite
         .Expect(AsyncResponse.StatusDescription).ToEqual "Internal Server Error"
     End With
     
+    With Specs.It("should include binary body in response")
+        Set Request = New RestRequest
+        Request.Resource = "howdy"
+        
+        Client.ExecuteAsync Request, SimpleCallback
+        Wait WaitTime
+        .Expect(AsyncResponse).ToBeDefined
+        If Not AsyncResponse Is Nothing Then
+            .Expect(AsyncResponse.Body).ToBeDefined
+            
+            If Not IsEmpty(AsyncResponse.Body) Then
+                For i = LBound(AsyncResponse.Body) To UBound(AsyncResponse.Body)
+                    BodyToString = BodyToString & Chr(AsyncResponse.Body(i))
+                Next i
+            End If
+            
+            .Expect(BodyToString).ToEqual "Howdy!"
+        End If
+    End With
+
+    With Specs.It("should include cookies in response")
+        Set Request = New RestRequest
+        Request.Resource = "cookie"
+        
+        Client.ExecuteAsync Request, SimpleCallback
+        Wait WaitTime
+        .Expect(AsyncResponse).ToBeDefined
+        If Not AsyncResponse Is Nothing Then
+            .Expect(AsyncResponse.Cookies.count).ToEqual 4
+            .Expect(AsyncResponse.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
+            .Expect(AsyncResponse.Cookies("signed-cookie")).ToContain "special-cookie"
+            .Expect(AsyncResponse.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
+            .Expect(AsyncResponse.Cookies("duplicate-cookie")).ToEqual "B"
+        End If
+    End With
+    
+    With Specs.It("should include cookies with request")
+        Set Request = New RestRequest
+        Request.Resource = "cookie"
+        
+        Set Response = Client.Execute(Request)
+    
+        Set Request = New RestRequest
+        Request.Resource = "get"
+        Request.AddCookie "test-cookie", "howdy"
+        Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
+        
+        Client.ExecuteAsync Request, SimpleCallback
+        Wait WaitTime
+        .Expect(AsyncResponse).ToBeDefined
+        If Not AsyncResponse Is Nothing Then
+            .Expect(AsyncResponse.Data).ToBeDefined
+            If Not IsEmpty(AsyncResponse.Data) Then
+                .Expect(AsyncResponse.Data("cookies").count).ToEqual 1
+                .Expect(AsyncResponse.Data("cookies")("test-cookie")).ToEqual "howdy"
+                .Expect(AsyncResponse.Data("signed_cookies").count).ToEqual 1
+                .Expect(AsyncResponse.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
+            End If
+        End If
+    End With
+    
+    ' Note: Weird async issues can occur if timeout spec isn't last
     With Specs.It("should return 408 and close request on request timeout")
         Set Request = New RestRequest
         Request.Resource = "timeout"
@@ -100,6 +164,7 @@ Public Function Specs() As SpecSuite
             .Expect(AsyncResponse.StatusDescription).ToEqual "Request Timeout"
         End If
         .Expect(Request.HttpRequest).ToBeUndefined
+        Client.TimeoutMS = 2000
     End With
     
     InlineRunner.RunSuite Specs

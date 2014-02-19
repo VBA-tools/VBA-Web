@@ -18,6 +18,8 @@ Public Function Specs() As SpecSuite
     Dim Request As RestRequest
     Dim Response As RestResponse
     Dim Body As Dictionary
+    Dim BodyToString As String
+    Dim i As Integer
     
     Client.BaseUrl = "localhost:3000/"
     
@@ -125,7 +127,7 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 408
         .Expect(Response.StatusDescription).ToEqual "Request Timeout"
-        Debug.Print Response.Content
+        Client.TimeoutMS = 2000
     End With
 
     With Specs.It("should add content-length header (if enabled)")
@@ -156,6 +158,52 @@ Public Function Specs() As SpecSuite
         Request.IncludeContentLength = False
         Set Response = Client.Execute(Request)
         .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
+    End With
+    
+    With Specs.It("should include binary body in response")
+        Set Request = New RestRequest
+        Request.Resource = "howdy"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Body).ToBeDefined
+        
+        If Not IsEmpty(Response.Body) Then
+            For i = LBound(Response.Body) To UBound(Response.Body)
+                BodyToString = BodyToString & Chr(Response.Body(i))
+            Next i
+        End If
+        
+        .Expect(BodyToString).ToEqual "Howdy!"
+    End With
+
+    With Specs.It("should include cookies in response")
+        Set Request = New RestRequest
+        Request.Resource = "cookie"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Cookies.count).ToEqual 4
+        .Expect(Response.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
+        .Expect(Response.Cookies("signed-cookie")).ToContain "special-cookie"
+        .Expect(Response.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
+        .Expect(Response.Cookies("duplicate-cookie")).ToEqual "B"
+    End With
+    
+    With Specs.It("should include cookies with request")
+        Set Request = New RestRequest
+        Request.Resource = "cookie"
+        
+        Set Response = Client.Execute(Request)
+    
+        Set Request = New RestRequest
+        Request.Resource = "get"
+        Request.AddCookie "test-cookie", "howdy"
+        Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Data("cookies").count).ToEqual 1
+        .Expect(Response.Data("cookies")("test-cookie")).ToEqual "howdy"
+        .Expect(Response.Data("signed_cookies").count).ToEqual 1
+        .Expect(Response.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
     End With
     
     Set Client = Nothing
