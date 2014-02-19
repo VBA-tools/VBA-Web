@@ -18,12 +18,12 @@ Attribute VB_Name = "RestHelpers"
 #If VBA7 And Win64 Then
     ' 64-bit
     Public Declare PtrSafe Function SetTimer Lib "user32" ( _
-        ByVal HWnd As Long, ByVal nIDEvent As Long, _
-        ByVal uElapse As Long, _
-        ByVal lpTimerFunc As Long) As Long
+        ByVal HWnd As LongLong, ByVal nIDEvent As LongLong, _
+        ByVal uElapse As LongLong, _
+        ByVal lpTimerFunc As LongLong) As LongLong
     Public Declare PtrSafe Function KillTimer Lib "user32" ( _
-        ByVal HWnd As Long, _
-        ByVal nIDEvent As Long) As Long
+        ByVal HWnd As LongLong, _
+        ByVal nIDEvent As LongLong) As LongLong
    
 #Else
     '32-bit
