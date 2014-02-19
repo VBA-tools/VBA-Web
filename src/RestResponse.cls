@@ -27,9 +27,11 @@ Public StatusDescription As String
 Public Content As String
 Public Data As Variant
 Public Body As Variant
+Public Headers As Collection
 Public Cookies As Dictionary
 
 Private Sub Class_Initialize()
     Body = Array()
+    Set Headers = New Collection
     Set Cookies = New Dictionary
 End Sub

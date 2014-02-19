@@ -175,6 +175,24 @@ Public Function Specs() As SpecSuite
         
         .Expect(BodyToString).ToEqual "Howdy!"
     End With
+    
+    With Specs.It("should include headers in response")
+        Set Request = New RestRequest
+        Request.Resource = "cookie"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Headers.count).ToBeGTE 5
+        
+        Dim Header As Dictionary
+        Dim NumCookies As Integer
+        For Each Header In Response.Headers
+            If Header("key") = "Set-Cookie" Then
+                NumCookies = NumCookies + 1
+            End If
+        Next Header
+        
+        .Expect(NumCookies).ToEqual 5
+    End With
 
     With Specs.It("should include cookies in response")
         Set Request = New RestRequest

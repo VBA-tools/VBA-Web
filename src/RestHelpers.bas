@@ -419,8 +419,11 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
         Set CreateResponseFromHttp.Data = RestHelpers.ParseJSON(Http.ResponseText)
     End Select
     
+    ' Extract headers
+    Set CreateResponseFromHttp.Headers = ExtractHeadersFromResponseHeaders(Http.getAllResponseHeaders)
+    
     ' Extract cookies
-    Set CreateResponseFromHttp.Cookies = ExtractCookiesFromResponseHeaders(Http.getAllResponseHeaders)
+    Set CreateResponseFromHttp.Cookies = ExtractCookiesFromHeaders(CreateResponseFromHttp.Headers)
 End Function
 
 ''
@@ -443,15 +446,13 @@ End Function
 ' @return {Dictionary} Cookies
 ' --------------------------------------------- '
 
-Public Function ExtractCookiesFromResponseHeaders(ResponseHeaders As String) As Dictionary
+Public Function ExtractCookiesFromHeaders(Headers As Collection) As Dictionary
     Dim Cookies As New Dictionary
     Dim Cookie As String
     Dim Key As String
     Dim Value As String
-    Dim Headers As Collection
     Dim Header As Dictionary
     
-    Set Headers = ExtractHeadersFromResponseHeaders(ResponseHeaders)
     For Each Header In Headers
         If Header("key") = "Set-Cookie" Then
             Cookie = Header("value")
@@ -470,7 +471,7 @@ Public Function ExtractCookiesFromResponseHeaders(ResponseHeaders As String) As 
         End If
     Next Header
     
-    Set ExtractCookiesFromResponseHeaders = Cookies
+    Set ExtractCookiesFromHeaders = Cookies
 End Function
 
 ''

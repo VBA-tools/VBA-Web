@@ -107,7 +107,29 @@ Public Function Specs() As SpecSuite
             .Expect(BodyToString).ToEqual "Howdy!"
         End If
     End With
-
+    
+    With Specs.It("should include headers in response")
+        Set Request = New RestRequest
+        Request.Resource = "cookie"
+        
+        Client.ExecuteAsync Request, SimpleCallback
+        Wait WaitTime
+        .Expect(AsyncResponse).ToBeDefined
+        If Not AsyncResponse Is Nothing Then
+            .Expect(AsyncResponse.Headers.count).ToBeGTE 5
+        
+            Dim Header As Dictionary
+            Dim NumCookies As Integer
+            For Each Header In AsyncResponse.Headers
+                If Header("key") = "Set-Cookie" Then
+                    NumCookies = NumCookies + 1
+                End If
+            Next Header
+            
+            .Expect(NumCookies).ToEqual 5
+        End If
+    End With
+    
     With Specs.It("should include cookies in response")
         Set Request = New RestRequest
         Request.Resource = "cookie"
