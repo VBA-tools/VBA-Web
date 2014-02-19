@@ -173,7 +173,8 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should extract cookies from response headers")
-        Set Cookies = RestHelpers.ExtractCookiesFromResponseHeaders(ResponseHeaders)
+        Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
+        Set Cookies = RestHelpers.ExtractCookiesFromHeaders(Headers)
         .Expect(Cookies.count).ToEqual 3
         .Expect(Cookies("unsigned-cookie")).ToEqual "simple-cookie"
         .Expect(Cookies("duplicate-cookie")).ToEqual "B"
