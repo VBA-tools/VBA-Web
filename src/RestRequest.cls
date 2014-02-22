@@ -49,6 +49,7 @@ Public Enum AvailableMethods
 End Enum
 Public Enum AvailableFormats
     json
+    formurlencoded
 End Enum
 
 ' --------------------------------------------- '
@@ -108,7 +109,6 @@ End Property
 
 Public Property Get FormattedResource() As String
     Dim segment As Variant
-    Dim parameterKey As Variant
     
     FormattedResource = Me.Resource
     
@@ -131,20 +131,16 @@ Public Property Get FormattedResource() As String
         If (Me.Parameters.count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.count > 0 Then
             If InStr(FormattedResource, "?") <= 0 Then
                 FormattedResource = FormattedResource & "?"
+            Else
+                FormattedResource = FormattedResource & "&"
             End If
             
             ' Only load parameters to querystring if GET request (otherwise they are added to the body)
             If Me.Method = httpGET Then
-                For Each parameterKey In Me.Parameters.keys()
-                    If Right(FormattedResource, 1) <> "?" Then: FormattedResource = FormattedResource & "&"
-                    FormattedResource = FormattedResource & URLEncode(parameterKey) & "=" & URLEncode(Me.Parameters(parameterKey))
-                Next parameterKey
+                FormattedResource = FormattedResource & RestHelpers.DictionariesToUrlEncodedString(Me.Parameters, Me.QuerystringParams)
+            Else
+                FormattedResource = FormattedResource & RestHelpers.DictionariesToUrlEncodedString(Me.QuerystringParams)
             End If
-            
-            For Each parameterKey In Me.QuerystringParams.keys()
-                If Right(FormattedResource, 1) <> "?" Then: FormattedResource = FormattedResource & "&"
-                FormattedResource = FormattedResource & URLEncode(parameterKey) & "=" & URLEncode(Me.QuerystringParams(parameterKey))
-            Next parameterKey
         End If
     End If
 End Property
@@ -152,24 +148,30 @@ End Property
 Public Property Get Body() As String
     ' Add body if it's defined or parameters have been set and it is not a GET request
     If Not pBody Is Nothing Or pBodyString <> "" Or (Me.Parameters.count > 0 And Me.Method <> httpGET) Then
-        Select Case Me.Format
-        ' (Currently only JSON is supported)
-        Case Else
-            If pBodyString <> "" Then
-                If Me.Parameters.count > 0 And Me.Method <> httpGET Then
-                    Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body string and parameters"
-                Else
-                    Body = pBodyString
-                End If
+        If pBodyString <> "" Then
+            If Me.Parameters.count > 0 And Me.Method <> httpGET Then
+                Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body string and parameters"
             Else
+                Body = pBodyString
+            End If
+        Else
+            Select Case Me.Format
+            Case AvailableFormats.formurlencoded
                 If Me.Method <> httpGET Then
                     ' Combine defined body and parameters and convert to JSON
-                    Body = RestHelpers.ConvertToJSON(CombineObjects(pBody, Me.Parameters))
+                    Body = RestHelpers.DictionariesToUrlEncodedString(Me.Parameters, pBody)
+                Else
+                    Body = RestHelpers.DictionariesToUrlEncodedString(pBody)
+                End If
+            Case AvailableFormats.json
+                If Me.Method <> httpGET Then
+                    ' Combine defined body and parameters and convert to JSON
+                    Body = RestHelpers.ConvertToJSON(CombineObjects(Me.Parameters, pBody))
                 Else
                     Body = RestHelpers.ConvertToJSON(pBody)
                 End If
-            End If
-        End Select
+            End Select
+        End If
     End If
 End Property
 
@@ -205,7 +207,9 @@ End Property
 
 Public Property Get FormatName() As String
     Select Case Me.Format
-    Case Else
+    Case AvailableFormats.formurlencoded
+        FormatName = "form-urlencoded"
+    Case AvailableFormats.json
         FormatName = "json"
     End Select
 End Property
@@ -215,12 +219,10 @@ Public Property Get ContentType() As String
         ContentType = pContentType
     Else
         Select Case Me.Format
-        Case Else
-            If Me.Method <> httpGET And Me.Parameters.count > 0 Then
-                ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
-            Else
-                ContentType = "application/json"
-            End If
+        Case AvailableFormats.formurlencoded
+            ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
+        Case AvailableFormats.json
+            ContentType = "application/json"
         End Select
     End If
 End Property

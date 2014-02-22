@@ -97,7 +97,7 @@ Public Function Specs() As SpecSuite
         Request.AddParameter "A B", " !""#$%&'"
         Request.Method = httpGET
         
-        .Expect(Request.FormattedResource).ToEqual "?A%20B=%20%21%22%23%24%25%26%27"
+        .Expect(Request.FormattedResource).ToEqual "?A+B=+%21%22%23%24%25%26%27"
     End With
     
     With Specs.It("should include cachebreaker in FormattedResource by default")
@@ -144,7 +144,7 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "{""A"":123}"
         
         Request.Method = httpPOST
-        .Expect(Request.Body).ToEqual "{""A"":123,""b"":456}"
+        .Expect(Request.Body).ToEqual "{""b"":456,""A"":123}"
     End With
     
     With Specs.It("should use given client base url for FullUrl only if BaseUrl isn't already set")
@@ -175,25 +175,20 @@ Public Function Specs() As SpecSuite
         .Expect(Request.FullUrl("facebook.com/api/")).ToEqual "https://facebook.com/api/status"
     End With
     
-    With Specs.It("should user form-urlencoded content type for non-GET requests with parameters")
+    With Specs.It("should include content-type based on specified format")
         Set Request = New RestRequest
         
         Request.AddParameter "A", 123
         Request.Method = httpPOST
         
+        ' JSON by default
+        .Expect(Request.ContentType).ToEqual "application/json"
+        
+        Request.Format = json
+        .Expect(Request.ContentType).ToEqual "application/json"
+        
+        Request.Format = formurlencoded
         .Expect(Request.ContentType).ToEqual "application/x-www-form-urlencoded;charset=UTF-8"
-    End With
-    
-    With Specs.It("should use application/json for GET requests with parameters and requests without parameters")
-        Set Request = New RestRequest
-        
-        Request.Method = httpPOST
-        .Expect(Request.ContentType).ToEqual "application/json"
-        
-        Request.AddParameter "A", 123
-        Request.Method = httpGET
-        
-        .Expect(Request.ContentType).ToEqual "application/json"
     End With
     
     With Specs.It("should override existing headers, url segments, and parameters")
@@ -258,6 +253,23 @@ Public Function Specs() As SpecSuite
         
         Request.AddBodyString "Howdy!"
         .Expect(Request.Body).ToEqual "Howdy!"
+    End With
+    
+    With Specs.It("should format body based on set format")
+        Set Request = New RestRequest
+        Request.Method = httpPOST
+        
+        Request.AddParameter "A", 123
+        Request.AddParameter "B", "Howdy!"
+        
+        ' JSON by default
+        .Expect(Request.Body).ToEqual "{""A"":123,""B"":""Howdy!""}"
+        
+        Request.Format = json
+        .Expect(Request.Body).ToEqual "{""A"":123,""B"":""Howdy!""}"
+        
+        Request.Format = formurlencoded
+        .Expect(Request.Body).ToEqual "A=123&B=Howdy%21"
     End With
     
     InlineRunner.RunSuite Specs
