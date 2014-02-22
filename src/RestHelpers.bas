@@ -274,7 +274,7 @@ Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Vari
     
     Set Combined = Dictionaries(LBound(Dictionaries))
     For i = LBound(Dictionaries) + 1 To UBound(Dictionaries)
-        Set Combined = CombineObjects(Combined, Dictionaries(i), False)
+        Set Combined = CombineObjects(Combined, Dictionaries(i))
     Next i
     
     If Not Combined Is Nothing Then
@@ -285,6 +285,41 @@ Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Vari
     End If
     
     DictionariesToUrlEncodedString = Encoded
+End Function
+
+''
+' Parse url-encoded string to Dictionary
+'
+' @param {String} UrlEncoded
+' @return {Dictionary} Parsed
+' --------------------------------------------- '
+
+Public Function ParseUrlEncoded(Encoded As String) As Dictionary
+    Dim Items As Variant
+    Dim i As Integer
+    Dim Parts As Variant
+    Dim Parsed As New Dictionary
+    Dim Key As String
+    Dim Value As Variant
+    
+    Items = Split(Encoded, "&")
+    For i = LBound(Items) To UBound(Items)
+        Parts = Split(Items(i), "=")
+        
+        If UBound(Parts) - LBound(Parts) >= 1 Then
+            ' TODO: Handle numbers, arrays, and object better here
+            Key = URLDecode(CStr(Parts(LBound(Parts))))
+            Value = URLDecode(CStr(Parts(LBound(Parts) + 1)))
+            
+            If Parsed.Exists(Key) Then
+                Parsed(Key) = Value
+            Else
+                Parsed.Add Key, Value
+            End If
+        End If
+    Next i
+    
+    Set ParseUrlEncoded = Parsed
 End Function
 
 ''
@@ -443,7 +478,9 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     
     ' Convert content to data by format
     Select Case Format
-    Case Else
+    Case AvailableFormats.formurlencoded
+        Set CreateResponseFromHttp.Data = RestHelpers.ParseUrlEncoded(Http.ResponseText)
+    Case AvailableFormats.json
         Set CreateResponseFromHttp.Data = RestHelpers.ParseJSON(Http.ResponseText)
     End Select
     
