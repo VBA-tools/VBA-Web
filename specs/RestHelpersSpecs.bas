@@ -18,11 +18,12 @@ Public Function Specs() As SpecSuite
     Dim Parsed As Object
     Dim Obj As Object
     Dim Coll As Collection
-    Dim A As Object
-    Dim B As Object
-    Dim Combined As Object
+    Dim A As Dictionary
+    Dim B As Dictionary
+    Dim Combined As Dictionary
     Dim Whitelist As Variant
-    Dim Filtered As Object
+    Dim Filtered As Dictionary
+    Dim Encoded As String
     Dim ResponseHeaders As String
     Dim Headers As Collection
     Dim Cookies As Dictionary
@@ -107,10 +108,14 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should url encode values")
         .Expect(RestHelpers.URLEncode(" !""#$%&'")).ToEqual "%20%21%22%23%24%25%26%27"
+        .Expect(RestHelpers.URLEncode("A + B")).ToEqual "A%20%2B%20B"
+        .Expect(RestHelpers.URLEncode("A + B", True)).ToEqual "A+%2B+B"
     End With
     
     With Specs.It("should decode url values")
         .Expect(RestHelpers.URLDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
+        .Expect(RestHelpers.URLDecode("A%20%2B%20B")).ToEqual "A + B"
+        .Expect(RestHelpers.URLDecode("A+%2B+B")).ToEqual "A + B"
     End With
     
     With Specs.It("should join url with /")
@@ -153,6 +158,29 @@ Public Function Specs() As SpecSuite
         .Expect(Filtered.Exists("a")).ToEqual True
         .Expect(Filtered.Exists("b")).ToEqual True
         .Expect(Filtered.Exists("dangerous")).ToEqual False
+    End With
+    
+    With Specs.It("should combine and convert parameters to url-encoded string")
+        Set A = New Dictionary
+        Set B = New Dictionary
+        
+        A.Add "a", 1
+        A.Add "b", 3.14
+        B.Add "b", 4.14
+        B.Add "c", "Howdy!"
+        B.Add "d & e", "A + B"
+        
+        Encoded = RestHelpers.DictionariesToUrlEncodedString(A, B)
+        .Expect(Encoded).ToEqual "a=1&b=4.14&c=Howdy%21&d+%26+e=A+%2B+B"
+    End With
+    
+    With Specs.It("should parse url-encoded string")
+        Set Parsed = RestHelpers.ParseUrlEncoded("a=1&b=3.14&c=Howdy%21&d+%26+e=A+%2B+B")
+        
+        .Expect(Parsed("a")).ToEqual "1"
+        .Expect(Parsed("b")).ToEqual "3.14"
+        .Expect(Parsed("c")).ToEqual "Howdy!"
+        .Expect(Parsed("d & e")).ToEqual "A + B"
     End With
     
     With Specs.It("should extract headers from response headers")
