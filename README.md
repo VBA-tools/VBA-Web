@@ -101,6 +101,11 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 
 ### Release Notes
 
+#### 2.3.0
+
+- Add `form-urlencoded` format and helpers
+- Combine Body + Parameters and Querystring + Parameters with priority given to Body or Querystring, respectively
+
 #### 2.2.0
 
 - Add cookies support with `Request.AddCookie(key, value)` and `Response.Cookies`
