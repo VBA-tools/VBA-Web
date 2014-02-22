@@ -108,7 +108,6 @@ End Property
 
 Public Property Get FormattedResource() As String
     Dim segment As Variant
-    Dim parameterKey As Variant
     
     FormattedResource = Me.Resource
     
@@ -131,20 +130,16 @@ Public Property Get FormattedResource() As String
         If (Me.Parameters.count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.count > 0 Then
             If InStr(FormattedResource, "?") <= 0 Then
                 FormattedResource = FormattedResource & "?"
+            Else
+                FormattedResource = FormattedResource & "&"
             End If
             
             ' Only load parameters to querystring if GET request (otherwise they are added to the body)
             If Me.Method = httpGET Then
-                For Each parameterKey In Me.Parameters.keys()
-                    If Right(FormattedResource, 1) <> "?" Then: FormattedResource = FormattedResource & "&"
-                    FormattedResource = FormattedResource & URLEncode(parameterKey) & "=" & URLEncode(Me.Parameters(parameterKey))
-                Next parameterKey
+                FormattedResource = FormattedResource & RestHelpers.DictionariesToUrlEncodedString(Me.QuerystringParams, Me.Parameters)
+            Else
+                FormattedResource = FormattedResource & RestHelpers.DictionariesToUrlEncodedString(Me.QuerystringParams)
             End If
-            
-            For Each parameterKey In Me.QuerystringParams.keys()
-                If Right(FormattedResource, 1) <> "?" Then: FormattedResource = FormattedResource & "&"
-                FormattedResource = FormattedResource & URLEncode(parameterKey) & "=" & URLEncode(Me.QuerystringParams(parameterKey))
-            Next parameterKey
         End If
     End If
 End Property

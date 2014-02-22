@@ -260,6 +260,34 @@ Public Function FilterObject(ByVal Original As Dictionary, Whitelist As Variant)
 End Function
 
 ''
+' Convert dictionaries to url encoded string
+'
+' @param {Dictionary...} Dictionaries
+' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
+' --------------------------------------------- '
+
+Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Variant) As String
+    Dim Encoded As String
+    Dim i As Integer
+    Dim Combined As Dictionary
+    Dim ParameterKey As Variant
+    
+    Set Combined = Dictionaries(LBound(Dictionaries))
+    For i = LBound(Dictionaries) + 1 To UBound(Dictionaries)
+        Set Combined = CombineObjects(Combined, Dictionaries(i), False)
+    Next i
+    
+    If Not Combined Is Nothing Then
+        For Each ParameterKey In Combined.keys()
+            If Len(Encoded) > 0 Then: Encoded = Encoded & "&"
+            Encoded = Encoded & URLEncode(ParameterKey, True) & "=" & URLEncode(Combined(ParameterKey), True)
+        Next ParameterKey
+    End If
+    
+    DictionariesToUrlEncodedString = Encoded
+End Function
+
+''
 ' Prepare http request for execution
 '
 ' @param {RestRequest} Request
