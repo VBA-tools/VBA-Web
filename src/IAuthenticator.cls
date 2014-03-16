@@ -26,25 +26,36 @@ Option Explicit
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestRequest} request The request about to be executed
+' @param {RestClient} Client The client that is about to execute the request
+' @param {RestRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Public Sub BeforeExecute(ByRef Request As RestRequest)
-    ' ...
-    ' Add header
-    ' etc.
+Public Sub BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+    ' Add headers, cookies, etc
+End Sub
+
+''
+' Hook for taking action after request has been executed
+'
+' @param {RestClient} Client The client that executed request
+' @param {RestRequest} Request The request that was just executed
+' @param {RestResponse} Response to request
+' --------------------------------------------- '
+
+Public Sub AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+    ' Handle 304 Unauthorized or other issues
 End Sub
 
 ''
 ' Hook for overriding standard http open (used for HTTP Basic)
 '
 ' @param {MSXML2.IXMLHTTPRequest} http
-' @param {RestRequest} request The request about to be opened
+' @parma {RestClient} Client The client that is about to open request
+' @param {RestRequest} Request The request about to be opened
 ' @param {String} BaseUrl
 ' @param {Boolean} [useAsync=False]
 ' --------------------------------------------- '
 
-Public Sub HttpOpen(ByRef Http As Object, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Use standard http open by default
-    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
+Public Sub HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
+    ' Modify http open behavior
 End Sub

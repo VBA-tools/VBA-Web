@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' OAuth2 Authenticator v1.0.0
+' OAuth2 Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth2 authentication
@@ -17,7 +17,7 @@ Implements IAuthenticator
 '
 ' @dependencies
 '   Microsoft XML, v3+
-' @author: tim.hall.engr@gmail.com
+' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
@@ -68,7 +68,14 @@ Public Sub SetupTokenUrl(TokenUrl As String, Optional TokenKey As String = "acce
     Me.TokenKey = TokenKey
 End Sub
 
-Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
+''
+' Hook for taking action before a request is executed
+'
+' @param {RestClient} Client The client that is about to execute the request
+' @param {RestRequest} Request The request about to be executed
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     On Error GoTo ErrorHandling
     If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         ' Get new token
@@ -76,7 +83,7 @@ Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
         Set Http = CreateObject("MSXML2.ServerXMLHTTP")
              
         Http.Open "POST", CreateTokenRequest, False
-        Http.send
+        Http.Send
         
         If Http.Status <> 200 Then
             ' Error getting OAuth2 token
@@ -113,9 +120,31 @@ ErrorHandling:
     End If
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(Http As Object, Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
+''
+' Hook for taking action after request has been executed
+'
+' @param {RestClient} Client The client that executed request
+' @param {RestRequest} Request The request that was just executed
+' @param {RestResponse} Response to request
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+
+End Sub
+
+''
+' Hook for overriding standard http open (used for HTTP Basic)
+'
+' @param {MSXML2.IXMLHTTPRequest} http
+' @parma {RestClient} Client The client that is about to open request
+' @param {RestRequest} Request The request about to be opened
+' @param {String} BaseUrl
+' @param {Boolean} [useAsync=False]
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
-    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
+    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
 End Sub
 
 ' ============================================= '

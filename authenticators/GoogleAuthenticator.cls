@@ -7,9 +7,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Implements IAuthenticator
 ''
-' Google Authenticator v1.0.0
+' Google Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for "installed application" authentication for Google APIs
@@ -17,11 +16,13 @@ Implements IAuthenticator
 ' - https://developers.google.com/accounts/docs/OAuth2#installed
 ' - https://developers.google.com/accounts/docs/OAuth2InstalledApp
 '
-' @dependencies
+' @implements IAuthenticator
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Implements IAuthenticator
+Option Explicit
 
 Private Const AuthorizationUrl As String = "https://accounts.google.com/o/oauth2/auth"
 Private Const RedirectUri As String = "urn:ietf:wg:oauth:2.0:oob"
@@ -111,6 +112,10 @@ End Property
 ' Public Methods
 ' ============================================= '
 
+''
+' Setup authenticator
+' --------------------------------------------- '
+
 Public Sub Setup(ClientId As String, ClientSecret As String)
     Me.ClientId = ClientId
     Me.ClientSecret = ClientSecret
@@ -148,7 +153,14 @@ Public Sub Logout()
     Me.Token = ""
 End Sub
 
-Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
+''
+' Hook for taking action before a request is executed
+'
+' @param {RestClient} Client The client that is about to execute the request
+' @param {RestRequest} Request The request about to be executed
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     If Me.ApiKey <> "" Then
         Request.AddQuerystringParam "key", Me.ApiKey
     Else
@@ -156,13 +168,31 @@ Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
     End If
 End Sub
 
-Private Sub IAuthenticator_HttpOpen( _
-    Http As Object, _
-    Request As RestRequest, _
-    BaseUrl As String, _
-    Optional UseAsync As Boolean = False)
+''
+' Hook for taking action after request has been executed
+'
+' @param {RestClient} Client The client that executed request
+' @param {RestRequest} Request The request that was just executed
+' @param {RestResponse} Response to request
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+
+End Sub
+
+''
+' Hook for overriding standard http open (used for HTTP Basic)
+'
+' @param {MSXML2.IXMLHTTPRequest} http
+' @parma {RestClient} Client The client that is about to open request
+' @param {RestRequest} Request The request about to be opened
+' @param {String} BaseUrl
+' @param {Boolean} [useAsync=False]
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     
-    ' Perform   standard http open
+    ' Perform standard http open
     Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
 End Sub
 

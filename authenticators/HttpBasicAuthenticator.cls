@@ -9,12 +9,12 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' HttpBasicAuthenticator v1.0.0
+' HttpBasicAuthenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize http basic authentication
 '
-' @author: tim.hall.engr@gmail.com
+' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
@@ -48,11 +48,40 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
+''
+' Hook for taking action before a request is executed
+'
+' @param {RestClient} Client The client that is about to execute the request
+' @param {RestRequest} Request The request about to be executed
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     Request.AddHeader "Authorization", CreateHeader()
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(Http As Object, Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
+''
+' Hook for taking action after request has been executed
+'
+' @param {RestClient} Client The client that executed request
+' @param {RestRequest} Request The request that was just executed
+' @param {RestResponse} Response to request
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+
+End Sub
+
+''
+' Hook for overriding standard http open (used for HTTP Basic)
+'
+' @param {MSXML2.IXMLHTTPRequest} http
+' @parma {RestClient} Client The client that is about to open request
+' @param {RestRequest} Request The request about to be opened
+' @param {String} BaseUrl
+' @param {Boolean} [useAsync=False]
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Use http open with username and password values set
     ' (This is used in addition to setting request header, as some services required this)
     Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync, Me.Username, Me.Password
