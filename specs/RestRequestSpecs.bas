@@ -89,6 +89,17 @@ Public Function Specs() As SpecSuite
         
         .Expect(Request.FormattedResource).ToEqual "?A=123&B=456"
     End With
+    
+    With Specs.It("should not include http/https if included in resource")
+        Set Request = New RestRequest
+        Request.IncludeCacheBreaker = False
+        
+        Request.Resource = "http://localhost:3000/get"
+        .Expect(Request.FullUrl("")).ToEqual "http://localhost:3000/get"
+        
+        Request.Resource = "https://localhost:3000/get"
+        .Expect(Request.FullUrl("")).ToEqual "https://localhost:3000/get"
+    End With
 
     With Specs.It("should URL encode querystring")
         Set Request = New RestRequest

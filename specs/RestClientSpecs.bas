@@ -20,6 +20,7 @@ Public Function Specs() As SpecSuite
     Dim Body As Dictionary
     Dim BodyToString As String
     Dim i As Integer
+    Dim Options As Dictionary
     
     Client.BaseUrl = "localhost:3000/"
     
@@ -116,6 +117,31 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("query")("b")).ToEqual "3.14"
         .Expect(Response.Data("query")("c")).ToEqual "Howdy!"
         .Expect(Response.Data("query")("d")).ToEqual "False"
+    End With
+    
+    With Specs.It("should GET json")
+        Set Response = Client.GetJSON("/get")
+        
+        .Expect(Response.StatusCode).ToEqual 200
+        .Expect(Response.Data).ToBeDefined
+    End With
+    
+    With Specs.It("should POST json")
+        Set Body = New Dictionary
+        Body.Add "a", 3.14
+        Set Response = Client.PostJSON("/post", Body)
+        
+        .Expect(Response.StatusCode).ToEqual 200
+        .Expect(Response.Data("body")("a")).ToEqual 3.14
+    End With
+    
+    With Specs.It("should include options with GET and POST json")
+        Set Options = New Dictionary
+        Options.Add "Headers", New Dictionary
+        Options("Headers").Add "custom", "value"
+        Set Response = Client.GetJSON("/get", Options)
+        
+        .Expect(Response.Data("headers")("custom")).ToEqual "value"
     End With
     
     With Specs.It("should return 408 on request timeout")

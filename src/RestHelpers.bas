@@ -65,6 +65,9 @@ Public Enum StatusCodes
     GatewayTimeout = 504
 End Enum
 
+Public Property Get ValidProtocols() As Variant
+    ValidProtocols = Array("http", "https", "ftp")
+End Property
 
 ' ============================================= '
 ' Shared Helpers
@@ -194,7 +197,11 @@ Public Function JoinUrl(LeftSide As String, RightSide As String) As String
         LeftSide = Left(LeftSide, Len(LeftSide) - 1)
     End If
     
-    JoinUrl = LeftSide & "/" & RightSide
+    If LeftSide <> "" And RightSide <> "" Then
+        JoinUrl = LeftSide & "/" & RightSide
+    Else
+        JoinUrl = LeftSide & RightSide
+    End If
 End Function
 
 ''
@@ -321,6 +328,49 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
     
     Set ParseUrlEncoded = Parsed
 End Function
+
+''
+' Check if protocol is included with url
+'
+' @param {String} Url
+' @return {String} Found protocol
+' --------------------------------------------- '
+
+Public Function IncludesProtocol(Url As String) As String
+    Dim Protocol As String
+    Dim i As Integer
+    
+    For i = LBound(ValidProtocols) To UBound(ValidProtocols)
+        Protocol = ValidProtocols(i) + "://"
+        If Left(Url, Len(Protocol)) = Protocol Then
+            IncludesProtocol = Protocol
+            Exit Function
+        End If
+    Next i
+End Function
+
+''
+' Remove protocol from url (if present)
+'
+' @param {String} Url
+' @return {String} Url without protocol
+' --------------------------------------------- '
+
+Public Function RemoveProtocol(Url As String) As String
+    Dim Protocol As String
+    
+    RemoveProtocol = Url
+    Protocol = IncludesProtocol(RemoveProtocol)
+    If Protocol <> "" Then
+        RemoveProtocol = Replace(RemoveProtocol, Protocol, "")
+    End If
+End Function
+
+' ======================================================================================== '
+'
+' Request Preparation / Handling
+'
+' ======================================================================================== '
 
 ''
 ' Prepare http request for execution
@@ -565,6 +615,37 @@ Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As 
     Next i
     
     Set ExtractHeadersFromResponseHeaders = Headers
+End Function
+
+''
+' Create request from options
+'
+' @param {Dictionary} Options
+' - Headers
+' - Cookies
+' - QuerystringParams
+' - UrlSegments
+' --------------------------------------------- '
+
+Public Function CreateRequestFromOptions(Options As Dictionary) As RestRequest
+    Dim Request As New RestRequest
+    
+    If Not IsEmpty(Options) And Not Options Is Nothing Then
+        If Options.Exists("Headers") Then
+            Set Request.Headers = Options("Headers")
+        End If
+        If Options.Exists("Cookies") Then
+            Set Request.Cookies = Options("Cookies")
+        End If
+        If Options.Exists("QuerystringParams") Then
+            Set Request.QuerystringParams = Options("QuerystringParams")
+        End If
+        If Options.Exists("UrlSegments") Then
+            Set Request.UrlSegments = Options("UrlSegments")
+        End If
+    End If
+    
+    Set CreateRequestFromOptions = Request
 End Function
 
 ' ======================================================================================== '

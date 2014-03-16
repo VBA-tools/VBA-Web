@@ -27,6 +27,8 @@ Public Function Specs() As SpecSuite
     Dim ResponseHeaders As String
     Dim Headers As Collection
     Dim Cookies As Dictionary
+    Dim Options As Dictionary
+    Dim Request As RestRequest
     
     With Specs.It("should parse json")
         json = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
@@ -125,6 +127,11 @@ Public Function Specs() As SpecSuite
         .Expect(RestHelpers.JoinUrl("a/", "/b")).ToEqual "a/b"
     End With
     
+    With Specs.It("should not join blank urls with /")
+        .Expect(RestHelpers.JoinUrl("", "b")).ToEqual "b"
+        .Expect(RestHelpers.JoinUrl("a", "")).ToEqual "a"
+    End With
+    
     With Specs.It("should combine objects, with overwrite option")
         Set A = New Dictionary
         Set B = New Dictionary
@@ -183,6 +190,24 @@ Public Function Specs() As SpecSuite
         .Expect(Parsed("d & e")).ToEqual "A + B"
     End With
     
+    With Specs.It("should identify valid protocols")
+        .Expect(RestHelpers.IncludesProtocol("http://testing.com")).ToEqual "http://"
+        .Expect(RestHelpers.IncludesProtocol("https://testing.com")).ToEqual "https://"
+        .Expect(RestHelpers.IncludesProtocol("ftp://testing.com")).ToEqual "ftp://"
+        .Expect(RestHelpers.IncludesProtocol("htp://testing.com")).ToEqual ""
+        .Expect(RestHelpers.IncludesProtocol("testing.com/http://")).ToEqual ""
+        .Expect(RestHelpers.IncludesProtocol("http://https://testing.com")).ToEqual "http://"
+    End With
+    
+    With Specs.It("should remove valid protocols")
+        .Expect(RestHelpers.RemoveProtocol("http://testing.com")).ToEqual "testing.com"
+        .Expect(RestHelpers.RemoveProtocol("https://testing.com")).ToEqual "testing.com"
+        .Expect(RestHelpers.RemoveProtocol("ftp://testing.com")).ToEqual "testing.com"
+        .Expect(RestHelpers.RemoveProtocol("htp://testing.com")).ToEqual "htp://testing.com"
+        .Expect(RestHelpers.RemoveProtocol("testing.com/http://")).ToEqual "testing.com/http://"
+        .Expect(RestHelpers.RemoveProtocol("http://https://testing.com")).ToEqual "https://testing.com"
+    End With
+    
     With Specs.It("should extract headers from response headers")
         ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
             "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
@@ -206,6 +231,35 @@ Public Function Specs() As SpecSuite
         .Expect(Cookies.count).ToEqual 3
         .Expect(Cookies("unsigned-cookie")).ToEqual "simple-cookie"
         .Expect(Cookies("duplicate-cookie")).ToEqual "B"
+    End With
+    
+    With Specs.It("should create request from options")
+        Set Request = RestHelpers.CreateRequestFromOptions(Nothing)
+        .Expect(Request.Headers.count).ToEqual 0
+        
+        Set Options = New Dictionary
+        Set Request = RestHelpers.CreateRequestFromOptions(Options)
+        .Expect(Request.Headers.count).ToEqual 0
+        
+        Options.Add "Headers", New Dictionary
+        Options("Headers").Add "HeaderKey", "HeaderValue"
+        Set Request = RestHelpers.CreateRequestFromOptions(Options)
+        .Expect(Request.Headers("HeaderKey")).ToEqual "HeaderValue"
+        
+        Options.Add "Cookies", New Dictionary
+        Options("Cookies").Add "CookieKey", "CookieValue"
+        Set Request = RestHelpers.CreateRequestFromOptions(Options)
+        .Expect(Request.Cookies("CookieKey")).ToEqual "CookieValue"
+        
+        Options.Add "QuerystringParams", New Dictionary
+        Options("QuerystringParams").Add "QuerystringKey", "QuerystringValue"
+        Set Request = RestHelpers.CreateRequestFromOptions(Options)
+        .Expect(Request.QuerystringParams("QuerystringKey")).ToEqual "QuerystringValue"
+        
+        Options.Add "UrlSegments", New Dictionary
+        Options("UrlSegments").Add "SegmentKey", "SegmentValue"
+        Set Request = RestHelpers.CreateRequestFromOptions(Options)
+        .Expect(Request.UrlSegments("SegmentKey")).ToEqual "SegmentValue"
     End With
     
     With Specs.It("should encode string to base64")
