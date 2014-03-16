@@ -101,6 +101,11 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 
 ### Release Notes
 
+#### 3.0.0
+
+- Add `Client.GetJSON` and `Client.PostJSON` helpers to GET and POST JSON without setting up request
+- Add `AfterExecute` to `IAuthenticator`
+
 #### 2.3.0
 
 - Add `form-urlencoded` format and helpers

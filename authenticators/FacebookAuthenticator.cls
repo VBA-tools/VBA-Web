@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' Facebook Authenticator v1.0.0
+' Facebook Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for Facebook OAuth
@@ -100,23 +100,13 @@ End Property
 ' Public Methods
 ' ============================================= '
 
+''
+' Setup authenticator
+' --------------------------------------------- '
+
 Public Sub Setup(ApplicationId As String, ApplicationSecret As String)
     Me.ApplicationId = ApplicationId
     Me.ApplicationSecret = ApplicationSecret
-End Sub
-
-Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
-    Request.AddQuerystringParam "access_token", Me.Token
-End Sub
-
-Private Sub IAuthenticator_HttpOpen( _
-    http As MSXML2.IXMLHTTPRequest, _
-    Request As RestRequest, _
-    BaseUrl As String, _
-    Optional useAsync As Boolean = False)
-    
-    ' Perform standard http open
-    Call http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), useAsync)
 End Sub
 
 Public Sub Login()
@@ -178,6 +168,44 @@ End Sub
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
+
+''
+' Hook for taking action before a request is executed
+'
+' @param {RestClient} Client The client that is about to execute the request
+' @param {RestRequest} Request The request about to be executed
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+    Request.AddQuerystringParam "access_token", Me.Token
+End Sub
+
+''
+' Hook for taking action after request has been executed
+'
+' @param {RestClient} Client The client that executed request
+' @param {RestRequest} Request The request that was just executed
+' @param {RestResponse} Response to request
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+
+End Sub
+
+''
+' Hook for overriding standard http open (used for HTTP Basic)
+'
+' @param {MSXML2.IXMLHTTPRequest} http
+' @parma {RestClient} Client The client that is about to open request
+' @param {RestRequest} Request The request about to be opened
+' @param {String} BaseUrl
+' @param {Boolean} [useAsync=False]
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
+    ' Perform standard http open
+    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+End Sub
 
 Private Function TokenRequest() As RestRequest
     Set TokenRequest = New RestRequest
