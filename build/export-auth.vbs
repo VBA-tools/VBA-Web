@@ -18,6 +18,9 @@ Set Args = Wscript.Arguments
 If Args.Length > 0 Then
   WBPath = Args(0)
   OutputPath = Args(1)
+Else
+  WBPath = "examples\Excel-REST - Example.xlsm"
+  OutputPath = "authenticators\"
 End If
 
 ' Setup modules to export

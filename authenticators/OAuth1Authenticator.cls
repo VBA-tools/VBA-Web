@@ -9,14 +9,14 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Implements IAuthenticator
 ''
-' OAuth1 Authenticator v1.0.0
+' OAuth1 Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth1 authentication
 '
 ' @dependencies
 '   Microsoft XML, v3+
-' @author: tim.hall.engr@gmail.com
+' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
@@ -98,14 +98,43 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Sub IAuthenticator_BeforeExecute(Request As RestRequest)
+''
+' Hook for taking action before a request is executed
+'
+' @param {RestClient} Client The client that is about to execute the request
+' @param {RestRequest} Request The request about to be executed
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     ' Add authorization header to request
     Request.AddHeader "Authorization", CreateHeader(Request)
 End Sub
 
-Private Sub IAuthenticator_HttpOpen(Http As Object, Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Standard http open
-    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
+''
+' Hook for taking action after request has been executed
+'
+' @param {RestClient} Client The client that executed request
+' @param {RestRequest} Request The request that was just executed
+' @param {RestResponse} Response to request
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+
+End Sub
+
+''
+' Hook for overriding standard http open (used for HTTP Basic)
+'
+' @param {MSXML2.IXMLHTTPRequest} http
+' @parma {RestClient} Client The client that is about to open request
+' @param {RestRequest} Request The request about to be opened
+' @param {String} BaseUrl
+' @param {Boolean} [useAsync=False]
+' --------------------------------------------- '
+
+Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
+    ' Perform standard http open
+    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
 End Sub
 
 Private Function CreateHeader(Request As RestRequest) As String

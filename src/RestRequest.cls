@@ -66,6 +66,8 @@ Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
 Public IncludeCacheBreaker As Boolean
 Public IncludeContentLength As Boolean
+Public Authenticator As IAuthenticator
+Public Client As RestClient
 
 Public Property Get Headers() As Dictionary
     If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
@@ -345,8 +347,8 @@ End Sub
 ' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
 ' --------------------------------------------- '
 
-Public Function AddBody(bodyVal As Dictionary)
-    Set pBody = bodyVal
+Public Function AddBody(BodyVal As Dictionary)
+    Set pBody = BodyVal
 End Function
 
 ''
@@ -355,8 +357,8 @@ End Function
 ' @param {String} bodyVal
 ' --------------------------------------------- '
 
-Public Function AddBodyString(bodyVal As String)
-    pBodyString = bodyVal
+Public Function AddBodyString(BodyVal As String)
+    pBodyString = BodyVal
 End Function
 
 ''
@@ -437,7 +439,18 @@ Private Sub RunCallback(Response As RestResponse)
     '         Debug.Print args(i) & " was passed into async execute"
     '     Next i
     ' End Function
-    '
+    
+    If Not Me.Authenticator Is Nothing Then
+        ' Don't pass Authenticator and Client with Request to AfterExecute
+        Dim Auth As IAuthenticator
+        Dim Client As RestClient
+        Set Auth = Me.Authenticator
+        Set Client = Me.Client
+        Set Me.Authenticator = Nothing
+        Set Me.Client = Nothing
+        
+        Auth.AfterExecute Me.Client, Me, Response
+    End If
     If Me.Callback <> "" Then
         If Not IsMissing(Me.CallbackArgs) Then
             Application.Run Me.Callback, Response, Me.CallbackArgs
@@ -456,4 +469,6 @@ End Sub
 Private Sub Class_Terminate()
     ' Clean up
     If Not Me.HttpRequest Is Nothing Then: Set Me.HttpRequest = Nothing
+    If Not Me.Authenticator Is Nothing Then: Set Me.Authenticator = Nothing
+    If Not Me.Client Is Nothing Then: Set Me.Client = Nothing
 End Sub

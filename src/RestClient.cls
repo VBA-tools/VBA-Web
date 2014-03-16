@@ -52,6 +52,10 @@ Public Function Execute(Request As RestRequest) As RestResponse
     Set Http = HttpSetup(Request, False)
     Set Execute = RestHelpers.ExecuteRequest(Http, Request)
     
+    If Not Me.Authenticator Is Nothing Then
+        Me.Authenticator.AfterExecute Me, Request, Execute
+    End If
+    
 ErrorHandling:
 
     If Not Http Is Nothing Then Set Http = Nothing
@@ -87,6 +91,18 @@ ErrorHandling:
     Err.Raise Err.Number, Description:=Err.Description
 End Function
 
+''
+' GET JSON from Url using options
+'
+' @param {String} Url (relative to BaseUrl, if set)
+' @param {Dictionary} [Options]
+' - Headers
+' - Cookies
+' - QuerystringParams
+' - UrlSegments
+' @return {RestResponse} Response
+' --------------------------------------------- '
+
 Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestResponse
     Dim Request As RestRequest
     Set Request = RestHelpers.CreateRequestFromOptions(Options)
@@ -96,6 +112,19 @@ Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestRe
     
      Set GetJSON = Me.Execute(Request)
 End Function
+
+''
+' POST JSON to Url using body and options
+'
+' @param {String} Url (relative to BaseUrl, if set)
+' @param {Dictionary} Body
+' @param {Dictionary} [Options]
+' - Headers
+' - Cookies
+' - QuerystringParams
+' - UrlSegments
+' @return {RestResponse} Response
+' --------------------------------------------- '
 
 Public Function PostJSON(Url As String, Body As Dictionary, Optional Options As Dictionary) As RestResponse
     Dim Request As RestRequest
@@ -139,8 +168,10 @@ Private Function HttpSetup(ByRef Request As RestRequest, Optional UseAsync As Bo
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then
-        Me.Authenticator.BeforeExecute Request
-        Me.Authenticator.HttpOpen HttpSetup, Request, Me.BaseUrl, UseAsync
+        Me.Authenticator.BeforeExecute Me, Request
+        Me.Authenticator.HttpOpen HttpSetup, Me, Request, Me.BaseUrl, UseAsync
+        Set Request.Authenticator = Me.Authenticator
+        Set Request.Client = Me
     Else
         ' Nothing hooked in so open http object
         HttpSetup.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
