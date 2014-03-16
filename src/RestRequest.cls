@@ -71,7 +71,7 @@ Public Property Get Headers() As Dictionary
     If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
     Set Headers = pHeaders
 End Property
-Public Property Let Headers(Value As Dictionary)
+Public Property Set Headers(Value As Dictionary)
     Set pHeaders = Value
 End Property
 
@@ -79,7 +79,7 @@ Public Property Get Parameters() As Dictionary
     If pParameters Is Nothing Then: Set pParameters = New Dictionary
     Set Parameters = pParameters
 End Property
-Public Property Let Parameters(Value As Dictionary)
+Public Property Set Parameters(Value As Dictionary)
     Set pParameters = Value
 End Property
 
@@ -87,7 +87,7 @@ Public Property Get QuerystringParams() As Dictionary
     If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Dictionary
     Set QuerystringParams = pQuerystringParams
 End Property
-Public Property Let QuerystringParams(Value As Dictionary)
+Public Property Set QuerystringParams(Value As Dictionary)
     Set pQuerystringParams = Value
 End Property
 
@@ -95,7 +95,7 @@ Public Property Get UrlSegments() As Dictionary
     If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
     Set UrlSegments = pUrlSegments
 End Property
-Public Property Let UrlSegments(Value As Dictionary)
+Public Property Set UrlSegments(Value As Dictionary)
     Set pUrlSegments = Value
 End Property
 
@@ -103,7 +103,7 @@ Public Property Get Cookies() As Dictionary
     If pCookies Is Nothing Then: Set pCookies = New Dictionary
     Set Cookies = pCookies
 End Property
-Public Property Let Cookies(Value As Dictionary)
+Public Property Set Cookies(Value As Dictionary)
     Set pCookies = Value
 End Property
 
@@ -176,10 +176,12 @@ Public Property Get Body() As String
 End Property
 
 Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
+    Dim Formatted As String
+    Formatted = Me.FormattedResource
     If Me.BaseUrl = "" Then Me.BaseUrl = ClientBaseUrl
     
-    ' If protocol is missing from base url, add it based on RequireHTTPS property
-    If Left(Me.BaseUrl, 7) <> "http://" And Left(Me.BaseUrl, 8) <> "https://" Then
+    ' If protocol is missing, add it based on RequireHTTPS property
+    If RestHelpers.IncludesProtocol(Me.BaseUrl) = "" And RestHelpers.IncludesProtocol(Formatted) = "" Then
         If Me.RequireHTTPS Then
             Me.BaseUrl = "https://" & Me.BaseUrl
         Else
@@ -187,7 +189,16 @@ Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
         End If
     End If
     
-    FullUrl = JoinUrl(Me.BaseUrl, Me.FormattedResource)
+    ' If protocol is included on base and resource, use base
+    ' If protocol is included on resource and base is not blank, move to base
+    If RestHelpers.IncludesProtocol(Me.BaseUrl) <> "" And RestHelpers.IncludesProtocol(Formatted) <> "" Then
+        Formatted = RestHelpers.RemoveProtocol(Formatted)
+    ElseIf RestHelpers.IncludesProtocol(Formatted) <> "" And Me.BaseUrl <> "" Then
+        Me.BaseUrl = RestHelpers.IncludesProtocol(Formatted) & Me.BaseUrl
+        Formatted = RestHelpers.RemoveProtocol(Formatted)
+    End If
+    
+    FullUrl = JoinUrl(Me.BaseUrl, Formatted)
 End Property
 
 Public Property Get MethodName() As String
@@ -375,8 +386,6 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
         ' Request is finished, clean up
         Set Me.HttpRequest = Nothing
     End If
-    
-    ' TODO: Check for timeout and cleanup
 End Sub
 
 ''

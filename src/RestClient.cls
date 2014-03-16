@@ -87,6 +87,27 @@ ErrorHandling:
     Err.Raise Err.Number, Description:=Err.Description
 End Function
 
+Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestResponse
+    Dim Request As RestRequest
+    Set Request = RestHelpers.CreateRequestFromOptions(Options)
+    Request.Resource = Url
+    Request.Format = json
+    Request.Method = httpGET
+    
+     Set GetJSON = Me.Execute(Request)
+End Function
+
+Public Function PostJSON(Url As String, Body As Dictionary, Optional Options As Dictionary) As RestResponse
+    Dim Request As RestRequest
+    Set Request = RestHelpers.CreateRequestFromOptions(Options)
+    Request.Resource = Url
+    Request.Format = json
+    Request.Method = httpPOST
+    Request.AddBody Body
+    
+    Set PostJSON = Me.Execute(Request)
+End Function
+
 ''
 ' Set proxy for all requests
 '
