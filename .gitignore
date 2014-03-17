@@ -3,3 +3,6 @@ specs/node_modules
 
 # Ignore temporary Excel files
 */~$*
+
+# Ignore credentials (don't check in sensitive data)
+credentials.txt
