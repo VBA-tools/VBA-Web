@@ -167,7 +167,7 @@ Function QueryTwitter(query As String) As RestResponse
 End Function
 ```
 
-For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wiki)
+For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wiki) and [Examples](https://github.com/timhall/Excel-REST/tree/master/examples)
 
 ### Release Notes
 
