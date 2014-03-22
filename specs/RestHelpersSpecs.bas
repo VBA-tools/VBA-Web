@@ -24,11 +24,14 @@ Public Function Specs() As SpecSuite
     Dim Whitelist As Variant
     Dim Filtered As Dictionary
     Dim Encoded As String
+    Dim Parts As Dictionary
     Dim ResponseHeaders As String
     Dim Headers As Collection
     Dim Cookies As Dictionary
     Dim Options As Dictionary
     Dim Request As RestRequest
+    Dim Response As RestResponse
+    Dim UpdatedResponse As RestResponse
     
     With Specs.It("should parse json")
         json = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
@@ -190,22 +193,39 @@ Public Function Specs() As SpecSuite
         .Expect(Parsed("d & e")).ToEqual "A + B"
     End With
     
-    With Specs.It("should identify valid protocols")
+    With Specs.It("should identify protocols")
         .Expect(RestHelpers.IncludesProtocol("http://testing.com")).ToEqual "http://"
         .Expect(RestHelpers.IncludesProtocol("https://testing.com")).ToEqual "https://"
         .Expect(RestHelpers.IncludesProtocol("ftp://testing.com")).ToEqual "ftp://"
-        .Expect(RestHelpers.IncludesProtocol("htp://testing.com")).ToEqual ""
+        .Expect(RestHelpers.IncludesProtocol("//testing.com")).ToEqual ""
         .Expect(RestHelpers.IncludesProtocol("testing.com/http://")).ToEqual ""
         .Expect(RestHelpers.IncludesProtocol("http://https://testing.com")).ToEqual "http://"
     End With
     
-    With Specs.It("should remove valid protocols")
+    With Specs.It("should remove protocols")
         .Expect(RestHelpers.RemoveProtocol("http://testing.com")).ToEqual "testing.com"
         .Expect(RestHelpers.RemoveProtocol("https://testing.com")).ToEqual "testing.com"
         .Expect(RestHelpers.RemoveProtocol("ftp://testing.com")).ToEqual "testing.com"
-        .Expect(RestHelpers.RemoveProtocol("htp://testing.com")).ToEqual "htp://testing.com"
+        .Expect(RestHelpers.RemoveProtocol("htp://testing.com")).ToEqual "testing.com"
         .Expect(RestHelpers.RemoveProtocol("testing.com/http://")).ToEqual "testing.com/http://"
         .Expect(RestHelpers.RemoveProtocol("http://https://testing.com")).ToEqual "https://testing.com"
+    End With
+    
+    With Specs.It("should extract parts from url")
+        Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
+        
+        .Expect(Parts("Protocol")).ToEqual "https:"
+        .Expect(Parts("Hostname")).ToEqual "www.google.com"
+        .Expect(Parts("Uri")).ToEqual "/dir/1/2/search.html"
+        .Expect(Parts("Querystring")).ToEqual "?arg=0-a&arg1=1-b&arg3-c"
+        .Expect(Parts("Hash")).ToEqual "#hash"
+        
+        Set Parts = RestHelpers.UrlParts("//www.google.com/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
+        
+        .Expect(Parts("Hostname")).ToEqual "www.google.com"
+        .Expect(Parts("Uri")).ToEqual "/dir/1/2/search.html"
+        .Expect(Parts("Querystring")).ToEqual "?arg=0-a&arg1=1-b&arg3-c"
+        .Expect(Parts("Hash")).ToEqual "#hash"
     End With
     
     With Specs.It("should extract headers from response headers")
@@ -225,7 +245,37 @@ Public Function Specs() As SpecSuite
         .Expect(Headers.Item(5)("value")).ToEqual "unsigned-cookie=simple-cookie; Path=/"
     End With
     
+    With Specs.It("should extract multi-line headers from response headers")
+        ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
+            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
+            "WWW-Authenticate: Digest realm=""abc@host.com""" & vbCrLf & _
+            "nonce=""abc""" & vbCrLf & _
+            "qop=auth" & vbCrLf & _
+            "opaque=""abc""" & vbCrLf & _
+            "Set-Cookie: duplicate-cookie=A; Path=/" & vbCrLf & _
+            "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
+            "X-Powered-By: Express"
+            
+        Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
+        .Expect(Headers.count).ToEqual 6
+        .Expect(Headers.Item(3)("key")).ToEqual "WWW-Authenticate"
+        .Expect(Headers.Item(3)("value")).ToEqual "Digest realm=""abc@host.com""" & vbCrLf & _
+            "nonce=""abc""" & vbCrLf & _
+            "qop=auth" & vbCrLf & _
+            "opaque=""abc"""
+    End With
+    
     With Specs.It("should extract cookies from response headers")
+        ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
+            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
+            "Content-Length: 2" & vbCrLf & _
+            "Content-Type: text/plain" & vbCrLf & _
+            "Set-Cookie: unsigned-cookie=simple-cookie; Path=/" & vbCrLf & _
+            "Set-Cookie: signed-cookie=s%3Aspecial-cookie.1Ghgw2qpDY93QdYjGFPDLAsa3%2FI0FCtO%2FvlxoHkzF%2BY; Path=/" & vbCrLf & _
+            "Set-Cookie: duplicate-cookie=A; Path=/" & vbCrLf & _
+            "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
+            "X-Powered-By: Express"
+    
         Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
         Set Cookies = RestHelpers.ExtractCookiesFromHeaders(Headers)
         .Expect(Cookies.count).ToEqual 3
@@ -262,6 +312,23 @@ Public Function Specs() As SpecSuite
         .Expect(Request.UrlSegments("SegmentKey")).ToEqual "SegmentValue"
     End With
     
+    With Specs.It("should update response")
+        Set Response = New RestResponse
+        Set UpdatedResponse = New RestResponse
+        
+        Response.StatusCode = 401
+        Response.Body = Array("Unauthorized")
+        Response.Content = "Unauthorized"
+        
+        UpdatedResponse.StatusCode = 200
+        UpdatedResponse.Body = Array("Ok")
+        UpdatedResponse.Content = "Ok"
+        
+        RestHelpers.UpdateResponse Response, UpdatedResponse
+        .Expect(Response.StatusCode).ToEqual 200
+        .Expect(Response.Content).ToEqual "Ok"
+    End With
+    
     With Specs.It("should encode string to base64")
         .Expect(RestHelpers.EncodeStringToBase64("Howdy!")).ToEqual "SG93ZHkh"
     End With
@@ -269,6 +336,12 @@ Public Function Specs() As SpecSuite
     With Specs.It("should create Nonce of specified length")
         .Expect(Len(RestHelpers.CreateNonce)).ToEqual 32
         .Expect(Len(RestHelpers.CreateNonce(20))).ToEqual 20
+    End With
+    
+    With Specs.It("should MD5 hash string")
+        .Expect(RestHelpers.MD5("test")).ToEqual "098f6bcd4621d373cade4e832627b4f6"
+        .Expect(RestHelpers.MD5("123456789")).ToEqual "25f9e794323b453885f5181f1b624d0b"
+        .Expect(RestHelpers.MD5("Mufasa:testrealm@host.com:Circle Of Life")).ToEqual "939e7578ed9e3c518a452acee763bce9"
     End With
     
     InlineRunner.RunSuite Specs

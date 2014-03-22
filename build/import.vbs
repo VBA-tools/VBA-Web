@@ -42,7 +42,7 @@ If Args.Length > 1 Then
     Folder = ".\specs\"
   End If
   If Args(1) = "auth" Then
-    Modules = Array("EmptyAuthenticator.cls", "FacebookAuthenticator.cls", "GoogleAuthenticator.cls", "HttpBasicAuthenticator.cls", "OAuth1Authenticator.cls", "OAuth2Authenticator.cls", "TwitterAuthenticator.cls")
+    Modules = Array("EmptyAuthenticator.cls", "FacebookAuthenticator.cls", "GoogleAuthenticator.cls", "HttpBasicAuthenticator.cls", "OAuth1Authenticator.cls", "OAuth2Authenticator.cls", "TwitterAuthenticator.cls", "DigestAuthenticator.cls")
     Folder = ".\authenticators\"
   End If
 End If

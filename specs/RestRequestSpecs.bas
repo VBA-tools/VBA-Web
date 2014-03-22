@@ -100,6 +100,19 @@ Public Function Specs() As SpecSuite
         Request.Resource = "https://localhost:3000/get"
         .Expect(Request.FullUrl("")).ToEqual "https://localhost:3000/get"
     End With
+    
+    With Specs.It("should add protocol if none is given or starts with localhost")
+        Set Request = New RestRequest
+        Request.IncludeCacheBreaker = False
+        Request.Resource = "/get"
+        .Expect(Request.FullUrl("localhost:3000")).ToEqual "http://localhost:3000/get"
+        
+        Set Request = New RestRequest
+        Request.IncludeCacheBreaker = False
+        Request.Resource = "/get"
+        Request.RequireHTTPS = True
+        .Expect(Request.FullUrl("localhost:3000")).ToEqual "https://localhost:3000/get"
+    End With
 
     With Specs.It("should URL encode querystring")
         Set Request = New RestRequest
