@@ -7,7 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Implements IAuthenticator
 ''
 ' OAuth2 Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
@@ -15,11 +14,12 @@ Implements IAuthenticator
 ' Utilize OAuth2 authentication
 ' (Currently using client credentials flow only)
 '
-' @implements: IAuthenticator
+' @implements: IAuthenticator v3.0.0
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Implements IAuthenticator
 Option Explicit
 
 ' --------------------------------------------- '
@@ -66,6 +66,10 @@ Public Sub SetupTokenUrl(TokenUrl As String, Optional TokenKey As String = "acce
     Me.TokenUrl = TokenUrl
     Me.TokenKey = TokenKey
 End Sub
+
+' ============================================= '
+' Private Methods
+' ============================================= '
 
 ''
 ' Hook for taking action before a request is executed
@@ -146,10 +150,6 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
 End Sub
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 Private Function CreateHeader() As String
     ' Create standard OAuth2 header
     CreateHeader = "Bearer " & Me.Token
@@ -166,6 +166,3 @@ Private Function CreateTokenRequest() As String
     CreateTokenRequest = CreateTokenRequest & "&username=" & Me.Username
     CreateTokenRequest = CreateTokenRequest & "&password=" & Me.Password
 End Function
-
-
-

@@ -7,7 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Implements IAuthenticator
 ''
 ' Twitter Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
@@ -17,11 +16,13 @@ Implements IAuthenticator
 ' - https://dev.twitter.com/docs/auth/application-only-auth
 ' - https://github.com/timhall/Excel-REST/wiki/Implementing-your-own-IAuthenticator
 '
-' @implements: IAuthenticator
+' @implements: IAuthenticator v3.0.0
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Implements IAuthenticator
+Option Explicit
 
 Private pToken As String
 

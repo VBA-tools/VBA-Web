@@ -7,18 +7,18 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Implements IAuthenticator
 ''
 ' OAuth1 Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth1 authentication
 '
-' @implements: IAuthenticator
+' @implements: IAuthenticator v3.0.0
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Implements IAuthenticator
 Option Explicit
 
 ' Declarations
@@ -208,6 +208,7 @@ End Function
 ' Time Calculations
 '
 ' ======================================================================================== '
+
 Function GetGMT(Optional LocalTime As Date) As Date
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' http://www.cpearson.com/excel/TimeZoneAndDaylightTime.aspx
@@ -232,6 +233,3 @@ Function GetGMT(Optional LocalTime As Date) As Date
     GMT = T + TimeSerial(0, TZI.Bias, 0) - IIf(DST = TIME_ZONE_DAYLIGHT, TimeSerial(1, 0, 0), 0)
     GetGMT = GMT
 End Function
-
-
-

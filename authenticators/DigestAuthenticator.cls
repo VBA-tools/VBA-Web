@@ -14,7 +14,7 @@ Attribute VB_Exposed = False
 ' Custom IAuthenticator for Digest Authentication
 ' http://en.wikipedia.org/wiki/Digest_access_authentication
 '
-' @implements: IAuthenticator
+' @implements: IAuthenticator v3.0.0
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -25,12 +25,17 @@ Option Explicit
 Private Const qop As String = "auth"
 Private pClientNonce As String
 
+' --------------------------------------------- '
+' Properties
+' --------------------------------------------- '
+
 Public Username As String
 Public Password As String
 Public Realm As String
 Public ServerNonce As String
 Public RequestCount As Long
 Public Opaque As String
+
 Public Property Get ClientNonce() As String
     If pClientNonce = "" Then
         pClientNonce = RestHelpers.CreateNonce
@@ -40,6 +45,7 @@ End Property
 Public Property Let ClientNonce(Value As String)
     pClientNonce = Value
 End Property
+
 Public Property Get IsAuthenticated() As Boolean
     If ServerNonce <> "" Then
         IsAuthenticated = True
@@ -139,6 +145,7 @@ Public Function CalculateResponse(Client As RestClient, Request As RestRequest) 
     CalculateResponse = RestHelpers.MD5(HA1 & ":" & Me.ServerNonce & ":" & FormattedRequestCount & ":" & Me.ClientNonce & ":" & qop & ":" & HA2)
 End Function
 
+' Extract authentication information from 401 response headers
 Public Sub ExtractAuthenticateInformation(Response As RestResponse)
     Dim Header As Dictionary
     For Each Header In Response.Headers
@@ -180,8 +187,7 @@ Public Function CalculateHA2(Method As String, Uri As String) As String
     CalculateHA2 = MD5(Method & ":" & Uri)
 End Function
 
+' Pad request count to 8 places
 Public Function FormattedRequestCount() As String
     FormattedRequestCount = Right("00000000" & Me.RequestCount, 8)
 End Function
-
-
