@@ -30,7 +30,8 @@ Modules = Array(_
   "OAuth1Authenticator.cls", _
   "OAuth2Authenticator.cls", _
   "GoogleAuthenticator.cls", _
-  "TwitterAuthenticator.cls" _
+  "TwitterAuthenticator.cls", _
+  "DigestAuthenticator.cls" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then

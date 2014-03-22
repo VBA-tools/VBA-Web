@@ -39,6 +39,8 @@ Attribute VB_Name = "RestHelpers"
 #End If
 
 Private Const UserAgent As String = "Excel Client v3.0.0 (https://github.com/timhall/Excel-REST)"
+Private DocumentHelper As Object
+Private ElHelper As Object
 
 ' Moved to top from JSONLib
 Private Const INVALID_JSON      As Long = 1
@@ -64,10 +66,6 @@ Public Enum StatusCodes
     ServiceUnavailable = 503
     GatewayTimeout = 504
 End Enum
-
-Public Property Get ValidProtocols() As Variant
-    ValidProtocols = Array("http", "https", "ftp")
-End Property
 
 ' ============================================= '
 ' Shared Helpers
@@ -337,16 +335,12 @@ End Function
 ' --------------------------------------------- '
 
 Public Function IncludesProtocol(Url As String) As String
-    Dim Protocol As String
-    Dim i As Integer
+    Dim Parts As New Dictionary
+    Set Parts = UrlParts(Url)
     
-    For i = LBound(ValidProtocols) To UBound(ValidProtocols)
-        Protocol = ValidProtocols(i) + "://"
-        If Left(Url, Len(Protocol)) = Protocol Then
-            IncludesProtocol = Protocol
-            Exit Function
-        End If
-    Next i
+    If Parts("Protocol") <> "" Then
+        IncludesProtocol = Parts("Protocol") & "//"
+    End If
 End Function
 
 ''
@@ -364,6 +358,37 @@ Public Function RemoveProtocol(Url As String) As String
     If Protocol <> "" Then
         RemoveProtocol = Replace(RemoveProtocol, Protocol, "")
     End If
+End Function
+
+''
+' Get Url parts
+'
+' @param {String} Url
+' @return {Dictionary} Parts of url
+' --------------------------------------------- '
+Public Function UrlParts(Url As String) As Dictionary
+    Dim Parts As New Dictionary
+
+    ' Create document/element is expensive, cache after creation
+    If DocumentHelper Is Nothing Or ElHelper Is Nothing Then
+        Set DocumentHelper = CreateObject("htmlfile")
+        Set ElHelper = DocumentHelper.createElement("a")
+    End If
+    
+    ElHelper.href = Url
+    Parts.Add "Protocol", ElHelper.Protocol
+    Parts.Add "Host", ElHelper.host
+    Parts.Add "Hostname", ElHelper.hostname
+    Parts.Add "Port", ElHelper.port
+    Parts.Add "Uri", "/" & ElHelper.pathname
+    Parts.Add "Querystring", ElHelper.Search
+    Parts.Add "Hash", ElHelper.hash
+    
+    If Parts("Protocol") = ":" Or Parts("Protocol") = "localhost:" Then
+        Parts("Protocol") = ""
+    End If
+    
+    Set UrlParts = Parts
 End Function
 
 ' ======================================================================================== '
@@ -599,18 +624,36 @@ End Function
 Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As Collection
     Dim Headers As New Collection
     Dim Header As Dictionary
+    Dim Multiline As Boolean
+    Dim Key As String
+    Dim Value As String
     
     Dim Lines As Variant
     Lines = Split(ResponseHeaders, vbCrLf)
     
     Dim i As Integer
-    For i = LBound(Lines) To UBound(Lines)
-        If Lines(i) <> "" And InStr(1, Lines(i), ":") > 0 Then
-            Set Header = New Dictionary
-            
-            Header.Add "key", Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1))
-            Header.Add "value", Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i))))
+    For i = LBound(Lines) To (UBound(Lines) + 1)
+        If i > UBound(Lines) Then
             Headers.Add Header
+        ElseIf Lines(i) <> "" Then
+            If InStr(1, Lines(i), ":") = 0 And Not Header Is Nothing Then
+                ' Assume part of multi-line header
+                Multiline = True
+            ElseIf Multiline Then
+                ' Close out multi-line string
+                Multiline = False
+                Headers.Add Header
+            ElseIf Not Header Is Nothing Then
+                Headers.Add Header
+            End If
+            
+            If Not Multiline Then
+                Set Header = New Dictionary
+                Header.Add "key", Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1))
+                Header.Add "value", Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i))))
+            Else
+                Header("value") = Header("value") & vbCrLf & Lines(i)
+            End If
         End If
     Next i
     
@@ -646,6 +689,32 @@ Public Function CreateRequestFromOptions(Options As Dictionary) As RestRequest
     End If
     
     Set CreateRequestFromOptions = Request
+End Function
+
+''
+' Update response with another response
+'
+' @param {RestResponse) Original
+' @param {RestResponse) Updated
+' --------------------------------------------- '
+
+Public Function UpdateResponse(ByRef Original As RestResponse, Updated As RestResponse) As RestResponse
+    Original.StatusCode = Updated.StatusCode
+    Original.StatusDescription = Updated.StatusDescription
+    Original.Content = Updated.Content
+    Original.Body = Updated.Body
+    Set Original.Headers = Updated.Headers
+    Set Original.Cookies = Updated.Cookies
+    
+    If Not IsEmpty(Updated.Data) Then
+        If VarType(Updated.Data) = vbObject Then
+            Set Original.Data = Updated.Data
+        Else
+            Original.Data = Updated.Data
+        End If
+    End If
+    
+    Set UpdateResponse = Original
 End Function
 
 ' ======================================================================================== '
@@ -739,7 +808,7 @@ Public Function EncodeBase64(ByRef Data() As Byte) As String
     Set Node = XML.createElement("b64")
     Node.DataType = "bin.base64"
     Node.nodeTypedValue = Data
-    EncodeBase64 = Node.text
+    EncodeBase64 = Node.Text
 
     Set Node = Nothing
     Set XML = Nothing
@@ -784,6 +853,31 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     CreateNonce = Result
 End Function
 
+''
+' Perform MD5 Hash on string
+' Source: http://www.di-mgt.com.au/src/basMD5.bas.html
+'
+' @param {String} Text
+' @return {String} 32-char Hex MD5 Hash
+' --------------------------------------------- '
+
+Public Function MD5(Text As String) As String
+    Dim Encoding As Object
+    Dim MD5Crypto As Object
+    Set Encoding = CreateObject("System.Text.UTF8Encoding")
+    Set MD5Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
+    
+    Dim TextBytes() As Byte
+    TextBytes = Encoding.Getbytes_4(Text)
+    
+    Dim HashedBytes() As Byte
+    HashedBytes = MD5Crypto.ComputeHash_2(TextBytes)
+    
+    Dim i As Integer
+    For i = LBound(HashedBytes) To UBound(HashedBytes)
+        MD5 = MD5 & LCase(Right("0" & Hex$(HashedBytes(i)), 2))
+    Next i
+End Function
 
 ' ======================================================================================== '
 '

@@ -16,10 +16,10 @@ Attribute VB_Exposed = True
 ' - https://developers.google.com/accounts/docs/OAuth2#installed
 ' - https://developers.google.com/accounts/docs/OAuth2InstalledApp
 '
-' @implements IAuthenticator
+' @implements: IAuthenticator v3.0.0
 ' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php
+' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IAuthenticator
 Option Explicit
@@ -121,6 +121,10 @@ Public Sub Setup(ClientId As String, ClientSecret As String)
     Me.ClientSecret = ClientSecret
 End Sub
 
+''
+' Login to Google
+' --------------------------------------------- '
+
 Public Sub Login(Optional ApiKey As String = "")
     If ApiKey <> "" Then
         Me.ApiKey = ApiKey
@@ -147,11 +151,19 @@ Public Sub Login(Optional ApiKey As String = "")
     End If
 End Sub
 
+''
+' Logout of Google
+' --------------------------------------------- '
+
 Public Sub Logout()
     Me.ApiKey = ""
     Me.AuthorizationCode = ""
     Me.Token = ""
 End Sub
+
+' ============================================= '
+' Private Methods
+' ============================================= '
 
 ''
 ' Hook for taking action before a request is executed
@@ -196,10 +208,6 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
     Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
 End Sub
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 Private Function TokenRequest() As RestRequest
     Set TokenRequest = New RestRequest
     TokenRequest.Resource = "o/oauth2/token"
@@ -224,6 +232,3 @@ Private Sub Class_Initialize()
     ' Only email for default scope
     Me.Scope = Array("https://www.googleapis.com/auth/userinfo.email")
 End Sub
-
-
-

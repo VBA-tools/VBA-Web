@@ -7,18 +7,19 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Implements IAuthenticator
 ''
 ' Facebook Authenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for Facebook OAuth
 '
-' @dependencies
+' @implements: IAuthenticator v3.0.0
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Implements IAuthenticator
+Option Explicit
 
 Private Const RedirectUri As String = "https://www.facebook.com/connect/login_success.html"
 Private pToken As String
@@ -109,6 +110,10 @@ Public Sub Setup(ApplicationId As String, ApplicationSecret As String)
     Me.ApplicationSecret = ApplicationSecret
 End Sub
 
+''
+' Login to Facebook
+' --------------------------------------------- '
+
 Public Sub Login()
     On Error GoTo CleanUp
     
@@ -159,6 +164,10 @@ CleanUp:
         Token = Me.Token
     End If
 End Sub
+
+''
+' Logout of Facebook
+' --------------------------------------------- '
 
 Public Sub Logout()
     Me.Code = ""

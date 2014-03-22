@@ -22,7 +22,7 @@ Public Function Specs() As SpecSuite
     Dim i As Integer
     Dim Options As Dictionary
     
-    Client.BaseUrl = "localhost:3000/"
+    Client.BaseUrl = "http://localhost:3000/"
     
     With Specs.It("should return status code and status description from request")
         Set Request = New RestRequest

@@ -8,11 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Base for setting up authenticator
+' Base for setting up authenticator v2.0.0
 '
+' @implements: IAuthenticator v3.0.0
 ' @author:
 ' @license:
-' @implements: IAuthenticator
+'
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IAuthenticator
 Option Explicit
@@ -54,7 +55,7 @@ End Sub
 ' --------------------------------------------- '
 
 Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
-
+    ' Handle 401 Unauthorized or other issues
 End Sub
 
 ''

@@ -7,17 +7,18 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Implements IAuthenticator
 ''
 ' HttpBasicAuthenticator v2.0.0
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize http basic authentication
 '
+' @implements: IAuthenticator v3.0.0
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
+' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Implements IAuthenticator
 Option Explicit
 
 ' --------------------------------------------- '
@@ -93,4 +94,3 @@ Private Function CreateHeader() As String
     Header = "Basic " & EncodeStringToBase64(Me.Username & ":" & Me.Password)
     CreateHeader = Header
 End Function
-

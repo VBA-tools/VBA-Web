@@ -41,6 +41,10 @@ If Args.Length > 1 Then
     Modules = Array("RestClientAsyncSpecs.bas", "RestClientBaseSpecs.bas", "RestClientSpecs.bas", "RestHelpersSpecs.bas", "RestRequestSpecs.bas")
     Folder = ".\specs\"
   End If
+  If Args(1) = "auth" Then
+    Modules = Array("EmptyAuthenticator.cls", "FacebookAuthenticator.cls", "GoogleAuthenticator.cls", "HttpBasicAuthenticator.cls", "OAuth1Authenticator.cls", "OAuth2Authenticator.cls", "TwitterAuthenticator.cls", "DigestAuthenticator.cls")
+    Folder = ".\authenticators\"
+  End If
 End If
 
 ' Open Excel
