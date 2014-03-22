@@ -14,9 +14,10 @@ Attribute VB_Exposed = False
 ' Custom IAuthenticator for Digest Authentication
 ' http://en.wikipedia.org/wiki/Digest_access_authentication
 '
+' @implements: IAuthenticator
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-' @implements: IAuthenticator
+'
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IAuthenticator
 Option Explicit

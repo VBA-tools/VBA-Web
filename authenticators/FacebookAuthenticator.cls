@@ -14,7 +14,7 @@ Implements IAuthenticator
 '
 ' Custom IAuthenticator for Facebook OAuth
 '
-' @dependencies
+' @implements: IAuthenticator
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '

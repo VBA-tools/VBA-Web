@@ -27,7 +27,7 @@ Public Function Specs() As SpecSuite
     Dim SecondRequest As RestRequest
     Dim Response As RestResponse
 
-    RestClientBase.BaseUrl = "localhost:3000"
+    RestClientBase.BaseUrl = "http://localhost:3000"
         
     With Specs.It("should perform sync requests")
         Set Request = New RestRequest

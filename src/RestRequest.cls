@@ -13,9 +13,9 @@ Attribute VB_Exposed = True
 '
 ' Create a request for use with a rest client
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' @dependencies: Microsoft Scripting Runtime
+' @author: tim.hall.engr@gmail.com
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
@@ -384,9 +384,6 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
         
         ' Callback
         RunCallback RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.Format)
-        
-        ' Request is finished, clean up
-        Set Me.HttpRequest = Nothing
     End If
 End Sub
 
@@ -416,9 +413,6 @@ End Sub
 Public Sub TimedOut()
     ' Callback
     RunCallback RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
-    
-    ' Request is finished, clean up
-    Set Me.HttpRequest = Nothing
 End Sub
 
 ' ============================================= '
@@ -449,7 +443,7 @@ Private Sub RunCallback(Response As RestResponse)
         Set Me.Authenticator = Nothing
         Set Me.Client = Nothing
         
-        Auth.AfterExecute Me.Client, Me, Response
+        Auth.AfterExecute Client, Me, Response
     End If
     If Me.Callback <> "" Then
         If Not IsMissing(Me.CallbackArgs) Then
@@ -458,6 +452,9 @@ Private Sub RunCallback(Response As RestResponse)
             Application.Run Me.Callback, Response
         End If
     End If
+
+    ' Request is finished, clean up
+    Set Me.HttpRequest = Nothing
 End Sub
 
 Private Sub Class_Initialize()

@@ -10,9 +10,10 @@ Attribute VB_Exposed = False
 ''
 ' Base for setting up authenticator
 '
+' @implements: IAuthenticator
 ' @author:
 ' @license:
-' @implements: IAuthenticator
+'
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IAuthenticator
 Option Explicit
@@ -54,7 +55,7 @@ End Sub
 ' --------------------------------------------- '
 
 Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
-
+    ' Handle 401 Unauthorized or other issues
 End Sub
 
 ''

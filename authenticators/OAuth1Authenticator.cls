@@ -14,11 +14,10 @@ Implements IAuthenticator
 '
 ' Utilize OAuth1 authentication
 '
-' @dependencies
-'   Microsoft XML, v3+
+' @implements: IAuthenticator
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
+' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 

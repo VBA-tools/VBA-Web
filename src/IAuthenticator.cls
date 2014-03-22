@@ -15,7 +15,7 @@ Attribute VB_Exposed = True
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
+' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
@@ -43,7 +43,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
-    ' Handle 304 Unauthorized or other issues
+    ' Handle 401 Unauthorized or other issues
 End Sub
 
 ''

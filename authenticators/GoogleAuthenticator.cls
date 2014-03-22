@@ -16,10 +16,10 @@ Attribute VB_Exposed = True
 ' - https://developers.google.com/accounts/docs/OAuth2#installed
 ' - https://developers.google.com/accounts/docs/OAuth2InstalledApp
 '
-' @implements IAuthenticator
+' @implements: IAuthenticator
 ' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php
+' 
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IAuthenticator
 Option Explicit
