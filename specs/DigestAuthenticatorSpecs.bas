@@ -3,7 +3,7 @@ Attribute VB_Name = "DigestAuthenticatorSpecs"
 ' DigestAuthenticatorSpecs
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
-' General and sync specs for the DigestAuthenticator class
+' General specs for the DigestAuthenticator class
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
