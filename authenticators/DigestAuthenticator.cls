@@ -8,13 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Digest Authenticator v2.0.1
+' Digest Authenticator v2.0.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for Digest Authentication
 ' http://en.wikipedia.org/wiki/Digest_access_authentication
 '
-' @implements: IAuthenticator v3.0.1
+' @implements: IAuthenticator v3.*
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '

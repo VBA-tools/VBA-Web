@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' Google Authenticator v2.0.1
+' Google Authenticator v2.0.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for "installed application" authentication for Google APIs
@@ -41,7 +41,7 @@ Attribute VB_Exposed = True
 ' ' Add authenticator to client
 ' Set Client.Authenticator = Auth
 '
-' @implements: IAuthenticator v3.0.1
+' @implements: IAuthenticator v3.*
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php
 '
@@ -53,7 +53,6 @@ Private Const AuthorizationUrl As String = "https://accounts.google.com/o/oauth2
 Private Const RedirectUri As String = "urn:ietf:wg:oauth:2.0:oob"
 Private pAuthorizationCode As String
 Private pToken As String
-Private pScopes As Dictionary
 
 ' --------------------------------------------- '
 ' Properties

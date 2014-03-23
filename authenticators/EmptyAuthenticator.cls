@@ -8,9 +8,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Base for setting up authenticator v2.0.1
+' Base for setting up authenticator v2.0.2
 '
-' @implements: IAuthenticator v3.0.1
+' @implements: IAuthenticator v3.*
 ' @author:
 ' @license:
 '
