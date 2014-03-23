@@ -117,12 +117,12 @@ End Sub
 Public Sub Login()
     On Error GoTo CleanUp
     
-    Dim IE As InternetExplorer
+    Dim IE As Object
     Dim Completed As Boolean
     Dim Code As String
     Dim Token As String
     
-    Set IE = New InternetExplorer
+    Set IE = CreateObject("InternetExplorer.Application")
     With IE
         .Silent = True
         .AddressBar = False
@@ -235,7 +235,7 @@ Private Function OAuthIsComplete(IE As InternetExplorer) As Boolean
     End If
 End Function
 
-Private Function OAuthIsSuccessful(IE As InternetExplorer) As Boolean
+Private Function OAuthIsSuccessful(IE As Object) As Boolean
     Dim Url As String
     Url = Replace(IE.LocationURL, "https://www.facebook.com/connect/login_success.html", "")
 
@@ -244,7 +244,7 @@ Private Function OAuthIsSuccessful(IE As InternetExplorer) As Boolean
     End If
 End Function
 
-Private Function OAuthIsDenied(IE As InternetExplorer) As Boolean
+Private Function OAuthIsDenied(IE As Object) As Boolean
     Dim Url As String
     Url = Replace(IE.LocationURL, "https://www.facebook.com/connect/login_success.html", "")
 
@@ -252,7 +252,7 @@ Private Function OAuthIsDenied(IE As InternetExplorer) As Boolean
         OAuthIsDenied = True
     End If
 End Function
-Private Function OAuthExtractCode(IE As InternetExplorer) As String
+Private Function OAuthExtractCode(IE As Object) As String
     Dim Url As String
     Dim StartIndex As Integer
     Dim EndIndex As Integer

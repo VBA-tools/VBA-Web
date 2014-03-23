@@ -16,7 +16,7 @@ Attribute VB_Exposed = True
 ' @implements: IAuthenticator v3.0.1
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-' 
+'
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IAuthenticator
 Option Explicit
