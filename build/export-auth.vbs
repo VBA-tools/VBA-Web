@@ -31,6 +31,7 @@ Modules = Array(_
   "OAuth2Authenticator.cls", _
   "GoogleAuthenticator.cls", _
   "TwitterAuthenticator.cls", _
+  "FacebookAuthenticator.cls", _
   "DigestAuthenticator.cls" _
 )
 

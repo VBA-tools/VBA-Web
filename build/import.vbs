@@ -38,11 +38,27 @@ Folder = ".\src\"
 ' Overwrite modules and folder if 2nd argument is given'  
 If Args.Length > 1 Then
   If Args(1) = "specs" Then
-    Modules = Array("RestClientAsyncSpecs.bas", "RestClientBaseSpecs.bas", "RestClientSpecs.bas", "RestHelpersSpecs.bas", "RestRequestSpecs.bas")
+    Modules = Array(_
+      "RestClientAsyncSpecs.bas", _
+      "RestClientBaseSpecs.bas", _
+      "RestClientSpecs.bas", _
+      "RestHelpersSpecs.bas", _
+      "RestRequestSpecs.bas", _
+      "DigestAuthenticatorSpecs.bas" _
+    )
     Folder = ".\specs\"
   End If
   If Args(1) = "auth" Then
-    Modules = Array("EmptyAuthenticator.cls", "FacebookAuthenticator.cls", "GoogleAuthenticator.cls", "HttpBasicAuthenticator.cls", "OAuth1Authenticator.cls", "OAuth2Authenticator.cls", "TwitterAuthenticator.cls", "DigestAuthenticator.cls")
+    Modules = Array(_
+      "EmptyAuthenticator.cls", _
+      "HttpBasicAuthenticator.cls", _
+      "OAuth1Authenticator.cls", _
+      "OAuth2Authenticator.cls", _
+      "GoogleAuthenticator.cls", _
+      "TwitterAuthenticator.cls", _
+      "FacebookAuthenticator.cls", _
+      "DigestAuthenticator.cls" _
+    )
     Folder = ".\authenticators\"
   End If
 End If
