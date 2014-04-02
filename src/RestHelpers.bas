@@ -406,7 +406,7 @@ End Function
 ' @return {Object} Setup http object
 ' --------------------------------------------- '
 
-Public Function PrepareHttpRequest(Request As RestRequest, TimeoutMS As Integer, _
+Public Function PrepareHttpRequest(Request As RestRequest, TimeoutMS As Long, _
     Optional UseAsync As Boolean = False) As Object
     Dim Http As Object
     Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
@@ -517,7 +517,7 @@ End Function
 ' @param {Variant} [CallbackArgs] Variable array of arguments that get passed directly to callback function
 ' --------------------------------------------- '
 
-Public Sub ExecuteRequestAsync(ByRef Http As Object, ByRef Request As RestRequest, TimeoutMS As Integer, Callback As String, Optional ByVal CallbackArgs As Variant)
+Public Sub ExecuteRequestAsync(ByRef Http As Object, ByRef Request As RestRequest, TimeoutMS As Long, Callback As String, Optional ByVal CallbackArgs As Variant)
     On Error GoTo ErrorHandling
 
     Request.Callback = Callback
@@ -729,7 +729,7 @@ End Function
 ' @param {RestRequest} Request
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
-Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Integer)
+Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
     SetTimer Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired
 End Sub
 

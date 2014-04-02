@@ -19,7 +19,7 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const DefaultTimeoutMS As Integer = 5000
+Private Const DefaultTimeoutMS As Long = 5000
 
 
 ' --------------------------------------------- '
@@ -28,7 +28,7 @@ Private Const DefaultTimeoutMS As Integer = 5000
 
 Public BaseUrl As String
 Public Authenticator As IAuthenticator
-Public TimeoutMS As Integer
+Public TimeoutMS As Long
 Public ProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
@@ -80,7 +80,7 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     
     ' Setup the request
     Set Http = HttpSetup(Request, True)
-    RestHelpers.ExecuteRequestAsync Http, Request, TimeoutMS, Callback, CallbackArgs
+    RestHelpers.ExecuteRequestAsync Http, Request, Me.TimeoutMS, Callback, CallbackArgs
     ExecuteAsync = True
     Exit Function
     
