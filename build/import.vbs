@@ -32,7 +32,7 @@ Else
 End If
 
 ' Include all standard Excel-REST modules
-Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls", "RestClientBase.bas")
+Modules = Array("RestHelpers.bas", "IAuthenticator.cls", "RestClient.cls", "RestRequest.cls", "RestResponse.cls")
 Folder = ".\src\"
 
 ' Overwrite modules and folder if 2nd argument is given'  
@@ -40,7 +40,6 @@ If Args.Length > 1 Then
   If Args(1) = "specs" Then
     Modules = Array(_
       "RestClientAsyncSpecs.bas", _
-      "RestClientBaseSpecs.bas", _
       "RestClientSpecs.bas", _
       "RestHelpersSpecs.bas", _
       "RestRequestSpecs.bas", _

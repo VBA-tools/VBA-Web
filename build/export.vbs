@@ -30,7 +30,6 @@ Modules = Array(_
   "RestClient.cls", _
   "RestRequest.cls", _
   "RestResponse.cls", _
-  "RestClientBase.bas" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then
