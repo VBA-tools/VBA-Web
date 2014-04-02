@@ -7,14 +7,22 @@ Private pGAClientSecret As String
 
 Private Property Get GAClientId() As String
     If pGAClientId = "" Then
-        pGAClientId = InputBox("Please Enter Google API Client Id")
+        If Credentials.Loaded Then
+            pGAClientId = Credentials.Values("Google")("id")
+        Else
+            pGAClientId = InputBox("Please Enter Google API Client Id")
+        End If
     End If
     
     GAClientId = pGAClientId
 End Property
 Private Property Get GAClientSecret() As String
     If pGAClientSecret = "" Then
-        pGAClientSecret = InputBox("Please Enter Google API Client Secret")
+        If Credentials.Loaded Then
+            pGAClientSecret = Credentials.Values("Google")("secret")
+        Else
+            pGAClientSecret = InputBox("Please Enter Google API Client Secret")
+        End If
     End If
     
     GAClientSecret = pGAClientSecret
@@ -26,16 +34,21 @@ Public Property Get GAClient() As RestClient
         pGAClient.BaseUrl = "https://www.googleapis.com/analytics/v3"
         
         Dim Auth As New GoogleAuthenticator
-        Set pGAClient.Authenticator = Auth
-        Call Auth.Setup(GAClientId, GAClientSecret)
-        Auth.Scope = Array("https://www.googleapis.com/auth/analytics.readonly")
+        Auth.Setup GAClientId, GAClientSecret
+        Auth.AddScope "analytics.readonly"
         Call Auth.Login
+        
+        Set pGAClient.Authenticator = Auth
     End If
     
     Set GAClient = pGAClient
 End Property
 
 Public Function AnalyticsRequest(ProfileId As String, StartDate As Date, EndDate As Date) As RestRequest
+    
+    If ProfileId = "" And Credentials.Loaded Then
+        ProfileId = Credentials.Values("Google")("profile")
+    End If
     
     Set AnalyticsRequest = New RestRequest
     AnalyticsRequest.Resource = "data/ga"

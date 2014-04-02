@@ -7,14 +7,22 @@ Private pTwitterSecret As String
 
 Private Property Get TwitterKey() As String
     If pTwitterKey = "" Then
-        pTwitterKey = InputBox("Please Enter Twitter Consumer Key")
+        If Credentials.Loaded Then
+            pTwitterKey = Credentials.Values("Twitter")("key")
+        Else
+            pTwitterKey = InputBox("Please Enter Twitter Consumer Key")
+        End If
     End If
     
     TwitterKey = pTwitterKey
 End Property
 Private Property Get TwitterSecret() As String
     If pTwitterSecret = "" Then
-        pTwitterSecret = InputBox("Please Enter Twitter Consumer Secret")
+        If Credentials.Loaded Then
+            pTwitterSecret = Credentials.Values("Twitter")("secret")
+        Else
+            pTwitterSecret = InputBox("Please Enter Twitter Consumer Secret")
+        End If
     End If
     
     TwitterSecret = pTwitterSecret
@@ -38,22 +46,22 @@ End Property
 
 
 
-Private Function SearchTweetsRequest(Query As String) As RestRequest
+Private Function SearchTweetsRequest(query As String) As RestRequest
     Set SearchTweetsRequest = New RestRequest
     SearchTweetsRequest.Resource = "search/tweets.{format}"
     
     SearchTweetsRequest.Format = json
-    SearchTweetsRequest.AddParameter "q", Query
+    SearchTweetsRequest.AddParameter "q", query
     SearchTweetsRequest.AddParameter "lang", "en"
     SearchTweetsRequest.AddParameter "count", 20
     SearchTweetsRequest.Method = httpGET
 End Function
 
-Public Function SearchTwitter(Query As String) As RestResponse
-    Set SearchTwitter = TwitterClient.Execute(SearchTweetsRequest(Query))
+Public Function SearchTwitter(query As String) As RestResponse
+    Set SearchTwitter = TwitterClient.Execute(SearchTweetsRequest(query))
 End Function
 
-Public Sub SearchTwitterAsync(Query As String, Callback As String)
-    TwitterClient.ExecuteAsync SearchTweetsRequest(Query), Callback
+Public Sub SearchTwitterAsync(query As String, Callback As String)
+    TwitterClient.ExecuteAsync SearchTweetsRequest(query), Callback
 End Sub
     

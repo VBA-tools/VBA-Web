@@ -11,11 +11,29 @@ Private pConsumerSecret As String
 Private pPassword As String
 Private pSecurityToken As String
 
+Public Property Get ConsumerKeyValue() As String
+    If Me.[ConsumerKey].Value = "" And Credentials.Loaded Then
+        ConsumerKeyValue = Credentials.Values("Salesforce")("key")
+    Else
+        ConsumerKeyValue = Me.[ConsumerKey].Value
+    End If
+End Property
 Public Property Get ConsumerSecret() As String
     If pConsumerSecret = "" Then
-        pConsumerSecret = InputBox("Please enter Salesforce consumer secret")
+        If Credentials.Loaded Then
+            pConsumerSecret = Credentials.Values("Salesforce")("secret")
+        Else
+            pConsumerSecret = InputBox("Please enter Salesforce consumer secret")
+        End If
     End If
     ConsumerSecret = pConsumerSecret
+End Property
+Public Property Get UsernameValue() As String
+    If Me.[Username].Value = "" And Credentials.Loaded Then
+        UsernameValue = Credentials.Values("Salesforce")("username")
+    Else
+        UsernameValue = Me.[Username].Value
+    End If
 End Property
 Public Property Get Password() As String
     If pPassword = "" Then
@@ -25,7 +43,11 @@ Public Property Get Password() As String
 End Property
 Public Property Get SecurityToken() As String
     If pSecurityToken = "" Then
-        pSecurityToken = InputBox("Please enter Salesforce security token")
+        If Credentials.Loaded Then
+            pSecurityToken = Credentials.Values("Salesforce")("token")
+        Else
+            pSecurityToken = InputBox("Please enter Salesforce security token")
+        End If
     End If
     SecurityToken = pSecurityToken
 End Property
@@ -72,9 +94,9 @@ Private Sub OutputError(Code As Long, Message As String)
 End Sub
 
 Private Sub Login()
-    Salesforce.ConsumerKey = Me.[ConsumerKey].Value
+    Salesforce.ConsumerKey = ConsumerKeyValue
     Salesforce.ConsumerSecret = ConsumerSecret
-    Salesforce.Username = Me.[Username].Value
+    Salesforce.Username = UsernameValue
     Salesforce.Password = Password
     Salesforce.SecurityToken = SecurityToken
 End Sub
