@@ -227,7 +227,7 @@ Private Function TokenRequest() As RestRequest
     TokenRequest.AddQuerystringParam "redirect_uri", RedirectUri
 End Function
 
-Private Function OAuthIsComplete(IE As InternetExplorer) As Boolean
+Private Function OAuthIsComplete(IE As Object) As Boolean
     If Not IE.Busy And IE.readyState = 4 Then
         If OAuthIsSuccessful(IE) Or OAuthIsDenied(IE) Then
             OAuthIsComplete = True

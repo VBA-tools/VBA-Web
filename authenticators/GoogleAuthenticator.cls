@@ -24,20 +24,20 @@ Attribute VB_Exposed = True
 ' https://developers.google.com/oauthplayground/
 '
 ' @example
-' 
+'
 ' Dim Auth As New GoogleAuthenticator
 ' Auth.Setup "Your Client Id", "Your Client Secret"
-' 
+'
 ' ' Enable analytics scope and add YouTube scope
 ' Auth.EnableScope("analytics")
 ' Auth.AddScope("https://www.googleapis.com/auth/yt-analytics.readonly")
-' 
+'
 ' ' Open up Google login
 ' Auth.Login
 '
 ' ' or - Use your API key to access your own information
 ' Auth.ApiKey = "Your Api Key"
-' 
+'
 ' ' Add authenticator to client
 ' Set Client.Authenticator = Auth
 '
