@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' Google Authenticator v2.0.3
+' Google Authenticator v2.0.4
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for "installed application" authentication for Google APIs

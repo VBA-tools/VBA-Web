@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Twitter Authenticator v2.0.3
+' Twitter Authenticator v2.0.4
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for application-only authentication in Twitter's V1.1 REST API

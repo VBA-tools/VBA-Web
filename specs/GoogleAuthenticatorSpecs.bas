@@ -48,7 +48,7 @@ Public Function Specs() As SpecSuite
         Dim Scope As String
         Scope = RestHelpers.URLDecode(Parts("Querystring"))
         Scope = Mid$(Scope, InStr(1, Scope, "scope") + 6)
-        .Expect(Scope).ToEqual "https://www.googleapis.com/auth/analytics+https://www.googleapis.com/auth/userinfo.email+http://new_scope"
+        .Expect(Scope).ToEqual "https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/userinfo.email http://new_scope"
     End With
     
     InlineRunner.RunSuite Specs
