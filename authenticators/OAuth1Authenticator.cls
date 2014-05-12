@@ -239,7 +239,11 @@ Public Function RequestParameters(Client As RestClient, Request As RestRequest) 
     Dim Parts As Dictionary
     Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
     
-    RequestParameters = RestHelpers.UrlDecode(Replace(Parts("Querystring"), "?", ""))
+    ' Remove leading ?
+    RequestParameters = Replace(Parts("Querystring"), "?", "")
+    
+    ' Replace + for spaces with %20
+    RequestParameters = Replace(RequestParameters, "+", "%20")
 End Function
 
 Public Function CreateSigningKey() As String
