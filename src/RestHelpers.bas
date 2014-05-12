@@ -67,9 +67,41 @@ Public Enum StatusCodes
     GatewayTimeout = 504
 End Enum
 
+Public EnableLogging As Boolean
+
 ' ============================================= '
 ' Shared Helpers
 ' ============================================= '
+
+''
+' Log helper
+'
+' @param {String} Message
+' @param {String} [From]
+' --------------------------------------------- '
+
+Public Sub LogDebug(Message As String, Optional From As String = "")
+    If EnableLogging Then
+        If From = "" Then
+            From = "Excel-REST"
+        End If
+        
+        Debug.Print From & ": " & Message
+    End If
+End Sub
+Public Sub LogError(Message As String, Optional From As String = "", Optional ErrNumber As Long = -1)
+    If From = "" Then
+        From = "Excel-REST"
+    End If
+    If ErrNumber >= 0 Then
+        From = From & ": " & ErrNumber
+    End If
+    
+    Debug.Print "ERROR - " & From & ": " & ErrNumber & " " & ErrDescription
+End Sub
+Public Function Obfuscate(Secure As String, Optional Character As String = "*") As String
+    Obfuscate = String(Len(Secure), Character)
+End Function
 
 ''
 ' Parse given JSON string into object (Dictionary or Collection)
@@ -435,6 +467,7 @@ Public Function PrepareHttpRequest(Request As RestRequest, TimeoutMS As Long, _
     
     If Request.IncludeContentLength Then
         Request.AddHeader "Content-Length", Request.ContentLength
+        LogDebug "Content-Length: " & Request.ContentLength, "RestHelpers.PrepareHttpRequest"
     Else
         If Request.Headers.Exists("Content-Length") Then
             Request.Headers.Remove "Content-Length"
@@ -461,11 +494,13 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     Dim HeaderKey As Variant
     For Each HeaderKey In Request.Headers.Keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
+        LogDebug HeaderKey & ": " & Request.Headers(HeaderKey), "RestHelpers.SetHeaders"
     Next HeaderKey
     
     Dim CookieKey As Variant
     For Each CookieKey In Request.Cookies.Keys()
         Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
+        LogDebug "Cookie: " & CookieKey & "=" & Request.Cookies(CookieKey), "RestHelpers.SetHeaders"
     Next CookieKey
 End Sub
 
@@ -483,9 +518,11 @@ Public Sub PrepareProxyForHttpRequest(ByRef Http As Object, ProxyServer As Strin
     
     If ProxyServer <> "" Then
         Http.SetProxy 2, ProxyServer, BypassList
+        LogDebug "SetProxy: " & ProxyServer & ", " & BypassList, "RestHelpers.PrepareProxyForHttpRequest"
         
         If Username <> "" Then
             Http.SetProxyCredentials Username, Password
+            LogDebug "SetProxyCredentials: " & Username & ", " & Obfuscate(Password), "RestHelpers.PrepareProxyForHttpRequest"
         End If
     End If
 End Sub
@@ -504,6 +541,7 @@ Public Function ExecuteRequest(ByRef Http As Object, ByRef Request As RestReques
 
     ' Send the request and handle response
     Http.Send Request.Body
+    LogDebug "Http.Send: " & Request.Body, "RestHelpers.ExecuteRequest"
     Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.Format)
     
 ErrorHandling:
@@ -513,9 +551,11 @@ ErrorHandling:
         If InStr(Err.Description, "The operation timed out") > 0 Then
             ' Return 408
             Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+            LogDebug "Timeout: " & Request.FullUrl, "RestHelpers.ExecuteRequest"
             Err.Clear
         Else
             ' Rethrow error
+            LogError Err.Description, "RestHelpers.ExecuteRequest", Err.Number
             Err.Raise Err.Number, Description:=Err.Description
         End If
     End If
@@ -541,6 +581,7 @@ Public Sub ExecuteRequestAsync(ByRef Http As Object, ByRef Request As RestReques
     ' Send the request
     Request.StartTimeoutTimer TimeoutMS
     Http.Send Request.Body
+    LogDebug "Http.Send: " & Request.Body, "RestHelpers.ExecuteRequestAsync"
     
     Exit Sub
     
@@ -548,6 +589,7 @@ ErrorHandling:
 
     ' Close http and rethrow error
     If Not Http Is Nothing Then Set Http = Nothing
+    LogError Err.Description, "RestHelpers.ExecuteRequestAsync", Err.Number
     Err.Raise Err.Number, Description:=Err.Description
 End Sub
 
@@ -565,6 +607,8 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     CreateResponseFromHttp.StatusDescription = Http.StatusText
     CreateResponseFromHttp.Body = Http.ResponseBody
     CreateResponseFromHttp.Content = Http.ResponseText
+    
+    LogDebug "CreateResponse: " & Http.Status & ", " & Left(Http.ResponseText, 100), "RestHelpers.CreateResponseFromHttp"
     
     ' Convert content to data by format
     Select Case Format
@@ -658,8 +702,10 @@ Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As 
                 ' Close out multi-line string
                 Multiline = False
                 Headers.Add Header
+                LogDebug Header("key") & "=" & Header("value"), "RestHelpers.ExtractHeadersFromResponseHeaders"
             ElseIf Not Header Is Nothing Then
                 Headers.Add Header
+                LogDebug Header("key") & "=" & Header("value"), "RestHelpers.ExtractHeadersFromResponseHeaders"
             End If
             
             If Not Multiline Then
@@ -771,6 +817,7 @@ Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal uMsg As Long, _
 #End If
     
     StopTimeoutTimer Request
+    LogDebug "Async Timeout: " & Request.FullUrl, "RestHelpers.TimeoutTimerExpired"
     Request.TimedOut
 End Sub
 

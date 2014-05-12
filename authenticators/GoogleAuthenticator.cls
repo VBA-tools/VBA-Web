@@ -110,6 +110,7 @@ Public Property Get LoginUrl() As String
     Request.AddQuerystringParam "scope", ScopeString
     
     LoginUrl = Request.FormattedResource
+    RestHelpers.LogDebug LoginUrl, "GoogleAuthenticator.LoginUrl"
     Set Request = Nothing
 End Property
 
@@ -129,7 +130,9 @@ Public Property Get Token() As String
             Dim Data As Object
             Set Data = RestHelpers.ParseJSON(Response.Content)
             pToken = Data("access_token")
+            RestHelpers.LogDebug "Received Token: " & RestHelpers.Obfuscate(pToken), "GoogleAuthenticator.Token"
         Else
+            RestHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "GoogleAuthenticator.Token"
             Err.Raise vbObjectError + Response.StatusCode, _
                 Description:="Failed to load Bearer Token: " & Response.StatusCode & " - " & Response.Content
         End If
@@ -197,14 +200,17 @@ Public Sub Login(Optional APIKey As String = "")
             Completed = True
             If OAuthIsDenied(IE) Then
                 ' Login failed
+                RestHelpers.LogError "Login failed or was denied", "GoogleAuthenticator.Login"
                 Err.Raise vbObjectError + 1, "OAuthDialog", "Login failed or was denied"
             Else
                 Code = OAuthExtractCode(IE)
                 If Left(Code, 5) = "Error" Then
+                    RestHelpers.LogError "Login error: " & Code, "GoogleAuthenticator.Login"
                     Err.Raise vbObjectError + 1, "OAuthDialog", Code
                 Else
                     ' Success!
                     Me.AuthorizationCode = Code
+                    RestHelpers.LogDebug "Login success: " & Code, "GoogleAuthenticator.Login"
                     
                     ' Temporarily assign token to force request
                     Dim Token As String
@@ -220,6 +226,7 @@ CleanUp:
     Set IE = Nothing
     
     If Not Completed Then
+        RestHelpers.LogError "Login did not complete", "GoogleAuthenticator.Login"
         Err.Raise vbObjectError + 1, "OAuthDialog", "Login did not complete"
     ElseIf Err.Number <> 0 Then
         ' Rethrow error
@@ -305,8 +312,10 @@ End Sub
 Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     If Me.APIKey <> "" Then
         Request.AddQuerystringParam "key", Me.APIKey
+        RestHelpers.LogDebug "Login with key: " & RestHelpers.Obfuscate(Me.APIKey), "GoogleAuthenticator.BeforeExecute"
     Else
         Request.AddHeader "Authorization", "Bearer " & Me.Token
+        RestHelpers.LogDebug "Login with token: " & RestHelpers.Obfuscate(Me.Token), "GoogleAuthenticator.BeforeExecute"
     End If
 End Sub
 
@@ -335,6 +344,7 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
+    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function TokenRequest() As RestRequest
