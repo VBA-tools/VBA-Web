@@ -60,7 +60,7 @@ Private pToken As String
 
 Public ClientId As String
 Public ClientSecret As String
-Public ApiKey As String
+Public APIKey As String
 Public Scopes As Dictionary
 Public LoginByDefault As Boolean
 
@@ -91,7 +91,7 @@ Public Property Get LoginUrl() As String
     If Not Me.Scopes Is Nothing Then
         Dim Scope As Variant
         Dim UrlParts As Dictionary
-        For Each Scope In Me.Scopes.keys()
+        For Each Scope In Me.Scopes.Keys()
             If Me.Scopes(Scope) Then
                 Set UrlParts = RestHelpers.UrlParts(CStr(Scope))
                 If UrlParts("Protocol") = "" Then
@@ -116,7 +116,7 @@ End Property
 Public Property Get Token() As String
     On Error GoTo CleanUp
     
-    If pToken = "" And Me.ApiKey = "" Then
+    If pToken = "" And Me.APIKey = "" Then
         Dim Client As New RestClient
         Dim Response As RestResponse
         
@@ -168,7 +168,7 @@ End Sub
 ' Login to Google
 ' --------------------------------------------- '
 
-Public Sub Login(Optional ApiKey As String = "")
+Public Sub Login(Optional APIKey As String = "")
     On Error GoTo CleanUp
     
     Dim IE As Object
@@ -177,9 +177,9 @@ Public Sub Login(Optional ApiKey As String = "")
     Dim Code As String
     
     Completed = True
-    If ApiKey <> "" Then
-        Me.ApiKey = ApiKey
-    ElseIf Me.ApiKey = "" Then
+    If APIKey <> "" Then
+        Me.APIKey = APIKey
+    ElseIf Me.APIKey = "" Then
         Completed = False
         Set IE = CreateObject("InternetExplorer.Application")
         With IE
@@ -232,7 +232,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub Logout()
-    Me.ApiKey = ""
+    Me.APIKey = ""
     Me.AuthorizationCode = ""
     Me.Token = ""
 End Sub
@@ -303,8 +303,8 @@ End Sub
 ' --------------------------------------------- '
 
 Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
-    If Me.ApiKey <> "" Then
-        Request.AddQuerystringParam "key", Me.ApiKey
+    If Me.APIKey <> "" Then
+        Request.AddQuerystringParam "key", Me.APIKey
     Else
         Request.AddHeader "Authorization", "Bearer " & Me.Token
     End If
@@ -376,7 +376,7 @@ Private Function OAuthIsDenied(IE As Object) As Boolean
         
         Dim Element As Object
         For Each Element In Document.Body.all
-            If Element.nodeName = "P" And Element.Id = "access_denied" Then
+            If Element.nodeName = "P" And Element.ID = "access_denied" Then
                 OAuthIsDenied = True
                 Exit Function
             End If
@@ -420,9 +420,9 @@ Private Function OAuthExtractError(IE As Object) As String
     
     Set Document = IE.Document
     For Each Element In Document.Body.all
-        If Element.Id = "errorCode" Then
+        If Element.ID = "errorCode" Then
             OAuthExtractError = Element.innerHTML
-        ElseIf Element.Id = "errorDescription" Then
+        ElseIf Element.ID = "errorDescription" Then
             OAuthExtractError = OAuthExtractError & ", " & Element.innerHTML
             Exit Function
         End If

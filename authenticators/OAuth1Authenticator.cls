@@ -68,6 +68,8 @@ Public ConsumerSecret As String
 Public Token As String
 Public TokenSecret As String
 Public Realm As String
+Public Nonce As String
+Public Timestamp As String
 
 ' ============================================= '
 ' Public Methods
@@ -106,7 +108,7 @@ End Sub
 
 Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     ' Add authorization header to request
-    Request.AddHeader "Authorization", CreateHeader(Request)
+    Request.AddHeader "Authorization", CreateHeader(Client, Request)
 End Sub
 
 ''
@@ -136,18 +138,28 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
 End Sub
 
-Private Function CreateHeader(Request As RestRequest) As String
+Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
     Dim Header As String
-    Dim nonce As String
-    Dim timestamp As String
+    Dim Nonce As String
+    Dim Timestamp As String
     Dim base As String
     Dim signingKey As String
     Dim signature As String
     
+    ' Load or create nonce and timestamp
+    If Me.Nonce <> "" Then
+        Nonce = Me.Nonce
+    Else
+        Nonce = RestHelpers.CreateNonce()
+    End If
+    If Me.Timestamp <> "" Then
+        Timestamp = Me.Timestamp
+    Else
+        Timestamp = CreateTimestamp
+    End If
+    
     ' Create needed parts of authorization header
-    nonce = CreateNonce()
-    timestamp = CreateTimestamp()
-    base = CreateBaseString(nonce, timestamp, Request)
+    base = CreateBaseString(Nonce, Timestamp, Client, Request)
     signingKey = CreateSigningKey()
     signature = CreateSignature(base, signingKey)
     
@@ -160,46 +172,85 @@ Private Function CreateHeader(Request As RestRequest) As String
     
     ' Construct header parts
     ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
-    Header = Header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34)
-    Header = Header & ", oauth_nonce=" & Chr(34) & nonce & Chr(34)
-    Header = Header & ", oauth_signature=" & Chr(34) & URLEncode(signature) & Chr(34)
-    Header = Header & ", oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34)
-    Header = Header & ", oauth_timestamp=" & Chr(34) & timestamp & Chr(34)
-    Header = Header & ", oauth_token=" & Chr(34) & Me.Token & Chr(34)
-    Header = Header & ", oauth_version=" & Chr(34) & "1.0" & Chr(34)
+    Header = Header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34) & ", "
+    Header = Header & "oauth_nonce=" & Chr(34) & Nonce & Chr(34) & ", "
+    Header = Header & "oauth_signature=" & Chr(34) & UrlEncode(signature) & Chr(34) & ", "
+    Header = Header & "oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34) & ", "
+    Header = Header & "oauth_timestamp=" & Chr(34) & Timestamp & Chr(34) & ", "
+    Header = Header & "oauth_token=" & Chr(34) & Me.Token & Chr(34) & ", "
+    Header = Header & "oauth_version=" & Chr(34) & "1.0" & Chr(34)
     CreateHeader = Header
 End Function
 
-Private Function CreateBaseString(nonce As String, timestamp As String, Request As RestRequest) As String
+Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As RestClient, Request As RestRequest) As String
     Dim base As String
-    Dim paramKey As Variant
     
-    base = "oauth_consumer_key" & "=" & Me.ConsumerKey
-    base = base & "&" & "oauth_nonce" & "=" & nonce
-    base = base & "&" & "oauth_signature_method" & "=" & SignatureMethod
-    base = base & "&" & "oauth_timestamp" & "=" & timestamp
-    base = base & "&" & "oauth_token" & "=" & Me.Token
-    base = base & "&" & "oauth_version=1.0"
-    If Not IsMissing(Request.Parameters) And Not Request.Parameters Is Nothing Then
-        If Request.Parameters.count > 0 Then
-            For Each paramKey In Request.Parameters.keys
-                base = base & "&" & paramKey & "=" & URLEncode(Request.Parameters(paramKey))
-            Next paramKey
-        End If
+    ' Check for parameters and add to base if present
+    Dim Parameters As String
+    Parameters = RequestParameters(Client, Request)
+    If Parameters <> "" Then
+        base = Parameters & "&"
     End If
     
-    CreateBaseString = Request.MethodName() & "&" & URLEncode(Request.FormattedResource()) & "&" & URLEncode(base)
+    base = base & "oauth_consumer_key" & "=" & Me.ConsumerKey
+    base = base & "&" & "oauth_nonce" & "=" & Nonce
+    base = base & "&" & "oauth_signature_method" & "=" & SignatureMethod
+    base = base & "&" & "oauth_timestamp" & "=" & Timestamp
+    base = base & "&" & "oauth_token" & "=" & Me.Token
+    base = base & "&" & "oauth_version=1.0"
+    
+    CreateBaseString = Request.MethodName() & "&" & RestHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & RestHelpers.UrlEncode(base)
 End Function
 
-Private Function CreateSigningKey() As String
+Public Function RequestUrl(Client As RestClient, Request As RestRequest) As String
+' From OAuth 1.0 Docs
+' http://oauth.net/core/1.0/#anchor14
+'
+' The Signature Base String includes the request absolute URL, tying the signature to a specific endpoint.
+' The URL used in the Signature Base String MUST include the scheme, authority, and path, and MUST exclude the query and fragment as defined by [RFC3986] section 3.
+'
+' If the absolute request URL is not available to the Service Provider (it is always available to the Consumer),
+' it can be constructed by combining the scheme being used, the HTTP Host header, and the relative HTTP request URL.
+' If the Host header is not available, the Service Provider SHOULD use the host name communicated to the Consumer in the documentation or other means.
+'
+' The Service Provider SHOULD document the form of URL used in the Signature Base String to avoid ambiguity due to URL normalization.
+' Unless specified, URL scheme and authority MUST be lowercase and include the port number; http default port 80 and https default port 443 MUST be excluded.
+
+    Dim Parts As Dictionary
+    Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
+    
+    ' Url scheme and authority MUST be lowercase
+    RequestUrl = LCase(Parts("Protocol") & "//" & Parts("Hostname"))
+    
+    ' Include port (80 and 443 MUST be excluded)
+    If Parts("Port") <> 80 And Parts("Port") <> 443 Then
+        RequestUrl = RequestUrl & ":" & Parts("Port")
+    End If
+    
+    ' Include path
+    RequestUrl = RequestUrl + Parts("Uri")
+    
+    ' MUST exclude query and fragment
+End Function
+
+Public Function RequestParameters(Client As RestClient, Request As RestRequest) As String
+' TODO Sort parameters by key then value
+    
+    Dim Parts As Dictionary
+    Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
+    
+    RequestParameters = RestHelpers.UrlDecode(Replace(Parts("Querystring"), "?", ""))
+End Function
+
+Public Function CreateSigningKey() As String
     CreateSigningKey = Me.ConsumerSecret & "&" & Me.TokenSecret
 End Function
 
-Private Function CreateSignature(base As String, signingKey As String) As String
-    CreateSignature = Base64_HMACSHA1(base, signingKey)
+Public Function CreateSignature(base As String, signingKey As String) As String
+    CreateSignature = RestHelpers.Base64_HMACSHA1(base, signingKey)
 End Function
 
-Private Function CreateTimestamp() As String
+Public Function CreateTimestamp() As String
     CreateTimestamp = CStr(DateDiff("s", #1/1/1970#, GetGMT()))
 End Function
 

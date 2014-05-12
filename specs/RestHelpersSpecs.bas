@@ -112,15 +112,15 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should url encode values")
-        .Expect(RestHelpers.URLEncode(" !""#$%&'")).ToEqual "%20%21%22%23%24%25%26%27"
-        .Expect(RestHelpers.URLEncode("A + B")).ToEqual "A%20%2B%20B"
-        .Expect(RestHelpers.URLEncode("A + B", True)).ToEqual "A+%2B+B"
+        .Expect(RestHelpers.UrlEncode(" !""#$%&'")).ToEqual "%20%21%22%23%24%25%26%27"
+        .Expect(RestHelpers.UrlEncode("A + B")).ToEqual "A%20%2B%20B"
+        .Expect(RestHelpers.UrlEncode("A + B", True)).ToEqual "A+%2B+B"
     End With
     
     With Specs.It("should decode url values")
-        .Expect(RestHelpers.URLDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
-        .Expect(RestHelpers.URLDecode("A%20%2B%20B")).ToEqual "A + B"
-        .Expect(RestHelpers.URLDecode("A+%2B+B")).ToEqual "A + B"
+        .Expect(RestHelpers.UrlDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
+        .Expect(RestHelpers.UrlDecode("A%20%2B%20B")).ToEqual "A + B"
+        .Expect(RestHelpers.UrlDecode("A+%2B+B")).ToEqual "A + B"
     End With
     
     With Specs.It("should join url with /")

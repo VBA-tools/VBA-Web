@@ -29,7 +29,7 @@ Modules = Array(_
   "IAuthenticator.cls", _
   "RestClient.cls", _
   "RestRequest.cls", _
-  "RestResponse.cls", _
+  "RestResponse.cls" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then

@@ -1,6 +1,10 @@
 # node_modules should be installed with npm install
 specs/node_modules
 
+# Ignore generated site files
+_site
+_cache
+
 # Ignore temporary Excel files
 */~$*
 
