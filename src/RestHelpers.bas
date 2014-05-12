@@ -94,14 +94,14 @@ Public Function ConvertToJSON(Obj As Object) As String
 End Function
 
 ''
-' URL Encode the given string
+' Url Encode the given string
 '
 ' @param {Variant} rawVal The raw string to encode
 ' @param {Boolean} [spaceAsPlus=False] Use plus sign for encoded spaces (otherwise %20)
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 
-Public Function URLEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = False) As String
+Public Function UrlEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = False) As String
     Dim urlVal As String
     Dim StringLen As Long
     
@@ -140,18 +140,18 @@ Public Function URLEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = F
                     Result(i) = "%" & Hex(charCode)
             End Select
         Next i
-        URLEncode = Join(Result, "")
+        UrlEncode = Join(Result, "")
     End If
 End Function
 
 ''
-' URL Decode the given encoded string
+' Url Decode the given encoded string
 '
 ' @param {String} EncodedString
 ' @return {String} Decoded string
 ' --------------------------------------------- '
 
-Public Function URLDecode(EncodedString As String) As String
+Public Function UrlDecode(EncodedString As String) As String
     Dim StringLen As Long
     StringLen = Len(EncodedString)
     
@@ -175,7 +175,7 @@ Public Function URLDecode(EncodedString As String) As String
             Result = Result & Temp
         Next i
         
-        URLDecode = Result
+        UrlDecode = Result
     End If
 End Function
 
@@ -220,12 +220,12 @@ Public Function CombineObjects(ByVal OriginalObj As Dictionary, ByVal NewObj As 
     Dim Key As Variant
     
     If Not OriginalObj Is Nothing Then
-        For Each Key In OriginalObj.keys()
+        For Each Key In OriginalObj.Keys()
             Combined.Add Key, OriginalObj(Key)
         Next Key
     End If
     If Not NewObj Is Nothing Then
-        For Each Key In NewObj.keys()
+        For Each Key In NewObj.Keys()
             If Combined.Exists(Key) And OverwriteOriginal Then
                 Combined(Key) = NewObj(Key)
             ElseIf Not Combined.Exists(Key) Then
@@ -265,17 +265,21 @@ Public Function FilterObject(ByVal Original As Dictionary, Whitelist As Variant)
 End Function
 
 ''
-' Convert dictionaries to url encoded string
+' Convert dictionary to url encoded string
 '
-' @param {Dictionary...} Dictionaries
+' @param {Dictionary} Obj
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
 ' --------------------------------------------- '
 
+Public Function ConvertToUrlEncoded(Obj As Dictionary) As String
+    ConvertToUrlEncoded = DictionariesToUrlEncodedString(Obj)
+End Function
 Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Variant) As String
     Dim Encoded As String
     Dim i As Integer
     Dim Combined As Dictionary
     Dim ParameterKey As Variant
+    Dim Value As Variant
     
     Set Combined = Dictionaries(LBound(Dictionaries))
     For i = LBound(Dictionaries) + 1 To UBound(Dictionaries)
@@ -283,9 +287,20 @@ Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Vari
     Next i
     
     If Not Combined Is Nothing Then
-        For Each ParameterKey In Combined.keys()
+        For Each ParameterKey In Combined.Keys()
             If Len(Encoded) > 0 Then: Encoded = Encoded & "&"
-            Encoded = Encoded & URLEncode(ParameterKey, True) & "=" & URLEncode(Combined(ParameterKey), True)
+            Value = Combined(ParameterKey)
+            
+            ' Convert boolean to lowercase
+            If VarType(Value) = vbBoolean Then
+                If Value Then
+                    Value = "true"
+                Else
+                    Value = "false"
+                End If
+            End If
+            
+            Encoded = Encoded & UrlEncode(ParameterKey, True) & "=" & UrlEncode(Value, True)
         Next ParameterKey
     End If
     
@@ -313,8 +328,8 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
         
         If UBound(Parts) - LBound(Parts) >= 1 Then
             ' TODO: Handle numbers, arrays, and object better here
-            Key = URLDecode(CStr(Parts(LBound(Parts))))
-            Value = URLDecode(CStr(Parts(LBound(Parts) + 1)))
+            Key = UrlDecode(CStr(Parts(LBound(Parts))))
+            Value = UrlDecode(CStr(Parts(LBound(Parts) + 1)))
             
             If Parsed.Exists(Key) Then
                 Parsed(Key) = Value
@@ -444,12 +459,12 @@ End Function
 
 Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     Dim HeaderKey As Variant
-    For Each HeaderKey In Request.Headers.keys()
+    For Each HeaderKey In Request.Headers.Keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
     Next HeaderKey
     
     Dim CookieKey As Variant
-    For Each CookieKey In Request.Cookies.keys()
+    For Each CookieKey In Request.Cookies.Keys()
         Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
     Next CookieKey
 End Sub
@@ -604,9 +619,9 @@ Public Function ExtractCookiesFromHeaders(Headers As Collection) As Dictionary
             End If
             
             If Cookies.Exists(Key) Then
-                Cookies(Key) = URLDecode(Value)
+                Cookies(Key) = UrlDecode(Value)
             Else
-                Cookies.Add Key, URLDecode(Value)
+                Cookies.Add Key, UrlDecode(Value)
             End If
         End If
     Next Header
@@ -879,6 +894,20 @@ Public Function MD5(Text As String) As String
     Next i
 End Function
 
+''
+' Sort dictionary
+'
+' Source: http://www.cpearson.com/excel/CollectionsAndDictionaries.htm
+'         http://www.cpearson.com/excel/SortingArrays.aspx
+' --------------------------------------------- '
+
+Public Function SortDictionary(ByVal Dict As Dictionary, SortByKey As Boolean, _
+    Optional Descending As Boolean = False, Optional CompareMode As VbCompareMethod = vbTextCompare) As Dictionary
+    
+    ' TODO
+    Set SortDictionary = Dict
+End Function
+
 ' ======================================================================================== '
 '
 ' JSONLib, http://code.google.com/p/vba-json/
@@ -930,17 +959,17 @@ End Function
 '
 Private Function json_parse(ByRef str As String) As Object
 
-    Dim index As Long
-    index = 1
+    Dim Index As Long
+    Index = 1
     
     On Error Resume Next
 
-    Call json_skipChar(str, index)
-    Select Case Mid$(str, index, 1)
+    Call json_skipChar(str, Index)
+    Select Case Mid$(str, Index, 1)
     Case "{"
-        Set json_parse = json_parseObject(str, index)
+        Set json_parse = json_parseObject(str, Index)
     Case "["
-        Set json_parse = json_parseArray(str, index)
+        Set json_parse = json_parseArray(str, Index)
     End Select
 
 End Function
@@ -948,32 +977,32 @@ End Function
 '
 '   parse collection of key/value (Dictionary in VB)
 '
-Private Function json_parseObject(ByRef str As String, ByRef index As Long) As Dictionary
+Private Function json_parseObject(ByRef str As String, ByRef Index As Long) As Dictionary
 
     Set json_parseObject = New Dictionary
     
     ' "{"
-    Call json_skipChar(str, index)
-    If Mid$(str, index, 1) <> "{" Then Err.Raise vbObjectError + INVALID_OBJECT, Description:="char " & index & " : " & Mid$(str, index)
-    index = index + 1
+    Call json_skipChar(str, Index)
+    If Mid$(str, Index, 1) <> "{" Then Err.Raise vbObjectError + INVALID_OBJECT, Description:="char " & Index & " : " & Mid$(str, Index)
+    Index = Index + 1
     
     Dim Key As String
     
     Do
-        Call json_skipChar(str, index)
-        If "}" = Mid$(str, index, 1) Then
-            index = index + 1
+        Call json_skipChar(str, Index)
+        If "}" = Mid$(str, Index, 1) Then
+            Index = Index + 1
             Exit Do
-        ElseIf "," = Mid$(str, index, 1) Then
-            index = index + 1
-            Call json_skipChar(str, index)
+        ElseIf "," = Mid$(str, Index, 1) Then
+            Index = Index + 1
+            Call json_skipChar(str, Index)
         End If
         
-        Key = json_parseKey(str, index)
+        Key = json_parseKey(str, Index)
         If Not json_parseObject.Exists(Key) Then
-            json_parseObject.Add Key, json_parseValue(str, index)
+            json_parseObject.Add Key, json_parseValue(str, Index)
         Else
-            json_parseObject.Item(Key) = json_parseValue(str, index)
+            json_parseObject.Item(Key) = json_parseValue(str, Index)
         End If
     Loop
 
@@ -982,28 +1011,28 @@ End Function
 '
 '   parse list (Collection in VB)
 '
-Private Function json_parseArray(ByRef str As String, ByRef index As Long) As Collection
+Private Function json_parseArray(ByRef str As String, ByRef Index As Long) As Collection
 
     Set json_parseArray = New Collection
     
     ' "["
-    Call json_skipChar(str, index)
-    If Mid$(str, index, 1) <> "[" Then Err.Raise vbObjectError + INVALID_ARRAY, Description:="char " & index & " : " + Mid$(str, index)
-    index = index + 1
+    Call json_skipChar(str, Index)
+    If Mid$(str, Index, 1) <> "[" Then Err.Raise vbObjectError + INVALID_ARRAY, Description:="char " & Index & " : " + Mid$(str, Index)
+    Index = Index + 1
     
     Do
         
-        Call json_skipChar(str, index)
-        If "]" = Mid$(str, index, 1) Then
-            index = index + 1
+        Call json_skipChar(str, Index)
+        If "]" = Mid$(str, Index, 1) Then
+            Index = Index + 1
             Exit Do
-        ElseIf "," = Mid$(str, index, 1) Then
-            index = index + 1
-            Call json_skipChar(str, index)
+        ElseIf "," = Mid$(str, Index, 1) Then
+            Index = Index + 1
+            Call json_skipChar(str, Index)
         End If
         
         ' add value
-        json_parseArray.Add json_parseValue(str, index)
+        json_parseArray.Add json_parseValue(str, Index)
         
     Loop
 
@@ -1012,23 +1041,23 @@ End Function
 '
 '   parse string / number / object / array / true / false / null
 '
-Private Function json_parseValue(ByRef str As String, ByRef index As Long)
+Private Function json_parseValue(ByRef str As String, ByRef Index As Long)
 
-    Call json_skipChar(str, index)
+    Call json_skipChar(str, Index)
     
-    Select Case Mid$(str, index, 1)
+    Select Case Mid$(str, Index, 1)
     Case "{"
-        Set json_parseValue = json_parseObject(str, index)
+        Set json_parseValue = json_parseObject(str, Index)
     Case "["
-        Set json_parseValue = json_parseArray(str, index)
+        Set json_parseValue = json_parseArray(str, Index)
     Case """", "'"
-        json_parseValue = json_parseString(str, index)
+        json_parseValue = json_parseString(str, Index)
     Case "t", "f"
-        json_parseValue = json_parseBoolean(str, index)
+        json_parseValue = json_parseBoolean(str, Index)
     Case "n"
-        json_parseValue = json_parseNull(str, index)
+        json_parseValue = json_parseNull(str, Index)
     Case Else
-        json_parseValue = json_parseNumber(str, index)
+        json_parseValue = json_parseNumber(str, Index)
     End Select
 
 End Function
@@ -1036,53 +1065,53 @@ End Function
 '
 '   parse string
 '
-Private Function json_parseString(ByRef str As String, ByRef index As Long) As String
+Private Function json_parseString(ByRef str As String, ByRef Index As Long) As String
 
     Dim quote   As String
     Dim char    As String
     Dim Code    As String
     
-    Call json_skipChar(str, index)
-    quote = Mid$(str, index, 1)
-    index = index + 1
-    Do While index > 0 And index <= Len(str)
-        char = Mid$(str, index, 1)
+    Call json_skipChar(str, Index)
+    quote = Mid$(str, Index, 1)
+    Index = Index + 1
+    Do While Index > 0 And Index <= Len(str)
+        char = Mid$(str, Index, 1)
         Select Case (char)
         Case "\"
-            index = index + 1
-            char = Mid$(str, index, 1)
+            Index = Index + 1
+            char = Mid$(str, Index, 1)
             Select Case (char)
             Case """", "\", "/" ' Before: Case """", "\\", "/"
                 json_parseString = json_parseString & char
-                index = index + 1
+                Index = Index + 1
             Case "b"
                 json_parseString = json_parseString & vbBack
-                index = index + 1
+                Index = Index + 1
             Case "f"
                 json_parseString = json_parseString & vbFormFeed
-                index = index + 1
+                Index = Index + 1
             Case "n"
                 json_parseString = json_parseString & vbNewLine
-                index = index + 1
+                Index = Index + 1
             Case "r"
                 json_parseString = json_parseString & vbCr
-                index = index + 1
+                Index = Index + 1
             Case "t"
                 json_parseString = json_parseString & vbTab
-                index = index + 1
+                Index = Index + 1
             Case "u"
-                index = index + 1
-                Code = Mid$(str, index, 4)
+                Index = Index + 1
+                Code = Mid$(str, Index, 4)
                 json_parseString = json_parseString & ChrW(Val("&h" + Code))
-                index = index + 4
+                Index = Index + 4
             End Select
         Case quote
             
-            index = index + 1
+            Index = Index + 1
             Exit Function
         Case Else
             json_parseString = json_parseString & char
-            index = index + 1
+            Index = Index + 1
         End Select
     Loop
 
@@ -1091,17 +1120,17 @@ End Function
 '
 '   parse number
 '
-Private Function json_parseNumber(ByRef str As String, ByRef index As Long)
+Private Function json_parseNumber(ByRef str As String, ByRef Index As Long)
 
     Dim Value   As String
     Dim char    As String
     
-    Call json_skipChar(str, index)
-    Do While index > 0 And index <= Len(str)
-        char = Mid$(str, index, 1)
+    Call json_skipChar(str, Index)
+    Do While Index > 0 And Index <= Len(str)
+        char = Mid$(str, Index, 1)
         If InStr("+-0123456789.eE", char) Then
             Value = Value & char
-            index = index + 1
+            Index = Index + 1
         Else
             json_parseNumber = Val(Value)
             Exit Function
@@ -1114,17 +1143,17 @@ End Function
 '
 '   parse true / false
 '
-Private Function json_parseBoolean(ByRef str As String, ByRef index As Long) As Boolean
+Private Function json_parseBoolean(ByRef str As String, ByRef Index As Long) As Boolean
 
-    Call json_skipChar(str, index)
-    If Mid$(str, index, 4) = "true" Then
+    Call json_skipChar(str, Index)
+    If Mid$(str, Index, 4) = "true" Then
         json_parseBoolean = True
-        index = index + 4
-    ElseIf Mid$(str, index, 5) = "false" Then
+        Index = Index + 4
+    ElseIf Mid$(str, Index, 5) = "false" Then
         json_parseBoolean = False
-        index = index + 5
+        Index = Index + 5
     Else
-        Err.Raise vbObjectError + INVALID_BOOLEAN, Description:="char " & index & " : " & Mid$(str, index)
+        Err.Raise vbObjectError + INVALID_BOOLEAN, Description:="char " & Index & " : " & Mid$(str, Index)
     End If
 
 End Function
@@ -1132,61 +1161,61 @@ End Function
 '
 '   parse null
 '
-Private Function json_parseNull(ByRef str As String, ByRef index As Long)
+Private Function json_parseNull(ByRef str As String, ByRef Index As Long)
 
-    Call json_skipChar(str, index)
-    If Mid$(str, index, 4) = "null" Then
+    Call json_skipChar(str, Index)
+    If Mid$(str, Index, 4) = "null" Then
         json_parseNull = Null
-        index = index + 4
+        Index = Index + 4
     Else
-        Err.Raise vbObjectError + INVALID_NULL, Description:="char " & index & " : " & Mid$(str, index)
+        Err.Raise vbObjectError + INVALID_NULL, Description:="char " & Index & " : " & Mid$(str, Index)
     End If
 
 End Function
 
-Private Function json_parseKey(ByRef str As String, ByRef index As Long) As String
+Private Function json_parseKey(ByRef str As String, ByRef Index As Long) As String
 
     Dim dquote  As Boolean
     Dim squote  As Boolean
     Dim char    As String
     
-    Call json_skipChar(str, index)
-    Do While index > 0 And index <= Len(str)
-        char = Mid$(str, index, 1)
+    Call json_skipChar(str, Index)
+    Do While Index > 0 And Index <= Len(str)
+        char = Mid$(str, Index, 1)
         Select Case (char)
         Case """"
             dquote = Not dquote
-            index = index + 1
+            Index = Index + 1
             If Not dquote Then
-                Call json_skipChar(str, index)
-                If Mid$(str, index, 1) <> ":" Then
-                    Err.Raise vbObjectError + INVALID_KEY, Description:="char " & index & " : " & json_parseKey
+                Call json_skipChar(str, Index)
+                If Mid$(str, Index, 1) <> ":" Then
+                    Err.Raise vbObjectError + INVALID_KEY, Description:="char " & Index & " : " & json_parseKey
                 End If
             End If
         Case "'"
             squote = Not squote
-            index = index + 1
+            Index = Index + 1
             If Not squote Then
-                Call json_skipChar(str, index)
-                If Mid$(str, index, 1) <> ":" Then
-                    Err.Raise vbObjectError + INVALID_KEY, Description:="char " & index & " : " & json_parseKey
+                Call json_skipChar(str, Index)
+                If Mid$(str, Index, 1) <> ":" Then
+                    Err.Raise vbObjectError + INVALID_KEY, Description:="char " & Index & " : " & json_parseKey
                 End If
             End If
         Case ":"
             If Not dquote And Not squote Then
-                index = index + 1
+                Index = Index + 1
                 Exit Do
             Else
                 ' Colon in key name
                 json_parseKey = json_parseKey & char
-                index = index + 1
+                Index = Index + 1
             End If
         Case Else
             If InStr(vbCrLf & vbCr & vbLf & vbTab & " ", char) Then
             Else
                 json_parseKey = json_parseKey & char
             End If
-            index = index + 1
+            Index = Index + 1
         End Select
     Loop
 
@@ -1195,10 +1224,10 @@ End Function
 '
 '   skip special character
 '
-Private Sub json_skipChar(ByRef str As String, ByRef index As Long)
+Private Sub json_skipChar(ByRef str As String, ByRef Index As Long)
 
-    While index > 0 And index <= Len(str) And InStr(vbCrLf & vbCr & vbLf & vbTab & " ", Mid$(str, index, 1))
-        index = index + 1
+    While Index > 0 And Index <= Len(str) And InStr(vbCrLf & vbCr & vbLf & vbTab & " ", Mid$(str, Index, 1))
+        Index = Index + 1
     Wend
 
 End Sub
@@ -1219,12 +1248,12 @@ Private Function json_toString(ByRef Obj As Variant) As String
             bFI = True
             If TypeName(Obj) = "Dictionary" Then
                 json_toString = json_toString & "{"
-                Dim keys
-                keys = Obj.keys
+                Dim Keys
+                Keys = Obj.Keys
                 For i = 0 To Obj.count - 1
                     If bFI Then bFI = False Else json_toString = json_toString & ","
                     Dim Key
-                    Key = keys(i)
+                    Key = Keys(i)
                     json_toString = json_toString & """" & Key & """:" & json_toString(Obj(Key))
                 Next i
                 json_toString = json_toString & "}"

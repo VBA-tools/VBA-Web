@@ -12,7 +12,7 @@ Attribute VB_Name = "GoogleAuthenticatorSpecs"
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "DigestAuthenticator"
+    Specs.Description = "GoogleAuthenticator"
     
     Dim Auth As New GoogleAuthenticator
     Dim ID As String
@@ -34,7 +34,7 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should skip login if API key is used")
         Auth.Token = ""
-        Auth.ApiKey = "abc"
+        Auth.APIKey = "abc"
         Auth.Login
         .Expect(Auth.Token).ToEqual ""
     End With
@@ -46,7 +46,7 @@ Public Function Specs() As SpecSuite
         Dim Parts As Dictionary
         Set Parts = RestHelpers.UrlParts(Auth.LoginUrl)
         Dim Scope As String
-        Scope = RestHelpers.URLDecode(Parts("Querystring"))
+        Scope = RestHelpers.UrlDecode(Parts("Querystring"))
         Scope = Mid$(Scope, InStr(1, Scope, "scope") + 6)
         .Expect(Scope).ToEqual "https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/userinfo.email http://new_scope"
     End With

@@ -30,7 +30,8 @@ Modules = Array(_
   "RestRequestSpecs.bas", _
   "RestHelpersSpecs.bas", _
   "DigestAuthenticatorSpecs.bas", _
-  "GoogleAuthenticatorSpecs.bas" _
+  "GoogleAuthenticatorSpecs.bas", _
+  "OAuth1AuthenticatorSpecs.bas" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then

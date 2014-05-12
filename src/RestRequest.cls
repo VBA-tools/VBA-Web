@@ -115,7 +115,7 @@ Public Property Get FormattedResource() As String
     FormattedResource = Me.Resource
     
     ' Replace url segments
-    For Each segment In Me.UrlSegments.keys
+    For Each segment In Me.UrlSegments.Keys
         FormattedResource = Replace(FormattedResource, "{" & segment & "}", Me.UrlSegments(segment))
     Next segment
     FormattedResource = Replace(FormattedResource, "{format}", Me.FormatName())
