@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' Facebook Authenticator v2.0.4
+' Facebook Authenticator v2.0.5
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Custom IAuthenticator for Facebook OAuth

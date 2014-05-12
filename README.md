@@ -6,7 +6,7 @@ It seems like everything has a REST webservice these days and there is no reason
 Getting started
 ---------------
 
-1. Download the [latest release (v3.0.2)](https://github.com/timhall/Excel-REST/releases)
+1. Download the [latest release (v3.0.3)](https://github.com/timhall/Excel-REST/releases)
 2. `Excel-REST - Blank.xlsm` has everything setup and ready to go.
 
 For more details see the [Wiki](https://github.com/timhall/Excel-REST/wiki)
@@ -177,6 +177,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 - Add `AfterExecute` to `IAuthenticator` (Breaking change, all IAuthenticators must implement this new method)
 - __3.0.1__ Add `DigestAuthenticator`, new helpers, and cleanup
 - __3.0.2__ Switch timeout to `Long` and remove `RestClientBase` (out of sync with v3)
+- __3.0.3__ Update OAuth1, deprecate `IncludeCacheBreaker`, update True/False formatting to lowercase, add LinkedIn example
 
 #### 2.3.0
 

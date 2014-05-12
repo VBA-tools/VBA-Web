@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' OAuth1 Authenticator v2.0.4
+' OAuth1 Authenticator v2.0.5
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize OAuth1 authentication
