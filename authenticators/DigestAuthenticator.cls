@@ -95,6 +95,7 @@ End Sub
 
 Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
     If Response.StatusCode = 401 And Not Me.IsAuthenticated Then
+        RestHelpers.LogDebug "Extract Authenticate and retry 401 request " & Request.FullUrl(Client.BaseUrl), "Digest.AfterExecute"
         ExtractAuthenticateInformation Response
         
         Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -115,6 +116,7 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "DigestAuthenticator.HttpOpen"
 End Sub
 
 Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
@@ -131,6 +133,8 @@ Public Function CreateHeader(Client As RestClient, Request As RestRequest) As St
         ", cnonce=""" & Me.ClientNonce & """" & _
         ", response=""" & CalculateResponse(Client, Request) & """" & _
         ", opaque=""" & Me.Opaque & """"
+        
+    RestHelpers.LogDebug CreateHeader, "DigestAuthenticator.CreateHeader"
 End Function
 
 Public Function CalculateResponse(Client As RestClient, Request As RestRequest) As String
@@ -143,6 +147,7 @@ Public Function CalculateResponse(Client As RestClient, Request As RestRequest) 
     HA2 = CalculateHA2(Request.MethodName, Uri)
     
     CalculateResponse = RestHelpers.MD5(HA1 & ":" & Me.ServerNonce & ":" & FormattedRequestCount & ":" & Me.ClientNonce & ":" & qop & ":" & HA2)
+    RestHelpers.LogDebug CalculateResponse, "DigestAuthenticator.CalculateResponse"
 End Function
 
 ' Extract authentication information from 401 response headers
@@ -172,6 +177,8 @@ Public Sub ExtractAuthenticateInformation(Response As RestResponse)
                     If Key = "nonce" Then Me.ServerNonce = Value
                     If Key = "opaque" Then Me.Opaque = Value
                 Next i
+                
+                RestHelpers.LogDebug "realm=" & Me.Realm & ", nonce=" & Me.ServerNonce & ", opaque=" & Me.Opaque, "DigestAuthenticator.ExtractAuthenticateInformation"
             End If
             
             Exit Sub
@@ -181,10 +188,12 @@ End Sub
 
 Public Function CalculateHA1() As String
     CalculateHA1 = MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
+    RestHelpers.LogDebug CalculateHA1 & " for " & Me.Username & ":" & Me.Realm & ":" & RestHelpers.Obfuscate(Me.Password), "DigestAuthenticator.CalculateHA1"
 End Function
 
 Public Function CalculateHA2(Method As String, Uri As String) As String
     CalculateHA2 = MD5(Method & ":" & Uri)
+    RestHelpers.LogDebug CalculateHA2 & " for " & Method & ":" & Uri, "DigestAuthenticator.CalculateHA2"
 End Function
 
 ' Pad request count to 8 places

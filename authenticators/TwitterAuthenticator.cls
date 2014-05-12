@@ -48,7 +48,9 @@ Public Property Get Token() As String
         ' Store token if successful, otherwise throw error
         If Response.StatusCode = Ok Then
             pToken = Response.Data("access_token")
+            RestHelpers.LogDebug "Successfully received token: " & RestHelpers.Obfuscate(pToken), "TwitterAuthenticator.Token"
         Else
+            RestHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "TwitterAuthenticator.Token"
             Err.Raise vbObjectError + Response.StatusCode, _
                 Description:="Failed to load Bearer Token: " & Response.StatusCode & " - " & Response.Content
         End If
@@ -121,6 +123,7 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
 
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+    RestHelpers.LogDebug "Http.Open " & Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function TokenRequest() As RestRequest

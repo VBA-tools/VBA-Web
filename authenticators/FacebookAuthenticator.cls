@@ -55,7 +55,9 @@ Public Property Get Token() As String
             EndIndex = InStr(StartIndex, Response.Content, "&expires=")
             
             pToken = Mid$(Response.Content, StartIndex, EndIndex - StartIndex)
+            RestHelpers.LogDebug "Received token: " & RestHelpers.Obfuscate(pToken), "FacebookAuthenticator.Token"
         Else
+            RestHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "FacebookAuthenticator.Token"
             Err.Raise vbObjectError + Response.StatusCode, _
                 Description:="Failed to load Bearer Token: " & Response.StatusCode & " - " & Response.Content
         End If
@@ -95,6 +97,7 @@ Public Property Get LoginUrl()
         ScopeString = Me.Scope
     End If
     LoginUrl = LoginUrl & "&scope=" & ScopeString
+    RestHelpers.LogDebug LoginUrl, "FacebookAuthenticator.LoginUrl"
 End Property
 
 ' ============================================= '
@@ -140,6 +143,7 @@ Public Sub Login()
             Code = OAuthExtractCode(IE)
         Else
             ' Login failed
+            RestHelpers.LogError "Facebook login failed or was denied", "FacebookAuthenticator.Login"
             Err.Raise vbObjectError + 1, "OAuthDialog", "Login failed or was denied"
         End If
     End With
@@ -150,13 +154,16 @@ CleanUp:
     Set IE = Nothing
     
     If Not Completed Then
+        RestHelpers.LogError "Facebook login did not complete", "FacebookAuthenticator.Login"
         Err.Raise vbObjectError + 1, "OAuthDialog", "Login did not complete"
     ElseIf Err.Number <> 0 Then
         ' Rethrow error
         Err.Raise Err.Number, Err.Source, Err.Description
     ElseIf Left(Code, 5) = "Error" Then
+        RestHelpers.LogError "Facebook login returned error: " & Code, "FacebookAuthenticator.Login"
         Err.Raise vbObjectError + 1, "OAuthDialog", Code
     Else
+        RestHelpers.LogDebug "Successfully logged in: " & Code, "FacebookAuthenticator.Login"
         ' Success!
         Me.Code = Code
         
@@ -187,6 +194,7 @@ End Sub
 
 Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     Request.AddQuerystringParam "access_token", Me.Token
+    RestHelpers.LogDebug "Add access_token=" & Me.Token, "FacebookAuthenticator.BeforeExecute"
 End Sub
 
 ''
@@ -214,6 +222,7 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function TokenRequest() As RestRequest
@@ -267,6 +276,7 @@ Private Function OAuthExtractCode(IE As Object) As String
     If StartIndex >= 0 And EndIndex > StartIndex Then
         OAuthExtractCode = Mid$(Url, StartIndex, EndIndex - StartIndex)
     Else
+        RestHelpers.LogError "Unrecognized token format: " & Url, "FacebookAuthenticator.OAuthExtractCode"
         OAuthExtractCode = "Error: Unrecognized token formatting"
     End If
 End Function

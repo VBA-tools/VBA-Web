@@ -90,6 +90,7 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
         
         If Http.Status <> 200 Then
             ' Error getting OAuth2 token
+            RestHelpers.LogError "Token request failed: " & Http.Status & " - " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"
             Err.Raise vbObjectError + Http.Status, _
                 Description:="Failed to retrieve OAuth2 Token - " & Http.Status & ": " & Http.ResponseText
         End If
@@ -99,6 +100,7 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
         If Not Response Is Nothing Then
             If Response.Exists(Me.TokenKey) Then
                 Me.Token = Response(Me.TokenKey)
+                RestHelpers.LogDebug "Received token: " & RestHelpers.Obfuscate(Me.Token), "OAuth2Authenticator.BeforeExecute"
             End If
             
             ' (Salesforce specific, but shouldn't affect any other OAuth2 clients)
@@ -106,6 +108,7 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
                 Request.BaseUrl = Response("instance_url")
             End If
         Else
+            RestHelpers.LogError "Failed to read OAuth2 Token: " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"
             Err.Raise vbObjectError + 2, _
                 Description:="Failed to read OAuth2 Token"
         End If
@@ -148,6 +151,7 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function CreateHeader() As String
@@ -165,4 +169,5 @@ Private Function CreateTokenRequest() As String
     CreateTokenRequest = CreateTokenRequest & "&client_secret=" & Me.ClientSecret
     CreateTokenRequest = CreateTokenRequest & "&username=" & Me.Username
     CreateTokenRequest = CreateTokenRequest & "&password=" & Me.Password
+    RestHelpers.LogDebug CreateTokenRequest, "OAuth2Authenticator.CreateTokenRequest"
 End Function

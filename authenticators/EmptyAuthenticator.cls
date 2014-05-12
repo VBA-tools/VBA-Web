@@ -73,4 +73,5 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
 
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
+    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "Authenticator.HttpOpen"
 End Sub
