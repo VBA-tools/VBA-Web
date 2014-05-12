@@ -19,7 +19,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should replace url segments for FormattedResource")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         
         Request.Resource = "{a1}/{b2}/{c3}/{a1/b2/c3}"
         Request.AddUrlSegment "a1", "A"
@@ -32,7 +31,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should only include parameters in querystring for GET requests")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         
         Request.AddParameter "A", 123
         
@@ -51,7 +49,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should include querystring parameters in FormattedResource for all request types")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
 
         Request.AddQuerystringParam "A", 123
         
@@ -69,7 +66,6 @@ Public Function Specs() As SpecSuite
 
     With Specs.It("should have ? and add & between parameters for querystring")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
 
         Request.AddParameter "A", 123
         Request.AddParameter "B", "456"
@@ -81,7 +77,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should not add ? if already in resource")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         
         Request.AddParameter "B", "456"
         Request.Method = httpGET
@@ -92,7 +87,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should not include http/https if included in resource")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         
         Request.Resource = "http://localhost:3000/get"
         .Expect(Request.FullUrl("")).ToEqual "http://localhost:3000/get"
@@ -103,12 +97,10 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should add protocol if none is given or starts with localhost")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         Request.Resource = "/get"
         .Expect(Request.FullUrl("localhost:3000")).ToEqual "http://localhost:3000/get"
         
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         Request.Resource = "/get"
         Request.RequireHTTPS = True
         .Expect(Request.FullUrl("localhost:3000")).ToEqual "https://localhost:3000/get"
@@ -116,36 +108,11 @@ Public Function Specs() As SpecSuite
 
     With Specs.It("should URL encode querystring")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
     
         Request.AddParameter "A B", " !""#$%&'"
         Request.Method = httpGET
         
         .Expect(Request.FormattedResource).ToEqual "?A+B=+%21%22%23%24%25%26%27"
-    End With
-    
-    With Specs.It("should include cachebreaker in FormattedResource by default")
-        Set Request = New RestRequest
-        
-        .Expect(Request.FormattedResource).ToContain "cachebreaker"
-    End With
-    
-    With Specs.It("should be able to remove cachebreaker from FormattedResource")
-        Set Request = New RestRequest
-        
-        Request.IncludeCacheBreaker = False
-        .Expect(Request.FormattedResource).ToNotContain "cachebreaker"
-    End With
-    
-    With Specs.It("should add cachebreaker to querystring only")
-        Set Request = New RestRequest
-        
-        Request.Method = httpGET
-        .Expect(Request.FormattedResource).ToContain "cachebreaker"
-        
-        Request.Method = httpPOST
-        .Expect(Request.FormattedResource).ToContain "cachebreaker"
-        .Expect(Request.Body).ToEqual ""
     End With
     
     With Specs.It("should use body string directly if no parameters")
@@ -173,7 +140,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should use given client base url for FullUrl only if BaseUrl isn't already set")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         Request.RequireHTTPS = True
         
         Request.Resource = "status"
@@ -183,7 +149,6 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should automatically add slash between base and resource")
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         Request.RequireHTTPS = True
         
         Request.Resource = "status"
@@ -258,8 +223,7 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "{""A"":20,""B"":3.14,""C"":true}"
         
         Request.Method = httpGET
-        Request.IncludeCacheBreaker = False
-        .Expect(Request.FormattedResource).ToEqual "?A=20&B=3.14&C=True"
+        .Expect(Request.FormattedResource).ToEqual "?A=20&B=3.14&C=true"
     End With
     
     With Specs.It("should allow body or body string for GET requests")

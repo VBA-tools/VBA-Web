@@ -24,7 +24,6 @@ Option Explicit
 ' Constants and Private Variables
 ' --------------------------------------------- '
 
-Private Const cacheBreakerKey As String = "cachebreaker"
 Private pHeaders As Dictionary
 Private pParameters As Dictionary
 Private pQuerystringParams As Dictionary
@@ -64,7 +63,6 @@ Public Callback As String
 Public BaseUrl As String
 Public RequireHTTPS As Boolean
 Public CallbackArgs As Variant
-Public IncludeCacheBreaker As Boolean
 Public IncludeContentLength As Boolean
 Public Authenticator As IAuthenticator
 Public Client As RestClient
@@ -109,6 +107,10 @@ Public Property Set Cookies(Value As Dictionary)
     Set pCookies = Value
 End Property
 
+Public Property Let IncludeCacheBreaker(Value As Boolean)
+    Debug.Print "Excel-REST: DEPRECATED IncludeCacheBreaker has been deprecated since it is not required with ServerXMLHTTP. It will be removed in Excel-REST v4"
+End Property
+
 Public Property Get FormattedResource() As String
     Dim segment As Variant
     
@@ -119,14 +121,6 @@ Public Property Get FormattedResource() As String
         FormattedResource = Replace(FormattedResource, "{" & segment & "}", Me.UrlSegments(segment))
     Next segment
     FormattedResource = Replace(FormattedResource, "{format}", Me.FormatName())
-    
-    ' Add cache breaker to GET requests
-    ' [MSXML2.XMLHTTP refresh](http://www.tek-tips.com/viewthread.cfm?qid=1563400)
-    ' Looks like a last-modified could work here too, but may also require control over server response
-    ' Also, with update to ServerXMLHTTP, neither may be needed
-    If Me.Method = httpGET And Me.IncludeCacheBreaker Then
-        Me.AddQuerystringParam cacheBreakerKey, timer() * 100
-    End If
     
     ' Add querystring
     If (Me.Method = httpGET And Not Me.Parameters Is Nothing) Or Not Me.QuerystringParams Is Nothing Then
@@ -459,7 +453,6 @@ End Sub
 
 Private Sub Class_Initialize()
     ' Set default values
-    Me.IncludeCacheBreaker = True
     Me.IncludeContentLength = True
 End Sub
 

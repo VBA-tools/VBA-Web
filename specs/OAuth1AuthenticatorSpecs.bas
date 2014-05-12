@@ -47,7 +47,6 @@ Public Function Specs() As SpecSuite
     With Specs.It("should property format request parameters")
         Set Request = New RestRequest
         Request.Resource = "resource"
-        Request.IncludeCacheBreaker = False
         Request.AddParameter "a", True
         Request.AddParameter "b", "abc"
         Request.AddParameter "c", 1.23
@@ -58,7 +57,6 @@ Public Function Specs() As SpecSuite
     With Specs.It("should include explicit and implicit querystring parameters")
         Client.BaseUrl = "HTTP://localhost:3000/testing"
         Set Request = New RestRequest
-        Request.IncludeCacheBreaker = False
         Request.Resource = "?a=123&b=456"
         Request.AddParameter "c", "Howdy!"
         Request.AddQuerystringParam "d", 789
@@ -73,7 +71,6 @@ Public Function Specs() As SpecSuite
     Request.Resource = "testing"
     Request.AddParameter "a", 123
     Request.AddQuerystringParam "b", 456
-    Request.IncludeCacheBreaker = False
     
     Auth.Nonce = "1234"
     Auth.Timestamp = "123456789"

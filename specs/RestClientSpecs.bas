@@ -116,7 +116,7 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("query")("a")).ToEqual "1"
         .Expect(Response.Data("query")("b")).ToEqual "3.14"
         .Expect(Response.Data("query")("c")).ToEqual "Howdy!"
-        .Expect(Response.Data("query")("d")).ToEqual "False"
+        .Expect(Response.Data("query")("d")).ToEqual "false"
     End With
     
     With Specs.It("should GET json")
