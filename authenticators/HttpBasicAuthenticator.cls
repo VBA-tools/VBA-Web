@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' HttpBasicAuthenticator v2.0.5
+' HttpBasicAuthenticator v2.0.6
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Utilize http basic authentication
