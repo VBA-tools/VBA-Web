@@ -29,7 +29,7 @@ Private pParameters As Dictionary
 Private pQuerystringParams As Dictionary
 Private pUrlSegments As Dictionary
 Private pCookies As Dictionary
-Private pBody As Dictionary
+Private pBody As Variant
 Private pBodyString As String
 Private pContentType As String
 Private pContentLength As Long
@@ -145,7 +145,7 @@ End Property
 
 Public Property Get Body() As String
     ' Add body if it's defined or parameters have been set and it is not a GET request
-    If Not pBody Is Nothing Or pBodyString <> "" Or (Me.Parameters.count > 0 And Me.Method <> httpGET) Then
+    If Not IsEmpty(pBody) Or pBodyString <> "" Or (Me.Parameters.count > 0 And Me.Method <> httpGET) Then
         If pBodyString <> "" Then
             If Me.Parameters.count > 0 And Me.Method <> httpGET Then
                 Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body string and parameters"
@@ -153,18 +153,34 @@ Public Property Get Body() As String
                 Body = pBodyString
             End If
         Else
+            If RestHelpers.IsArray(pBody) And Me.Parameters.count > 0 And Me.Method <> httpGET Then
+                Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body array and parameters"
+            End If
+        
             Select Case Me.Format
             Case AvailableFormats.formurlencoded
                 If Me.Method <> httpGET Then
-                    ' Combine defined body and parameters and convert to JSON
-                    Body = RestHelpers.DictionariesToUrlEncodedString(Me.Parameters, pBody)
+                    If Me.Parameters.count > 0 And Not IsEmpty(pBody) Then
+                        ' Combine defined body and parameters and convert to JSON
+                        Body = RestHelpers.ConvertToUrlEncoded(CombineObjects(Me.Parameters, pBody))
+                    ElseIf Me.Parameters.count > 0 Then
+                        Body = RestHelpers.ConvertToUrlEncoded(Me.Parameters)
+                    Else
+                        Body = RestHelpers.ConvertToUrlEncoded(pBody)
+                    End If
                 Else
-                    Body = RestHelpers.DictionariesToUrlEncodedString(pBody)
+                    Body = RestHelpers.ConvertToUrlEncoded(pBody)
                 End If
             Case AvailableFormats.json
                 If Me.Method <> httpGET Then
-                    ' Combine defined body and parameters and convert to JSON
-                    Body = RestHelpers.ConvertToJSON(CombineObjects(Me.Parameters, pBody))
+                    If Me.Parameters.count > 0 And Not IsEmpty(pBody) Then
+                        ' Combine defined body and parameters and convert to JSON
+                        Body = RestHelpers.ConvertToJSON(CombineObjects(Me.Parameters, pBody))
+                    ElseIf Me.Parameters.count > 0 Then
+                        Body = RestHelpers.ConvertToJSON(Me.Parameters)
+                    Else
+                        Body = RestHelpers.ConvertToJSON(pBody)
+                    End If
                 Else
                     Body = RestHelpers.ConvertToJSON(pBody)
                 End If
@@ -343,11 +359,17 @@ End Sub
 ''
 ' Add body to request
 '
-' @param {Dictionary} bodyVal Object to add to body (will be converted to string)
+' @param {Variant} bodyVal Object/Collection/Array to add to body (will be converted to string)
 ' --------------------------------------------- '
 
-Public Function AddBody(BodyVal As Dictionary)
-    Set pBody = BodyVal
+Public Function AddBody(BodyVal As Variant)
+    If VarType(BodyVal) = vbObject Then
+        Set pBody = BodyVal
+    ElseIf RestHelpers.IsArray(BodyVal) Then
+        pBody = BodyVal
+    Else
+        pBodyString = BodyVal
+    End If
 End Function
 
 ''

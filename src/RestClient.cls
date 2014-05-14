@@ -129,7 +129,7 @@ End Function
 ' @return {RestResponse} Response
 ' --------------------------------------------- '
 
-Public Function PostJSON(Url As String, Body As Dictionary, Optional Options As Dictionary) As RestResponse
+Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dictionary) As RestResponse
     Dim Request As RestRequest
     Set Request = RestHelpers.CreateRequestFromOptions(Options)
     Request.Resource = Url

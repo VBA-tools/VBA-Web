@@ -121,7 +121,7 @@ End Function
 ' @return {String}
 ' --------------------------------------------- '
 
-Public Function ConvertToJSON(Obj As Object) As String
+Public Function ConvertToJSON(Obj As Variant) As String
     ConvertToJSON = json_toString(Obj)
 End Function
 
@@ -296,14 +296,32 @@ Public Function FilterObject(ByVal Original As Dictionary, Whitelist As Variant)
     Set FilterObject = Filtered
 End Function
 
+Public Function IsArray(Obj As Variant) As Boolean
+    If Not IsEmpty(Obj) Then
+        If VarType(Obj) = vbObject Then
+            If TypeOf Obj Is Collection Then
+                IsArray = True
+            End If
+        ElseIf VarType(Obj) = vbArray Or VarType(Obj) = 8204 Then
+            ' VarType = 8204 seems to arise from Array(...) constructor
+            IsArray = True
+        End If
+    End If
+End Function
+
 ''
 ' Convert dictionary to url encoded string
 '
-' @param {Dictionary} Obj
+' @param {Variant} Obj
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
 ' --------------------------------------------- '
 
-Public Function ConvertToUrlEncoded(Obj As Dictionary) As String
+Public Function ConvertToUrlEncoded(Obj As Variant) As String
+    If IsArray(Obj) Then
+        ' TODO Handle arrays and collections
+        Err.Raise vbObjectError + 1, "RestHelpers.ConvertToUrlEncoded", "Arrays are not currently supported by ConvertToUrlEncoded"
+    End If
+    
     ConvertToUrlEncoded = DictionariesToUrlEncodedString(Obj)
 End Function
 Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Variant) As String
