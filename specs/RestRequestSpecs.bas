@@ -260,6 +260,21 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "A=123&B=Howdy%21"
     End With
     
+    With Specs.It("should allow array/collection for body")
+        Set Request = New RestRequest
+        
+        Set Body = New Collection
+        Body.Add "a"
+        Body.Add "b"
+        Body.Add "c"
+        
+        Request.AddBody Body
+        .Expect(Request.Body).ToEqual "[""a"",""b"",""c""]"
+        
+        Request.AddBody Array("a", "b", "c")
+        .Expect(Request.Body).ToEqual "[""a"",""b"",""c""]"
+    End With
+    
     InlineRunner.RunSuite Specs
 End Function
 
