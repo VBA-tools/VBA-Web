@@ -1303,7 +1303,7 @@ Private Function json_toString(ByRef Obj As Variant) As String
         Case vbNull
             json_toString = "null"
         Case vbEmpty
-            json_toString = """"""
+            json_toString = "null"
         Case vbDate
             json_toString = """" & CStr(Obj) & """"
         Case vbString

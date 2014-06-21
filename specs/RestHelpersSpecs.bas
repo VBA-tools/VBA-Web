@@ -92,9 +92,11 @@ Public Function Specs() As SpecSuite
         Obj.Add "c", "Howdy!"
         Obj.Add "d", True
         Obj.Add "e", Array(1, 2)
+        Obj.Add "f", Empty
+        Obj.Add "g", Null
         
         json = RestHelpers.ConvertToJSON(Obj)
-        .Expect(json).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
+        .Expect(json).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
         
         Set Obj = New Dictionary
         Obj.Add "a", "Howdy!"
@@ -106,9 +108,11 @@ Public Function Specs() As SpecSuite
         Coll.Add True
         Coll.Add Array(1, 2)
         Coll.Add Obj
+        Coll.Add Empty
+        Coll.Add Null
         
         json = RestHelpers.ConvertToJSON(Coll)
-        .Expect(json).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
+        .Expect(json).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
     End With
     
     With Specs.It("should url encode values")

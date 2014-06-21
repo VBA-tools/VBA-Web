@@ -133,6 +133,11 @@ Public Function Specs() As SpecSuite
         
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data("body")("a")).ToEqual 3.14
+        
+        Set Response = Client.PostJSON("/post", Array(1, 2, 3))
+        
+        .Expect(Response.StatusCode).ToEqual 200
+        .Expect(Response.Data("body")(1)).ToEqual 1
     End With
     
     With Specs.It("should include options with GET and POST json")
