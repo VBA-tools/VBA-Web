@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v3.0.6
+' RestHelpers v3.0.7
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
@@ -38,7 +38,7 @@ Attribute VB_Name = "RestHelpers"
   
 #End If
 
-Private Const UserAgent As String = "Excel Client v3.0.6 (https://github.com/timhall/Excel-REST)"
+Private Const UserAgent As String = "Excel Client v3.0.7 (https://github.com/timhall/Excel-REST)"
 Private DocumentHelper As Object
 Private ElHelper As Object
 
