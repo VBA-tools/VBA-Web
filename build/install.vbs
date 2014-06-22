@@ -178,6 +178,11 @@ Function InstallModules
 
   If Err.Number = 0 Then
     WScript.StdOut.Write "Done!" & vbNewLine
+
+    Print "To complete installation of Excel-REST," & vbNewLine & _
+      "a reference to Microsoft Scripting Runtime needs to added:" & vbNewLine & vbNewLine & _
+      "From VBA, Tools > References > Select 'Microsoft Scripting Runtime'"
+
     InstallModules = True
   End If
 End Function
