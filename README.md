@@ -6,8 +6,9 @@ It seems like everything has a REST webservice these days and there is no reason
 Getting started
 ---------------
 
-1. Download the [latest release (v3.0.7)](https://github.com/timhall/Excel-REST/releases)
-2. To install in an existing file, run `install.bat` to walk through installation. To start from scratch, `Excel-REST - Blank.xlsm` has everything setup and ready to go.
+- Download the [latest release (v3.0.7)](https://github.com/timhall/Excel-REST/releases)
+- To install/upgrade in an existing file, run `install.bat` to walk through installation. 
+- To start from scratch, `Excel-REST - Blank.xlsm` has everything setup and ready to go.
 
 For more details see the [Wiki](https://github.com/timhall/Excel-REST/wiki)
 
