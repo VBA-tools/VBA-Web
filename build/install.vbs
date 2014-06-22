@@ -1,9 +1,12 @@
 ''
-' Install Excel-REST
+' Install v3.0.6
+' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
+' Install Excel-REST and authenticators
 ' Run: cscript install.vbs
 '
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' @author: tim.hall.engr@gmail.com
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
@@ -12,53 +15,243 @@ Set Args = WScript.Arguments
 
 Dim FSO
 Set FSO = CreateObject("Scripting.FileSystemObject")
+
 Dim Excel
 Dim ExcelWasOpen
 Set Excel = Nothing
+Dim Workbook
+Dim WorkbookWasOpen
+Set Workbook = Nothing
+Dim Path
+
+Dim ModulesFolder
+Dim AuthenticatorsFolder
+ModulesFolder = ".\src\"
+AuthenticatorsFolder = ".\authenticators\"
+
+Dim Modules
+Modules = Array( _
+  "RestHelpers.bas", _
+  "IAuthenticator.cls", _
+  "RestClient.cls", _
+  "RestRequest.cls", _
+  "RestResponse.cls" _
+)
+
+Dim Authenticators
+Authenticators = Array( _
+  "EmptyAuthenticator.cls", _
+  "HttpBasicAuthenticator.cls", _
+  "OAuth1Authenticator.cls", _
+  "OAuth2Authenticator.cls", _
+  "GoogleAuthenticator.cls", _
+  "TwitterAuthenticator.cls", _
+  "FacebookAuthenticator.cls", _
+  "DigestAuthenticator.cls" _
+)
 
 Main
 
 Sub Main()
   On Error Resume Next
 
-  Print "----------------------------------------------------------------" & vbNewLine & _
-    "Excel-REST" & vbNewLine & vbNewLine & _
-    "Welcome to the Excel-REST installer!" & vbNewLine & _
-    "This will walk you through installing Excel-REST in your project" & vbNewLine & _
-    "----------------------------------------------------------------" & vbNewLine
-
+  Print "Welcome to Excel-REST v3.0.6, let's get started!"
+  
   ExcelWasOpen = OpenExcel(Excel)
 
   If Not Excel Is Nothing Then
     Install
+
+    CloseExcel Excel, ExcelWasOpen
   ElseIf Err.Number <> 0 Then
-    Print "ERROR: Failed to open Excel" & vbNewLine & Err.Description
+    Print vbNewLine & "ERROR: Failed to open Excel" & vbNewLine & Err.Description
   End If
 
-  CloseExcel Excel, ExcelWasOpen
-
-  Input vbNewLine & "All Finished! Press Enter to exit..."
+  Input vbNewLine & "All finished, thanks for using Excel-REST! Press any key to exit..."
 End Sub
 
 Sub Install
-  Dim Path
-  Path = Input("In what Workbook that you would like to install Excel-REST?" & vbNewLine & "(e.g. C:\Users\Tim\DownloadStuff.xlsm)")
+  Dim Success
+  Path = Input(vbNewLine & _
+    "In what Workbook would you like to install or update Excel-REST?" & vbNewLine & _
+    "(e.g. C:\Users\Tim\DownloadStuff.xlsm)")
   Path = FullPath(Path)
 
-  Dim Workbook
-  Dim WorkbookWasOpen
-  Set Workbook = Nothing
   WorkbookWasOpen = OpenWorkbook(Excel, Path, Workbook)
 
   If Not Workbook Is Nothing Then
-    ' TODO Install
-  ElseIf Err.Number <> 0 Then
-    Print "ERROR: Failed to open Workbook" & vbNewLine & Err.Description
-  End If
+    If Not VBAIsTrusted(Workbook) Then
+      Print vbNewLine & _
+        "ERROR: In order to install Excel-REST," & vbNewLine & _
+        "access to the VBA project object model needs to be trusted in Excel." & vbNewLine & vbNewLine & _
+        "To enable:" & vbNewLine & _
+        "Options > Trust Center > Trust Center Settings > Macro Settings > " & vbnewLine & _
+        "Trust access to the VBA project object model"
+    Else
+      If Not AlreadyInstalled(Workbook) Then
+        Success = InstallModules
+      Else
+        Dim ShouldUpgrade
+        ShouldUpgrade = Input(vbNewLine & "Excel-REST appears to already be installed." & vbNewLine & vbNewLine & _
+          "Warning: The currently installed Excel-REST files will be removed" & vbNewLine & _
+          "and any previously made changes to those files will be lost" & vbNewLine & vbNewLine & _
+          "Would you like to upgrade to v3.0.6? [yes/no]")
 
-  CloseWorkbook Workbook, WorkbookWasOpen
+        If UCase(ShouldUpgrade) = "YES" Then
+          Success = InstallModules
+        Else
+          Success = True
+        End If
+      End If
+    End If
+
+    If Success Then
+      If UCase(Input(vbNewLine & "Would you like to install an authenticator (e.g. OAuth2)? [yes/no]")) = "YES" Then
+        InstallAuthenticator
+      End If
+    End If
+
+    CloseWorkbook Workbook, WorkbookWasOpen
+
+    If UCase(Input(vbNewLine & "Would you like to install Excel-REST in another Workbook? [yes/no]")) = "YES" Then
+      Install
+    End If
+  ElseIf Err.Number <> 0 Then
+    Print vbNewLine & "ERROR: Failed to open Workbook" & vbNewLine & Err.Description
+  End If
 End Sub
 
+Function InstallModules
+  On Error Resume Next
+  Dim i
+  Dim Module
+  Dim Backup
+  Dim Backups
+  ReDim Backups(UBound(Modules))
+
+  WScript.StdOut.Write vbNewLine & "Installing Excel-REST..."
+
+  For i = LBound(Modules) To UBound(Modules)
+    ' Check for existing module and create backup if found
+    Set Backups(i) = BackupModule(Workbook, RemoveExtension(Modules(i)), "backup__")
+    
+    If Err.Number <> 0 Then
+      WScript.StdOut.Write "ERROR" & vbNewLine
+      Print "Failed to backup previous version of Excel-REST" & vbNewLine & _
+        "Please manually remove any existing Excel-REST files and try again"
+      Exit For
+    Else
+      ' Import module
+      ImportModule Workbook, ModulesFolder, Modules(i)
+
+      If Err.Number <> 0 Then
+        WScript.StdOut.Write "ERROR" & vbNewLine
+        Print "Failed to install new version of Excel-REST" & vbNewLine & _
+          "Any existing Excel-REST files will be now be attempted to be restored."
+        Exit For
+      End If
+    End If
+  Next
+
+  If Err.Number <> 0 Then
+    Err.Clear
+
+    ' Restore backups
+    For i = LBound(Modules) To UBound(Modules)
+      RestoreModule Workbook, Modules(i), "backup__"
+    Next
+  Else
+    ' Remove backups
+    For i = LBound(Backups) To UBound(Backups)
+      If Not Backups(i) Is Nothing Then
+        Workbook.VBProject.VBComponents.Remove Backups(i)
+      End If
+    Next
+
+    If Err.Number <> 0 Then
+      WScript.StdOut.Write "ERROR" & vbNewLine
+      Print "Excel-REST installed correctly," & vbNewLine & _
+          "but failed to remove backups of the previous version" & vbNewLine & vbNewLine & _
+          "It is safe to remove these files manually (backup__...)"
+    End If
+  End If
+
+  If Err.Number = 0 Then
+    WScript.StdOut.Write "Done!" & vbNewLine
+    InstallModules = True
+  End If
+End Function
+
+Sub InstallAuthenticator
+  On Error Resume Next
+  Dim i
+  Dim Message
+  Dim Install
+  Dim Another
+  Dim Backup
+
+  Message = vbNewLine & "Which authenticator would you like to install?"
+  For i = LBound(Authenticators) To UBound(Authenticators)
+    Message = Message & vbNewLine & "- " & Replace(RemoveExtension(Authenticators(i)), "Authenticator", "")
+  Next
+
+  Install = Input(Message & vbNewLine & "[authenticator.../cancel]")
+  If Install <> "" And UCase(Install) <> "CANCEL" Then
+    For i = LBound(Authenticators) To UBound(Authenticators)
+      If UCase(Install) = UCase(Replace(RemoveExtension(Authenticators(i)), "Authenticator", "")) Then
+        WScript.StdOut.Write vbNewLine & "Installing " & Authenticators(i) & "..."
+
+        Set Backup = BackupModule(Workbook, Authenticators(i), "backup__")
+
+        If Err.Number <> 0 Then
+          Err.Clear
+          WScript.StdOut.Write "ERROR" & vbNewLine
+          Print "Failed to backup previous version of " & Authenticators(i) & vbNewLine & _
+            "Please manually remove it and try again"
+        Else
+          ImportModule Workbook, AuthenticatorsFolder, Authenticators(i)
+
+          If Err.Number <> 0 Then
+            Err.Clear
+            WScript.StdOut.Write "ERROR" & vbNewLine
+            Print "Failed to install new version of " & Authenticators(i) & vbNewLine & Err.Description
+
+            RestoreModule Workbook, Authenticators(i), "backup__"
+          Else
+            If Not Backup Is Nothing Then
+              Workbook.VBProject.VBComponents.Remove Backup
+            End If
+
+            If Err.Number <> 0 Then
+              WScript.StdOut.Write "ERROR" & vbNewLine
+              Print "Authenticator installed correctly," & vbNewLine & _
+                  "but failed to remove the backup of the previous version" & vbNewLine & vbNewLine & _
+                  "It is safe to remove this file manually (backup__...)"
+            Else
+              WScript.StdOut.Write "Done!" & vbNewLine
+              Another = Input(vbNewLine & "Would you like to install another authenticator? [yes/no]")
+              If UCase(Another) = "YES" Then
+                InstallAuthenticator
+              End If
+            End If
+          End If  
+        End If
+      End If
+    Next
+  End If
+End Sub
+
+Function AlreadyInstalled(ByRef Workbook)
+  Dim i
+  Dim Module
+  For i = LBound(Modules) To UBound(Modules)
+    Set Module = GetModule(Workbook, RemoveExtension(Modules(i)))
+    If Not Module Is Nothing Then
+      AlreadyInstalled = True
+      Exit Function
+    End If
+  Next
+End Function
 
 ''
 ' Excel helpers
@@ -83,14 +276,13 @@ Function OpenWorkbook(Excel, Path, ByRef Workbook)
     If FileExists(Path) Then
       Set Workbook = Excel.Workbooks.Open(Path)
     Else
-      Print "Workbook not found at " & Path
-      ' TODO Create workbook if it doesn't exist
-      'Dim CreateWorkbook
-      'CreateWorkbook = Input("Workbook not found at " & Path & vbNewLine & "Would you like to create it, yes or no? (yes)")
-      '
-      'If UCase(CreateWorkbook) = "YES" Or CreateWorkbook = "" Then
-      '  Print "Create workbook..."
-      'End If
+      Path = Input(vbNewLine & _
+        "Workbook not found at " & Path & vbNewLine & _
+        "Would you like to try another location? [path.../cancel]")
+
+      If UCase(Path) <> "CANCEL" And Path <> "" Then
+        OpenWorkbook = OpenWorkbook(Excel, Path, Workbook)
+      End If
     End If
     OpenWorkbook = False
   Else
@@ -143,6 +335,108 @@ Sub CloseExcel(ByRef Excel, KeepExcelOpen)
   End If
 
   Set Excel = Nothing
+End Sub
+
+''
+' Check if VBA is trusted
+'
+' @param {Object} Workbook
+' @param {Boolean}
+Function VBAIsTrusted(Workbook)
+  On Error Resume Next
+  Dim Count
+  Count = Workbook.VBProject.VBComponents.Count
+
+  If Err.Number <> 0 Then
+    Err.Clear
+    VBAIsTrusted = False
+  Else
+    VBAIsTrusted = True
+  End If
+End Function
+
+''
+' Get module
+'
+' @param {Object} Workbook
+' @param {String} Name
+Function GetModule(Workbook, Name)
+  Dim Module
+  Set GetModule = Nothing
+
+  For Each Module In Workbook.VBProject.VBComponents
+    If Module.Name = Name Then
+      Set GetModule = Module
+      Exit Function
+    End If
+  Next
+End Function
+
+''
+' Import module
+'
+' @param {Object} Workbook
+' @param {String} Folder
+' @param {String} Filename
+Sub ImportModule(Workbook, Folder, Filename)
+  Dim Module
+  If Not Workbook Is Nothing Then
+    ' Check for existing and remove
+    Set Module = GetModule(Workbook, RemoveExtension(Filename))
+    If Not Module Is Nothing Then
+      Workbook.VBProject.VBComponents.Remove Module
+    End If
+
+    ' Import module
+    Workbook.VBProject.VBComponents.Import FullPath(Folder & Filename)
+  End If
+End Sub
+
+''
+' Get module and backup (if found)
+'
+' @param {Object} Workbook
+' @param {String} Name
+' @param {String} Prefix
+Function BackupModule(Workbook, Name, Prefix)
+  Dim Backup
+  Dim Existing
+  Set Backup = GetModule(Workbook, Name)
+
+  If Not Backup Is Nothing Then
+    ' Remove any previous backups
+    Set Existing = GetModule(Workbook, Prefix & Name)
+    If Not Existing Is Nothing Then
+      Workbook.VBProject.VBComponents.Remove Existing
+    End If
+
+    Backup.Name = Prefix & Name
+  End If
+
+  Set BackupModule = Backup
+End Function
+
+''
+' Restore module from backup (if found)
+'
+' @param {Object} Workbook
+' @param {String} Name
+' @param {String} Prefix
+Sub RestoreModule(Workbook, Name, Prefix)
+  Dim Backup
+  Dim Module
+  Set Backup = GetModule(Workbook, Prefix & Name)
+
+  If Not Backup Is Nothing Then
+    ' Find upgraded module (and remove if found)
+    Set Module = GetModule(Workbook, Name)
+    If Not Module Is Nothing Then
+      Workbook.VBProject.VBComponents.Remove Module
+    End If
+
+    ' Restore backup
+    Backup.Name = Name
+  End If
 End Sub
 
 ''
