@@ -184,7 +184,7 @@ Public Function Specs() As SpecSuite
         B.Add "c", "Howdy!"
         B.Add "d & e", "A + B"
         
-        Encoded = RestHelpers.DictionariesToUrlEncodedString(A, B)
+        Encoded = RestHelpers.ConvertToUrlEncoded(RestHelpers.CombineObjects(A, B))
         .Expect(Encoded).ToEqual "a=1&b=4.14&c=Howdy%21&d+%26+e=A+%2B+B"
     End With
     
