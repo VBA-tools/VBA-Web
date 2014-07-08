@@ -187,12 +187,12 @@ Public Sub ExtractAuthenticateInformation(Response As RestResponse)
 End Sub
 
 Public Function CalculateHA1() As String
-    CalculateHA1 = MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
+    CalculateHA1 = RestHelpers.MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
     RestHelpers.LogDebug CalculateHA1 & " for " & Me.Username & ":" & Me.Realm & ":" & RestHelpers.Obfuscate(Me.Password), "DigestAuthenticator.CalculateHA1"
 End Function
 
 Public Function CalculateHA2(Method As String, Uri As String) As String
-    CalculateHA2 = MD5(Method & ":" & Uri)
+    CalculateHA2 = RestHelpers.MD5(Method & ":" & Uri)
     RestHelpers.LogDebug CalculateHA2 & " for " & Method & ":" & Uri, "DigestAuthenticator.CalculateHA2"
 End Function
 

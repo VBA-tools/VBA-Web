@@ -134,7 +134,7 @@ Private Function TokenRequest() As RestRequest
     ' Based on documentation:
     ' 1. Pass in Base64 encoded ConsumerKey and ConsumerSecret
     TokenRequest.AddHeader "Authorization", _
-        "Basic " & RestHelpers.EncodeStringToBase64(Me.ConsumerKey & ":" & Me.ConsumerSecret)
+        "Basic " & RestHelpers.Base64Encode(Me.ConsumerKey & ":" & Me.ConsumerSecret)
 
     ' 2. Include grant_type in body
     TokenRequest.AddBodyString "grant_type=client_credentials"

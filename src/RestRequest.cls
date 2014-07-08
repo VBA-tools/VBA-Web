@@ -133,9 +133,9 @@ Public Property Get FormattedResource() As String
             
             ' Only load parameters to querystring if GET request (otherwise they are added to the body)
             If Me.Method = httpGET Then
-                FormattedResource = FormattedResource & RestHelpers.DictionariesToUrlEncodedString(Me.Parameters, Me.QuerystringParams)
+                FormattedResource = FormattedResource & RestHelpers.ConvertToUrlEncoded(RestHelpers.CombineObjects(Me.Parameters, Me.QuerystringParams))
             Else
-                FormattedResource = FormattedResource & RestHelpers.DictionariesToUrlEncodedString(Me.QuerystringParams)
+                FormattedResource = FormattedResource & RestHelpers.ConvertToUrlEncoded(Me.QuerystringParams)
             End If
         End If
     End If

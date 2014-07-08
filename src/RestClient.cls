@@ -109,8 +109,8 @@ Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestRe
     Dim Request As RestRequest
     Set Request = RestHelpers.CreateRequestFromOptions(Options)
     Request.Resource = Url
-    Request.Format = json
-    Request.Method = httpGET
+    Request.Format = AvailableFormats.json
+    Request.Method = AvailableMethods.httpGET
     
     RestHelpers.LogDebug Request.FullUrl(Me.BaseUrl), "RestClient.GetJSON"
     Set GetJSON = Me.Execute(Request)
@@ -133,8 +133,8 @@ Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dic
     Dim Request As RestRequest
     Set Request = RestHelpers.CreateRequestFromOptions(Options)
     Request.Resource = Url
-    Request.Format = json
-    Request.Method = httpPOST
+    Request.Format = AvailableFormats.json
+    Request.Method = AvailableMethods.httpPOST
     Request.AddBody Body
     
     RestHelpers.LogDebug Request.FullUrl(Me.BaseUrl), "RestClient.PostJSON"

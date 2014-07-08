@@ -79,7 +79,6 @@ Public Property Get LoginUrl() As String
     ' Use Request for Url helpers
     Dim Request As New RestRequest
     Request.Resource = AuthorizationUrl
-    Request.IncludeCacheBreaker = False
     
     Request.AddQuerystringParam "redirect_uri", RedirectUri
     Request.AddQuerystringParam "client_id", Me.ClientId
@@ -350,8 +349,8 @@ End Sub
 Private Function TokenRequest() As RestRequest
     Set TokenRequest = New RestRequest
     TokenRequest.Resource = "o/oauth2/token"
-    TokenRequest.Method = httpPOST
-    TokenRequest.Format = formurlencoded
+    TokenRequest.Method = AvailableMethods.httpPOST
+    TokenRequest.Format = AvailableFormats.formurlencoded
     
     TokenRequest.AddParameter "code", Me.AuthorizationCode
     TokenRequest.AddParameter "client_id", Me.ClientId
@@ -362,9 +361,6 @@ End Function
 
 Private Function OAuthIsComplete(IE As Object) As Boolean
     If Not IE.Busy And IE.readyState = 4 Then
-        Dim UrlParts As Dictionary
-        Set UrlParts = RestHelpers.UrlParts(IE.LocationURL)
-        
         OAuthIsComplete = OAuthIsApproval(IE) Or OAuthIsError(IE)
     End If
 End Function
@@ -403,9 +399,6 @@ Private Function OAuthIsError(IE As Object) As Boolean
 End Function
 
 Private Function OAuthExtractCode(IE As Object) As String
-    Dim UrlParts As Dictionary
-    Set UrlParts = RestHelpers.UrlParts(IE.LocationURL)
-    
     If OAuthIsApproval(IE) Then
         ' Extract authorization code
         Dim Document As Object
