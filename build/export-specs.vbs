@@ -29,9 +29,11 @@ Modules = Array(_
   "RestClientAsyncSpecs.bas", _
   "RestRequestSpecs.bas", _
   "RestHelpersSpecs.bas", _
+  "AuthenticatorSpecs", _
   "DigestAuthenticatorSpecs.bas", _
   "GoogleAuthenticatorSpecs.bas", _
-  "OAuth1AuthenticatorSpecs.bas" _
+  "OAuth1AuthenticatorSpecs.bas", _
+  "SpecAuthenticator.cls" _
 )
 
 If WBPath <> "" And OutputPath <> "" Then

@@ -58,7 +58,9 @@ function standardResponse(req, res) {
     query: req.query,
     headers: {
       'content-type': req.get('content-type'),
-      'custom': req.get('custom')
+      'custom': req.get('custom'),
+      'custom-a': req.get('custom-a'),
+      'custom-b': req.get('custom-b')
     },
     body: req.text || req.body,
     cookies: req.cookies,
