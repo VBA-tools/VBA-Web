@@ -570,19 +570,6 @@ Public Function PrepareHttpRequest(Request As RestRequest, TimeoutMS As Long, _
     ' Set timeouts
     Http.setTimeouts TimeoutMS, TimeoutMS, TimeoutMS, TimeoutMS
     
-    ' Add general headers to request
-    Request.AddHeader "User-Agent", UserAgent
-    Request.AddHeader "Content-Type", Request.ContentType
-    
-    If Request.IncludeContentLength Then
-        Request.AddHeader "Content-Length", Request.ContentLength
-        LogDebug "Content-Length: " & Request.ContentLength, "RestHelpers.PrepareHttpRequest"
-    Else
-        If Request.Headers.Exists("Content-Length") Then
-            Request.Headers.Remove "Content-Length"
-        End If
-    End If
-    
     ' Pass http to request and setup onreadystatechange
     If UseAsync Then
         Set Request.HttpRequest = Http
@@ -621,6 +608,19 @@ End Sub
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
 Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
+    ' Add general headers to request
+    Request.AddHeader "User-Agent", UserAgent
+    Request.AddHeader "Content-Type", Request.ContentType
+    
+    If Request.IncludeContentLength Then
+        Request.AddHeader "Content-Length", Request.ContentLength
+        LogDebug "Content-Length: " & Request.ContentLength, "RestHelpers.PrepareHttpRequest"
+    Else
+        If Request.Headers.Exists("Content-Length") Then
+            Request.Headers.Remove "Content-Length"
+        End If
+    End If
+
     Dim HeaderKey As Variant
     For Each HeaderKey In Request.Headers.Keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)

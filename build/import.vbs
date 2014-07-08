@@ -43,8 +43,11 @@ If Args.Length > 1 Then
       "RestClientSpecs.bas", _
       "RestHelpersSpecs.bas", _
       "RestRequestSpecs.bas", _
+      "AuthenticatorSpecs.bas", _
       "DigestAuthenticatorSpecs.bas", _
-      "GoogleAuthenticatorSpecs.bas" _
+      "GoogleAuthenticatorSpecs.bas", _
+      "OAuth1AuthenticatorSpecs.bas", _
+      "SpecAuthenticator.cls" _
     )
     Folder = ".\specs\"
   End If
