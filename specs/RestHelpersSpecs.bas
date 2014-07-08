@@ -14,6 +14,16 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "RestHelpers"
     
+    ' Contents:
+    ' 1. Logging
+    ' 2. Converters and encoding
+    ' 3. Url handling
+    ' 4. Object/Dictionary/Collection helpers
+    ' 5. Request preparation / handling
+    ' 6. Timing
+    ' 7. Cryptography
+    ' --------------------------------------------- '
+    
     Dim json As String
     Dim Parsed As Object
     Dim Obj As Object
@@ -32,6 +42,10 @@ Public Function Specs() As SpecSuite
     Dim Request As RestRequest
     Dim Response As RestResponse
     Dim UpdatedResponse As RestResponse
+    
+    ' ============================================= '
+    ' 2. Converters and encoding
+    ' ============================================= '
     
     With Specs.It("should parse json")
         json = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
@@ -127,51 +141,8 @@ Public Function Specs() As SpecSuite
         .Expect(RestHelpers.UrlDecode("A+%2B+B")).ToEqual "A + B"
     End With
     
-    With Specs.It("should join url with /")
-        .Expect(RestHelpers.JoinUrl("a", "b")).ToEqual "a/b"
-        .Expect(RestHelpers.JoinUrl("a/", "b")).ToEqual "a/b"
-        .Expect(RestHelpers.JoinUrl("a", "/b")).ToEqual "a/b"
-        .Expect(RestHelpers.JoinUrl("a/", "/b")).ToEqual "a/b"
-    End With
-    
-    With Specs.It("should not join blank urls with /")
-        .Expect(RestHelpers.JoinUrl("", "b")).ToEqual "b"
-        .Expect(RestHelpers.JoinUrl("a", "")).ToEqual "a"
-    End With
-    
-    With Specs.It("should combine objects, with overwrite option")
-        Set A = New Dictionary
-        Set B = New Dictionary
-        
-        A.Add "a", 1
-        A.Add "b", 3.14
-        B.Add "b", 4.14
-        B.Add "c", "Howdy!"
-        
-        Set Combined = RestHelpers.CombineObjects(A, B)
-        .Expect(Combined("a")).ToEqual 1
-        .Expect(Combined("b")).ToEqual 4.14
-        .Expect(Combined("c")).ToEqual "Howdy!"
-        
-        Set Combined = RestHelpers.CombineObjects(A, B, OverwriteOriginal:=False)
-        .Expect(Combined("a")).ToEqual 1
-        .Expect(Combined("b")).ToEqual 3.14
-        .Expect(Combined("c")).ToEqual "Howdy!"
-    End With
-    
-    With Specs.It("should filter object by whitelist")
-        Set Obj = New Dictionary
-        Obj.Add "a", 1
-        Obj.Add "b", 3.14
-        Obj.Add "dangerous", "Howdy!"
-        
-        Whitelist = Array("a", "b")
-        
-        Set Filtered = RestHelpers.FilterObject(Obj, Whitelist)
-        .Expect(Obj.Exists("dangerous")).ToEqual True
-        .Expect(Filtered.Exists("a")).ToEqual True
-        .Expect(Filtered.Exists("b")).ToEqual True
-        .Expect(Filtered.Exists("dangerous")).ToEqual False
+    With Specs.It("should encode string to base64")
+        .Expect(RestHelpers.Base64Encode("Howdy!")).ToEqual "SG93ZHkh"
     End With
     
     With Specs.It("should combine and convert parameters to url-encoded string")
@@ -195,6 +166,22 @@ Public Function Specs() As SpecSuite
         .Expect(Parsed("b")).ToEqual "3.14"
         .Expect(Parsed("c")).ToEqual "Howdy!"
         .Expect(Parsed("d & e")).ToEqual "A + B"
+    End With
+    
+    ' ============================================= '
+    ' 3. Url handling
+    ' ============================================= '
+    
+    With Specs.It("should join url with /")
+        .Expect(RestHelpers.JoinUrl("a", "b")).ToEqual "a/b"
+        .Expect(RestHelpers.JoinUrl("a/", "b")).ToEqual "a/b"
+        .Expect(RestHelpers.JoinUrl("a", "/b")).ToEqual "a/b"
+        .Expect(RestHelpers.JoinUrl("a/", "/b")).ToEqual "a/b"
+    End With
+    
+    With Specs.It("should not join blank urls with /")
+        .Expect(RestHelpers.JoinUrl("", "b")).ToEqual "b"
+        .Expect(RestHelpers.JoinUrl("a", "")).ToEqual "a"
     End With
     
     With Specs.It("should identify protocols")
@@ -231,6 +218,49 @@ Public Function Specs() As SpecSuite
         .Expect(Parts("Querystring")).ToEqual "?arg=0-a&arg1=1-b&arg3-c"
         .Expect(Parts("Hash")).ToEqual "#hash"
     End With
+    
+    ' ============================================= '
+    ' 4. Object/Dictionary/Collection helpers
+    ' ============================================= '
+    
+    With Specs.It("should combine objects, with overwrite option")
+        Set A = New Dictionary
+        Set B = New Dictionary
+        
+        A.Add "a", 1
+        A.Add "b", 3.14
+        B.Add "b", 4.14
+        B.Add "c", "Howdy!"
+        
+        Set Combined = RestHelpers.CombineObjects(A, B)
+        .Expect(Combined("a")).ToEqual 1
+        .Expect(Combined("b")).ToEqual 4.14
+        .Expect(Combined("c")).ToEqual "Howdy!"
+        
+        Set Combined = RestHelpers.CombineObjects(A, B, OverwriteOriginal:=False)
+        .Expect(Combined("a")).ToEqual 1
+        .Expect(Combined("b")).ToEqual 3.14
+        .Expect(Combined("c")).ToEqual "Howdy!"
+    End With
+    
+    With Specs.It("should filter object by whitelist")
+        Set Obj = New Dictionary
+        Obj.Add "a", 1
+        Obj.Add "b", 3.14
+        Obj.Add "dangerous", "Howdy!"
+        
+        Whitelist = Array("a", "b")
+        
+        Set Filtered = RestHelpers.FilterObject(Obj, Whitelist)
+        .Expect(Obj.Exists("dangerous")).ToEqual True
+        .Expect(Filtered.Exists("a")).ToEqual True
+        .Expect(Filtered.Exists("b")).ToEqual True
+        .Expect(Filtered.Exists("dangerous")).ToEqual False
+    End With
+    
+    ' ============================================= '
+    ' 5. Request preparation / handling
+    ' ============================================= '
     
     With Specs.It("should extract headers from response headers")
         ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
@@ -333,9 +363,9 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Content).ToEqual "Ok"
     End With
     
-    With Specs.It("should encode string to base64")
-        .Expect(RestHelpers.EncodeStringToBase64("Howdy!")).ToEqual "SG93ZHkh"
-    End With
+    ' ============================================= '
+    ' 7. Cryptography
+    ' ============================================= '
     
     With Specs.It("should create Nonce of specified length")
         .Expect(Len(RestHelpers.CreateNonce)).ToEqual 32

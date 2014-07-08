@@ -175,7 +175,7 @@ Public Function CreateHeader(Client As RestClient, Request As RestRequest) As St
     ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
     Header = Header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34) & ", "
     Header = Header & "oauth_nonce=" & Chr(34) & Nonce & Chr(34) & ", "
-    Header = Header & "oauth_signature=" & Chr(34) & UrlEncode(signature) & Chr(34) & ", "
+    Header = Header & "oauth_signature=" & Chr(34) & RestHelpers.UrlEncode(signature) & Chr(34) & ", "
     Header = Header & "oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34) & ", "
     Header = Header & "oauth_timestamp=" & Chr(34) & Timestamp & Chr(34) & ", "
     Header = Header & "oauth_token=" & Chr(34) & Me.Token & Chr(34) & ", "
@@ -255,7 +255,7 @@ Public Function CreateSigningKey() As String
 End Function
 
 Public Function CreateSignature(base As String, signingKey As String) As String
-    CreateSignature = RestHelpers.Base64_HMACSHA1(base, signingKey)
+    CreateSignature = RestHelpers.HMACSHA1(base, signingKey, "Base64")
     RestHelpers.LogDebug CreateSignature, "OAuth1Authenticator.CreateSignature"
 End Function
 

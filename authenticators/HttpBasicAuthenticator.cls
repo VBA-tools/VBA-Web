@@ -92,6 +92,6 @@ End Sub
 Private Function CreateHeader() As String
     ' Create Basic Auth request header
     Dim Header As String
-    Header = "Basic " & EncodeStringToBase64(Me.Username & ":" & Me.Password)
+    Header = "Basic " & RestHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     CreateHeader = Header
 End Function

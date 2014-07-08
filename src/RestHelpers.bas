@@ -121,20 +121,22 @@ End Sub
 
 ''
 ' Log request
+' TODO
 '
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
 Public Sub LogRequest(Request As RestRequest, Client As RestClient, Http As Object)
-    
+    ' TODO
 End Sub
 
 ''
 ' Log response
+' TODO
 '
 ' @param {RestResponse} Response
 ' --------------------------------------------- '
 Public Sub LogResponse(Response As RestResponse, Request As RestRequest, Client As RestClient, Http As Object)
-    
+    ' TODO
 End Sub
 
 ''
@@ -260,18 +262,18 @@ Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Vari
 End Function
 
 ''
-' Url Encode the given string
+' Url encode the given string
 '
-' @param {Variant} rawVal The raw string to encode
-' @param {Boolean} [spaceAsPlus=False] Use plus sign for encoded spaces (otherwise %20)
+' @param {Variant} Text The raw string to encode
+' @param {Boolean} [SpaceAsPlus = False] Use plus sign for encoded spaces (otherwise %20)
 ' @return {String} Encoded string
 ' --------------------------------------------- '
-Public Function UrlEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = False) As String
-    Dim urlVal As String
+Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False) As String
+    Dim UrlVal As String
     Dim StringLen As Long
     
-    urlVal = CStr(rawVal)
-    StringLen = Len(urlVal)
+    UrlVal = CStr(Text)
+    StringLen = Len(UrlVal)
     
     If StringLen > 0 Then
         ReDim Result(StringLen) As String
@@ -288,7 +290,7 @@ Public Function UrlEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = F
         ' Loop through string characters
         For i = 1 To StringLen
             ' Get character and ascii code
-            char = Mid$(urlVal, i, 1)
+            char = Mid$(UrlVal, i, 1)
             charCode = asc(char)
             Select Case charCode
                 Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
@@ -310,14 +312,14 @@ Public Function UrlEncode(rawVal As Variant, Optional SpaceAsPlus As Boolean = F
 End Function
 
 ''
-' Url Decode the given encoded string
+' Url decode the given encoded string
 '
-' @param {String} EncodedString
+' @param {String} Encoded
 ' @return {String} Decoded string
 ' --------------------------------------------- '
-Public Function UrlDecode(EncodedString As String) As String
+Public Function UrlDecode(Encoded As String) As String
     Dim StringLen As Long
-    StringLen = Len(EncodedString)
+    StringLen = Len(Encoded)
     
     If StringLen > 0 Then
         Dim i As Long
@@ -325,12 +327,12 @@ Public Function UrlDecode(EncodedString As String) As String
         Dim Temp As String
         
         For i = 1 To StringLen
-            Temp = Mid$(EncodedString, i, 1)
+            Temp = Mid$(Encoded, i, 1)
             
             If Temp = "+" Then
                 Temp = " "
             ElseIf Temp = "%" And StringLen >= i + 2 Then
-                Temp = Mid$(EncodedString, i + 1, 2)
+                Temp = Mid$(Encoded, i + 1, 2)
                 Temp = Chr(CDec("&H" & Temp))
                 
                 i = i + 2
@@ -341,6 +343,16 @@ Public Function UrlDecode(EncodedString As String) As String
         
         UrlDecode = Result
     End If
+End Function
+
+''
+' Url encode the given string
+'
+' @param {Variant} Text The raw string to encode
+' @return {String} Encoded string
+' --------------------------------------------- '
+Public Function Base64Encode(Text As String) As String
+    Base64Encode = Replace(BytesToBase64(StringToBytes(Text)), vbLf, "")
 End Function
 
 ' ============================================= '
@@ -433,7 +445,7 @@ Public Function UrlParts(Url As String) As Dictionary
     Parts.Add "Port", ElHelper.port
     Parts.Add "Uri", "/" & ElHelper.pathname
     Parts.Add "Querystring", ElHelper.Search
-    Parts.Add "Hash", ElHelper.hash
+    Parts.Add "Hash", ElHelper.Hash
     
     If Parts("Protocol") = ":" Or Parts("Protocol") = "localhost:" Then
         Parts("Protocol") = ""
@@ -914,38 +926,86 @@ End Sub
 ' ============================================= '
 
 ''
-' Generate a keyed hash value using the HMAC method and SHA1 algorithm
+' Perform HMAC-SHA1 on string and return as Hex or Base64
 ' [Does VBA have a Hash_HMAC](http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac)
 '
-' @param {String} sTextToHash
-' @param {String} sSharedSecretKey
-' @return {String}
+' @param {String} Text
+' @param {String} Secret
+' @param {String} [Format = Hex] Hex or Base64
+' @return {String} HMAC-SHA1
 ' --------------------------------------------- '
-Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey As String) As String
-    Dim asc As Object, enc As Object
-    Dim TextToHash() As Byte
-    Dim SharedSecretKey() As Byte
-    Set asc = CreateObject("System.Text.UTF8Encoding")
-    Set enc = CreateObject("System.Security.Cryptography.HMACSHA1")
-
-    TextToHash = asc.Getbytes_4(sTextToHash)
-    SharedSecretKey = asc.Getbytes_4(sSharedSecretKey)
-    enc.Key = SharedSecretKey
-
-    Dim bytes() As Byte
-    bytes = enc.ComputeHash_2((TextToHash))
-    Base64_HMACSHA1 = EncodeBase64(bytes)
-    Set asc = Nothing
-    Set enc = Nothing
+Public Function HMACSHA1(Text As String, Secret As String, Optional Format As String = "Hex") As String
+    HMACSHA1 = BytesToFormat(HMACSHA1AsBytes(Text, Secret), Format)
 End Function
 
 ''
-' Base64 encode data
+' Perform HMAC-SHA256 on string and return as Hex or Base64
 '
-' @param {Byte Array} arrData
-' @return {String} Encoded string
+' @param {String} Text
+' @param {String} Secret
+' @param {String} [Format = Hex] Hex or Base64
+' @return {String} HMAC-SHA256
 ' --------------------------------------------- '
-Public Function EncodeBase64(ByRef Data() As Byte) As String
+Public Function HMACSHA256(Text As String, Secret As String, Optional Format As String = "Hex") As String
+    HMACSHA256 = BytesToFormat(HMACSHA256AsBytes(Text, Secret), Format)
+End Function
+
+''
+' Perform MD5 Hash on string and return as Hex or Base64
+' Source: http://www.di-mgt.com.au/src/basMD5.bas.html
+'
+' @param {String} Text
+' @param {String} [Format = Hex] Hex or Base64
+' @return {String} MD5 Hash
+' --------------------------------------------- '
+Public Function MD5(Text As String, Optional Format As String = "Hex") As String
+    MD5 = BytesToFormat(MD5AsBytes(Text), Format)
+End Function
+
+Public Function HMACSHA1AsBytes(Text As String, Secret As String) As Byte()
+    Dim Crypto As Object
+    Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
+    
+    Crypto.Key = StringToBytes(Secret)
+    HMACSHA1AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+End Function
+
+Public Function HMACSHA256AsBytes(Text As String, Secret As String) As Byte()
+    Dim Crypto As Object
+    Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
+    
+    Crypto.Key = StringToBytes(Secret)
+    HMACSHA1AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+End Function
+
+Public Function MD5AsBytes(Text As String) As Byte()
+    Dim Crypto As Object
+    Set Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
+    
+    MD5AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+End Function
+
+''
+' Convert string to bytes
+'
+' @param {String} Text
+' @return {Byte()}
+' --------------------------------------------- '
+Public Function StringToBytes(Text As String) As Byte()
+    Dim Encoding As Object
+    Set Encoding = CreateObject("System.Text.UTF8Encoding")
+    
+    StringToBytes = Encoding.Getbytes_4(Text)
+End Function
+
+Public Function BytesToHex(Bytes() As Byte) As String
+    Dim i As Integer
+    For i = LBound(Bytes) To UBound(Bytes)
+        BytesToHex = BytesToHex & LCase(Right("0" & Hex$(Bytes(i)), 2))
+    Next i
+End Function
+
+Public Function BytesToBase64(Bytes() As Byte) As String
     Dim XML As Object
     Dim Node As Object
     Set XML = CreateObject("MSXML2.DOMDocument")
@@ -953,26 +1013,65 @@ Public Function EncodeBase64(ByRef Data() As Byte) As String
     ' byte array to base64
     Set Node = XML.createElement("b64")
     Node.DataType = "bin.base64"
-    Node.nodeTypedValue = Data
-    EncodeBase64 = Node.Text
+    Node.nodeTypedValue = Bytes
+    BytesToBase64 = Node.Text
 
     Set Node = Nothing
     Set XML = Nothing
 End Function
 
 ''
+' Convert bytes to given format (Hex or Base64)
+'
+' @param {Byte()} Bytes
+' @param {String} Format (Hex or Base64)
+' @return {String}
+' --------------------------------------------- '
+Public Function BytesToFormat(Bytes() As Byte, Format As String) As String
+    Select Case UCase(Format)
+    Case "HEX"
+        BytesToFormat = BytesToHex(Bytes)
+    Case "BASE64"
+        BytesToFormat = BytesToBase64(Bytes)
+    End Select
+End Function
+
+''
+' Generate a keyed hash value using the HMAC method and SHA1 algorithm
+' [Does VBA have a Hash_HMAC](http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac)
+'
+' @deprecated
+' @param {String} sTextToHash
+' @param {String} sSharedSecretKey
+' @return {String}
+' --------------------------------------------- '
+Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey As String) As String
+    Debug.Print "Excel-REST: DEPRECATED Base64_HMACSHA1 has been deprecated in favor of HMACSHA1(Text, Secret, ""Base64""). It will be removed in Excel-REST v4"
+    Base64_HMACSHA1 = HMACSHA1(sTextToHash, sSharedSecretKey, "Base64")
+End Function
+
+''
+' Base64 encode data
+'
+' @deprecated
+' @param {Byte()} Data
+' @return {String} Encoded string
+' --------------------------------------------- '
+Public Function EncodeBase64(ByRef Data() As Byte) As String
+    Debug.Print "Excel-REST: DEPRECATED EncodeBase64 has been deprecated in favor of BytesToBase64. It will be removed in Excel-REST v4"
+    EncodeBase64 = BytesToBase64(Data)
+End Function
+
+''
 ' Base64 encode string value
 '
+' @deprecated
 ' @param {String} Data
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 Public Function EncodeStringToBase64(ByVal Data As String) As String
-    Dim asc As Object
-    Dim bytes() As Byte
-    Set asc = CreateObject("System.Text.UTF8Encoding")
-    bytes = asc.Getbytes_4(Data)
-    EncodeStringToBase64 = Replace(EncodeBase64(bytes), vbLf, "")
-    Set asc = Nothing
+    Debug.Print "Excel-REST: DEPRECATED EncodeStringToBase64 has been deprecated in favor of Base64Encode. It will be removed in Excel-REST v4"
+    EncodeStringToBase64 = Base64Encode(Data)
 End Function
 
 ''
@@ -995,31 +1094,6 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
         Result = Result + Mid$(str, random, 1)
     Next
     CreateNonce = Result
-End Function
-
-''
-' Perform MD5 Hash on string
-' Source: http://www.di-mgt.com.au/src/basMD5.bas.html
-'
-' @param {String} Text
-' @return {String} 32-char Hex MD5 Hash
-' --------------------------------------------- '
-Public Function MD5(Text As String) As String
-    Dim Encoding As Object
-    Dim MD5Crypto As Object
-    Set Encoding = CreateObject("System.Text.UTF8Encoding")
-    Set MD5Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
-    
-    Dim TextBytes() As Byte
-    TextBytes = Encoding.Getbytes_4(Text)
-    
-    Dim HashedBytes() As Byte
-    HashedBytes = MD5Crypto.ComputeHash_2(TextBytes)
-    
-    Dim i As Integer
-    For i = LBound(HashedBytes) To UBound(HashedBytes)
-        MD5 = MD5 & LCase(Right("0" & Hex$(HashedBytes(i)), 2))
-    Next i
 End Function
 
 ' ======================================================================================== '
