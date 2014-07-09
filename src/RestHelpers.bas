@@ -201,7 +201,7 @@ End Function
 ''
 ' Convert object to JSON string
 '
-' @param {Object}
+' @param {Variant} Obj
 ' @return {String}
 ' --------------------------------------------- '
 Public Function ConvertToJSON(Obj As Variant) As String
@@ -291,6 +291,38 @@ Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Vari
     Next i
     
     DictionariesToUrlEncodedString = ConvertToUrlEncoded(Combined)
+End Function
+
+''
+' Parse given string into object (Dictionary or Collection) for given format
+'
+' @param {String} Value
+' @param {AvailableFormats} Format
+' @return {Object}
+' --------------------------------------------- '
+Public Function ParseByFormat(Value As String, Format As AvailableFormats) As Object
+    Select Case Format
+    Case AvailableFormats.json
+        Set ParseByFormat = ParseJSON(Value)
+    Case AvailableFormats.formurlencoded
+        Set ParseByFormat = ParseUrlEncoded(Value)
+    End Select
+End Function
+
+''
+' Convert object to given format
+'
+' @param {Variant} Obj
+' @param {AvailableFormats} Format
+' @return {String}
+' --------------------------------------------- '
+Public Function ConvertToFormat(Obj As Variant, Format As AvailableFormats) As String
+    Select Case Format
+    Case AvailableFormats.json
+        ConvertToFormat = ConvertToJSON(Obj)
+    Case AvailableFormats.formurlencoded
+        ConvertToFormat = ConvertToUrlEncoded(Obj)
+    End Select
 End Function
 
 ''
@@ -643,6 +675,7 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     ' Add general headers to request
     Request.AddHeader "User-Agent", UserAgent
     Request.AddHeader "Content-Type", Request.ContentType
+    Request.AddHeader "Accept", Request.Accept
     
     If Request.IncludeContentLength Then
         Request.AddHeader "Content-Length", Request.ContentLength
@@ -677,7 +710,7 @@ Public Function ExecuteRequest(ByRef Http As Object, ByRef Request As RestReques
     ' Send the request and handle response
     LogRequest Request
     Http.Send Request.Body
-    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.Format)
+    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
     LogResponse Response, Request
     
 ErrorHandling:
@@ -757,12 +790,7 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     CreateResponseFromHttp.Content = Http.ResponseText
     
     ' Convert content to data by format
-    Select Case Format
-    Case AvailableFormats.formurlencoded
-        Set CreateResponseFromHttp.Data = RestHelpers.ParseUrlEncoded(Http.ResponseText)
-    Case AvailableFormats.json
-        Set CreateResponseFromHttp.Data = RestHelpers.ParseJSON(Http.ResponseText)
-    End Select
+    Set CreateResponseFromHttp.Data = RestHelpers.ParseByFormat(Http.ResponseText, Format)
     
     ' Extract headers
     Set CreateResponseFromHttp.Headers = ExtractHeadersFromResponseHeaders(Http.getAllResponseHeaders)
@@ -906,6 +934,36 @@ Public Function UpdateResponse(ByRef Original As RestResponse, Updated As RestRe
     Set UpdateResponse = Original
 End Function
 
+''
+' Get name for format
+'
+' @param {AvailableFormats} Format
+' @return {String}
+' --------------------------------------------- '
+Public Function FormatToName(Format As AvailableFormats) As String
+    Select Case Format
+    Case AvailableFormats.formurlencoded
+        FormatToName = "form-urlencoded"
+    Case AvailableFormats.json
+        FormatToName = "json"
+    End Select
+End Function
+
+''
+' Get content-type for format
+'
+' @param {AvailableFormats} Format
+' @return {String}
+' --------------------------------------------- '
+Public Function FormatToContentType(Format As AvailableFormats) As String
+    Select Case Format
+    Case AvailableFormats.formurlencoded
+        FormatToContentType = "application/x-www-form-urlencoded;charset=UTF-8"
+    Case AvailableFormats.json
+        FormatToContentType = "application/json"
+    End Select
+End Function
+
 ' ============================================= '
 ' 6. Timing
 ' ============================================= '
@@ -1001,7 +1059,7 @@ Public Function HMACSHA256AsBytes(Text As String, Secret As String) As Byte()
     Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
     
     Crypto.Key = StringToBytes(Secret)
-    HMACSHA1AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+    HMACSHA256AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
 End Function
 
 Public Function MD5AsBytes(Text As String) As Byte()

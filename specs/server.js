@@ -58,6 +58,7 @@ function standardResponse(req, res) {
     query: req.query,
     headers: {
       'content-type': req.get('content-type'),
+      'accept': req.get('accept'),
       'custom': req.get('custom'),
       'custom-a': req.get('custom-a'),
       'custom-b': req.get('custom-b')
