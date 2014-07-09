@@ -97,7 +97,6 @@ Public Property Get LoginUrl()
         ScopeString = Me.Scope
     End If
     LoginUrl = LoginUrl & "&scope=" & ScopeString
-    RestHelpers.LogDebug LoginUrl, "FacebookAuthenticator.LoginUrl"
 End Property
 
 ' ============================================= '
@@ -194,7 +193,6 @@ End Sub
 
 Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     Request.AddQuerystringParam "access_token", Me.Token
-    RestHelpers.LogDebug "Add access_token=" & Me.Token, "FacebookAuthenticator.BeforeExecute"
 End Sub
 
 ''
@@ -222,7 +220,6 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function TokenRequest() As RestRequest

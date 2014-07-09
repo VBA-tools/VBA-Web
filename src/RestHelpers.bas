@@ -121,22 +121,54 @@ End Sub
 
 ''
 ' Log request
-' TODO
 '
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-Public Sub LogRequest(Request As RestRequest, Client As RestClient, Http As Object)
-    ' TODO
+Public Sub LogRequest(Request As RestRequest)
+    If EnableLogging Then
+        Debug.Print "--> Request - " & Format(Now, "Long Time")
+        Debug.Print Request.MethodName & " " & Request.FullUrl
+        
+        Dim HeaderKey As Variant
+        For Each HeaderKey In Request.Headers.Keys()
+            Debug.Print HeaderKey & ": " & Request.Headers(HeaderKey)
+        Next HeaderKey
+        
+        Dim CookieKey As Variant
+        For Each CookieKey In Request.Cookies.Keys()
+            Debug.Print "Cookie: " & CookieKey & "=" & Request.Cookies(CookieKey)
+        Next CookieKey
+        
+        If Request.Body <> "" Then
+            Debug.Print vbNewLine & Request.Body
+        End If
+        
+        Debug.Print
+    End If
 End Sub
 
 ''
 ' Log response
-' TODO
 '
 ' @param {RestResponse} Response
 ' --------------------------------------------- '
-Public Sub LogResponse(Response As RestResponse, Request As RestRequest, Client As RestClient, Http As Object)
-    ' TODO
+Public Sub LogResponse(Response As RestResponse, Request As RestRequest)
+    If EnableLogging Then
+        Debug.Print "<-- Response - " & Format(Now, "Long Time")
+        Debug.Print Response.StatusCode & " " & Response.StatusDescription
+        
+        Dim Header As Dictionary
+        For Each Header In Response.Headers
+            Debug.Print Header("key") & ": " & Header("value")
+        Next Header
+        
+        Dim CookieKey As Variant
+        For Each CookieKey In Response.Cookies.Keys()
+            Debug.Print "Cookie: " & CookieKey & "=" & Response.Cookies(CookieKey)
+        Next CookieKey
+        
+        Debug.Print vbNewLine & Response.Content & vbNewLine
+    End If
 End Sub
 
 ''
@@ -614,7 +646,6 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     
     If Request.IncludeContentLength Then
         Request.AddHeader "Content-Length", Request.ContentLength
-        LogDebug "Content-Length: " & Request.ContentLength, "RestHelpers.PrepareHttpRequest"
     Else
         If Request.Headers.Exists("Content-Length") Then
             Request.Headers.Remove "Content-Length"
@@ -624,13 +655,11 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     Dim HeaderKey As Variant
     For Each HeaderKey In Request.Headers.Keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
-        LogDebug HeaderKey & ": " & Request.Headers(HeaderKey), "RestHelpers.SetHeaders"
     Next HeaderKey
     
     Dim CookieKey As Variant
     For Each CookieKey In Request.Cookies.Keys()
         Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
-        LogDebug "Cookie: " & CookieKey & "=" & Request.Cookies(CookieKey), "RestHelpers.SetHeaders"
     Next CookieKey
 End Sub
 
@@ -646,9 +675,10 @@ Public Function ExecuteRequest(ByRef Http As Object, ByRef Request As RestReques
     Dim Response As RestResponse
 
     ' Send the request and handle response
+    LogRequest Request
     Http.Send Request.Body
-    LogDebug "Http.Send: " & Request.Body, "RestHelpers.ExecuteRequest"
     Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.Format)
+    LogResponse Response, Request
     
 ErrorHandling:
 
@@ -685,8 +715,8 @@ Public Sub ExecuteRequestAsync(ByRef Http As Object, ByRef Request As RestReques
     
     ' Send the request
     Request.StartTimeoutTimer TimeoutMS
+    LogRequest Request
     Http.Send Request.Body
-    LogDebug "Http.Send: " & Request.Body, "RestHelpers.ExecuteRequestAsync"
     
     Exit Sub
     
@@ -725,8 +755,6 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     CreateResponseFromHttp.StatusDescription = Http.StatusText
     CreateResponseFromHttp.Body = Http.ResponseBody
     CreateResponseFromHttp.Content = Http.ResponseText
-    
-    LogDebug "CreateResponse: " & Http.Status & ", " & Left(Http.ResponseText, 100), "RestHelpers.CreateResponseFromHttp"
     
     ' Convert content to data by format
     Select Case Format
@@ -805,10 +833,8 @@ Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As 
                 ' Close out multi-line string
                 Multiline = False
                 Headers.Add Header
-                LogDebug Header("key") & "=" & Header("value"), "RestHelpers.ExtractHeadersFromResponseHeaders"
             ElseIf Not Header Is Nothing Then
                 Headers.Add Header
-                LogDebug Header("key") & "=" & Header("value"), "RestHelpers.ExtractHeadersFromResponseHeaders"
             End If
             
             If Not Multiline Then

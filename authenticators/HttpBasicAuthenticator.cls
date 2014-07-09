@@ -86,7 +86,6 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
     ' Use http open with username and password values set
     ' (This is used in addition to setting request header, as some services required this)
     Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync, Me.Username, Me.Password
-    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function CreateHeader() As String

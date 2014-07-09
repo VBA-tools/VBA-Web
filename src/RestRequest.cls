@@ -139,8 +139,6 @@ Public Property Get FormattedResource() As String
             End If
         End If
     End If
-    
-    RestHelpers.LogDebug Me.Resource & " => " & FormattedResource, "RestRequest.FormattedResource"
 End Property
 
 Public Property Get Body() As String
@@ -187,8 +185,6 @@ Public Property Get Body() As String
             End Select
         End If
     End If
-    
-    RestHelpers.LogDebug Body, "RestRequest.Body"
 End Property
 
 Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
@@ -215,7 +211,6 @@ Public Property Get FullUrl(Optional ClientBaseUrl As String = "") As String
     End If
     
     FullUrl = JoinUrl(Me.BaseUrl, Formatted)
-    RestHelpers.LogDebug Me.BaseUrl & " + " & Formatted & " => " & FullUrl, "RestRequest.FullUrl"
 End Property
 
 Public Property Get MethodName() As String
@@ -402,10 +397,12 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     ' Once loaded, process result
     If Me.HttpRequest.readyState = 4 Then
         Me.StopTimeoutTimer
-        RestHelpers.LogDebug "ReadyState = 4", "RestRequest.ReadyStateChangeHandler"
         
         ' Callback
-        RunCallback RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.Format)
+        Dim Response As RestResponse
+        Set Response = RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.Format)
+        RestHelpers.LogResponse Response, Me
+        RunCallback Response
     End If
 End Sub
 

@@ -19,7 +19,7 @@ If Args.Length > 0 Then
   WBPath = Args(0)
   OutputPath = Args(1)
 Else
-  WBPath = "examples\Excel-REST - Example.xlsm"
+  WBPath = "specs\Excel-REST - Specs.xlsm"
   OutputPath = "authenticators\"
 End If
 

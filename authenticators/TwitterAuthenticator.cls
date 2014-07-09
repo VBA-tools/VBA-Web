@@ -123,7 +123,6 @@ Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestCl
 
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-    RestHelpers.LogDebug "Http.Open " & Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function TokenRequest() As RestRequest

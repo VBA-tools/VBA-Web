@@ -151,7 +151,6 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function CreateHeader() As String
@@ -169,5 +168,4 @@ Private Function CreateTokenRequest() As String
     CreateTokenRequest = CreateTokenRequest & "&client_secret=" & Me.ClientSecret
     CreateTokenRequest = CreateTokenRequest & "&username=" & Me.Username
     CreateTokenRequest = CreateTokenRequest & "&password=" & Me.Password
-    RestHelpers.LogDebug CreateTokenRequest, "OAuth2Authenticator.CreateTokenRequest"
 End Function
