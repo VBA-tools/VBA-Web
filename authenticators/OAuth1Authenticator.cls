@@ -136,7 +136,6 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
@@ -203,7 +202,6 @@ Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As
     base = base & "&" & "oauth_version=1.0"
     
     CreateBaseString = Request.MethodName() & "&" & RestHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & RestHelpers.UrlEncode(base)
-    RestHelpers.LogDebug CreateBaseString, "OAuth1Authenticator.CreateBaseString"
 End Function
 
 Public Function RequestUrl(Client As RestClient, Request As RestRequest) As String
@@ -256,7 +254,6 @@ End Function
 
 Public Function CreateSignature(base As String, signingKey As String) As String
     CreateSignature = RestHelpers.HMACSHA1(base, signingKey, "Base64")
-    RestHelpers.LogDebug CreateSignature, "OAuth1Authenticator.CreateSignature"
 End Function
 
 Public Function CreateTimestamp() As String

@@ -49,7 +49,6 @@ Public Function Execute(Request As RestRequest) As RestResponse
     On Error GoTo ErrorHandling
     Dim Http As Object
     
-    RestHelpers.LogDebug Request.FullUrl(Me.BaseUrl), "RestClient.Execute"
     Set Http = HttpSetup(Request, False)
     Set Execute = RestHelpers.ExecuteRequest(Http, Request)
     
@@ -80,7 +79,6 @@ Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optiona
     Dim Http As Object
     
     ' Setup the request
-    RestHelpers.LogDebug Request.FullUrl(Me.BaseUrl), "RestClient.ExecuteAsync"
     Set Http = HttpSetup(Request, True)
     RestHelpers.ExecuteRequestAsync Http, Request, Me.TimeoutMS, Callback, CallbackArgs
     ExecuteAsync = True
@@ -112,7 +110,6 @@ Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestRe
     Request.Format = AvailableFormats.json
     Request.Method = AvailableMethods.httpGET
     
-    RestHelpers.LogDebug Request.FullUrl(Me.BaseUrl), "RestClient.GetJSON"
     Set GetJSON = Me.Execute(Request)
 End Function
 
@@ -137,7 +134,6 @@ Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dic
     Request.Method = AvailableMethods.httpPOST
     Request.AddBody Body
     
-    RestHelpers.LogDebug Request.FullUrl(Me.BaseUrl), "RestClient.PostJSON"
     Set PostJSON = Me.Execute(Request)
 End Function
 
@@ -179,7 +175,6 @@ Private Function HttpSetup(ByRef Request As RestRequest, Optional UseAsync As Bo
     Else
         ' Nothing hooked in so open http object
         HttpSetup.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
-        RestHelpers.LogDebug "Http.Open " & Request.MethodName() & Request.FullUrl(Me.BaseUrl), "RestClient.HttpSetup"
     End If
     
     RestHelpers.SetHeaders HttpSetup, Request

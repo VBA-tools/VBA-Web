@@ -109,7 +109,6 @@ Public Property Get LoginUrl() As String
     Request.AddQuerystringParam "scope", ScopeString
     
     LoginUrl = Request.FormattedResource
-    RestHelpers.LogDebug LoginUrl, "GoogleAuthenticator.LoginUrl"
     Set Request = Nothing
 End Property
 
@@ -129,7 +128,7 @@ Public Property Get Token() As String
             Dim Data As Object
             Set Data = RestHelpers.ParseJSON(Response.Content)
             pToken = Data("access_token")
-            RestHelpers.LogDebug "Received Token: " & RestHelpers.Obfuscate(pToken), "GoogleAuthenticator.Token"
+            RestHelpers.LogDebug "Received Token: " & pToken, "GoogleAuthenticator.Token"
         Else
             RestHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "GoogleAuthenticator.Token"
             Err.Raise vbObjectError + Response.StatusCode, _
@@ -343,7 +342,6 @@ End Sub
 Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
     ' Perform standard http open
     Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
-    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "FacebookAuthenticator.HttpOpen"
 End Sub
 
 Private Function TokenRequest() As RestRequest

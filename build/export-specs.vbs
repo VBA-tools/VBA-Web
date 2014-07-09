@@ -29,7 +29,7 @@ Modules = Array(_
   "RestClientAsyncSpecs.bas", _
   "RestRequestSpecs.bas", _
   "RestHelpersSpecs.bas", _
-  "AuthenticatorSpecs", _
+  "AuthenticatorSpecs.bas", _
   "DigestAuthenticatorSpecs.bas", _
   "GoogleAuthenticatorSpecs.bas", _
   "OAuth1AuthenticatorSpecs.bas", _
