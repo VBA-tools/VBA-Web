@@ -255,6 +255,23 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
     End With
     
+    With Specs.It("should allow separate request and response formats")
+        Set Request = New RestRequest
+        Request.Resource = "post"
+        
+        Request.AddParameter "a", 123
+        Request.AddParameter "b", 456
+        Request.RequestFormat = AvailableFormats.formurlencoded
+        Request.ResponseFormat = AvailableFormats.json
+        Request.Method = httpPOST
+        
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Request.Body).ToEqual "a=123&b=456"
+        .Expect(Response.Data("headers")("content-type")).ToEqual "application/x-www-form-urlencoded;charset=UTF-8"
+        .Expect(Response.Data("headers")("accept")).ToEqual "application/json"
+    End With
+    
     Set Client = Nothing
     
     InlineRunner.RunSuite Specs

@@ -32,6 +32,7 @@ Private pCookies As Dictionary
 Private pBody As Variant
 Private pBodyString As String
 Private pContentType As String
+Private pAccept
 Private pContentLength As Long
 Private pHttpRequest As Object
 
@@ -57,7 +58,8 @@ End Enum
 
 Public Resource As String
 Public Method As AvailableMethods
-Public Format As AvailableFormats
+Public RequestFormat As AvailableFormats
+Public ResponseFormat As AvailableFormats
 Public RootElement As String
 Public Callback As String
 Public BaseUrl As String
@@ -66,6 +68,14 @@ Public CallbackArgs As Variant
 Public IncludeContentLength As Boolean
 Public Authenticator As IAuthenticator
 Public Client As RestClient
+
+Public Property Get Format() As AvailableFormats
+    Format = RequestFormat
+End Property
+Public Property Let Format(Value As AvailableFormats)
+    Me.RequestFormat = Value
+    Me.ResponseFormat = Value
+End Property
 
 Public Property Get Headers() As Dictionary
     If pHeaders Is Nothing Then: Set pHeaders = New Dictionary
@@ -120,7 +130,7 @@ Public Property Get FormattedResource() As String
     For Each segment In Me.UrlSegments.Keys
         FormattedResource = Replace(FormattedResource, "{" & segment & "}", Me.UrlSegments(segment))
     Next segment
-    FormattedResource = Replace(FormattedResource, "{format}", Me.FormatName())
+    FormattedResource = Replace(FormattedResource, "{format}", RestHelpers.FormatToName(Me.ResponseFormat))
     
     ' Add querystring
     If (Me.Method = httpGET And Not Me.Parameters Is Nothing) Or Not Me.QuerystringParams Is Nothing Then
@@ -151,38 +161,24 @@ Public Property Get Body() As String
                 Body = pBodyString
             End If
         Else
+            Dim BodyValue As Variant
             If RestHelpers.IsArray(pBody) And Me.Parameters.count > 0 And Me.Method <> httpGET Then
                 Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body array and parameters"
+            ElseIf Not RestHelpers.IsArray(pBody) And Me.Parameters.count > 0 And Me.Method <> httpGET Then
+                If Me.Parameters.count > 0 And Not IsEmpty(pBody) Then
+                    Set BodyValue = CombineObjects(Me.Parameters, pBody)
+                ElseIf Me.Parameters.count > 0 Then
+                    Set BodyValue = Me.Parameters
+                Else
+                    Set BodyValue = pBody
+                End If
+            ElseIf VarType(pBody) = vbObject Then
+                Set BodyValue = pBody
+            Else
+                BodyValue = pBody
             End If
-        
-            Select Case Me.Format
-            Case AvailableFormats.formurlencoded
-                If Me.Method <> httpGET Then
-                    If Me.Parameters.count > 0 And Not IsEmpty(pBody) Then
-                        ' Combine defined body and parameters and convert to JSON
-                        Body = RestHelpers.ConvertToUrlEncoded(CombineObjects(Me.Parameters, pBody))
-                    ElseIf Me.Parameters.count > 0 Then
-                        Body = RestHelpers.ConvertToUrlEncoded(Me.Parameters)
-                    Else
-                        Body = RestHelpers.ConvertToUrlEncoded(pBody)
-                    End If
-                Else
-                    Body = RestHelpers.ConvertToUrlEncoded(pBody)
-                End If
-            Case AvailableFormats.json
-                If Me.Method <> httpGET Then
-                    If Me.Parameters.count > 0 And Not IsEmpty(pBody) Then
-                        ' Combine defined body and parameters and convert to JSON
-                        Body = RestHelpers.ConvertToJSON(CombineObjects(Me.Parameters, pBody))
-                    ElseIf Me.Parameters.count > 0 Then
-                        Body = RestHelpers.ConvertToJSON(Me.Parameters)
-                    Else
-                        Body = RestHelpers.ConvertToJSON(pBody)
-                    End If
-                Else
-                    Body = RestHelpers.ConvertToJSON(pBody)
-                End If
-            End Select
+            
+            Body = RestHelpers.ConvertToFormat(BodyValue, Me.RequestFormat)
         End If
     End If
 End Property
@@ -229,28 +225,29 @@ Public Property Get MethodName() As String
 End Property
 
 Public Property Get FormatName() As String
-    Select Case Me.Format
-    Case AvailableFormats.formurlencoded
-        FormatName = "form-urlencoded"
-    Case AvailableFormats.json
-        FormatName = "json"
-    End Select
+    FormatName = RestHelpers.FormatToName(Me.RequestFormat)
 End Property
 
 Public Property Get ContentType() As String
     If pContentType <> "" Then
         ContentType = pContentType
     Else
-        Select Case Me.Format
-        Case AvailableFormats.formurlencoded
-            ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
-        Case AvailableFormats.json
-            ContentType = "application/json"
-        End Select
+        ContentType = RestHelpers.FormatToContentType(Me.RequestFormat)
     End If
 End Property
 Public Property Let ContentType(Value As String)
     pContentType = Value
+End Property
+
+Public Property Get Accept() As String
+    If pAccept <> "" Then
+        Accept = pAccept
+    Else
+        Accept = RestHelpers.FormatToContentType(Me.ResponseFormat)
+    End If
+End Property
+Public Property Let Accept(Value As String)
+    pAccept = Value
 End Property
 
 Public Property Get ContentLength() As Long
@@ -400,7 +397,7 @@ Attribute ReadyStateChangeHandler.VB_UserMemId = 0
         
         ' Callback
         Dim Response As RestResponse
-        Set Response = RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.Format)
+        Set Response = RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.ResponseFormat)
         RestHelpers.LogResponse Response, Me
         RunCallback Response
     End If
@@ -481,6 +478,8 @@ End Sub
 Private Sub Class_Initialize()
     ' Set default values
     Me.IncludeContentLength = True
+    Me.RequestFormat = json
+    Me.ResponseFormat = json
 End Sub
 
 Private Sub Class_Terminate()
