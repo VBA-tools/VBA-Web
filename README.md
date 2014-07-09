@@ -1,12 +1,12 @@
 Excel-REST: Excel REST Client
 =============================
 
-It seems like everything has a REST webservice these days and there is no reason to leave Excel out of the fun. Excel-REST is designed to make working with complex webservices easy with Excel. It includes support for authentication, making async requests, automatically converting and parsing JSON, working with cookies and headers in requests and responses, and much more.
+Excel-REST makes working with complex webservices and APIs easy with Excel. It includes support for authentication, making async requests, automatically converting and parsing JSON, working with cookies and headers, and much more.
 
 Getting started
 ---------------
 
-- Download the [latest release (v3.0.7)](https://github.com/timhall/Excel-REST/releases)
+- Download the [latest release (v3.1.0)](https://github.com/timhall/Excel-REST/releases)
 - To install/upgrade in an existing file, run `install.bat` to walk through installation. 
 - To start from scratch, `Excel-REST - Blank.xlsm` has everything setup and ready to go.
 
@@ -171,6 +171,12 @@ End Function
 For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wiki) and [Examples](https://github.com/timhall/Excel-REST/tree/master/examples)
 
 ### Release Notes
+
+#### 3.1.0
+
+- Add `Request.RequestFormat`, `Request.ResponseFormat`, and `Request.Accept` for setting separate request and response formats (e.g. form-urlencoded request with json response)
+- Add `LogRequest` and `LogResponse` for better logging detail (enable with `RestHelpers.EnableLogging = True`)
+- Allow headers and content-type to be set in authenticator `BeforeExecute`
 
 #### 3.0.0
 
