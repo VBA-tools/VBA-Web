@@ -99,7 +99,7 @@ Sub Development
     "- release"
 
   Dim Action
-  Action = Input(vbNewLine & "What would you like to do? >")
+  Action = Input(vbNewLine & "What would you like to do? <")
 
   If Action = "" Then
     Exit Sub
@@ -140,7 +140,7 @@ Sub Development
     End If
   End If
 
-  If UCase(Left(Input(vbNewLine & "Would you like to do anything else? [yes/no] >"), 1)) = "Y" Then
+  If UCase(Left(Input(vbNewLine & "Would you like to do anything else? [yes/no] <"), 1)) = "Y" Then
     Development
   End If
 End Sub
@@ -291,7 +291,7 @@ Function OpenWorkbook(Excel, Path, ByRef Workbook)
     Else
       Path = Input(vbNewLine & _
         "Workbook not found at " & Path & vbNewLine & _
-        "Would you like to try another location? [path.../cancel]")
+        "Would you like to try another location? [path.../cancel] <")
 
       If UCase(Path) <> "CANCEL" And Path <> "" Then
         OpenWorkbook = OpenWorkbook(Excel, Path, Workbook)
@@ -496,7 +496,7 @@ End Sub
 
 Function Input(Prompt)
   If Prompt <> "" Then
-    WScript.StdOut.Write Prompt & " "
+    Print Prompt & " "
   End If
 
   Input = WScript.StdIn.ReadLine 
