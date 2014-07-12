@@ -10,3 +10,6 @@ _cache
 
 # Ignore credentials (don't check in sensitive data)
 credentials.txt
+
+# Ignore scratch work
+_scratch
