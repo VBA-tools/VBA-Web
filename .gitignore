@@ -1,5 +1,7 @@
 # node_modules should be installed with npm install
 specs/node_modules
+docs/node_modules
+docs/.grunt
 
 # Ignore generated site files
 _site
