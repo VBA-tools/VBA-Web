@@ -1,0 +1,39 @@
+dest: _gh-pages/
+assets: <%= site.dest %>/assets
+
+data: data
+utils: <%= site.data %>/_utils
+mixins: <%= site.data %>/_utils
+date: <%= new Date() %>
+
+assets: public
+images: <%= assets %>/images
+fonts: <%= assets %>/fonts
+
+styles: styles
+scripts: scripts
+content: content
+
+templates: templates
+pages: <%= site.templates %>
+includes: <%= site.templates %>/includes
+snippets: <%= site.templates %>/snippets
+
+layouts: <%= site.templates %>/layouts
+layoutext: .hbs
+layout: content
+
+helpers: <%= site.templates %>/_helpers
+
+# =============================================
+# Site Metadata
+# =============================================
+
+current_version: v3.1.0
+title: Excel-REST
+description: Excel-REST makes working with complex webservices and APIs easy with Excel (Salesforce, Google, and pretty much everything on the internet)
+repo: <%= pkg.homepage %>
+issues: <%= pkg.bugs.url %>?&state=open
+
+analytics:
+  google: UA-38523419-3

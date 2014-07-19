@@ -1,11 +1,10 @@
 # node_modules should be installed with npm install
 specs/node_modules
+
+# Ignore docs build files
 docs/node_modules
 docs/.grunt
-
-# Ignore generated site files
-_site
-_cache
+docs/_gh-pages
 
 # Ignore temporary Excel files
 */~$*
