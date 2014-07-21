@@ -12,5 +12,6 @@ docs/_gh-pages
 # Ignore credentials (don't check in sensitive data)
 credentials.txt
 
-# Ignore scratch work
+# Ignore scratch work and other files
 _scratch
+.DS_Store

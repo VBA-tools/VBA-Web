@@ -1,4 +1,38 @@
 [role="header"] {
-  width: 300px;
-  float: left;
+  width: @sidebar-width;
+  position: fixed;
+  
+  .logo {
+    border: none;
+    margin: 0.4em 0 0.4em 0;
+  }
+}
+
+.main-nav {
+  list-style: none; 
+}
+.main-nav-item {
+  margin-top: 0.7em;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+}
+.download {
+  
+  
+  &:hover {
+    
+  }
+}
+.issues {
+
+}
+.donate {
+  padding: 0;
+  border: none;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 }
