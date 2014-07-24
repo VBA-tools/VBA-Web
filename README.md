@@ -6,7 +6,7 @@ Excel-REST makes working with complex webservices and APIs easy with Excel. It i
 Getting started
 ---------------
 
-- Download the [latest release (v3.1.0)](https://github.com/timhall/Excel-REST/releases)
+- Download the [latest release (v3.1.1)](https://github.com/timhall/Excel-REST/releases)
 - To install/upgrade in an existing file, run `install.bat` to walk through installation. 
 - To start from scratch, `Excel-REST - Blank.xlsm` has everything setup and ready to go.
 
@@ -177,6 +177,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 - Add `Request.RequestFormat`, `Request.ResponseFormat`, and `Request.Accept` for setting separate request and response formats (e.g. form-urlencoded request with json response)
 - Add `LogRequest` and `LogResponse` for better logging detail (enable with `RestHelpers.EnableLogging = True`)
 - Allow headers and content-type to be set in authenticator `BeforeExecute`
+- __3.1.1__ Fix importing class incorrectly as module bug
 
 #### 3.0.0
 
