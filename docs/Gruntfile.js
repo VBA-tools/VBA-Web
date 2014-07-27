@@ -11,6 +11,7 @@ module.exports = function(grunt) {
         pkg: '<%= pkg %>',
         site: '<%= site %>',
         data: ['content/**/*.json'],
+        content: ['content/**/*.md'],
 
         partials: '<%= site.includes %>/*.hbs',
         layoutdir: '<%= site.layouts %>',
@@ -21,17 +22,14 @@ module.exports = function(grunt) {
 
         marked: {
           process: true,
-          heading: '<%= site.snippets %>/heading.tmpl',
           prefix: 'lang-'
         }
       },
       docs: {
-        options: {
-          permalinks: {preset: 'pretty'},
-          partials: ['content/**/*.md']
-        },
-        src: '<%= site.pages %>/*.hbs',
-        dest: '<%= site.dest %>'
+        expand: true,
+        cwd: '<%= site.pages %>/',
+        src: ['**/*.hbs'],
+        dest: '<%= site.dest %>/'
       }
     },
 
@@ -96,15 +94,15 @@ module.exports = function(grunt) {
       },
       styles: {
         files: ['<%= site.styles %>/**/*.less'],
-        tasks: ['less:docs']
+        tasks: ['less']
       },
       content: {
         files: ['<%= site.content %>/**/*.md'],
-        tasks: ['assemble:docs']
+        tasks: ['assemble']
       },
       templates: {
         files: ['<%= site.templates %>/**/*.hbs'],
-        tasks: ['assemble:docs']
+        tasks: ['assemble']
       },
       assets: {
         files: ['<%= site.assets %>/**/*'],
@@ -113,6 +111,10 @@ module.exports = function(grunt) {
       scripts: {
         files: ['<%= site.scripts %>/**/*'],
         tasks: ['copy:scripts']
+      },
+      pages: {
+        files: ['<%= site.pages %>/**/*.hbs'],
+        tasks: ['assemble']
       }
     },
 
