@@ -3,6 +3,7 @@ specs/node_modules
 
 # Ignore docs build files
 docs/node_modules
+docs/bower_components
 docs/.grunt
 docs/_gh-pages
 

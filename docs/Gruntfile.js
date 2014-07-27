@@ -1,7 +1,7 @@
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    site: grunt.file.readYAML('.assemblerc.yml'),
+    site: grunt.file.readYAML('_config.yml'),
 
     assemble: {
       options: {
@@ -10,15 +10,12 @@ module.exports = function(grunt) {
 
         pkg: '<%= pkg %>',
         site: '<%= site %>',
-        data: ['<%= site.data %>/*.{json,yml}', 'content/**/*.json'],
+        data: ['content/**/*.json'],
 
         partials: '<%= site.includes %>/*.hbs',
         layoutdir: '<%= site.layouts %>',
         layoutext: '<%= site.layoutext %>',
         layout: '<%= site.layout %>',
-
-        helpers: ['<%= site.helpers %>/*.js'],
-        plugins: ['<%= site.plugins %>'],
 
         compose: {cwd: 'content'},
 
