@@ -17,7 +17,7 @@ includes: <%= site.templates %>/includes
 
 layouts: <%= site.templates %>/layouts
 layoutext: .hbs
-layout: content
+layout: default
 
 # =============================================
 # Site Metadata
