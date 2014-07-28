@@ -1,5 +1,4 @@
 dest: _gh-pages/
-assets: <%= site.dest %>/assets
 
 data: data
 
