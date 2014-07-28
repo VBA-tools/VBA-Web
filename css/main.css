@@ -6245,6 +6245,9 @@ pre > code:after {
 .logo-excel {
   color: #008000;
 }
+.logo-rest {
+  color: black;
+}
 [role="header"] {
   width: 240px;
   position: fixed;
@@ -6252,6 +6255,9 @@ pre > code:after {
 [role="header"] .logo {
   border: none;
   margin: 0.4em 0 0.4em 0;
+}
+[role="header"] .logo a:hover {
+  text-decoration: none;
 }
 .main-nav {
   list-style: none;
