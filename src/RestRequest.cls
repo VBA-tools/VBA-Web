@@ -48,8 +48,10 @@ Public Enum AvailableMethods
     httpPATCH
 End Enum
 Public Enum AvailableFormats
+    plaintext
     json
     formurlencoded
+    xml
 End Enum
 
 ' --------------------------------------------- '
@@ -178,7 +180,11 @@ Public Property Get Body() As String
                 BodyValue = pBody
             End If
             
-            Body = RestHelpers.ConvertToFormat(BodyValue, Me.RequestFormat)
+            If Me.RequestFormat <> AvailableFormats.plaintext Then
+                Body = RestHelpers.ConvertToFormat(BodyValue, Me.RequestFormat)
+            Else
+                Body = BodyValue
+            End If
         End If
     End If
 End Property
@@ -281,11 +287,7 @@ End Property
 ' --------------------------------------------- '
 
 Public Sub AddHeader(Key As String, Value As String)
-    If Not Me.Headers.Exists(Key) Then
-        Me.Headers.Add Key, Value
-    Else
-        Me.Headers(Key) = Value
-    End If
+    RestHelpers.AddToDictionary Me.Headers, Key, Value
 End Sub
 
 ''
@@ -296,11 +298,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub AddUrlSegment(segment As String, Value As String)
-    If Not Me.UrlSegments.Exists(segment) Then
-        Me.UrlSegments.Add segment, Value
-    Else
-        Me.UrlSegments(segment) = Value
-    End If
+    RestHelpers.AddToDictionary Me.UrlSegments, segment, Value
 End Sub
 
 ''
@@ -311,11 +309,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub AddParameter(Key As String, Value As Variant)
-    If Not Me.Parameters.Exists(Key) Then
-        Me.Parameters.Add Key, Value
-    Else
-        Me.Parameters(Key) = Value
-    End If
+    RestHelpers.AddToDictionary Me.Parameters, Key, Value
 End Sub
 
 ''
@@ -326,11 +320,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub AddQuerystringParam(Key As String, Value As Variant)
-    If Not Me.QuerystringParams.Exists(Key) Then
-        Me.QuerystringParams.Add Key, Value
-    Else
-        Me.QuerystringParams(Key) = Value
-    End If
+    RestHelpers.AddToDictionary Me.QuerystringParams, Key, Value
 End Sub
 
 ''
@@ -341,11 +331,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub AddCookie(Key As String, Value As Variant)
-    If Not Me.Cookies.Exists(Key) Then
-        Me.Cookies.Add Key, Value
-    Else
-        Me.Cookies(Key) = Value
-    End If
+    RestHelpers.AddToDictionary Me.Cookies, Key, Value
 End Sub
 
 ''
@@ -355,7 +341,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Function AddBody(BodyVal As Variant)
-    If VarType(BodyVal) = vbObject Then
+    If IsObject(BodyVal) Then
         Set pBody = BodyVal
     ElseIf RestHelpers.IsArray(BodyVal) Then
         pBody = BodyVal

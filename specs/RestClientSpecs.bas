@@ -21,6 +21,7 @@ Public Function Specs() As SpecSuite
     Dim BodyToString As String
     Dim i As Integer
     Dim Options As Dictionary
+    Dim XMLBody As Object
     
     Client.BaseUrl = "http://localhost:3000/"
     
@@ -270,6 +271,77 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "a=123&b=456"
         .Expect(Response.Data("headers")("content-type")).ToEqual "application/x-www-form-urlencoded;charset=UTF-8"
         .Expect(Response.Data("headers")("accept")).ToEqual "application/json"
+    End With
+    
+    With Specs.It("should convert and parse json")
+        Set Request = New RestRequest
+        Request.Resource = "json"
+        Request.Format = json
+        Request.Method = httpGET
+        
+        Set Body = New Dictionary
+        Body.Add "a", 123
+        Body.Add "b", 456
+        Request.AddBody Body
+        
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Request.Body).ToEqual "{""a"":123,""b"":456}"
+        .Expect(Response.Data("a")).ToEqual "1"
+        .Expect(Response.Data("b")).ToEqual 2
+        .Expect(Response.Data("c")).ToEqual 3.14
+    End With
+    
+    With Specs.It("should convert and part url-encoded")
+        Set Request = New RestRequest
+        Request.Resource = "formurlencoded"
+        Request.Format = formurlencoded
+        Request.Method = httpGET
+        
+        Set Body = New Dictionary
+        Body.Add "a", 123
+        Body.Add "b", 456
+        Request.AddBody Body
+        
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Request.Body).ToEqual "a=123&b=456"
+        .Expect(Response.Data("a")).ToEqual "1"
+        .Expect(Response.Data("b")).ToEqual "2"
+        .Expect(Response.Data("c")).ToEqual "3.14"
+    End With
+    
+    With Specs.It("should convert and parse XML")
+        Set Request = New RestRequest
+        Request.Resource = "xml"
+        Request.Format = xml
+        Request.Method = httpGET
+        
+        Set XMLBody = New MSXML2.DOMDocument60
+        XMLBody.async = False
+        XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
+        Request.AddBody XMLBody
+
+        Set Response = Client.Execute(Request)
+    
+        .Expect(Request.Body).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
+        .Expect(Response.Content).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
+        .Expect(Response.Data.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
+        .Expect(Response.Data.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
+    End With
+    
+    With Specs.It("should convert and parse plaintext")
+        Set Request = New RestRequest
+        Request.Resource = "howdy"
+        Request.Format = plaintext
+        Request.Method = httpGET
+        
+        Request.AddBody "Hello?"
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Request.Body).ToEqual "Hello?"
+        .Expect(Response.Content).ToEqual "Howdy!"
+        .Expect(Response.Data).ToBeUndefined
     End With
     
     Set Client = Nothing

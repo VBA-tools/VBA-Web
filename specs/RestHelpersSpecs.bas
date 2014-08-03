@@ -42,6 +42,7 @@ Public Function Specs() As SpecSuite
     Dim Request As RestRequest
     Dim Response As RestResponse
     Dim UpdatedResponse As RestResponse
+    Dim XMLBody As Object
     
     ' ============================================= '
     ' 2. Converters and encoding
@@ -166,6 +167,22 @@ Public Function Specs() As SpecSuite
         .Expect(Parsed("b")).ToEqual "3.14"
         .Expect(Parsed("c")).ToEqual "Howdy!"
         .Expect(Parsed("d & e")).ToEqual "A + B"
+    End With
+    
+    With Specs.It("should convert to XML")
+        Set XMLBody = New MSXML2.DOMDocument60
+        XMLBody.async = False
+        XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
+
+        Encoded = RestHelpers.ConvertToXML(XMLBody)
+        .Expect(Encoded).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
+    End With
+    
+    With Specs.It("should parse XML")
+        Set Parsed = RestHelpers.ParseXML("<Point><X>1.23</X><Y>4.56</Y></Point>")
+        
+        .Expect(Parsed.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
+        .Expect(Parsed.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
     End With
     
     ' ============================================= '

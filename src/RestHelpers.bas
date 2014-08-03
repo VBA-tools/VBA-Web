@@ -279,18 +279,28 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
     ConvertToUrlEncoded = Encoded
 End Function
 
-Public Function DictionariesToUrlEncodedString(ParamArray Dictionaries() As Variant) As String
-    Debug.Print "Excel-REST: DEPRECATED DictionariesToUrlEncodedString has been deprecated in favor of ConvertToUrlEncoded. It will be removed in Excel-REST v4"
-    
-    Dim i As Integer
-    Dim Combined As Dictionary
-    
-    Set Combined = Dictionaries(LBound(Dictionaries))
-    For i = LBound(Dictionaries) + 1 To UBound(Dictionaries)
-        Set Combined = CombineObjects(Combined, Dictionaries(i))
-    Next i
-    
-    DictionariesToUrlEncodedString = ConvertToUrlEncoded(Combined)
+''
+' Parse XML string to XML
+'
+' @param {String} Encoded
+' @return {Object} XML
+' --------------------------------------------- '
+Public Function ParseXML(Encoded As String) As Object
+    Set ParseXML = New MSXML2.DOMDocument
+    ParseXML.async = False
+    ParseXML.LoadXML Encoded
+End Function
+
+''
+' Convert MSXML2.DomDocument to string
+'
+' @param {Object: MSXML2.DomDocument} XML
+' @return {String} XML string
+' --------------------------------------------- '
+
+Public Function ConvertToXML(Obj As Variant) As String
+    On Error Resume Next
+    ConvertToXML = Trim(Replace(Obj.xml, vbCrLf, ""))
 End Function
 
 ''
@@ -306,6 +316,8 @@ Public Function ParseByFormat(Value As String, Format As AvailableFormats) As Ob
         Set ParseByFormat = ParseJSON(Value)
     Case AvailableFormats.formurlencoded
         Set ParseByFormat = ParseUrlEncoded(Value)
+    Case AvailableFormats.xml
+        Set ParseByFormat = ParseXML(Value)
     End Select
 End Function
 
@@ -322,6 +334,8 @@ Public Function ConvertToFormat(Obj As Variant, Format As AvailableFormats) As S
         ConvertToFormat = ConvertToJSON(Obj)
     Case AvailableFormats.formurlencoded
         ConvertToFormat = ConvertToUrlEncoded(Obj)
+    Case AvailableFormats.xml
+        ConvertToFormat = ConvertToXML(Obj)
     End Select
 End Function
 
@@ -603,7 +617,7 @@ End Function
 ' --------------------------------------------- '
 Public Function IsArray(Obj As Variant) As Boolean
     If Not IsEmpty(Obj) Then
-        If VarType(Obj) = vbObject Then
+        If IsObject(Obj) Then
             If TypeOf Obj Is Collection Then
                 IsArray = True
             End If
@@ -613,6 +627,21 @@ Public Function IsArray(Obj As Variant) As Boolean
         End If
     End If
 End Function
+
+''
+' Add or update key/value in dictionary
+'
+' @param {Dictionary} Dict
+' @param {String} Key
+' @param {Variant} Value
+' --------------------------------------------- '
+Public Sub AddToDictionary(ByRef Dict As Dictionary, Key As String, Value As Variant)
+    If Not Dict.Exists(Key) Then
+        Dict.Add Key, Value
+    Else
+        Dict(Key) = Value
+    End If
+End Sub
 
 ' ============================================= '
 ' 5. Request preparation / handling
@@ -790,7 +819,9 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     CreateResponseFromHttp.Content = Http.ResponseText
     
     ' Convert content to data by format
-    Set CreateResponseFromHttp.Data = RestHelpers.ParseByFormat(Http.ResponseText, Format)
+    If Format <> AvailableFormats.plaintext Then
+        Set CreateResponseFromHttp.Data = RestHelpers.ParseByFormat(Http.ResponseText, Format)
+    End If
     
     ' Extract headers
     Set CreateResponseFromHttp.Headers = ExtractHeadersFromResponseHeaders(Http.getAllResponseHeaders)
@@ -924,7 +955,7 @@ Public Function UpdateResponse(ByRef Original As RestResponse, Updated As RestRe
     Set Original.Cookies = Updated.Cookies
     
     If Not IsEmpty(Updated.Data) Then
-        If VarType(Updated.Data) = vbObject Then
+        If IsObject(Updated.Data) Then
             Set Original.Data = Updated.Data
         Else
             Original.Data = Updated.Data
@@ -946,6 +977,10 @@ Public Function FormatToName(Format As AvailableFormats) As String
         FormatToName = "form-urlencoded"
     Case AvailableFormats.json
         FormatToName = "json"
+    Case AvailableFormats.xml
+        FormatToName = "xml"
+    Case AvailableFormats.plaintext
+        FormatToName = "txt"
     End Select
 End Function
 
@@ -961,6 +996,10 @@ Public Function FormatToContentType(Format As AvailableFormats) As String
         FormatToContentType = "application/x-www-form-urlencoded;charset=UTF-8"
     Case AvailableFormats.json
         FormatToContentType = "application/json"
+    Case AvailableFormats.xml
+        FormatToContentType = "application/xml"
+    Case AvailableFormats.plaintext
+        FormatToContentType = "text/plain"
     End Select
 End Function
 
@@ -1090,18 +1129,18 @@ Public Function BytesToHex(Bytes() As Byte) As String
 End Function
 
 Public Function BytesToBase64(Bytes() As Byte) As String
-    Dim XML As Object
+    Dim xml As Object
     Dim Node As Object
-    Set XML = CreateObject("MSXML2.DOMDocument")
+    Set xml = CreateObject("MSXML2.DOMDocument")
 
     ' byte array to base64
-    Set Node = XML.createElement("b64")
+    Set Node = xml.createElement("b64")
     Node.DataType = "bin.base64"
     Node.nodeTypedValue = Bytes
     BytesToBase64 = Node.Text
 
     Set Node = Nothing
-    Set XML = Nothing
+    Set xml = Nothing
 End Function
 
 ''
