@@ -37,6 +37,16 @@ app.get('/json', function(req, res) {
   res.json({a: '1', b: 2, c: 3.14, d: false, e: [4, 5], f: {a: '1', b: 2}});
 });
 
+// form-urlencoded
+app.get('/formurlencoded', function(req, res) {
+  res.send(200, 'a=1&b=2&c=3.14');
+});
+
+// xml
+app.get('/xml', function(req, res) {
+  res.send(200, '<Point><X>1.23</X><Y>4.56</Y></Point>')
+});
+
 // Cookies
 app.get('/cookie', function(req, res) {
   res.cookie('unsigned-cookie', 'simple-cookie');
