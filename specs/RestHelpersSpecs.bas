@@ -170,7 +170,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should convert to XML")
-        Set XMLBody = New MSXML2.DOMDocument60
+        Set XMLBody = CreateObject("MSXML2.DOMDocument")
         XMLBody.async = False
         XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
 

@@ -317,7 +317,7 @@ Public Function Specs() As SpecSuite
         Request.Format = xml
         Request.Method = httpGET
         
-        Set XMLBody = New MSXML2.DOMDocument60
+        Set XMLBody = CreateObject("MSXML2.DOMDocument")
         XMLBody.async = False
         XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
         Request.AddBody XMLBody

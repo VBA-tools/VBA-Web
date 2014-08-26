@@ -286,7 +286,7 @@ End Function
 ' @return {Object} XML
 ' --------------------------------------------- '
 Public Function ParseXML(Encoded As String) As Object
-    Set ParseXML = New MSXML2.DOMDocument
+    Set ParseXML = CreateObject("MSXML2.DOMDocument")
     ParseXML.async = False
     ParseXML.LoadXML Encoded
 End Function
