@@ -1,5 +1,5 @@
 ''
-' Install v3.1.3
+' Install v3.1.4
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Install Excel-REST and authenticators
@@ -55,7 +55,7 @@ Main
 Sub Main()
   On Error Resume Next
 
-  PrintLn "Welcome to Excel-REST v3.1.3, let's get started!"
+  PrintLn "Welcome to Excel-REST v3.1.4, let's get started!"
   
   ExcelWasOpen = OpenExcel(Excel)
 
@@ -107,9 +107,9 @@ Sub Execute()
   Dim InstallMessage
   If AlreadyInstalled(Workbook) Then
     Message = Message & "(It appears Excel-REST is already installed)" & vbNewLine
-    Message = Message & "- upgrade - Upgrade to Excel-REST v3.1.3" & vbNewLine
+    Message = Message & "- upgrade - Upgrade to Excel-REST v3.1.4" & vbNewLine
   Else
-    Message = Message & "- install - Install Excel-REST v3.1.3" & vbNewLine
+    Message = Message & "- install - Install Excel-REST v3.1.4" & vbNewLine
   End If
 
   Message = Message & "- auth - Install authenticator"
@@ -131,7 +131,7 @@ Sub Execute()
     ShouldUpgrade = Input(vbNewLine & _
       "Warning: The currently installed Excel-REST files will be removed" & vbNewLine & _
       "and any previously made changes to those files will be lost" & vbNewLine & vbNewLine & _
-      "Would you like to upgrade to v3.1.3? [yes/no] <")
+      "Would you like to upgrade to v3.1.4? [yes/no] <")
 
     If Left(UCase(ShouldUpgrade), 1) = "Y" Then
       InstallModules

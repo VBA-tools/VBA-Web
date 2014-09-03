@@ -6,7 +6,7 @@ Excel-REST makes working with complex webservices and APIs easy with Excel. It i
 Getting started
 ---------------
 
-- Download the [latest release (v3.1.3)](https://github.com/timhall/Excel-REST/releases)
+- Download the [latest release (v3.1.4)](https://github.com/timhall/Excel-REST/releases)
 - To install/upgrade in an existing file, run `install.bat` to walk through installation. 
 - To start from scratch, `Excel-REST - Blank.xlsm` has everything setup and ready to go.
 
@@ -180,6 +180,7 @@ For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wik
 - __3.1.1__ Fix importing class incorrectly as module bug
 - __3.1.2__ Add XML and plain text formats
 - __3.1.3__ Fix hard dependency for XML
+- __3.1.4__ Fix logging in `PrepareProxyForHttpRequest`
 
 #### 3.0.0
 
