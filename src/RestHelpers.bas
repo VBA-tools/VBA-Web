@@ -685,7 +685,7 @@ Public Sub PrepareProxyForHttpRequest(ByRef Http As Object, ProxyServer As Strin
     
     If ProxyServer <> "" Then
         Http.SetProxy 2, ProxyServer, BypassList
-        LogDebug "SetProxy: " & ProxyServer & ", " & BypassList, "RestHelpers.PrepareProxyForHttpRequest"
+        LogDebug "SetProxy: " & ProxyServer, "RestHelpers.PrepareProxyForHttpRequest"
         
         If Username <> "" Then
             Http.SetProxyCredentials Username, Password
