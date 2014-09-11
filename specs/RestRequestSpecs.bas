@@ -275,6 +275,53 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "[""a"",""b"",""c""]"
     End With
     
+    With Specs.It("should clone request")
+        Set Body = New Dictionary
+        Body.Add "key", "value"
+    
+        Set Request = New RestRequest
+        Request.Accept = "text/plain"
+        Request.AddCookie "a", "cookie"
+        Request.AddHeader "b", "header"
+        Request.AddParameter "c", "parameter"
+        Request.AddQuerystringParam "d", "querystring"
+        Request.AddUrlSegment "e", "segment"
+        Request.BaseUrl = "baseurl/"
+        Request.ContentLength = 100
+        Request.ContentType = "application/json"
+        Request.IncludeContentLength = False
+        Request.Method = httpPOST
+        Request.RequestFormat = json
+        Request.Resource = "resource/"
+        Request.ResponseFormat = plaintext
+        Request.AddBody Body
+        
+        Dim Cloned As RestRequest
+        Set Cloned = Request.Clone
+        .Expect(Cloned.Accept).ToEqual "text/plain"
+        .Expect(Cloned.Cookies("a")).ToEqual "cookie"
+        .Expect(Cloned.Headers("b")).ToEqual "header"
+        .Expect(Cloned.Parameters("c")).ToEqual "parameter"
+        .Expect(Cloned.QuerystringParams("d")).ToEqual "querystring"
+        .Expect(Cloned.UrlSegments("e")).ToEqual "segment"
+        .Expect(Cloned.BaseUrl).ToEqual "baseurl/"
+        .Expect(Cloned.ContentLength).ToEqual 100
+        .Expect(Cloned.ContentType).ToEqual "application/json"
+        .Expect(Cloned.IncludeContentLength).ToEqual False
+        .Expect(Cloned.Method).ToEqual httpPOST
+        .Expect(Cloned.RequestFormat).ToEqual json
+        .Expect(Cloned.Resource).ToEqual "resource/"
+        .Expect(Cloned.ResponseFormat).ToEqual plaintext
+        .Expect(Cloned.Body).ToEqual "{""c"":""parameter"",""key"":""value""}"
+        
+        Request.Accept = "application/json"
+        Request.AddHeader "new", "new_header"
+        Request.ResponseFormat = xml
+        .Expect(Cloned.Accept).ToEqual "text/plain"
+        .Expect(Cloned.Headers.Exists("new")).ToEqual False
+        .Expect(Cloned.ResponseFormat).ToEqual plaintext
+    End With
+    
     InlineRunner.RunSuite Specs
 End Function
 
