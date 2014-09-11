@@ -16,7 +16,7 @@ Attribute VB_Name = "RestHelpers"
 ' 1. Logging
 ' 2. Converters and encoding
 ' 3. Url handling
-' 4. Object/Dictionary/Collection helpers
+' 4. Object/Dictionary/Collection/Array helpers
 ' 5. Request preparation / handling
 ' 6. Timing
 ' 7. Cryptography
@@ -642,6 +642,20 @@ Public Sub AddToDictionary(ByRef Dict As Dictionary, Key As String, Value As Var
         Dict(Key) = Value
     End If
 End Sub
+
+''
+' Clone dictionary
+'
+' @param {Dictionary} Dict
+' @return {Dictionary}
+' --------------------------------------------- '
+Public Function CloneDictionary(Dict As Dictionary) As Dictionary
+    Set CloneDictionary = New Dictionary
+    Dim Key As Variant
+    For Each Key In Dict.Keys
+        CloneDictionary.Add CStr(Key), Dict(Key)
+    Next Key
+End Function
 
 ' ============================================= '
 ' 5. Request preparation / handling

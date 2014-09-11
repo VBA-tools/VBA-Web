@@ -32,7 +32,7 @@ Private pCookies As Dictionary
 Private pBody As Variant
 Private pBodyString As String
 Private pContentType As String
-Private pAccept
+Private pAccept As String
 Private pContentLength As Long
 Private pHttpRequest As Object
 
@@ -62,7 +62,6 @@ Public Resource As String
 Public Method As AvailableMethods
 Public RequestFormat As AvailableFormats
 Public ResponseFormat As AvailableFormats
-Public RootElement As String
 Public Callback As String
 Public BaseUrl As String
 Public RequireHTTPS As Boolean
@@ -124,14 +123,14 @@ Public Property Let IncludeCacheBreaker(Value As Boolean)
 End Property
 
 Public Property Get FormattedResource() As String
-    Dim segment As Variant
+    Dim Segment As Variant
     
     FormattedResource = Me.Resource
     
     ' Replace url segments
-    For Each segment In Me.UrlSegments.Keys
-        FormattedResource = Replace(FormattedResource, "{" & segment & "}", Me.UrlSegments(segment))
-    Next segment
+    For Each Segment In Me.UrlSegments.Keys
+        FormattedResource = Replace(FormattedResource, "{" & Segment & "}", Me.UrlSegments(Segment))
+    Next Segment
     FormattedResource = Replace(FormattedResource, "{format}", RestHelpers.FormatToName(Me.ResponseFormat))
     
     ' Add querystring
@@ -285,7 +284,6 @@ End Property
 ' @param {String} key
 ' @param {String} value
 ' --------------------------------------------- '
-
 Public Sub AddHeader(Key As String, Value As String)
     RestHelpers.AddToDictionary Me.Headers, Key, Value
 End Sub
@@ -296,9 +294,8 @@ End Sub
 ' @param {String} key
 ' @param {String} value
 ' --------------------------------------------- '
-
-Public Sub AddUrlSegment(segment As String, Value As String)
-    RestHelpers.AddToDictionary Me.UrlSegments, segment, Value
+Public Sub AddUrlSegment(Segment As String, Value As String)
+    RestHelpers.AddToDictionary Me.UrlSegments, Segment, Value
 End Sub
 
 ''
@@ -307,7 +304,6 @@ End Sub
 ' @param {String} key
 ' @param {Variant} value
 ' --------------------------------------------- '
-
 Public Sub AddParameter(Key As String, Value As Variant)
     RestHelpers.AddToDictionary Me.Parameters, Key, Value
 End Sub
@@ -318,7 +314,6 @@ End Sub
 ' @param {String} key
 ' @param {Variant} value
 ' --------------------------------------------- '
-
 Public Sub AddQuerystringParam(Key As String, Value As Variant)
     RestHelpers.AddToDictionary Me.QuerystringParams, Key, Value
 End Sub
@@ -329,7 +324,6 @@ End Sub
 ' @param {String} key
 ' @param {Variant} value
 ' --------------------------------------------- '
-
 Public Sub AddCookie(Key As String, Value As Variant)
     RestHelpers.AddToDictionary Me.Cookies, Key, Value
 End Sub
@@ -339,8 +333,7 @@ End Sub
 '
 ' @param {Variant} bodyVal Object/Collection/Array to add to body (will be converted to string)
 ' --------------------------------------------- '
-
-Public Function AddBody(BodyVal As Variant)
+Public Sub AddBody(BodyVal As Variant)
     If IsObject(BodyVal) Then
         Set pBody = BodyVal
     ElseIf RestHelpers.IsArray(BodyVal) Then
@@ -348,23 +341,20 @@ Public Function AddBody(BodyVal As Variant)
     Else
         pBodyString = BodyVal
     End If
-End Function
+End Sub
 
 ''
 ' Add body as string
 '
 ' @param {String} bodyVal
 ' --------------------------------------------- '
-
-Public Function AddBodyString(BodyVal As String)
+Public Sub AddBodyString(BodyVal As String)
     pBodyString = BodyVal
-End Function
+End Sub
 
 ''
 ' Process asynchronous requests
-'
 ' --------------------------------------------- '
-
 Public Sub ReadyStateChangeHandler()
 Attribute ReadyStateChangeHandler.VB_UserMemId = 0
     ' During development, uncomment to watch changes in ready state
@@ -391,32 +381,59 @@ End Sub
 
 ''
 ' Start timeout timer
-'
 ' --------------------------------------------- '
-
 Public Sub StartTimeoutTimer(TimeoutMS As Long)
     RestHelpers.StartTimeoutTimer Me, TimeoutMS
 End Sub
 
 ''
 ' Stop timeout timer
-'
 ' --------------------------------------------- '
-
 Public Sub StopTimeoutTimer()
     RestHelpers.StopTimeoutTimer Me
 End Sub
 
 ''
 ' Handle timeouts
-'
 ' --------------------------------------------- '
-
 Public Sub TimedOut()
     ' Callback
     RestHelpers.LogDebug "Timed out", "RestRequest.TimedOut"
     RunCallback RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
 End Sub
+
+''
+' Clone request
+'
+' @return {RestRequest}
+' --------------------------------------------- '
+Public Function Clone() As RestRequest
+    Set Clone = New RestRequest
+    
+    Clone.Resource = Me.Resource
+    Clone.Method = Me.Method
+    Clone.Accept = Me.Accept
+    Clone.ContentType = Me.ContentType
+    Clone.RequestFormat = Me.RequestFormat
+    Clone.ResponseFormat = Me.ResponseFormat
+    Clone.Callback = Me.Callback
+    Clone.ContentLength = Me.ContentLength
+    Clone.BaseUrl = Me.BaseUrl
+    Clone.RequireHTTPS = Me.RequireHTTPS
+    Clone.IncludeContentLength = Me.IncludeContentLength
+    
+    Set Clone.Headers = RestHelpers.CloneDictionary(Me.Headers)
+    Set Clone.Parameters = RestHelpers.CloneDictionary(Me.Parameters)
+    Set Clone.QuerystringParams = RestHelpers.CloneDictionary(Me.QuerystringParams)
+    Set Clone.UrlSegments = RestHelpers.CloneDictionary(Me.UrlSegments)
+    Set Clone.Cookies = RestHelpers.CloneDictionary(Me.Cookies)
+    
+    If pBodyString <> "" Then
+        Clone.AddBody pBodyString
+    Else
+        Clone.AddBody pBody
+    End If
+End Function
 
 ' ============================================= '
 ' Private Functions
