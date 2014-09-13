@@ -322,6 +322,12 @@ Public Function Specs() As SpecSuite
         .Expect(Cloned.ResponseFormat).ToEqual plaintext
     End With
     
+    With Specs.It("should have an id")
+        Set Request = New RestRequest
+        Debug.Print
+        .Expect(Len(Request.Id)).ToBeGreaterThan 0
+    End With
+    
     InlineRunner.RunSuite Specs
 End Function
 

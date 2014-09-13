@@ -35,6 +35,7 @@ Private pContentType As String
 Private pAccept As String
 Private pContentLength As Long
 Private pHttpRequest As Object
+Private pId As String
 
 ' --------------------------------------------- '
 ' Types
@@ -273,6 +274,20 @@ Public Property Set HttpRequest(ByVal Value As Object)
     Set pHttpRequest = Value
 End Property
 
+Public Property Get Id() As String
+    If pId = "" Then
+        On Error Resume Next
+        ' First, try creating GUID
+        pId = Replace(Replace(Left(CreateObject("Scriptlet.TypeLibz").GUID, 38), "{", ""), "}", "")
+        
+        If pId = "" Then
+            ' If that fails, use nonce
+            pId = UCase(RestHelpers.CreateNonce)
+        End If
+    End If
+    
+    Id = pId
+End Property
 
 ' ============================================= '
 ' Public Methods

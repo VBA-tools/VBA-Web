@@ -380,7 +380,7 @@ Private Function OAuthIsDenied(IE As Object) As Boolean
         
         Dim Element As Object
         For Each Element In Document.Body.all
-            If Element.nodeName = "P" And Element.ID = "access_denied" Then
+            If Element.nodeName = "P" And Element.Id = "access_denied" Then
                 OAuthIsDenied = True
                 Exit Function
             End If
@@ -421,9 +421,9 @@ Private Function OAuthExtractError(IE As Object) As String
     
     Set Document = IE.Document
     For Each Element In Document.Body.all
-        If Element.ID = "errorCode" Then
+        If Element.Id = "errorCode" Then
             OAuthExtractError = Element.innerHTML
-        ElseIf Element.ID = "errorDescription" Then
+        ElseIf Element.Id = "errorDescription" Then
             OAuthExtractError = OAuthExtractError & ", " & Element.innerHTML
             Exit Function
         End If

@@ -290,7 +290,7 @@ Public Function Specs() As SpecSuite
             "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
             "X-Powered-By: Express"
             
-        Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
+        Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
         .Expect(Headers.count).ToEqual 9
         .Expect(Headers.Item(5)("key")).ToEqual "Set-Cookie"
         .Expect(Headers.Item(5)("value")).ToEqual "unsigned-cookie=simple-cookie; Path=/"
@@ -307,7 +307,7 @@ Public Function Specs() As SpecSuite
             "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
             "X-Powered-By: Express"
             
-        Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
+        Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
         .Expect(Headers.count).ToEqual 6
         .Expect(Headers.Item(3)("key")).ToEqual "WWW-Authenticate"
         .Expect(Headers.Item(3)("value")).ToEqual "Digest realm=""abc@host.com""" & vbCrLf & _
@@ -327,8 +327,8 @@ Public Function Specs() As SpecSuite
             "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
             "X-Powered-By: Express"
     
-        Set Headers = RestHelpers.ExtractHeadersFromResponseHeaders(ResponseHeaders)
-        Set Cookies = RestHelpers.ExtractCookiesFromHeaders(Headers)
+        Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
+        Set Cookies = RestHelpers.ExtractCookies(Headers)
         .Expect(Cookies.count).ToEqual 3
         .Expect(Cookies("unsigned-cookie")).ToEqual "simple-cookie"
         .Expect(Cookies("duplicate-cookie")).ToEqual "B"
