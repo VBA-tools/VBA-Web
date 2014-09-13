@@ -15,17 +15,17 @@ Public Function Specs() As SpecSuite
     Specs.Description = "GoogleAuthenticator"
     
     Dim Auth As New GoogleAuthenticator
-    Dim ID As String
+    Dim Id As String
     Dim Secret As String
     
     If Credentials.Loaded Then
-        ID = Credentials.Values("Google")("id")
+        Id = Credentials.Values("Google")("id")
         Secret = Credentials.Values("Google")("secret")
     Else
-        ID = InputBox("Google Client Id")
+        Id = InputBox("Google Client Id")
         Secret = InputBox("Google Client Secret")
     End If
-    Auth.Setup ID, Secret
+    Auth.Setup Id, Secret
     
     With Specs.It("should login")
         Auth.Login

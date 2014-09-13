@@ -23,36 +23,10 @@ Attribute VB_Name = "RestHelpers"
 ' vba-json
 ' --------------------------------------------- '
 
-' Declare SetTimer and KillTimer
-' See [SetTimer and VBA](http://www.mcpher.com/Home/excelquirks/classeslink/vbapromises/timercallbacks)
-' and [MSDN Article](http://msdn.microsoft.com/en-us/library/windows/desktop/ms644906(v=vs.85).aspx)
-' --------------------------------------------- '
-#If VBA7 And Win64 Then
-    ' 64-bit
-    Public Declare PtrSafe Function SetTimer Lib "user32" ( _
-        ByVal HWnd As LongLong, ByVal nIDEvent As LongLong, _
-        ByVal uElapse As LongLong, _
-        ByVal lpTimerFunc As LongLong) As LongLong
-    Public Declare PtrSafe Function KillTimer Lib "user32" ( _
-        ByVal HWnd As LongLong, _
-        ByVal nIDEvent As LongLong) As LongLong
-   
-#Else
-    '32-bit
-    Public Declare Function SetTimer Lib "user32" ( _
-        ByVal HWnd As Long, _
-        ByVal nIDEvent As Long, _
-        ByVal uElapse As Long, _
-        ByVal lpTimerFunc As Long) As Long
-    Public Declare Function KillTimer Lib "user32" ( _
-        ByVal HWnd As Long, _
-        ByVal nIDEvent As Long) As Long
-  
-#End If
-
 Private Const UserAgent As String = "Excel Client v3.1.4 (https://github.com/timhall/Excel-REST)"
 Private DocumentHelper As Object
 Private ElHelper As Object
+Private Requests As Dictionary
 
 ' Moved to top from JSONLib
 Private Const INVALID_JSON      As Long = 1
@@ -662,53 +636,6 @@ End Function
 ' ============================================= '
 
 ''
-' Prepare http request for execution
-'
-' @param {RestRequest} Request
-' @param {Integer} TimeoutMS
-' @param {Boolean} [UseAsync=False]
-' @return {Object} Setup http object
-' --------------------------------------------- '
-Public Function PrepareHttpRequest(Request As RestRequest, TimeoutMS As Long, _
-    Optional UseAsync As Boolean = False) As Object
-    Dim Http As Object
-    Set Http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
-    
-    ' Set timeouts
-    Http.setTimeouts TimeoutMS, TimeoutMS, TimeoutMS, TimeoutMS
-    
-    ' Pass http to request and setup onreadystatechange
-    If UseAsync Then
-        Set Request.HttpRequest = Http
-        Http.onreadystatechange = Request
-    End If
-    
-    Set PrepareHttpRequest = Http
-End Function
-
-''
-' Prepare proxy for http object
-'
-' @param {String} ProxyServer
-' @param {String} [Username=""]
-' @param {String} [Password=""]
-' @param {Variant} [BypassList]
-' --------------------------------------------- '
-Public Sub PrepareProxyForHttpRequest(ByRef Http As Object, ProxyServer As String, _
-    Optional Username As String = "", Optional Password As String = "", Optional BypassList As Variant)
-    
-    If ProxyServer <> "" Then
-        Http.SetProxy 2, ProxyServer, BypassList
-        LogDebug "SetProxy: " & ProxyServer, "RestHelpers.PrepareProxyForHttpRequest"
-        
-        If Username <> "" Then
-            Http.SetProxyCredentials Username, Password
-            LogDebug "SetProxyCredentials: " & Username & ", " & Obfuscate(Password), "RestHelpers.PrepareProxyForHttpRequest"
-        End If
-    End If
-End Sub
-
-''
 ' Set headers to http object for given request
 '
 ' @param {Object} Http request
@@ -737,71 +664,6 @@ Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
     For Each CookieKey In Request.Cookies.Keys()
         Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
     Next CookieKey
-End Sub
-
-''
-' Execute request synchronously
-'
-' @param {Object} Http
-' @param {RestRequest} Request The request to execute
-' @return {RestResponse} Wrapper of server response for request
-' --------------------------------------------- '
-Public Function ExecuteRequest(ByRef Http As Object, ByRef Request As RestRequest) As RestResponse
-    On Error GoTo ErrorHandling
-    Dim Response As RestResponse
-
-    ' Send the request and handle response
-    LogRequest Request
-    Http.Send Request.Body
-    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
-    LogResponse Response, Request
-    
-ErrorHandling:
-
-    If Not Http Is Nothing Then Set Http = Nothing
-    If Err.Number <> 0 Then
-        If InStr(Err.Description, "The operation timed out") > 0 Then
-            ' Return 408
-            Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
-            LogDebug "Timeout: " & Request.FullUrl, "RestHelpers.ExecuteRequest"
-            Err.Clear
-        Else
-            ' Rethrow error
-            LogError Err.Description, "RestHelpers.ExecuteRequest", Err.Number
-            Err.Raise Err.Number, Description:=Err.Description
-        End If
-    End If
-    
-    Set ExecuteRequest = Response
-End Function
-
-''
-' Execute request asynchronously
-'
-' @param {Object} Http
-' @param {RestRequest} Request The request to execute
-' @param {String} Callback Name of function to call when request completes (specify "" if none)
-' @param {Variant} [CallbackArgs] Variable array of arguments that get passed directly to callback function
-' --------------------------------------------- '
-Public Sub ExecuteRequestAsync(ByRef Http As Object, ByRef Request As RestRequest, TimeoutMS As Long, Callback As String, Optional ByVal CallbackArgs As Variant)
-    On Error GoTo ErrorHandling
-
-    Request.Callback = Callback
-    Request.CallbackArgs = CallbackArgs
-    
-    ' Send the request
-    Request.StartTimeoutTimer TimeoutMS
-    LogRequest Request
-    Http.Send Request.Body
-    
-    Exit Sub
-    
-ErrorHandling:
-
-    ' Close http and rethrow error
-    If Not Http Is Nothing Then Set Http = Nothing
-    LogError Err.Description, "RestHelpers.ExecuteRequestAsync", Err.Number
-    Err.Raise Err.Number, Description:=Err.Description
 End Sub
 
 ''
@@ -834,48 +696,16 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     
     ' Convert content to data by format
     If Format <> AvailableFormats.plaintext Then
+        On Error Resume Next
         Set CreateResponseFromHttp.Data = RestHelpers.ParseByFormat(Http.ResponseText, Format)
+        On Error GoTo 0
     End If
     
     ' Extract headers
-    Set CreateResponseFromHttp.Headers = ExtractHeadersFromResponseHeaders(Http.getAllResponseHeaders)
+    Set CreateResponseFromHttp.Headers = ExtractHeaders(Http.getAllResponseHeaders)
     
     ' Extract cookies
-    Set CreateResponseFromHttp.Cookies = ExtractCookiesFromHeaders(CreateResponseFromHttp.Headers)
-End Function
-
-''
-' Extract cookies from response headers
-'
-' @param {String} ResponseHeaders
-' @return {Dictionary} Cookies
-' --------------------------------------------- '
-Public Function ExtractCookiesFromHeaders(Headers As Collection) As Dictionary
-    Dim Cookies As New Dictionary
-    Dim Cookie As String
-    Dim Key As String
-    Dim Value As String
-    Dim Header As Dictionary
-    
-    For Each Header In Headers
-        If Header("key") = "Set-Cookie" Then
-            Cookie = Header("value")
-            Key = Mid$(Cookie, 1, InStr(1, Cookie, "=") - 1)
-            Value = Mid$(Cookie, InStr(1, Cookie, "=") + 1, Len(Cookie))
-            
-            If InStr(1, Value, ";") Then
-                Value = Mid$(Value, 1, InStr(1, Value, ";") - 1)
-            End If
-            
-            If Cookies.Exists(Key) Then
-                Cookies(Key) = UrlDecode(Value)
-            Else
-                Cookies.Add Key, UrlDecode(Value)
-            End If
-        End If
-    Next Header
-    
-    Set ExtractCookiesFromHeaders = Cookies
+    Set CreateResponseFromHttp.Cookies = ExtractCookies(CreateResponseFromHttp.Headers)
 End Function
 
 ''
@@ -884,7 +714,7 @@ End Function
 ' @param {String} ResponseHeaders
 ' @return {Collection} Headers
 ' --------------------------------------------- '
-Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As Collection
+Public Function ExtractHeaders(ResponseHeaders As String) As Collection
     Dim Headers As New Collection
     Dim Header As Dictionary
     Dim Multiline As Boolean
@@ -920,7 +750,41 @@ Public Function ExtractHeadersFromResponseHeaders(ResponseHeaders As String) As 
         End If
     Next i
     
-    Set ExtractHeadersFromResponseHeaders = Headers
+    Set ExtractHeaders = Headers
+End Function
+
+''
+' Extract cookies from response headers
+'
+' @param {Collection} Headers
+' @return {Dictionary} Cookies
+' --------------------------------------------- '
+Public Function ExtractCookies(Headers As Collection) As Dictionary
+    Dim Cookies As New Dictionary
+    Dim Cookie As String
+    Dim Key As String
+    Dim Value As String
+    Dim Header As Dictionary
+    
+    For Each Header In Headers
+        If Header("key") = "Set-Cookie" Then
+            Cookie = Header("value")
+            Key = Mid$(Cookie, 1, InStr(1, Cookie, "=") - 1)
+            Value = Mid$(Cookie, InStr(1, Cookie, "=") + 1, Len(Cookie))
+            
+            If InStr(1, Value, ";") Then
+                Value = Mid$(Value, 1, InStr(1, Value, ";") - 1)
+            End If
+            
+            If Cookies.Exists(Key) Then
+                Cookies(Key) = UrlDecode(Value)
+            Else
+                Cookies.Add Key, UrlDecode(Value)
+            End If
+        End If
+    Next Header
+    
+    Set ExtractCookies = Cookies
 End Function
 
 ''
@@ -1017,6 +881,37 @@ Public Function FormatToContentType(Format As AvailableFormats) As String
     End Select
 End Function
 
+''
+' Add request to watched requests
+'
+' @param {RestRequest} Request
+' --------------------------------------------- '
+Public Sub AddRequest(Request As RestRequest)
+    If Requests Is Nothing Then: Set Requests = New Dictionary
+    Requests.Add Request.Id, Request
+End Sub
+
+''
+' Get watched request
+'
+' @param {String} RequestId
+' @return {RestRequest}
+' --------------------------------------------- '
+Public Function GetRequest(RequestId As String) As RestRequest
+    If Requests.Exists(RequestId) Then
+        Set GetRequest = Requests(RequestId)
+    End If
+End Function
+
+''
+' Remove request from watched requests
+'
+' @param {String} RequestId
+' --------------------------------------------- '
+Public Sub RemoveRequest(RequestId As String)
+    If Requests.Exists(RequestId) Then: Requests.Remove RequestId
+End Sub
+
 ' ============================================= '
 ' 6. Timing
 ' ============================================= '
@@ -1028,7 +923,8 @@ End Function
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
 Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
-    SetTimer Application.HWnd, ObjPtr(Request), TimeoutMS, AddressOf RestHelpers.TimeoutTimerExpired
+    AddRequest Request
+    Application.OnTime Now + TimeValue("00:00:" & Round(TimeoutMS / 1000, 0)), "'RestHelpers.TimeoutTimerExpired """ & Request.Id & """'"
 End Sub
 
 ''
@@ -1037,25 +933,23 @@ End Sub
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
 Public Sub StopTimeoutTimer(Request As RestRequest)
-    KillTimer Application.HWnd, ObjPtr(Request)
+    RemoveRequest Request.Id
 End Sub
 
 ''
 ' Handle timeout timers expiring
 '
-' See [MSDN Article](http://msdn.microsoft.com/en-us/library/windows/desktop/ms644907(v=vs.85).aspx)
+' @param {String} RequestId
 ' --------------------------------------------- '
-#If VBA7 And Win64 Then
-Public Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal Msg As Long, _
-        ByVal Request As RestRequest, ByVal dwTimer As Long)
-#Else
-Sub TimeoutTimerExpired(ByVal HWnd As Long, ByVal uMsg As Long, _
-        ByVal Request As RestRequest, ByVal dwTimer As Long)
-#End If
-    
-    StopTimeoutTimer Request
-    LogDebug "Async Timeout: " & Request.FullUrl, "RestHelpers.TimeoutTimerExpired"
-    Request.TimedOut
+Public Sub TimeoutTimerExpired(RequestId As String)
+    Dim Request As RestRequest
+    Set Request = GetRequest(RequestId)
+    If Not Request Is Nothing Then
+        StopTimeoutTimer Request
+        
+        LogDebug "Async Timeout: " & Request.FullUrl, "RestHelpers.TimeoutTimerExpired"
+        Request.TimedOut
+    End If
 End Sub
 
 ' ============================================= '

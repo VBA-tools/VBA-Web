@@ -47,22 +47,44 @@ Public ProxyBypassList As Variant
 
 Public Function Execute(Request As RestRequest) As RestResponse
     On Error GoTo ErrorHandling
-    Dim Http As Object
+    Dim Http As MSXML2.ServerXMLHTTP60
+    Dim Response As RestResponse
     
-    Set Http = HttpSetup(Request, False)
-    Set Execute = RestHelpers.ExecuteRequest(Http, Request)
+    ' Clone Request to "freeze" at time of execution
+    Set Request = Request.Clone
+    
+    ' Setup http
+    Set Http = SetupHttp(Request, False)
+    
+    ' Send the request
+    RestHelpers.LogRequest Request
+    Http.send Request.Body
+    
+    ' Handle the response
+    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
+    RestHelpers.LogResponse Response, Request
     
     If Not Me.Authenticator Is Nothing Then
-        Me.Authenticator.AfterExecute Me, Request, Execute
+        Me.Authenticator.AfterExecute Me, Request, Response
     End If
     
 ErrorHandling:
-
+    
     If Not Http Is Nothing Then Set Http = Nothing
     If Err.Number <> 0 Then
-        ' Rethrow error
-        Err.Raise Err.Number, Description:=Err.Description
+        If InStr(Err.Description, "The operation timed out") > 0 Then
+            ' Return 408
+            Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+            RestHelpers.LogResponse Response, Request
+            Err.Clear
+        Else
+            ' Rethrow error
+            RestHelpers.LogError Err.Description, "RestClient.Execute", Err.Number
+            Err.Raise Err.Number, Description:=Err.Description
+        End If
     End If
+    
+    Set Execute = Response
 End Function
 
 ''
@@ -76,11 +98,21 @@ End Function
 
 Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     On Error GoTo ErrorHandling
-    Dim Http As Object
+    Dim Http As MSXML2.ServerXMLHTTP60
     
-    ' Setup the request
-    Set Http = HttpSetup(Request, True)
-    RestHelpers.ExecuteRequestAsync Http, Request, Me.TimeoutMS, Callback, CallbackArgs
+    ' Clone Request to "freeze" at time of execution
+    Set Request = Request.Clone
+    Request.Callback = Callback
+    Request.CallbackArgs = CallbackArgs
+    
+    ' Setup http
+    Set Http = SetupHttp(Request, UseAsync:=True)
+    
+    ' Send the request
+    Request.StartTimeoutTimer Me.TimeoutMS
+    RestHelpers.LogRequest Request
+    Http.send Request.Body
+    
     ExecuteAsync = True
     Exit Function
     
@@ -88,6 +120,7 @@ ErrorHandling:
 
     ' Close Http and rethrow error
     If Not Http Is Nothing Then Set Http = Nothing
+    RestHelpers.LogError Err.Description, "RestClient.ExecuteAsync", Err.Number
     Err.Raise Err.Number, Description:=Err.Description
 End Function
 
@@ -159,25 +192,44 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Function HttpSetup(ByRef Request As RestRequest, Optional UseAsync As Boolean = False) As Object
-    Set HttpSetup = RestHelpers.PrepareHttpRequest(Request, Me.TimeoutMS, UseAsync)
+Private Function SetupHttp(ByRef Request As RestRequest, Optional UseAsync As Boolean = False) As Object
+    Dim Http As New MSXML2.ServerXMLHTTP60
     
-    If Me.ProxyServer <> "" Then
-        RestHelpers.PrepareProxyForHttpRequest HttpSetup, Me.ProxyServer, Me.ProxyUsername, Me.ProxyPassword, Me.ProxyBypassList
+    ' Set timeouts
+    Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
+    
+    ' Pass http to request and setup onreadystatechange
+    If UseAsync Then
+        Set Request.HttpRequest = Http
+        Http.onreadystatechange = Request
+    End If
+    
+    ' Setup proxy
+    If ProxyServer <> "" Then
+        LogDebug "SetProxy: " & ProxyServer, "RestHelpers.PrepareProxyForHttpRequest"
+        Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
+        
+        If Me.ProxyUsername <> "" Then
+            LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & Obfuscate(Me.ProxyPassword), "RestClient.SetupHttp"
+            Http.SetProxyCredentials Me.ProxyUsername, Me.ProxyPassword
+        End If
     End If
     
     ' Before execute and http open hooks for authenticator
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.BeforeExecute Me, Request
-        Me.Authenticator.HttpOpen HttpSetup, Me, Request, Me.BaseUrl, UseAsync
+        Me.Authenticator.HttpOpen Http, Me, Request, Me.BaseUrl, UseAsync
         Set Request.Authenticator = Me.Authenticator
         Set Request.Client = Me
     Else
         ' Nothing hooked in so open http object
-        HttpSetup.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
+        Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
     End If
     
-    RestHelpers.SetHeaders HttpSetup, Request
+    ' Set headers on http request (after open)
+    RestHelpers.SetHeaders Http, Request
+    
+    Set SetupHttp = Http
 End Function
 
 Private Sub Class_Initialize()

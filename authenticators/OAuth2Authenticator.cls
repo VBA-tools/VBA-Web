@@ -86,7 +86,7 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
         Set Http = CreateObject("MSXML2.ServerXMLHTTP")
              
         Http.Open "POST", CreateTokenRequest, False
-        Http.Send
+        Http.send
         
         If Http.Status <> 200 Then
             ' Error getting OAuth2 token
