@@ -58,7 +58,7 @@ Public Function Specs() As SpecSuite
             .Expect(Parsed("b")).ToEqual 3.14
             .Expect(Parsed("c")).ToEqual "Howdy!"
             .Expect(Parsed("d")).ToEqual True
-            .Expect(Parsed("e").count).ToEqual 2
+            .Expect(Parsed("e").Count).ToEqual 2
         End If
         
         json = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
@@ -70,7 +70,7 @@ Public Function Specs() As SpecSuite
             .Expect(Parsed(2)).ToEqual 3.14
             .Expect(Parsed(3)).ToEqual "Howdy!"
             .Expect(Parsed(4)).ToEqual True
-            .Expect(Parsed(5).count).ToEqual 2
+            .Expect(Parsed(5).Count).ToEqual 2
             .Expect(Parsed(6)("a")).ToEqual "Howdy!"
         End If
     End With
@@ -291,7 +291,7 @@ Public Function Specs() As SpecSuite
             "X-Powered-By: Express"
             
         Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
-        .Expect(Headers.count).ToEqual 9
+        .Expect(Headers.Count).ToEqual 9
         .Expect(Headers.Item(5)("key")).ToEqual "Set-Cookie"
         .Expect(Headers.Item(5)("value")).ToEqual "unsigned-cookie=simple-cookie; Path=/"
     End With
@@ -308,7 +308,7 @@ Public Function Specs() As SpecSuite
             "X-Powered-By: Express"
             
         Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
-        .Expect(Headers.count).ToEqual 6
+        .Expect(Headers.Count).ToEqual 6
         .Expect(Headers.Item(3)("key")).ToEqual "WWW-Authenticate"
         .Expect(Headers.Item(3)("value")).ToEqual "Digest realm=""abc@host.com""" & vbCrLf & _
             "nonce=""abc""" & vbCrLf & _
@@ -329,18 +329,18 @@ Public Function Specs() As SpecSuite
     
         Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
         Set Cookies = RestHelpers.ExtractCookies(Headers)
-        .Expect(Cookies.count).ToEqual 3
+        .Expect(Cookies.Count).ToEqual 3
         .Expect(Cookies("unsigned-cookie")).ToEqual "simple-cookie"
         .Expect(Cookies("duplicate-cookie")).ToEqual "B"
     End With
     
     With Specs.It("should create request from options")
         Set Request = RestHelpers.CreateRequestFromOptions(Nothing)
-        .Expect(Request.Headers.count).ToEqual 0
+        .Expect(Request.Headers.Count).ToEqual 0
         
         Set Options = New Dictionary
         Set Request = RestHelpers.CreateRequestFromOptions(Options)
-        .Expect(Request.Headers.count).ToEqual 0
+        .Expect(Request.Headers.Count).ToEqual 0
         
         Options.Add "Headers", New Dictionary
         Options("Headers").Add "HeaderKey", "HeaderValue"

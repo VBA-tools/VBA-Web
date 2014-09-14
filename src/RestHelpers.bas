@@ -23,7 +23,6 @@ Attribute VB_Name = "RestHelpers"
 ' vba-json
 ' --------------------------------------------- '
 
-Private Const UserAgent As String = "Excel Client v3.1.4 (https://github.com/timhall/Excel-REST)"
 Private DocumentHelper As Object
 Private ElHelper As Object
 Private Requests As Dictionary
@@ -330,7 +329,7 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
     If StringLen > 0 Then
         ReDim Result(StringLen) As String
         Dim i As Long, charCode As Integer
-        Dim char As String, space As String
+        Dim Char As String, space As String
         
         ' Set space value
         If SpaceAsPlus Then
@@ -342,12 +341,12 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
         ' Loop through string characters
         For i = 1 To StringLen
             ' Get character and ascii code
-            char = Mid$(UrlVal, i, 1)
-            charCode = asc(char)
+            Char = Mid$(UrlVal, i, 1)
+            charCode = asc(Char)
             Select Case charCode
                 Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
                     ' Use original for AZaz09-._~
-                    Result(i) = char
+                    Result(i) = Char
                 Case 32
                     ' Add space
                     Result(i) = space
@@ -638,23 +637,11 @@ End Function
 ''
 ' Set headers to http object for given request
 '
-' @param {Object} Http request
+' @param {WinHttpRequest} Http request
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-Public Sub SetHeaders(ByRef Http As WinHttpRequest, Request As RestRequest)
-    ' Add general headers to request
-    Request.AddHeader "User-Agent", UserAgent
-    Request.AddHeader "Content-Type", Request.ContentType
-    Request.AddHeader "Accept", Request.Accept
-    
-    If Request.IncludeContentLength Then
-        Request.AddHeader "Content-Length", Request.ContentLength
-    Else
-        If Request.Headers.Exists("Content-Length") Then
-            Request.Headers.Remove "Content-Length"
-        End If
-    End If
-
+#If Not Mac Then
+Public Sub SetHeadersForHttp(ByRef Http As WinHttpRequest, Request As RestRequest)
     Dim HeaderKey As Variant
     For Each HeaderKey In Request.Headers.Keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
@@ -665,6 +652,7 @@ Public Sub SetHeaders(ByRef Http As WinHttpRequest, Request As RestRequest)
         Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
     Next CookieKey
 End Sub
+#End If
 
 ''
 ' Create simple response
@@ -682,10 +670,11 @@ End Function
 ''
 ' Create response for http
 '
-' @param {Object} Http
+' @param {WinHttpRequest} Http
 ' @param {AvailableFormats} [Format=json]
 ' @return {RestResponse}
 ' --------------------------------------------- '
+#If Not Mac Then
 Public Function CreateResponseFromHttp(ByRef Http As WinHttpRequest, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
     Set CreateResponseFromHttp = New RestResponse
     
@@ -707,6 +696,7 @@ Public Function CreateResponseFromHttp(ByRef Http As WinHttpRequest, Optional Fo
     ' Extract cookies
     Set CreateResponseFromHttp.Cookies = ExtractCookies(CreateResponseFromHttp.Headers)
 End Function
+#End If
 
 ''
 ' Extract headers from response headers
@@ -1068,44 +1058,6 @@ Public Function BytesToFormat(Bytes() As Byte, Format As String) As String
 End Function
 
 ''
-' Generate a keyed hash value using the HMAC method and SHA1 algorithm
-' [Does VBA have a Hash_HMAC](http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac)
-'
-' @deprecated
-' @param {String} sTextToHash
-' @param {String} sSharedSecretKey
-' @return {String}
-' --------------------------------------------- '
-Public Function Base64_HMACSHA1(ByVal sTextToHash As String, ByVal sSharedSecretKey As String) As String
-    Debug.Print "Excel-REST: DEPRECATED Base64_HMACSHA1 has been deprecated in favor of HMACSHA1(Text, Secret, ""Base64""). It will be removed in Excel-REST v4"
-    Base64_HMACSHA1 = HMACSHA1(sTextToHash, sSharedSecretKey, "Base64")
-End Function
-
-''
-' Base64 encode data
-'
-' @deprecated
-' @param {Byte()} Data
-' @return {String} Encoded string
-' --------------------------------------------- '
-Public Function EncodeBase64(ByRef Data() As Byte) As String
-    Debug.Print "Excel-REST: DEPRECATED EncodeBase64 has been deprecated in favor of BytesToBase64. It will be removed in Excel-REST v4"
-    EncodeBase64 = BytesToBase64(Data)
-End Function
-
-''
-' Base64 encode string value
-'
-' @deprecated
-' @param {String} Data
-' @return {String} Encoded string
-' --------------------------------------------- '
-Public Function EncodeStringToBase64(ByVal Data As String) As String
-    Debug.Print "Excel-REST: DEPRECATED EncodeStringToBase64 has been deprecated in favor of Base64Encode. It will be removed in Excel-REST v4"
-    EncodeStringToBase64 = Base64Encode(Data)
-End Function
-
-''
 ' Create random alphanumeric nonce
 '
 ' @param {Integer} [NonceLength=32]
@@ -1113,14 +1065,14 @@ End Function
 ' --------------------------------------------- '
 Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Dim str As String
-    Dim count As Integer
+    Dim Count As Integer
     Dim Result As String
     Dim random As Integer
     
     str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
     Result = ""
     
-    For count = 1 To NonceLength
+    For Count = 1 To NonceLength
         random = Int(((Len(str) - 1) * Rnd) + 1)
         Result = Result + Mid$(str, random, 1)
     Next
@@ -1287,21 +1239,21 @@ End Function
 Private Function json_parseString(ByRef str As String, ByRef Index As Long) As String
 
     Dim quote   As String
-    Dim char    As String
+    Dim Char    As String
     Dim Code    As String
     
     Call json_skipChar(str, Index)
     quote = Mid$(str, Index, 1)
     Index = Index + 1
     Do While Index > 0 And Index <= Len(str)
-        char = Mid$(str, Index, 1)
-        Select Case (char)
+        Char = Mid$(str, Index, 1)
+        Select Case (Char)
         Case "\"
             Index = Index + 1
-            char = Mid$(str, Index, 1)
-            Select Case (char)
+            Char = Mid$(str, Index, 1)
+            Select Case (Char)
             Case """", "\", "/" ' Before: Case """", "\\", "/"
-                json_parseString = json_parseString & char
+                json_parseString = json_parseString & Char
                 Index = Index + 1
             Case "b"
                 json_parseString = json_parseString & vbBack
@@ -1329,7 +1281,7 @@ Private Function json_parseString(ByRef str As String, ByRef Index As Long) As S
             Index = Index + 1
             Exit Function
         Case Else
-            json_parseString = json_parseString & char
+            json_parseString = json_parseString & Char
             Index = Index + 1
         End Select
     Loop
@@ -1342,13 +1294,13 @@ End Function
 Private Function json_parseNumber(ByRef str As String, ByRef Index As Long)
 
     Dim Value   As String
-    Dim char    As String
+    Dim Char    As String
     
     Call json_skipChar(str, Index)
     Do While Index > 0 And Index <= Len(str)
-        char = Mid$(str, Index, 1)
-        If InStr("+-0123456789.eE", char) Then
-            Value = Value & char
+        Char = Mid$(str, Index, 1)
+        If InStr("+-0123456789.eE", Char) Then
+            Value = Value & Char
             Index = Index + 1
         Else
             json_parseNumber = Val(Value)
@@ -1396,12 +1348,12 @@ Private Function json_parseKey(ByRef str As String, ByRef Index As Long) As Stri
 
     Dim dquote  As Boolean
     Dim squote  As Boolean
-    Dim char    As String
+    Dim Char    As String
     
     Call json_skipChar(str, Index)
     Do While Index > 0 And Index <= Len(str)
-        char = Mid$(str, Index, 1)
-        Select Case (char)
+        Char = Mid$(str, Index, 1)
+        Select Case (Char)
         Case """"
             dquote = Not dquote
             Index = Index + 1
@@ -1426,13 +1378,13 @@ Private Function json_parseKey(ByRef str As String, ByRef Index As Long) As Stri
                 Exit Do
             Else
                 ' Colon in key name
-                json_parseKey = json_parseKey & char
+                json_parseKey = json_parseKey & Char
                 Index = Index + 1
             End If
         Case Else
-            If InStr(vbCrLf & vbCr & vbLf & vbTab & " ", char) Then
+            If InStr(vbCrLf & vbCr & vbLf & vbTab & " ", Char) Then
             Else
-                json_parseKey = json_parseKey & char
+                json_parseKey = json_parseKey & Char
             End If
             Index = Index + 1
         End Select
@@ -1469,7 +1421,7 @@ Private Function json_toString(ByRef Obj As Variant) As String
                 json_toString = json_toString & "{"
                 Dim Keys
                 Keys = Obj.Keys
-                For i = 0 To Obj.count - 1
+                For i = 0 To Obj.Count - 1
                     If bFI Then bFI = False Else json_toString = json_toString & ","
                     Dim Key
                     Key = Keys(i)

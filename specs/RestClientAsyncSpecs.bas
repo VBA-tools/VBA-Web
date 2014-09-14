@@ -116,7 +116,7 @@ Public Function Specs() As SpecSuite
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.Headers.count).ToBeGTE 5
+            .Expect(AsyncResponse.Headers.Count).ToBeGTE 5
         
             Dim Header As Dictionary
             Dim NumCookies As Integer
@@ -138,7 +138,7 @@ Public Function Specs() As SpecSuite
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.Cookies.count).ToEqual 4
+            .Expect(AsyncResponse.Cookies.Count).ToEqual 4
             .Expect(AsyncResponse.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
             .Expect(AsyncResponse.Cookies("signed-cookie")).ToContain "special-cookie"
             .Expect(AsyncResponse.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
@@ -163,9 +163,9 @@ Public Function Specs() As SpecSuite
         If Not AsyncResponse Is Nothing Then
             .Expect(AsyncResponse.Data).ToBeDefined
             If Not IsEmpty(AsyncResponse.Data) Then
-                .Expect(AsyncResponse.Data("cookies").count).ToEqual 1
+                .Expect(AsyncResponse.Data("cookies").Count).ToEqual 1
                 .Expect(AsyncResponse.Data("cookies")("test-cookie")).ToEqual "howdy"
-                .Expect(AsyncResponse.Data("signed_cookies").count).ToEqual 1
+                .Expect(AsyncResponse.Data("signed_cookies").Count).ToEqual 1
                 .Expect(AsyncResponse.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
             End If
         End If

@@ -185,22 +185,22 @@ Public Function Specs() As SpecSuite
         
         Request.AddHeader "A", "abc"
         Request.AddHeader "A", "def"
-        .Expect(Request.Headers.count).ToEqual 1
+        .Expect(Request.Headers.Count).ToEqual 1
         .Expect(Request.Headers.Item("A")).ToEqual "def"
         
         Request.AddUrlSegment "A", "abc"
         Request.AddUrlSegment "A", "def"
-        .Expect(Request.UrlSegments.count).ToEqual 1
+        .Expect(Request.UrlSegments.Count).ToEqual 1
         .Expect(Request.UrlSegments.Item("A")).ToEqual "def"
         
         Request.AddParameter "A", "abc"
         Request.AddParameter "A", "def"
-        .Expect(Request.Parameters.count).ToEqual 1
+        .Expect(Request.Parameters.Count).ToEqual 1
         .Expect(Request.Parameters.Item("A")).ToEqual "def"
         
         Request.AddQuerystringParam "A", "abc"
         Request.AddQuerystringParam "A", "def"
-        .Expect(Request.QuerystringParams.count).ToEqual 1
+        .Expect(Request.QuerystringParams.Count).ToEqual 1
         .Expect(Request.QuerystringParams.Item("A")).ToEqual "def"
     End With
     

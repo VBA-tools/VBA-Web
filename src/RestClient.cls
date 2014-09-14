@@ -19,8 +19,8 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
+Private Const UserAgent As String = "Excel Client v3.1.4 (https://github.com/timhall/Excel-REST)"
 Private Const DefaultTimeoutMS As Long = 5000
-
 
 ' --------------------------------------------- '
 ' Properties
@@ -29,6 +29,8 @@ Private Const DefaultTimeoutMS As Long = 5000
 Public BaseUrl As String
 Public Authenticator As IAuthenticator
 Public TimeoutMS As Long
+Public Username As String
+Public Password As String
 Public ProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
@@ -46,87 +48,20 @@ Public ProxyBypassList As Variant
 ' --------------------------------------------- '
 
 Public Function Execute(Request As RestRequest) As RestResponse
-    On Error GoTo ErrorHandling
-    Dim Http As WinHttpRequest
-    Dim Response As RestResponse
-    
-    ' Clone Request to "freeze" at time of execution
-    Set Request = Request.Clone
-    
-    ' Setup http
-    Set Http = SetupHttp(Request, False)
-    
-    ' Send the request
-    RestHelpers.LogRequest Request
-    Http.send Request.Body
-    
-    ' Wait for response
-    Do While Not Http.waitForResponse(25)
-        DoEvents
-    Loop
-    
-    ' Handle the response
-    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
-    RestHelpers.LogResponse Response, Request
-    
-    If Not Me.Authenticator Is Nothing Then
-        Me.Authenticator.AfterExecute Me, Request, Response
-    End If
-    
-ErrorHandling:
-    
-    If Not Http Is Nothing Then Set Http = Nothing
-    If Err.Number <> 0 Then
-        If InStr(Err.Description, "The operation timed out") > 0 Or InStr(Err.Description, "A connection with the server could not be established") > 0 Then
-            ' Return 408
-            Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
-            RestHelpers.LogResponse Response, Request
-            Err.Clear
-        Else
-            ' Rethrow error
-            RestHelpers.LogError Err.Description, "RestClient.Execute", Err.Number
-            Err.Raise Err.Number, Description:=Err.Description
-        End If
-    End If
-    
-    Set Execute = Response
+    Set Execute = ExecuteRequest(Request)
 End Function
 
 ''
 ' Execute the specified request asynchronously
 '
-' @param {RestRequest} request The request to execute
-' @param {String} callback Name of function to call when request completes (specify "" if none)
-' @param {Variant} [callbackArgs] Variable array of arguments that get passed directly to callback function
+' @param {RestRequest} Request The request to execute
+' @param {String} Callback Name of function to call when request completes
+' @param {Variant} [CallbackArgs] Variable array of arguments that get passed directly to callback function
 ' @return {Boolean} Status of initiating request
 ' --------------------------------------------- '
 
-Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
-    On Error GoTo ErrorHandling
-    Dim Http As WinHttpRequest
-    
-    ' Clone Request to "freeze" at time of execution
-    Set Request = Request.Clone
-    Request.Callback = Callback
-    Request.CallbackArgs = CallbackArgs
-    
-    ' Setup http
-    Set Http = SetupHttp(Request, UseAsync:=True)
-    
-    ' Send the request
-    Request.StartTimeoutTimer Me.TimeoutMS
-    RestHelpers.LogRequest Request
-    Http.send Request.Body
-    
-    ExecuteAsync = True
-    Exit Function
-    
-ErrorHandling:
-
-    ' Close Http and rethrow error
-    If Not Http Is Nothing Then Set Http = Nothing
-    RestHelpers.LogError Err.Description, "RestClient.ExecuteAsync", Err.Number
-    Err.Raise Err.Number, Description:=Err.Description
+Public Function ExecuteAsync(Request As RestRequest, Optional Callback As String = "", Optional ByVal CallbackArgs As Variant) As Boolean
+    ExecuteRequest Request, Callback, CallbackArgs
 End Function
 
 ''
@@ -197,43 +132,123 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Function SetupHttp(ByRef Request As RestRequest, Optional UseAsync As Boolean = False) As WinHttpRequest
+Private Function ExecuteRequest(Request As RestRequest, Optional Callback As String = "", Optional ByVal CallbackArgs As Variant) As RestResponse
+    Dim IsAsync As Boolean
+    If Callback <> "" Then: IsAsync = True
+    
+    ' Clone Request to "freeze" at time of execution and log
+    Set Request = Request.Clone
+    RestHelpers.LogRequest Request
+    
+#If Mac Then
+    On Error GoTo ErrorHandling
+    
+    ' TODO
+    
+ErrorHandling:
+    
+#Else
+    On Error GoTo ErrorHandling
     Dim Http As New WinHttpRequest
     
     ' Set timeouts
     Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
-    ' Pass http to request for async requests
-    If UseAsync Then
-        Set Request.HttpRequest = Http
-    End If
-    
     ' Setup proxy
-    If ProxyServer <> "" Then
-        LogDebug "SetProxy: " & ProxyServer, "RestHelpers.PrepareProxyForHttpRequest"
+    If Me.ProxyServer <> "" Then
+        LogDebug "SetProxy: " & Me.ProxyServer, "RestHelpers.PrepareProxyForHttpRequest"
         Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
-            LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & Obfuscate(Me.ProxyPassword), "RestClient.SetupHttp"
+            LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & Obfuscate(Me.ProxyPassword), "RestClient.ExecuteRequest"
             Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
+        End If
+    Else
+        ' Attempt to get proxy setup with Proxycfg.exe, otherwise direct
+        ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
+        Http.SetProxy 1 ' 1 = HTTPREQUEST_PROXYSETTING_PRECONFIG
+    End If
+    
+    ' Setup Basic authentication
+    If Me.Username <> "" Then
+        Http.SetCredentials Me.Username, Me.Password, 0 ' 0 = Credentials for server
+        Request.AddHeader "Authorization", "Basic " & RestHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+    End If
+    
+    ' Before execute hook for authenticator
+    If Not Me.Authenticator Is Nothing Then
+        Me.Authenticator.BeforeExecute Me, Request
+        
+        Set Request.Authenticator = Me.Authenticator
+        Set Request.Client = Me
+    End If
+    
+    ' Open http request
+    Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), True
+    
+    ' Add general headers to request
+    Request.AddHeader "User-Agent", UserAgent
+    Request.AddHeader "Content-Type", Request.ContentType
+    Request.AddHeader "Accept", Request.Accept
+    
+    If Request.IncludeContentLength Then
+        Request.AddHeader "Content-Length", Request.ContentLength
+    Else
+        If Request.Headers.Exists("Content-Length") Then
+            Request.Headers.Remove "Content-Length"
         End If
     End If
     
-    ' Before execute and http open hooks for authenticator
-    If Not Me.Authenticator Is Nothing Then
-        Me.Authenticator.BeforeExecute Me, Request
-        Me.Authenticator.HttpOpen Http, Me, Request, Me.BaseUrl, UseAsync
-        Set Request.Authenticator = Me.Authenticator
-        Set Request.Client = Me
-    Else
-        ' Nothing hooked in so open http object
-        Http.Open Request.MethodName(), Request.FullUrl(Me.BaseUrl), UseAsync
+    ' Set headers on http request (after open)
+    RestHelpers.SetHeadersForHttp Http, Request
+    
+    If IsAsync Then
+        ' Pass http, callback, and args to request for async
+        Set Request.HttpRequest = Http
+        Request.Callback = Callback
+        Request.CallbackArgs = CallbackArgs
+        
+        Request.StartTimeoutTimer Me.TimeoutMS
     End If
     
-    ' Set headers on http request (after open)
-    RestHelpers.SetHeaders Http, Request
+    Http.Send Request.Body
     
-    Set SetupHttp = Http
+    If Not IsAsync Then
+        ' Wait for the response
+        Do While Not Http.WaitForResponse(25)
+            DoEvents
+        Loop
+        
+        ' Handle the response
+        Dim Response As RestResponse
+        Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
+        RestHelpers.LogResponse Response, Request
+        
+        If Not Me.Authenticator Is Nothing Then
+            Me.Authenticator.AfterExecute Me, Request, Response
+        End If
+        
+        Set Http = Nothing
+        Set ExecuteRequest = Response
+    End If
+    
+    Exit Function
+
+ErrorHandling:
+    Set Http = Nothing
+    If InStr(Err.Description, "The operation timed out") > 0 Or InStr(Err.Description, "A connection with the server could not be established") > 0 Then
+        ' Return 408
+        Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+        RestHelpers.LogResponse Response, Request
+        Set ExecuteRequest = Response
+        Err.Clear
+    Else
+        ' Rethrow error
+        RestHelpers.LogError Err.Description, "RestClient.Execute", Err.Number
+        Err.Raise Err.Number, Description:=Err.Description
+    End If
+        
+#End If
 End Function
 
 Private Sub Class_Initialize()

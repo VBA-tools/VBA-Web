@@ -329,21 +329,6 @@ Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Reques
 
 End Sub
 
-''
-' Hook for overriding standard http open (used for HTTP Basic)
-'
-' @param {MSXML2.IXMLHTTPRequest} http
-' @parma {RestClient} Client The client that is about to open request
-' @param {RestRequest} Request The request about to be opened
-' @param {String} BaseUrl
-' @param {Boolean} [useAsync=False]
-' --------------------------------------------- '
-
-Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Perform standard http open
-    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
-End Sub
-
 Private Function TokenRequest() As RestRequest
     Set TokenRequest = New RestRequest
     TokenRequest.Resource = "o/oauth2/token"

@@ -7,6 +7,7 @@ app.use(function(req, res, next){
 });
 
 app.use(plain());
+app.use(express.compress());
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.cookieParser('cookie-secret'));
