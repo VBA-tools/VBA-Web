@@ -47,7 +47,7 @@ Public ProxyBypassList As Variant
 
 Public Function Execute(Request As RestRequest) As RestResponse
     On Error GoTo ErrorHandling
-    Dim Http As MSXML2.ServerXMLHTTP60
+    Dim Http As WinHttpRequest
     Dim Response As RestResponse
     
     ' Clone Request to "freeze" at time of execution
@@ -59,6 +59,11 @@ Public Function Execute(Request As RestRequest) As RestResponse
     ' Send the request
     RestHelpers.LogRequest Request
     Http.send Request.Body
+    
+    ' Wait for response
+    Do While Not Http.waitForResponse(25)
+        DoEvents
+    Loop
     
     ' Handle the response
     Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
@@ -72,7 +77,7 @@ ErrorHandling:
     
     If Not Http Is Nothing Then Set Http = Nothing
     If Err.Number <> 0 Then
-        If InStr(Err.Description, "The operation timed out") > 0 Then
+        If InStr(Err.Description, "The operation timed out") > 0 Or InStr(Err.Description, "A connection with the server could not be established") > 0 Then
             ' Return 408
             Set Response = RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
             RestHelpers.LogResponse Response, Request
@@ -98,7 +103,7 @@ End Function
 
 Public Function ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant) As Boolean
     On Error GoTo ErrorHandling
-    Dim Http As MSXML2.ServerXMLHTTP60
+    Dim Http As WinHttpRequest
     
     ' Clone Request to "freeze" at time of execution
     Set Request = Request.Clone
@@ -192,16 +197,15 @@ End Sub
 ' Private Methods
 ' ============================================= '
 
-Private Function SetupHttp(ByRef Request As RestRequest, Optional UseAsync As Boolean = False) As Object
-    Dim Http As New MSXML2.ServerXMLHTTP60
+Private Function SetupHttp(ByRef Request As RestRequest, Optional UseAsync As Boolean = False) As WinHttpRequest
+    Dim Http As New WinHttpRequest
     
     ' Set timeouts
     Http.setTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
-    ' Pass http to request and setup onreadystatechange
+    ' Pass http to request for async requests
     If UseAsync Then
         Set Request.HttpRequest = Http
-        Http.onreadystatechange = Request
     End If
     
     ' Setup proxy
@@ -211,7 +215,7 @@ Private Function SetupHttp(ByRef Request As RestRequest, Optional UseAsync As Bo
         
         If Me.ProxyUsername <> "" Then
             LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & Obfuscate(Me.ProxyPassword), "RestClient.SetupHttp"
-            Http.SetProxyCredentials Me.ProxyUsername, Me.ProxyPassword
+            Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
         End If
     End If
     
