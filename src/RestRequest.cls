@@ -70,6 +70,8 @@ Public CallbackArgs As Variant
 Public IncludeContentLength As Boolean
 Public Authenticator As IAuthenticator
 Public Client As RestClient
+Public WithEvents HttpRequest As WinHttpRequest
+Attribute HttpRequest.VB_VarHelpID = -1
 
 Public Property Get Format() As AvailableFormats
     Format = RequestFormat
@@ -267,13 +269,6 @@ Public Property Let ContentLength(Value As Long)
     pContentLength = Value
 End Property
 
-Public Property Get HttpRequest() As Object
-    Set HttpRequest = pHttpRequest
-End Property
-Public Property Set HttpRequest(ByVal Value As Object)
-    Set pHttpRequest = Value
-End Property
-
 Public Property Get Id() As String
     If pId = "" Then
         On Error Resume Next
@@ -370,28 +365,14 @@ End Sub
 ''
 ' Process asynchronous requests
 ' --------------------------------------------- '
-Public Sub ReadyStateChangeHandler()
-Attribute ReadyStateChangeHandler.VB_UserMemId = 0
-    ' During development, uncomment to watch changes in ready state
-    ' Debug.Print "ReadyStageChangeHandler: " & Me.HttpRequest.readyState
-
-    ' ReadyStates [The XMLHttpRequest Object](http://www.w3.org/TR/2006/WD-XMLHttpRequest-20060405/):
-    ' 0. Uninintialized
-    ' 1. Open
-    ' 2. Sent
-    ' 3. Receiving
-    ' 4. Loaded
+Private Sub HttpRequest_OnResponseFinished()
+    Me.StopTimeoutTimer
     
-    ' Once loaded, process result
-    If Me.HttpRequest.readyState = 4 Then
-        Me.StopTimeoutTimer
-        
-        ' Callback
-        Dim Response As RestResponse
-        Set Response = RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.ResponseFormat)
-        RestHelpers.LogResponse Response, Me
-        RunCallback Response
-    End If
+    ' Callback
+    Dim Response As RestResponse
+    Set Response = RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.ResponseFormat)
+    RestHelpers.LogResponse Response, Me
+    RunCallback Response
 End Sub
 
 ''

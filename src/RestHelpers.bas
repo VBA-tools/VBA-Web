@@ -641,7 +641,7 @@ End Function
 ' @param {Object} Http request
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-Public Sub SetHeaders(ByRef Http As Object, Request As RestRequest)
+Public Sub SetHeaders(ByRef Http As WinHttpRequest, Request As RestRequest)
     ' Add general headers to request
     Request.AddHeader "User-Agent", UserAgent
     Request.AddHeader "Content-Type", Request.ContentType
@@ -686,7 +686,7 @@ End Function
 ' @param {AvailableFormats} [Format=json]
 ' @return {RestResponse}
 ' --------------------------------------------- '
-Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+Public Function CreateResponseFromHttp(ByRef Http As WinHttpRequest, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
     Set CreateResponseFromHttp = New RestResponse
     
     CreateResponseFromHttp.StatusCode = Http.Status
