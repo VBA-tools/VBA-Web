@@ -34,7 +34,6 @@ Private pBodyString As String
 Private pContentType As String
 Private pAccept As String
 Private pContentLength As Long
-Private pHttpRequest As Object
 Private pId As String
 
 ' --------------------------------------------- '
@@ -70,8 +69,10 @@ Public CallbackArgs As Variant
 Public IncludeContentLength As Boolean
 Public Authenticator As IAuthenticator
 Public Client As RestClient
+#If Not Mac Then
 Public WithEvents HttpRequest As WinHttpRequest
 Attribute HttpRequest.VB_VarHelpID = -1
+#End If
 
 Public Property Get Format() As AvailableFormats
     Format = RequestFormat
@@ -121,10 +122,6 @@ Public Property Set Cookies(Value As Dictionary)
     Set pCookies = Value
 End Property
 
-Public Property Let IncludeCacheBreaker(Value As Boolean)
-    Debug.Print "Excel-REST: DEPRECATED IncludeCacheBreaker has been deprecated since it is not required with ServerXMLHTTP. It will be removed in Excel-REST v4"
-End Property
-
 Public Property Get FormattedResource() As String
     Dim Segment As Variant
     
@@ -138,7 +135,7 @@ Public Property Get FormattedResource() As String
     
     ' Add querystring
     If (Me.Method = httpGET And Not Me.Parameters Is Nothing) Or Not Me.QuerystringParams Is Nothing Then
-        If (Me.Parameters.count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.count > 0 Then
+        If (Me.Parameters.Count > 0 And Me.Method = httpGET) Or Me.QuerystringParams.Count > 0 Then
             If InStr(FormattedResource, "?") <= 0 Then
                 FormattedResource = FormattedResource & "?"
             Else
@@ -157,21 +154,21 @@ End Property
 
 Public Property Get Body() As String
     ' Add body if it's defined or parameters have been set and it is not a GET request
-    If Not IsEmpty(pBody) Or pBodyString <> "" Or (Me.Parameters.count > 0 And Me.Method <> httpGET) Then
+    If Not IsEmpty(pBody) Or pBodyString <> "" Or (Me.Parameters.Count > 0 And Me.Method <> httpGET) Then
         If pBodyString <> "" Then
-            If Me.Parameters.count > 0 And Me.Method <> httpGET Then
+            If Me.Parameters.Count > 0 And Me.Method <> httpGET Then
                 Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body string and parameters"
             Else
                 Body = pBodyString
             End If
         Else
             Dim BodyValue As Variant
-            If RestHelpers.IsArray(pBody) And Me.Parameters.count > 0 And Me.Method <> httpGET Then
+            If RestHelpers.IsArray(pBody) And Me.Parameters.Count > 0 And Me.Method <> httpGET Then
                 Err.Raise vbObjectError + 1, "RestRequest.Body", "Unable to combine body array and parameters"
-            ElseIf Not RestHelpers.IsArray(pBody) And Me.Parameters.count > 0 And Me.Method <> httpGET Then
-                If Me.Parameters.count > 0 And Not IsEmpty(pBody) Then
+            ElseIf Not RestHelpers.IsArray(pBody) And Me.Parameters.Count > 0 And Me.Method <> httpGET Then
+                If Me.Parameters.Count > 0 And Not IsEmpty(pBody) Then
                     Set BodyValue = CombineObjects(Me.Parameters, pBody)
-                ElseIf Me.Parameters.count > 0 Then
+                ElseIf Me.Parameters.Count > 0 Then
                     Set BodyValue = Me.Parameters
                 Else
                     Set BodyValue = pBody
@@ -273,7 +270,7 @@ Public Property Get Id() As String
     If pId = "" Then
         On Error Resume Next
         ' First, try creating GUID
-        pId = Replace(Replace(Left(CreateObject("Scriptlet.TypeLibz").GUID, 38), "{", ""), "}", "")
+        pId = Replace(Replace(Left(CreateObject("Scriptlet.TypeLib").GUID, 38), "{", ""), "}", "")
         
         If pId = "" Then
             ' If that fails, use nonce
@@ -365,6 +362,7 @@ End Sub
 ''
 ' Process asynchronous requests
 ' --------------------------------------------- '
+#If Not Mac Then
 Private Sub HttpRequest_OnResponseFinished()
     Me.StopTimeoutTimer
     
@@ -374,6 +372,7 @@ Private Sub HttpRequest_OnResponseFinished()
     RestHelpers.LogResponse Response, Me
     RunCallback Response
 End Sub
+#End If
 
 ''
 ' Start timeout timer
@@ -470,8 +469,11 @@ Private Sub RunCallback(Response As RestResponse)
         End If
     End If
 
+    
+#If Not Mac Then
     ' Request is finished, clean up
     Set Me.HttpRequest = Nothing
+#End If
 End Sub
 
 Private Sub Class_Initialize()
@@ -483,7 +485,10 @@ End Sub
 
 Private Sub Class_Terminate()
     ' Clean up
+#If Not Mac Then
     If Not Me.HttpRequest Is Nothing Then: Set Me.HttpRequest = Nothing
+#End If
+
     If Not Me.Authenticator Is Nothing Then: Set Me.Authenticator = Nothing
     If Not Me.Client Is Nothing Then: Set Me.Client = Nothing
 End Sub

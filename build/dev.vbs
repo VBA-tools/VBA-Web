@@ -49,7 +49,6 @@ Src = Array( _
 Dim Authenticators
 Authenticators = Array( _
   "EmptyAuthenticator.cls", _
-  "HttpBasicAuthenticator.cls", _
   "OAuth1Authenticator.cls", _
   "OAuth2Authenticator.cls", _
   "GoogleAuthenticator.cls", _
@@ -74,7 +73,7 @@ Specs = Array( _
 Main
 
 Sub Main()
-  ' On Error Resume Next
+  On Error Resume Next
 
   PrintLn "Excel-REST v3.1.4 Development"
   
@@ -140,9 +139,8 @@ Sub Development
     End If
   End If
 
-  If UCase(Left(Input(vbNewLine & "Would you like to do anything else? [yes/no] <"), 1)) = "Y" Then
-    Development
-  End If
+  PrintLn ""
+  Development
 End Sub
 
 Sub Execute(Name, ModulesDescription, WorkbookDescription)

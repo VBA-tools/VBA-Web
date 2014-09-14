@@ -213,7 +213,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "cookie"
         
         Set Response = Client.Execute(Request)
-        .Expect(Response.Headers.count).ToBeGTE 5
+        .Expect(Response.Headers.Count).ToBeGTE 5
         
         Dim Header As Dictionary
         Dim NumCookies As Integer
@@ -231,7 +231,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "cookie"
         
         Set Response = Client.Execute(Request)
-        .Expect(Response.Cookies.count).ToEqual 4
+        .Expect(Response.Cookies.Count).ToEqual 4
         .Expect(Response.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
         .Expect(Response.Cookies("signed-cookie")).ToContain "special-cookie"
         .Expect(Response.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
@@ -250,9 +250,9 @@ Public Function Specs() As SpecSuite
         Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
         
         Set Response = Client.Execute(Request)
-        .Expect(Response.Data("cookies").count).ToEqual 1
+        .Expect(Response.Data("cookies").Count).ToEqual 1
         .Expect(Response.Data("cookies")("test-cookie")).ToEqual "howdy"
-        .Expect(Response.Data("signed_cookies").count).ToEqual 1
+        .Expect(Response.Data("signed_cookies").Count).ToEqual 1
         .Expect(Response.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
     End With
     
@@ -342,6 +342,26 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "Hello?"
         .Expect(Response.Content).ToEqual "Howdy!"
         .Expect(Response.Data).ToBeUndefined
+    End With
+    
+    With Specs.It("should parse GZIP response")
+        Set Request = New RestRequest
+        Request.Resource = "json"
+        Request.Format = json
+        Request.Method = httpGET
+        Request.AddHeader "Accept-Encoding", "gzip, deflate"
+        
+        Set Body = New Dictionary
+        Body.Add "a", 123
+        Body.Add "b", 456
+        Request.AddBody Body
+        
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Request.Body).ToEqual "{""a"":123,""b"":456}"
+        .Expect(Response.Data("a")).ToEqual "1"
+        .Expect(Response.Data("b")).ToEqual 2
+        .Expect(Response.Data("c")).ToEqual 3.14
     End With
     
     Set Client = Nothing
