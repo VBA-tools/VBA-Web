@@ -171,7 +171,7 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should convert to XML")
         Set XMLBody = CreateObject("MSXML2.DOMDocument")
-        XMLBody.async = False
+        XMLBody.Async = False
         XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
 
         Encoded = RestHelpers.ConvertToXML(XMLBody)

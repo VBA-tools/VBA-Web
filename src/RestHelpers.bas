@@ -23,9 +23,9 @@ Attribute VB_Name = "RestHelpers"
 ' vba-json
 ' --------------------------------------------- '
 
-Private DocumentHelper As Object
-Private ElHelper As Object
-Private Requests As Dictionary
+Private pDocumentHelper As Object
+Private pElHelper As Object
+Private pAsyncRequests As Dictionary
 
 ' Moved to top from JSONLib
 Private Const INVALID_JSON      As Long = 1
@@ -260,7 +260,7 @@ End Function
 ' --------------------------------------------- '
 Public Function ParseXML(Encoded As String) As Object
     Set ParseXML = CreateObject("MSXML2.DOMDocument")
-    ParseXML.async = False
+    ParseXML.Async = False
     ParseXML.LoadXML Encoded
 End Function
 
@@ -484,19 +484,19 @@ Public Function UrlParts(Url As String) As Dictionary
     Dim Parts As New Dictionary
 
     ' Create document/element is expensive, cache after creation
-    If DocumentHelper Is Nothing Or ElHelper Is Nothing Then
-        Set DocumentHelper = CreateObject("htmlfile")
-        Set ElHelper = DocumentHelper.createElement("a")
+    If pDocumentHelper Is Nothing Or pElHelper Is Nothing Then
+        Set pDocumentHelper = CreateObject("htmlfile")
+        Set pElHelper = pDocumentHelper.createElement("a")
     End If
     
-    ElHelper.href = Url
-    Parts.Add "Protocol", ElHelper.Protocol
-    Parts.Add "Host", ElHelper.host
-    Parts.Add "Hostname", ElHelper.hostname
-    Parts.Add "Port", ElHelper.port
-    Parts.Add "Uri", "/" & ElHelper.pathname
-    Parts.Add "Querystring", ElHelper.Search
-    Parts.Add "Hash", ElHelper.Hash
+    pElHelper.href = Url
+    Parts.Add "Protocol", pElHelper.Protocol
+    Parts.Add "Host", pElHelper.host
+    Parts.Add "Hostname", pElHelper.hostname
+    Parts.Add "Port", pElHelper.port
+    Parts.Add "Uri", "/" & pElHelper.pathname
+    Parts.Add "Querystring", pElHelper.Search
+    Parts.Add "Hash", pElHelper.Hash
     
     If Parts("Protocol") = ":" Or Parts("Protocol") = "localhost:" Then
         Parts("Protocol") = ""
@@ -640,8 +640,7 @@ End Function
 ' @param {WinHttpRequest} Http request
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-#If Not Mac Then
-Public Sub SetHeadersForHttp(ByRef Http As WinHttpRequest, Request As RestRequest)
+Public Sub SetHeadersForHttp(ByRef Http As Object, Request As RestRequest)
     Dim HeaderKey As Variant
     For Each HeaderKey In Request.Headers.Keys()
         Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
@@ -652,7 +651,6 @@ Public Sub SetHeadersForHttp(ByRef Http As WinHttpRequest, Request As RestReques
         Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
     Next CookieKey
 End Sub
-#End If
 
 ''
 ' Create simple response
@@ -674,8 +672,7 @@ End Function
 ' @param {AvailableFormats} [Format=json]
 ' @return {RestResponse}
 ' --------------------------------------------- '
-#If Not Mac Then
-Public Function CreateResponseFromHttp(ByRef Http As WinHttpRequest, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
     Set CreateResponseFromHttp = New RestResponse
     
     CreateResponseFromHttp.StatusCode = Http.Status
@@ -696,7 +693,17 @@ Public Function CreateResponseFromHttp(ByRef Http As WinHttpRequest, Optional Fo
     ' Extract cookies
     Set CreateResponseFromHttp.Cookies = ExtractCookies(CreateResponseFromHttp.Headers)
 End Function
-#End If
+
+''
+' Create response for cURL
+'
+' @param {String} Raw result from cURL
+' @return {RestResponse}
+' --------------------------------------------- '
+Public Function CreateResponseFromCURL(Raw As String) As RestResponse
+    Set CreateResponseFromCURL = New RestResponse
+    Debug.Print "cURL Result: " & Raw
+End Function
 
 ''
 ' Extract headers from response headers
@@ -874,22 +881,24 @@ End Function
 ''
 ' Add request to watched requests
 '
-' @param {RestRequest} Request
+' @param {RestAsyncWrapper} AsyncWrapper
 ' --------------------------------------------- '
-Public Sub AddRequest(Request As RestRequest)
-    If Requests Is Nothing Then: Set Requests = New Dictionary
-    Requests.Add Request.Id, Request
+Public Sub AddAsyncRequest(AsyncWrapper As Object)
+    If pAsyncRequests Is Nothing Then: Set pAsyncRequests = New Dictionary
+    If Not AsyncWrapper.Request Is Nothing Then
+        pAsyncRequests.Add AsyncWrapper.Request.Id, AsyncWrapper
+    End If
 End Sub
 
 ''
 ' Get watched request
 '
 ' @param {String} RequestId
-' @return {RestRequest}
+' @return {RestAsyncWrapper}
 ' --------------------------------------------- '
-Public Function GetRequest(RequestId As String) As RestRequest
-    If Requests.Exists(RequestId) Then
-        Set GetRequest = Requests(RequestId)
+Public Function GetAsyncRequest(RequestId As String) As Object
+    If pAsyncRequests.Exists(RequestId) Then
+        Set GetAsyncRequest = pAsyncRequests(RequestId)
     End If
 End Function
 
@@ -898,8 +907,10 @@ End Function
 '
 ' @param {String} RequestId
 ' --------------------------------------------- '
-Public Sub RemoveRequest(RequestId As String)
-    If Requests.Exists(RequestId) Then: Requests.Remove RequestId
+Public Sub RemoveAsyncRequest(RequestId As String)
+    If Not pAsyncRequests Is Nothing Then
+        If pAsyncRequests.Exists(RequestId) Then: pAsyncRequests.Remove RequestId
+    End If
 End Sub
 
 ' ============================================= '
@@ -912,9 +923,16 @@ End Sub
 ' @param {RestRequest} Request
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
-Public Sub StartTimeoutTimer(Request As RestRequest, TimeoutMS As Long)
-    AddRequest Request
-    Application.OnTime Now + TimeValue("00:00:" & Round(TimeoutMS / 1000, 0)), "'RestHelpers.TimeoutTimerExpired """ & Request.Id & """'"
+Public Sub StartTimeoutTimer(AsyncWrapper As Object, TimeoutMS As Long)
+    ' Round ms to seconds with minimum of 1 second if ms > 0
+    Dim TimeoutS As Long
+    TimeoutS = Round(TimeoutMS / 1000, 0)
+    If TimeoutMS > 0 And TimeoutS = 0 Then
+        TimeoutS = 1
+    End If
+
+    AddAsyncRequest AsyncWrapper
+    Application.OnTime Now + TimeValue("00:00:" & TimeoutS), "'RestHelpers.TimeoutTimerExpired """ & AsyncWrapper.Request.Id & """'"
 End Sub
 
 ''
@@ -922,8 +940,10 @@ End Sub
 '
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-Public Sub StopTimeoutTimer(Request As RestRequest)
-    RemoveRequest Request.Id
+Public Sub StopTimeoutTimer(AsyncWrapper As Object)
+    If Not AsyncWrapper.Request Is Nothing Then
+        RemoveAsyncRequest AsyncWrapper.Request.Id
+    End If
 End Sub
 
 ''
@@ -932,13 +952,14 @@ End Sub
 ' @param {String} RequestId
 ' --------------------------------------------- '
 Public Sub TimeoutTimerExpired(RequestId As String)
-    Dim Request As RestRequest
-    Set Request = GetRequest(RequestId)
-    If Not Request Is Nothing Then
-        StopTimeoutTimer Request
+    Dim AsyncWrapper As Object
+    Set AsyncWrapper = GetAsyncRequest(RequestId)
+    
+    If Not AsyncWrapper Is Nothing Then
+        StopTimeoutTimer AsyncWrapper
         
-        LogDebug "Async Timeout: " & Request.FullUrl, "RestHelpers.TimeoutTimerExpired"
-        Request.TimedOut
+        LogDebug "Async Timeout: " & AsyncWrapper.Request.FullUrl, "RestHelpers.TimeoutTimerExpired"
+        AsyncWrapper.TimedOut
     End If
 End Sub
 

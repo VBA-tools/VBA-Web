@@ -33,9 +33,11 @@ SpecsFolder = ".\specs\"
 Dim BlankWorkbookPath
 Dim ExampleWorkbookPath
 Dim SpecsWorkbookPath
+Dim AsyncSpecsWorkbookPath
 BlankWorkbookPath = "./Excel-REST - Blank.xlsm"
 ExampleWorkbookPath = "./examples/Excel-REST - Example.xlsm"
 SpecsWorkbookPath = "./specs/Excel-REST - Specs.xlsm"
+AsyncSpecsWorkbookPath = "./specs/Excel-REST - Specs - Async.xlsm"
 
 Dim Src
 Src = Array( _
@@ -57,17 +59,30 @@ Authenticators = Array( _
   "DigestAuthenticator.cls" _
 )
 
+Dim Async
+Async = Array( _
+  "RestAsyncWrapper.cls" _
+)
+
 Dim Specs
 Specs = Array( _
   "RestClientSpecs.bas", _
-  "RestClientAsyncSpecs.bas", _
   "RestRequestSpecs.bas", _
-  "RestHelpersSpecs.bas", _
+  "RestHelpersSpecs.bas" _
+)
+
+Dim AuthSpecs
+AuthSpecs = Array( _
   "AuthenticatorSpecs.bas", _
   "DigestAuthenticatorSpecs.bas", _
   "GoogleAuthenticatorSpecs.bas", _
   "OAuth1AuthenticatorSpecs.bas", _
   "SpecAuthenticator.cls" _
+)
+
+Dim AsyncSpecs
+AsyncSpecs = Array( _
+  "RestAsyncWrapperSpecs.bas" _
 )
 
 Main
@@ -93,8 +108,8 @@ End Sub
 Sub Development
   PrintLn vbNewLine & _
     "Options:" & vbNewLine & _
-    "- import [src/auth/specs/all] to [blank/specs/example/all/path...]" & vbNewLine & _
-    "- export [src/auth/specs/all] from [blank/specs/example/all/path...]" & vbNewLine & _
+    "- import [src/auth/async/specs/auth-specs/async-specs] to [blank/specs/async-specs/example/all/path...]" & vbNewLine & _
+    "- export [src/auth/async/specs/auth-specs/async-specs] from [blank/specs/async-specs/example/all/path...]" & vbNewLine & _
     "- release"
 
   Dim Action
@@ -117,6 +132,10 @@ Sub Development
     Execute "import", "auth", "example"
     Execute "import", "auth", "specs"
     Execute "import", "specs", "specs"
+    Execute "import", "auth-specs", "specs"
+    Execute "import", "async", "async-specs"
+    Execute "import", "specs", "async-specs"
+    Execute "import", "async-specs", "async-specs"
   ElseIf UBound(Parts) < 3 Or (UCase(Parts(0)) <> "IMPORT" And UCase(Parts(0)) <> "EXPORT") Then
     PrintLn vbNewLine & "Error: Unrecognized action"
   Else
@@ -152,10 +171,12 @@ Sub Execute(Name, ModulesDescription, WorkbookDescription)
     Paths = Array(BlankWorkbookPath)
   Case "SPECS"
     Paths = Array(SpecsWorkbookPath)
+  Case "ASYNC-SPECS"
+    Paths = Array(AsyncSpecsWorkbookPath)
   Case "EXAMPLE"
     Paths = Array(ExampleWorkbookPath)
   Case "ALL"
-    Paths = Array(BlankWorkbookPath, SpecsWorkbookPath, ExampleWorkbookPath)
+    Paths = Array(BlankWorkbookPath, SpecsWorkbookPath, AsyncSpecsWorkbookPath, ExampleWorkbookPath)
   Case Else
     Paths = Array(WorkbookDescription)
   End Select
@@ -192,7 +213,7 @@ End SUb
 Sub Import(ModulesDescription, Workbook)
   Dim Modules
   Dim Folder
-
+  
   Select Case UCase(ModulesDescription)
   Case "SRC"
     Modules = Src
@@ -200,14 +221,18 @@ Sub Import(ModulesDescription, Workbook)
   Case "AUTH"
     Modules = Authenticators
     Folder = AuthenticatorsFolder
+  Case "ASYNC"
+    Modules = Async
+    Folder = SrcFolder
   Case "SPECS"
     Modules = Specs
     Folder = SpecsFolder
-  Case "ALL"
-    Import "src", Workbook
-    Import "auth", Workbook
-    Import "specs", Workbook
-    Exit Sub
+  Case "AUTH-SPECS"
+    Modules = AuthSpecs
+    Folder = SpecsFolder
+  Case "ASYNC-SPECS"
+    Modules = AsyncSpecs
+    Folder = SpecsFolder
   Case Else
     PrintLn "ERROR: Unknown modules description, " & ModulesDescription
     Exit Sub
@@ -235,14 +260,18 @@ Sub Export(ModulesDescription, Workbook)
   Case "AUTH"
     Modules = Authenticators
     Folder = AuthenticatorsFolder
+  Case "ASYNC"
+    Modules = Async
+    Folder = SrcFolder
   Case "SPECS"
     Modules = Specs
     Folder = SpecsFolder
-  Case "ALL"
-    Export "src", Workbook
-    Export "auth", Workbook
-    Export "specs", Workbook
-    Exit Sub
+  Case "AUTH-SPECS"
+    Modules = AuthSpecs
+    Folder = SpecsFolder
+  Case "ASYNC-SPECS"
+    Modules = AsyncSpecs
+    Folder = SpecsFolder
   Case Else
     PrintLn "ERROR: Unknown modules description, " & ModulesDescription
     Exit Sub

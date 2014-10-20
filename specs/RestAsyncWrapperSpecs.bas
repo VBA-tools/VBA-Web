@@ -1,6 +1,6 @@
-Attribute VB_Name = "RestClientAsyncSpecs"
+Attribute VB_Name = "RestAsyncWrapperSpecs"
 ''
-' RestClientAsyncSpecs
+' RestAsyncWrapperSpecs
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Async specs for the RestRequest class
@@ -17,20 +17,23 @@ Dim AsyncArgs As Variant
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "RestClient Async"
-    Specs.BeforeEach "RestClientAsyncSpecs.Reset"
+    Specs.Description = "RestAsyncWrapper"
+    Specs.BeforeEach "RestAsyncWrapperSpecs.Reset"
     
     Dim Client As New RestClient
     Client.BaseUrl = "http://localhost:3000"
     
     Dim Request As RestRequest
+    Dim AsyncWrapper As New RestAsyncWrapper
+    Set AsyncWrapper.Client = Client
+    
     Dim WaitTime As Integer
     WaitTime = 500
     
     Dim SimpleCallback As String
     Dim ComplexCallback As String
-    SimpleCallback = "RestClientAsyncSpecs.SimpleCallback"
-    ComplexCallback = "RestClientAsyncSpecs.ComplexCallback"
+    SimpleCallback = "RestAsyncWrapperSpecs.SimpleCallback"
+    ComplexCallback = "RestAsyncWrapperSpecs.ComplexCallback"
     
     Dim BodyToString As String
     
@@ -38,7 +41,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "get"
         
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime * 2
         .Expect(AsyncResponse).ToBeDefined
     End With
@@ -47,7 +50,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "get"
         
-        Client.ExecuteAsync Request, ComplexCallback, Array("A", "B", "C")
+        AsyncWrapper.ExecuteAsync Request, ComplexCallback, Array("A", "B", "C")
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If UBound(AsyncArgs) > 1 Then
@@ -64,25 +67,25 @@ Public Function Specs() As SpecSuite
         Request.Resource = "status/{code}"
         
         Request.AddUrlSegment "code", 200
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 200
         .Expect(AsyncResponse.StatusDescription).ToEqual "OK"
         
         Request.AddUrlSegment "code", 304
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 304
         .Expect(AsyncResponse.StatusDescription).ToEqual "Not Modified"
         
         Request.AddUrlSegment "code", 404
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 404
         .Expect(AsyncResponse.StatusDescription).ToEqual "Not Found"
         
         Request.AddUrlSegment "code", 500
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 500
         .Expect(AsyncResponse.StatusDescription).ToEqual "Internal Server Error"
@@ -92,7 +95,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "howdy"
         
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
@@ -112,7 +115,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "cookie"
         
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
@@ -134,7 +137,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "cookie"
         
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
@@ -157,7 +160,7 @@ Public Function Specs() As SpecSuite
         Request.AddCookie "test-cookie", "howdy"
         Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
         
-        Client.ExecuteAsync Request, SimpleCallback
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
@@ -178,14 +181,14 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "ms", 2000
 
         Client.TimeoutMS = 100
-        Client.ExecuteAsync Request, SimpleCallback
-        Wait WaitTime
+        AsyncWrapper.ExecuteAsync Request, SimpleCallback
+        Wait 2000
         .Expect(AsyncResponse).ToBeDefined
         If Not AsyncResponse Is Nothing Then
             .Expect(AsyncResponse.StatusCode).ToEqual 408
             .Expect(AsyncResponse.StatusDescription).ToEqual "Request Timeout"
         End If
-        .Expect(Request.HttpRequest).ToBeUndefined
+        .Expect(AsyncWrapper.Http).ToBeUndefined
         Client.TimeoutMS = 2000
     End With
     
