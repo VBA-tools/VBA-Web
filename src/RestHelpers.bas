@@ -19,9 +19,22 @@ Attribute VB_Name = "RestHelpers"
 ' 4. Object/Dictionary/Collection/Array helpers
 ' 5. Request preparation / handling
 ' 6. Timing
-' 7. Cryptography
+' 7. Mac
+' 8. Cryptography
 ' vba-json
 ' --------------------------------------------- '
+
+#If Mac Then
+Private Declare Function popen Lib "libc.dylib" (ByVal Command As String, ByVal mode As String) As Long
+Private Declare Function pclose Lib "libc.dylib" (ByVal File As Long) As Long
+Private Declare Function fread Lib "libc.dylib" (ByVal outStr As String, ByVal size As Long, ByVal Items As Long, ByVal stream As Long) As Long
+Private Declare Function feof Lib "libc.dylib" (ByVal File As Long) As Long
+
+Public Type ShellResult
+    Output As String
+    ExitCode As Long
+End Type
+#End If
 
 Private pDocumentHelper As Object
 Private pElHelper As Object
@@ -259,9 +272,14 @@ End Function
 ' @return {Object} XML
 ' --------------------------------------------- '
 Public Function ParseXML(Encoded As String) As Object
+#If Mac Then
+    LogError "ParseXML is not supported on Mac", "RestHelpers.ParseXML"
+    Err.Raise vbObjectError + 1, "RestHelpers.ParseXML", "ParseXML is not supported on Mac"
+#Else
     Set ParseXML = CreateObject("MSXML2.DOMDocument")
     ParseXML.Async = False
     ParseXML.LoadXML Encoded
+#End If
 End Function
 
 ''
@@ -384,7 +402,7 @@ Public Function UrlDecode(Encoded As String) As String
                 Temp = " "
             ElseIf Temp = "%" And StringLen >= i + 2 Then
                 Temp = Mid$(Encoded, i + 1, 2)
-                Temp = Chr(CDec("&H" & Temp))
+                Temp = Chr(CInt("&H" & Temp))
                 
                 i = i + 2
             End If
@@ -443,7 +461,7 @@ Public Function IncludesProtocol(Url As String) As String
     Set Parts = UrlParts(Url)
     
     If Parts("Protocol") <> "" Then
-        IncludesProtocol = Parts("Protocol") & "//"
+        IncludesProtocol = Parts("Protocol") & "://"
     End If
 End Function
 
@@ -468,13 +486,20 @@ End Function
 '
 ' Example:
 ' "https://www.google.com/a/b/c.html?a=1&b=2#hash" ->
-' - Protocol = https:
-' - Host = www.google.com:443
-' - Hostname = www.google.com
+' - Protocol = https
+' - Host = www.google.com
 ' - Port = 443
-' - Uri = /a/b/c.html
-' - Querystring = ?a=1&b=2
-' - Hash = #hash
+' - Path = /a/b/c.html
+' - Querystring = a=1&b=2
+' - Hash = hash
+'
+' "https://localhost:3000/a/b/c.html?a=1&b=2#hash" ->
+' - Protocol = https
+' - Host = localhost
+' - Port = 3000
+' - Path = /a/b/c.html
+' - Querystring = a=1&b=2
+' - Hash = hash
 '
 ' @param {String} Url
 ' @return {Dictionary} Parts of url
@@ -482,7 +507,45 @@ End Function
 ' --------------------------------------------- '
 Public Function UrlParts(Url As String) As Dictionary
     Dim Parts As New Dictionary
-
+    
+#If Mac Then
+    ' Run perl script to parse url
+    ' Add Protocol if missing
+    Dim AddedProtocol As Boolean
+    If InStr(1, Url, "://") <= 0 Then
+        AddedProtocol = True
+        If InStr(1, Url, "//") = 1 Then
+            Url = "http" & Url
+        Else
+            Url = "http://" & Url
+        End If
+    End If
+    
+    Dim Command As String
+    Dim Result As ShellResult
+    Dim Results As Variant
+    Dim ResultPart As Variant
+    Dim EqualsIndex As Long
+    Command = "perl -e '{use URI::URL;" & vbNewLine & _
+        "$url = new URI::URL """ & Url & """;" & vbNewLine & _
+        "print ""Protocol="" . $url->scheme;" & vbNewLine & _
+        "print "" | Host="" . $url->host;" & vbNewLine & _
+        "print "" | Port="" . $url->port;" & vbNewLine & _
+        "print "" | Path="" . $url->path;" & vbNewLine & _
+        "print "" | Querystring="" . $url->query;" & vbNewLine & _
+        "print "" | Hash="" . $url->frag;" & vbNewLine & _
+    "}'"
+    
+    Results = Split(ExecuteInShell(Command).Output, " | ")
+    For Each ResultPart In Results
+        EqualsIndex = InStr(1, ResultPart, "=")
+        Parts.Add Trim(VBA.Mid$(ResultPart, 1, EqualsIndex - 1)), Trim(VBA.Mid$(ResultPart, EqualsIndex + 1))
+    Next ResultPart
+    
+    If AddedProtocol And Parts.Exists("Protocol") Then
+        Parts.Remove "Protocol"
+    End If
+#Else
     ' Create document/element is expensive, cache after creation
     If pDocumentHelper Is Nothing Or pElHelper Is Nothing Then
         Set pDocumentHelper = CreateObject("htmlfile")
@@ -490,18 +553,28 @@ Public Function UrlParts(Url As String) As Dictionary
     End If
     
     pElHelper.href = Url
-    Parts.Add "Protocol", pElHelper.Protocol
-    Parts.Add "Host", pElHelper.host
-    Parts.Add "Hostname", pElHelper.hostname
+    Parts.Add "Protocol", Replace(pElHelper.Protocol, ":", "", Count:=1)
+    Parts.Add "Host", pElHelper.hostname
     Parts.Add "Port", pElHelper.port
-    Parts.Add "Uri", "/" & pElHelper.pathname
-    Parts.Add "Querystring", pElHelper.Search
-    Parts.Add "Hash", pElHelper.Hash
-    
-    If Parts("Protocol") = ":" Or Parts("Protocol") = "localhost:" Then
+    Parts.Add "Path", pElHelper.pathname
+    Parts.Add "Querystring", Replace(pElHelper.Search, "?", "", Count:=1)
+    Parts.Add "Hash", Replace(pElHelper.Hash, "#", "", Count:=1)
+#End If
+
+    If Parts("Protocol") = "localhost" Then
+        ' localhost:port/... was passed in without protocol
+        Dim PathParts As Variant
+        PathParts = Split(Parts("Path"), "/")
+        
+        Parts("Port") = PathParts(0)
         Parts("Protocol") = ""
+        Parts("Host") = "localhost"
+        Parts("Path") = Replace(Parts("Path"), Parts("Port"), "", Count:=1)
     End If
-    
+    If Left(Parts("Path"), 1) <> "/" Then
+        Parts("Path") = "/" & Parts("Path")
+    End If
+
     Set UrlParts = Parts
 End Function
 
@@ -700,7 +773,7 @@ End Function
 ' @param {String} Raw result from cURL
 ' @return {RestResponse}
 ' --------------------------------------------- '
-Public Function CreateResponseFromCURL(Raw As String) As RestResponse
+Public Function CreateResponseFromCURL(Raw As String, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
     Set CreateResponseFromCURL = New RestResponse
     Debug.Print "cURL Result: " & Raw
 End Function
@@ -964,7 +1037,67 @@ Public Sub TimeoutTimerExpired(RequestId As String)
 End Sub
 
 ' ============================================= '
-' 7. Cryptography
+' 7. Mac
+' ============================================= '
+#If Mac Then
+
+''
+' Execute the given command
+'
+' @param {String} Command
+' @return {ShellResult}
+' --------------------------------------------- '
+Public Function ExecuteInShell(Command As String) As ShellResult
+    Dim File As Long
+    Dim Chunk As String
+    Dim Read As Long
+    
+    On Error GoTo ErrorHandling
+    File = popen(Command, "r")
+    
+    If File = 0 Then
+        ' TODO
+        Exit Function
+    End If
+    
+    Do While feof(File) = 0
+        Chunk = VBA.space$(50)
+        Read = fread(Chunk, 1, Len(Chunk) - 1, File)
+        If Read > 0 Then
+            Chunk = VBA.Left$(Chunk, Read)
+            ExecuteInShell.Output = ExecuteInShell.Output & Chunk
+        End If
+    Loop
+
+ErrorHandling:
+    ExecuteInShell.ExitCode = pclose(File)
+End Function
+
+''
+' Prepare text for shell
+' Wrap in "..." and replace ! with '!' (reserved in bash)
+'
+' @param {String} Text
+' @return {String}
+' --------------------------------------------- '
+Public Function PrepareTextForShell(Text As String) As String
+    Text = Replace("""" & Text & """", "!", """'!'""")
+    
+    ' Guard for ! at beginning or end ("'!'"..." or "..."'!'")
+    If Left(Text, 3) = """""'" Then
+        Text = Right(Text, Len(Text) - 2)
+    End If
+    If Right(Text, 3) = "'""""" Then
+        Text = Left(Text, Len(Text) - 2)
+    End If
+    
+    PrepareTextForShell = Text
+End Function
+
+
+#End If
+' ============================================= '
+' 8. Cryptography
 ' ============================================= '
 
 ''
@@ -1004,27 +1137,46 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
     MD5 = BytesToFormat(MD5AsBytes(Text), Format)
 End Function
 
+
 Public Function HMACSHA1AsBytes(Text As String, Secret As String) As Byte()
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
+    HMACSHA1AsBytes = HexToBytes(ExecuteInShell(Command).Output)
+#Else
     Dim Crypto As Object
     Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
     
     Crypto.Key = StringToBytes(Secret)
     HMACSHA1AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+#End If
 End Function
 
 Public Function HMACSHA256AsBytes(Text As String, Secret As String) As Byte()
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
+    HMACSHA256AsBytes = HexToBytes(ExecuteInShell(Command).Output)
+#Else
     Dim Crypto As Object
     Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
     
     Crypto.Key = StringToBytes(Secret)
     HMACSHA256AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+#End If
 End Function
 
 Public Function MD5AsBytes(Text As String) As Byte()
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
+    MD5AsBytes = HexToBytes(ExecuteInShell(Command).Output)
+#Else
     Dim Crypto As Object
     Set Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
     
     MD5AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
+#End If
 End Function
 
 ''
@@ -1034,10 +1186,11 @@ End Function
 ' @return {Byte()}
 ' --------------------------------------------- '
 Public Function StringToBytes(Text As String) As Byte()
-    Dim Encoding As Object
-    Set Encoding = CreateObject("System.Text.UTF8Encoding")
-    
-    StringToBytes = Encoding.Getbytes_4(Text)
+    StringToBytes = StrConv(Text, vbFromUnicode)
+End Function
+
+Public Function BytesToString(Bytes() As Byte) As String
+    BytesToString = StrConv(Bytes, vbUnicode)
 End Function
 
 Public Function BytesToHex(Bytes() As Byte) As String
@@ -1047,7 +1200,30 @@ Public Function BytesToHex(Bytes() As Byte) As String
     Next i
 End Function
 
+Public Function HexToBytes(Hex As String) As Byte()
+    Dim Bytes() As Byte
+    Dim HexIndex As Integer
+    Dim ByteIndex As Integer
+    
+    ' Remove linefeeds
+    Hex = Replace(Hex, vbLf, "")
+    
+    ReDim Bytes(Len(Hex) / 2 - 1)
+    ByteIndex = 0
+    For HexIndex = 1 To Len(Hex) Step 2
+        Bytes(ByteIndex) = CLng("&H" & Mid$(Hex, HexIndex, 2))
+        ByteIndex = ByteIndex + 1
+    Next HexIndex
+    
+    HexToBytes = Bytes
+End Function
+
 Public Function BytesToBase64(Bytes() As Byte) As String
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(BytesToString(Bytes)) & " | openssl base64"
+    BytesToBase64 = ExecuteInShell(Command).Output
+#Else
     Dim xml As Object
     Dim Node As Object
     Set xml = CreateObject("MSXML2.DOMDocument")
@@ -1060,6 +1236,7 @@ Public Function BytesToBase64(Bytes() As Byte) As String
 
     Set Node = Nothing
     Set xml = Nothing
+#End If
 End Function
 
 ''
@@ -1085,17 +1262,17 @@ End Function
 ' @return {String} Randomly generated nonce
 ' --------------------------------------------- '
 Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
-    Dim str As String
+    Dim Str As String
     Dim Count As Integer
     Dim Result As String
     Dim random As Integer
     
-    str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
+    Str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
     Result = ""
     
     For Count = 1 To NonceLength
-        random = Int(((Len(str) - 1) * Rnd) + 1)
-        Result = Result + Mid$(str, random, 1)
+        random = Int(((Len(Str) - 1) * Rnd) + 1)
+        Result = Result + Mid$(Str, random, 1)
     Next
     CreateNonce = Result
 End Function
@@ -1149,19 +1326,19 @@ End Function
 '
 '   parse string and create JSON object (Dictionary or Collection in VB)
 '
-Private Function json_parse(ByRef str As String) As Object
+Private Function json_parse(ByRef Str As String) As Object
 
     Dim Index As Long
     Index = 1
     
     On Error Resume Next
 
-    Call json_skipChar(str, Index)
-    Select Case Mid$(str, Index, 1)
+    Call json_skipChar(Str, Index)
+    Select Case Mid$(Str, Index, 1)
     Case "{"
-        Set json_parse = json_parseObject(str, Index)
+        Set json_parse = json_parseObject(Str, Index)
     Case "["
-        Set json_parse = json_parseArray(str, Index)
+        Set json_parse = json_parseArray(Str, Index)
     End Select
 
 End Function
@@ -1169,32 +1346,32 @@ End Function
 '
 '   parse collection of key/value (Dictionary in VB)
 '
-Private Function json_parseObject(ByRef str As String, ByRef Index As Long) As Dictionary
+Private Function json_parseObject(ByRef Str As String, ByRef Index As Long) As Dictionary
 
     Set json_parseObject = New Dictionary
     
     ' "{"
-    Call json_skipChar(str, Index)
-    If Mid$(str, Index, 1) <> "{" Then Err.Raise vbObjectError + INVALID_OBJECT, Description:="char " & Index & " : " & Mid$(str, Index)
+    Call json_skipChar(Str, Index)
+    If Mid$(Str, Index, 1) <> "{" Then Err.Raise vbObjectError + INVALID_OBJECT, Description:="char " & Index & " : " & Mid$(Str, Index)
     Index = Index + 1
     
     Dim Key As String
     
     Do
-        Call json_skipChar(str, Index)
-        If "}" = Mid$(str, Index, 1) Then
+        Call json_skipChar(Str, Index)
+        If "}" = Mid$(Str, Index, 1) Then
             Index = Index + 1
             Exit Do
-        ElseIf "," = Mid$(str, Index, 1) Then
+        ElseIf "," = Mid$(Str, Index, 1) Then
             Index = Index + 1
-            Call json_skipChar(str, Index)
+            Call json_skipChar(Str, Index)
         End If
         
-        Key = json_parseKey(str, Index)
+        Key = json_parseKey(Str, Index)
         If Not json_parseObject.Exists(Key) Then
-            json_parseObject.Add Key, json_parseValue(str, Index)
+            json_parseObject.Add Key, json_parseValue(Str, Index)
         Else
-            json_parseObject.Item(Key) = json_parseValue(str, Index)
+            json_parseObject.Item(Key) = json_parseValue(Str, Index)
         End If
     Loop
 
@@ -1203,28 +1380,28 @@ End Function
 '
 '   parse list (Collection in VB)
 '
-Private Function json_parseArray(ByRef str As String, ByRef Index As Long) As Collection
+Private Function json_parseArray(ByRef Str As String, ByRef Index As Long) As Collection
 
     Set json_parseArray = New Collection
     
     ' "["
-    Call json_skipChar(str, Index)
-    If Mid$(str, Index, 1) <> "[" Then Err.Raise vbObjectError + INVALID_ARRAY, Description:="char " & Index & " : " + Mid$(str, Index)
+    Call json_skipChar(Str, Index)
+    If Mid$(Str, Index, 1) <> "[" Then Err.Raise vbObjectError + INVALID_ARRAY, Description:="char " & Index & " : " + Mid$(Str, Index)
     Index = Index + 1
     
     Do
         
-        Call json_skipChar(str, Index)
-        If "]" = Mid$(str, Index, 1) Then
+        Call json_skipChar(Str, Index)
+        If "]" = Mid$(Str, Index, 1) Then
             Index = Index + 1
             Exit Do
-        ElseIf "," = Mid$(str, Index, 1) Then
+        ElseIf "," = Mid$(Str, Index, 1) Then
             Index = Index + 1
-            Call json_skipChar(str, Index)
+            Call json_skipChar(Str, Index)
         End If
         
         ' add value
-        json_parseArray.Add json_parseValue(str, Index)
+        json_parseArray.Add json_parseValue(Str, Index)
         
     Loop
 
@@ -1233,23 +1410,23 @@ End Function
 '
 '   parse string / number / object / array / true / false / null
 '
-Private Function json_parseValue(ByRef str As String, ByRef Index As Long)
+Private Function json_parseValue(ByRef Str As String, ByRef Index As Long)
 
-    Call json_skipChar(str, Index)
+    Call json_skipChar(Str, Index)
     
-    Select Case Mid$(str, Index, 1)
+    Select Case Mid$(Str, Index, 1)
     Case "{"
-        Set json_parseValue = json_parseObject(str, Index)
+        Set json_parseValue = json_parseObject(Str, Index)
     Case "["
-        Set json_parseValue = json_parseArray(str, Index)
+        Set json_parseValue = json_parseArray(Str, Index)
     Case """", "'"
-        json_parseValue = json_parseString(str, Index)
+        json_parseValue = json_parseString(Str, Index)
     Case "t", "f"
-        json_parseValue = json_parseBoolean(str, Index)
+        json_parseValue = json_parseBoolean(Str, Index)
     Case "n"
-        json_parseValue = json_parseNull(str, Index)
+        json_parseValue = json_parseNull(Str, Index)
     Case Else
-        json_parseValue = json_parseNumber(str, Index)
+        json_parseValue = json_parseNumber(Str, Index)
     End Select
 
 End Function
@@ -1257,21 +1434,21 @@ End Function
 '
 '   parse string
 '
-Private Function json_parseString(ByRef str As String, ByRef Index As Long) As String
+Private Function json_parseString(ByRef Str As String, ByRef Index As Long) As String
 
     Dim quote   As String
     Dim Char    As String
     Dim Code    As String
     
-    Call json_skipChar(str, Index)
-    quote = Mid$(str, Index, 1)
+    Call json_skipChar(Str, Index)
+    quote = Mid$(Str, Index, 1)
     Index = Index + 1
-    Do While Index > 0 And Index <= Len(str)
-        Char = Mid$(str, Index, 1)
+    Do While Index > 0 And Index <= Len(Str)
+        Char = Mid$(Str, Index, 1)
         Select Case (Char)
         Case "\"
             Index = Index + 1
-            Char = Mid$(str, Index, 1)
+            Char = Mid$(Str, Index, 1)
             Select Case (Char)
             Case """", "\", "/" ' Before: Case """", "\\", "/"
                 json_parseString = json_parseString & Char
@@ -1293,7 +1470,7 @@ Private Function json_parseString(ByRef str As String, ByRef Index As Long) As S
                 Index = Index + 1
             Case "u"
                 Index = Index + 1
-                Code = Mid$(str, Index, 4)
+                Code = Mid$(Str, Index, 4)
                 json_parseString = json_parseString & ChrW(Val("&h" + Code))
                 Index = Index + 4
             End Select
@@ -1312,14 +1489,14 @@ End Function
 '
 '   parse number
 '
-Private Function json_parseNumber(ByRef str As String, ByRef Index As Long)
+Private Function json_parseNumber(ByRef Str As String, ByRef Index As Long)
 
     Dim Value   As String
     Dim Char    As String
     
-    Call json_skipChar(str, Index)
-    Do While Index > 0 And Index <= Len(str)
-        Char = Mid$(str, Index, 1)
+    Call json_skipChar(Str, Index)
+    Do While Index > 0 And Index <= Len(Str)
+        Char = Mid$(Str, Index, 1)
         If InStr("+-0123456789.eE", Char) Then
             Value = Value & Char
             Index = Index + 1
@@ -1335,17 +1512,17 @@ End Function
 '
 '   parse true / false
 '
-Private Function json_parseBoolean(ByRef str As String, ByRef Index As Long) As Boolean
+Private Function json_parseBoolean(ByRef Str As String, ByRef Index As Long) As Boolean
 
-    Call json_skipChar(str, Index)
-    If Mid$(str, Index, 4) = "true" Then
+    Call json_skipChar(Str, Index)
+    If Mid$(Str, Index, 4) = "true" Then
         json_parseBoolean = True
         Index = Index + 4
-    ElseIf Mid$(str, Index, 5) = "false" Then
+    ElseIf Mid$(Str, Index, 5) = "false" Then
         json_parseBoolean = False
         Index = Index + 5
     Else
-        Err.Raise vbObjectError + INVALID_BOOLEAN, Description:="char " & Index & " : " & Mid$(str, Index)
+        Err.Raise vbObjectError + INVALID_BOOLEAN, Description:="char " & Index & " : " & Mid$(Str, Index)
     End If
 
 End Function
@@ -1353,34 +1530,34 @@ End Function
 '
 '   parse null
 '
-Private Function json_parseNull(ByRef str As String, ByRef Index As Long)
+Private Function json_parseNull(ByRef Str As String, ByRef Index As Long)
 
-    Call json_skipChar(str, Index)
-    If Mid$(str, Index, 4) = "null" Then
+    Call json_skipChar(Str, Index)
+    If Mid$(Str, Index, 4) = "null" Then
         json_parseNull = Null
         Index = Index + 4
     Else
-        Err.Raise vbObjectError + INVALID_NULL, Description:="char " & Index & " : " & Mid$(str, Index)
+        Err.Raise vbObjectError + INVALID_NULL, Description:="char " & Index & " : " & Mid$(Str, Index)
     End If
 
 End Function
 
-Private Function json_parseKey(ByRef str As String, ByRef Index As Long) As String
+Private Function json_parseKey(ByRef Str As String, ByRef Index As Long) As String
 
     Dim dquote  As Boolean
     Dim squote  As Boolean
     Dim Char    As String
     
-    Call json_skipChar(str, Index)
-    Do While Index > 0 And Index <= Len(str)
-        Char = Mid$(str, Index, 1)
+    Call json_skipChar(Str, Index)
+    Do While Index > 0 And Index <= Len(Str)
+        Char = Mid$(Str, Index, 1)
         Select Case (Char)
         Case """"
             dquote = Not dquote
             Index = Index + 1
             If Not dquote Then
-                Call json_skipChar(str, Index)
-                If Mid$(str, Index, 1) <> ":" Then
+                Call json_skipChar(Str, Index)
+                If Mid$(Str, Index, 1) <> ":" Then
                     Err.Raise vbObjectError + INVALID_KEY, Description:="char " & Index & " : " & json_parseKey
                 End If
             End If
@@ -1388,8 +1565,8 @@ Private Function json_parseKey(ByRef str As String, ByRef Index As Long) As Stri
             squote = Not squote
             Index = Index + 1
             If Not squote Then
-                Call json_skipChar(str, Index)
-                If Mid$(str, Index, 1) <> ":" Then
+                Call json_skipChar(Str, Index)
+                If Mid$(Str, Index, 1) <> ":" Then
                     Err.Raise vbObjectError + INVALID_KEY, Description:="char " & Index & " : " & json_parseKey
                 End If
             End If
@@ -1416,9 +1593,9 @@ End Function
 '
 '   skip special character
 '
-Private Sub json_skipChar(ByRef str As String, ByRef Index As Long)
+Private Sub json_skipChar(ByRef Str As String, ByRef Index As Long)
 
-    While Index > 0 And Index <= Len(str) And InStr(vbCrLf & vbCr & vbLf & vbTab & " ", Mid$(str, Index, 1))
+    While Index > 0 And Index <= Len(Str) And InStr(vbCrLf & vbCr & vbLf & vbTab & " ", Mid$(Str, Index, 1))
         Index = Index + 1
     Wend
 
@@ -1469,15 +1646,15 @@ Private Function json_toString(ByRef Obj As Variant) As String
 
 End Function
 
-Private Function json_encode(str) As String
+Private Function json_encode(Str) As String
     
     Dim i, j, aL1, aL2, C, p
 
     aL1 = Array(&H22, &H5C, &H2F, &H8, &HC, &HA, &HD, &H9)
     aL2 = Array(&H22, &H5C, &H2F, &H62, &H66, &H6E, &H72, &H74)
-    For i = 1 To Len(str)
+    For i = 1 To Len(Str)
         p = True
-        C = Mid$(str, i, 1)
+        C = Mid$(Str, i, 1)
         For j = 0 To 7
             If C = Chr(aL1(j)) Then
                 json_encode = json_encode & "\" & Chr(aL2(j))

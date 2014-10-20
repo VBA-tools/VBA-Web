@@ -113,7 +113,7 @@ Public Property Get LoginUrl() As String
 End Property
 
 Public Property Get Token() As String
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
     
     If pToken = "" And Me.APIKey = "" Then
         Dim Client As New RestClient
@@ -139,7 +139,7 @@ Public Property Get Token() As String
     ' Return token
     Token = pToken
     
-CleanUp:
+Cleanup:
     
     If Not Client Is Nothing Then Set Client = Nothing
     If Not Response Is Nothing Then Set Response = Nothing
@@ -170,7 +170,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub Login(Optional APIKey As String = "")
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
     
     Dim IE As Object
     Dim Completed As Boolean
@@ -218,7 +218,7 @@ Public Sub Login(Optional APIKey As String = "")
         End With
     End If
     
-CleanUp:
+Cleanup:
 
     If Not IE Is Nothing Then: IE.Quit
     Set IE = Nothing

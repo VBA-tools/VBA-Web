@@ -35,7 +35,7 @@ Public ConsumerSecret As String
 Public CacheToken As Boolean
 
 Public Property Get Token() As String
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
 
     If pToken = "" Or Not CacheToken Then
         Dim Client As New RestClient
@@ -59,7 +59,7 @@ Public Property Get Token() As String
     ' Return token
     Token = pToken
     
-CleanUp:
+Cleanup:
 
     If Not Client Is Nothing Then Set Client = Nothing
     If Not Response Is Nothing Then Set Response = Nothing

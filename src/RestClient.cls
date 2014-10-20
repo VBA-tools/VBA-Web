@@ -22,13 +22,6 @@ Option Explicit
 Private Const UserAgent As String = "Excel Client v3.1.4 (https://github.com/timhall/Excel-REST)"
 Private Const DefaultTimeoutMS As Long = 5000
 
-#If Mac Then
-Private Declare Function popen Lib "libc.dylib" (ByVal command As String, ByVal mode As String) As Long
-Private Declare Function pclose Lib "libc.dylib" (ByVal File As Long) As Long
-Private Declare Function fread Lib "libc.dylib" (ByVal outStr As String, ByVal size As Long, ByVal Items As Long, ByVal stream As Long) As Long
-Private Declare Function feof Lib "libc.dylib" (ByVal File As Long) As Long
-#End If
-
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
@@ -64,33 +57,13 @@ Public Function Execute(Request As RestRequest) As RestResponse
     On Error GoTo ErrorHandling
     
     Dim cURL As String
+    Dim Result As ShellResult
+    
     cURL = Me.PrepareCURL(Request)
+    Result = RestHelpers.ExecuteInShell(cURL)
     
-    Dim File As Long
-    Dim Chunk As String
-    Dim Read As Long
-    Dim Result As String
-    Dim ExitCode As Long
-    File = popen(cURL, "r")
-    
-    If File = 0 Then
-        Err.Raise vbObjectError + 1, "RestClient.Execute", "An unknown error occurred while attempting to execute the request"
-    End If
-    
-    While feof(File) = 0
-        Chunk = VBA.space$(50)
-        Read = fread(Chunk, 1, Len(Chunk) - 1, File)
-        If Read > 0 Then
-            Chunk = VBA.Left$(Chunk, Read)
-            Result = Result & Chunk
-        End If
-    Loop
-    
-    ExitCode = pclose(File)
-    
-    ' TODO Check ExitCode
-    
-    Set Response = RestHelpers.CreateResponseFromCURL(Result, Request.ResponseFormat)
+    ' TODO Check Result.ExitCode
+    Set Response = RestHelpers.CreateResponseFromCURL(Result.Output, Request.ResponseFormat)
     RestHelpers.LogResponse Response, Request
     
 ErrorHandling:
