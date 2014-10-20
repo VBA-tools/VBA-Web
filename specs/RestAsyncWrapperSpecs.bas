@@ -20,6 +20,8 @@ Public Function Specs() As SpecSuite
     Specs.Description = "RestAsyncWrapper"
     Specs.BeforeEach "RestAsyncWrapperSpecs.Reset"
     
+    On Error Resume Next
+    
     Dim Client As New RestClient
     Client.BaseUrl = "http://localhost:3000"
     

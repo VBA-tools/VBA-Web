@@ -52,7 +52,7 @@ Public Function Specs() As SpecSuite
         json = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
         Set Parsed = RestHelpers.ParseJSON(json)
         
-        .Expect(Parsed).ToBeDefined
+        .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
             .Expect(Parsed("a")).ToEqual 1
             .Expect(Parsed("b")).ToEqual 3.14
@@ -64,7 +64,7 @@ Public Function Specs() As SpecSuite
         json = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
         Set Parsed = RestHelpers.ParseJSON(json)
         
-        .Expect(Parsed).ToBeDefined
+        .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
             .Expect(Parsed(1)).ToEqual 1
             .Expect(Parsed(2)).ToEqual 3.14
@@ -79,7 +79,7 @@ Public Function Specs() As SpecSuite
         json = "{""a"":1,""a"":2,""a"":3}"
         Set Parsed = RestHelpers.ParseJSON(json)
         
-        .Expect(Parsed).ToBeDefined
+        .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
             .Expect(Parsed("a")).ToEqual 3
         End If
@@ -89,7 +89,7 @@ Public Function Specs() As SpecSuite
         json = "{""a"":1,""b"":1.23,""c"":14.6000000000,""d"":14.6e6,""e"":14.6E6,""f"":10000000000000000000000}"
         Set Parsed = RestHelpers.ParseJSON(json)
         
-        .Expect(Parsed).ToBeDefined
+        .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
             .Expect(Parsed("a")).ToEqual 1
             .Expect(Parsed("b")).ToEqual 1.23
@@ -169,6 +169,8 @@ Public Function Specs() As SpecSuite
         .Expect(Parsed("d & e")).ToEqual "A + B"
     End With
     
+#If Mac Then
+#Else
     With Specs.It("should convert to XML")
         Set XMLBody = CreateObject("MSXML2.DOMDocument")
         XMLBody.Async = False
@@ -184,6 +186,7 @@ Public Function Specs() As SpecSuite
         .Expect(Parsed.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
         .Expect(Parsed.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
     End With
+#End If
     
     ' ============================================= '
     ' 3. Url handling
@@ -222,18 +225,21 @@ Public Function Specs() As SpecSuite
     With Specs.It("should extract parts from url")
         Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
         
-        .Expect(Parts("Protocol")).ToEqual "https:"
-        .Expect(Parts("Hostname")).ToEqual "www.google.com"
-        .Expect(Parts("Uri")).ToEqual "/dir/1/2/search.html"
-        .Expect(Parts("Querystring")).ToEqual "?arg=0-a&arg1=1-b&arg3-c"
-        .Expect(Parts("Hash")).ToEqual "#hash"
+        .Expect(Parts("Protocol")).ToEqual "https"
+        .Expect(Parts("Host")).ToEqual "www.google.com"
+        .Expect(Parts("Port")).ToEqual "443"
+        .Expect(Parts("Path")).ToEqual "/dir/1/2/search.html"
+        .Expect(Parts("Querystring")).ToEqual "arg=0-a&arg1=1-b&arg3-c"
+        .Expect(Parts("Hash")).ToEqual "hash"
         
-        Set Parts = RestHelpers.UrlParts("//www.google.com/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
+        Set Parts = RestHelpers.UrlParts("localhost:3000/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
         
-        .Expect(Parts("Hostname")).ToEqual "www.google.com"
-        .Expect(Parts("Uri")).ToEqual "/dir/1/2/search.html"
-        .Expect(Parts("Querystring")).ToEqual "?arg=0-a&arg1=1-b&arg3-c"
-        .Expect(Parts("Hash")).ToEqual "#hash"
+        .Expect(Parts("Protocol")).ToEqual ""
+        .Expect(Parts("Host")).ToEqual "localhost"
+        .Expect(Parts("Port")).ToEqual "3000"
+        .Expect(Parts("Path")).ToEqual "/dir/1/2/search.html"
+        .Expect(Parts("Querystring")).ToEqual "arg=0-a&arg1=1-b&arg3-c"
+        .Expect(Parts("Hash")).ToEqual "hash"
     End With
     
     ' ============================================= '

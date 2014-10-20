@@ -207,7 +207,7 @@ Public Function RequestUrl(Client As RestClient, Request As RestRequest) As Stri
     Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
     
     ' Url scheme and authority MUST be lowercase
-    RequestUrl = LCase(Parts("Protocol") & "//" & Parts("Hostname"))
+    RequestUrl = LCase(Parts("Protocol") & "://" & Parts("Host"))
     
     ' Include port (80 and 443 MUST be excluded)
     If Parts("Port") <> 80 And Parts("Port") <> 443 Then
@@ -215,7 +215,7 @@ Public Function RequestUrl(Client As RestClient, Request As RestRequest) As Stri
     End If
     
     ' Include path
-    RequestUrl = RequestUrl + Parts("Uri")
+    RequestUrl = RequestUrl + Parts("Path")
     
     ' MUST exclude query and fragment
 End Function
@@ -227,7 +227,7 @@ Public Function RequestParameters(Client As RestClient, Request As RestRequest) 
     Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
     
     ' Remove leading ?
-    RequestParameters = Replace(Parts("Querystring"), "?", "")
+    RequestParameters = Parts("Querystring")
     
     ' Replace + for spaces with %20
     RequestParameters = Replace(RequestParameters, "+", "%20")

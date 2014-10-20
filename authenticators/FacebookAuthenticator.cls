@@ -36,7 +36,7 @@ Public Code As String
 Public Scope As Variant
 
 Public Property Get Token() As String
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
 
     If (pToken = "" Or Not CacheToken) And Code <> "" Then
         Dim Client As New RestClient
@@ -66,7 +66,7 @@ Public Property Get Token() As String
     ' Return token
     Token = pToken
     
-CleanUp:
+Cleanup:
 
     If Not Client Is Nothing Then Set Client = Nothing
     If Not Response Is Nothing Then Set Response = Nothing
@@ -117,7 +117,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub Login()
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
     
     Dim IE As Object
     Dim Completed As Boolean
@@ -147,7 +147,7 @@ Public Sub Login()
         End If
     End With
     
-CleanUp:
+Cleanup:
     
     If Not IE Is Nothing Then: IE.Quit
     Set IE = Nothing

@@ -105,7 +105,7 @@ End Sub
 
 Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
     Dim Uri As String
-    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Uri")
+    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Path")
 
     CreateHeader = "Digest" & _
         " username=""" & Me.Username & """" & _
@@ -125,7 +125,7 @@ Public Function CalculateResponse(Client As RestClient, Request As RestRequest) 
     Dim HA1 As String
     Dim HA2 As String
     Dim Uri As String
-    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Uri")
+    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Path")
     
     HA1 = CalculateHA1
     HA2 = CalculateHA2(Request.MethodName, Uri)

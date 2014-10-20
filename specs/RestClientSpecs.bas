@@ -23,7 +23,9 @@ Public Function Specs() As SpecSuite
     Dim Options As Dictionary
     Dim XMLBody As Object
     
+    On Error Resume Next
     Client.BaseUrl = "http://localhost:3000/"
+    Client.TimeoutMS = 250
     
     With Specs.It("should return status code and status description from request")
         Set Request = New RestRequest
@@ -55,6 +57,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "json"
         
         Set Response = Client.Execute(Request)
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("a")).ToEqual "1"
         .Expect(Response.Data("b")).ToEqual 2
         .Expect(Response.Data("c")).ToEqual 3.14
@@ -70,6 +73,7 @@ Public Function Specs() As SpecSuite
         Request.ContentType = "text/plain"
         
         Set Response = Client.Execute(Request)
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("headers")("content-type")).ToEqual "text/plain"
         .Expect(Response.Data("headers")("custom")).ToEqual "Howdy!"
     End With
@@ -93,7 +97,9 @@ Public Function Specs() As SpecSuite
         Request.ContentType = "text/plain"
         Request.AddBodyString "Howdy!"
         
-        .Expect(Client.Execute(Request).Data("body")).ToEqual "Howdy!"
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Data).ToNotBeUndefined
+        .Expect(Response.Data("body")).ToEqual "Howdy!"
         
         Set Body = New Dictionary
         Body.Add "a", 3.14
@@ -102,7 +108,10 @@ Public Function Specs() As SpecSuite
         Request.Resource = "post"
         Request.Method = httpPOST
         Request.AddBody Body
-        .Expect(Client.Execute(Request).Data("body")("a")).ToEqual 3.14
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Data).ToNotBeUndefined
+        .Expect(Response.Data("body")("a")).ToEqual 3.14
     End With
     
     With Specs.It("should pass querystring with request")
@@ -114,6 +123,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "get"
         
         Set Response = Client.Execute(Request)
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("query")("a")).ToEqual "1"
         .Expect(Response.Data("query")("b")).ToEqual "3.14"
         .Expect(Response.Data("query")("c")).ToEqual "Howdy!"
@@ -124,7 +134,7 @@ Public Function Specs() As SpecSuite
         Set Response = Client.GetJSON("/get")
         
         .Expect(Response.StatusCode).ToEqual 200
-        .Expect(Response.Data).ToBeDefined
+        .Expect(Response.Data).ToNotBeUndefined
     End With
     
     With Specs.It("should POST json")
@@ -133,11 +143,13 @@ Public Function Specs() As SpecSuite
         Set Response = Client.PostJSON("/post", Body)
         
         .Expect(Response.StatusCode).ToEqual 200
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("body")("a")).ToEqual 3.14
         
         Set Response = Client.PostJSON("/post", Array(1, 2, 3))
         
         .Expect(Response.StatusCode).ToEqual 200
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("body")(1)).ToEqual 1
     End With
     
@@ -147,6 +159,7 @@ Public Function Specs() As SpecSuite
         Options("Headers").Add "custom", "value"
         Set Response = Client.GetJSON("/get", Options)
         
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("headers")("custom")).ToEqual "value"
     End With
     
@@ -197,7 +210,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "howdy"
         
         Set Response = Client.Execute(Request)
-        .Expect(Response.Body).ToBeDefined
+        .Expect(Response.Body).ToNotBeUndefined
         
         If Not IsEmpty(Response.Body) Then
             For i = LBound(Response.Body) To UBound(Response.Body)
@@ -250,6 +263,7 @@ Public Function Specs() As SpecSuite
         Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
         
         Set Response = Client.Execute(Request)
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("cookies").Count).ToEqual 1
         .Expect(Response.Data("cookies")("test-cookie")).ToEqual "howdy"
         .Expect(Response.Data("signed_cookies").Count).ToEqual 1
@@ -269,6 +283,7 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         
         .Expect(Request.Body).ToEqual "a=123&b=456"
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("headers")("content-type")).ToEqual "application/x-www-form-urlencoded;charset=UTF-8"
         .Expect(Response.Data("headers")("accept")).ToEqual "application/json"
     End With
@@ -287,12 +302,13 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         
         .Expect(Request.Body).ToEqual "{""a"":123,""b"":456}"
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("a")).ToEqual "1"
         .Expect(Response.Data("b")).ToEqual 2
         .Expect(Response.Data("c")).ToEqual 3.14
     End With
     
-    With Specs.It("should convert and part url-encoded")
+    With Specs.It("should convert and parse url-encoded")
         Set Request = New RestRequest
         Request.Resource = "formurlencoded"
         Request.Format = formurlencoded
@@ -306,6 +322,7 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         
         .Expect(Request.Body).ToEqual "a=123&b=456"
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("a")).ToEqual "1"
         .Expect(Response.Data("b")).ToEqual "2"
         .Expect(Response.Data("c")).ToEqual "3.14"
@@ -326,6 +343,7 @@ Public Function Specs() As SpecSuite
     
         .Expect(Request.Body).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
         .Expect(Response.Content).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
         .Expect(Response.Data.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
     End With
@@ -359,6 +377,7 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         
         .Expect(Request.Body).ToEqual "{""a"":123,""b"":456}"
+        .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("a")).ToEqual "1"
         .Expect(Response.Data("b")).ToEqual 2
         .Expect(Response.Data("c")).ToEqual 3.14
