@@ -62,17 +62,9 @@ Public Resource As String
 Public Method As AvailableMethods
 Public RequestFormat As AvailableFormats
 Public ResponseFormat As AvailableFormats
-Public Callback As String
 Public BaseUrl As String
 Public RequireHTTPS As Boolean
-Public CallbackArgs As Variant
 Public IncludeContentLength As Boolean
-Public Authenticator As IAuthenticator
-Public Client As RestClient
-#If Not Mac Then
-Public WithEvents HttpRequest As WinHttpRequest
-Attribute HttpRequest.VB_VarHelpID = -1
-#End If
 
 Public Property Get Format() As AvailableFormats
     Format = RequestFormat
@@ -360,44 +352,6 @@ Public Sub AddBodyString(BodyVal As String)
 End Sub
 
 ''
-' Process asynchronous requests
-' --------------------------------------------- '
-#If Not Mac Then
-Private Sub HttpRequest_OnResponseFinished()
-    Me.StopTimeoutTimer
-    
-    ' Callback
-    Dim Response As RestResponse
-    Set Response = RestHelpers.CreateResponseFromHttp(Me.HttpRequest, Me.ResponseFormat)
-    RestHelpers.LogResponse Response, Me
-    RunCallback Response
-End Sub
-#End If
-
-''
-' Start timeout timer
-' --------------------------------------------- '
-Public Sub StartTimeoutTimer(TimeoutMS As Long)
-    RestHelpers.StartTimeoutTimer Me, TimeoutMS
-End Sub
-
-''
-' Stop timeout timer
-' --------------------------------------------- '
-Public Sub StopTimeoutTimer()
-    RestHelpers.StopTimeoutTimer Me
-End Sub
-
-''
-' Handle timeouts
-' --------------------------------------------- '
-Public Sub TimedOut()
-    ' Callback
-    RestHelpers.LogDebug "Timed out", "RestRequest.TimedOut"
-    RunCallback RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
-End Sub
-
-''
 ' Clone request
 '
 ' @return {RestRequest}
@@ -411,7 +365,6 @@ Public Function Clone() As RestRequest
     Clone.ContentType = Me.ContentType
     Clone.RequestFormat = Me.RequestFormat
     Clone.ResponseFormat = Me.ResponseFormat
-    Clone.Callback = Me.Callback
     Clone.ContentLength = Me.ContentLength
     Clone.BaseUrl = Me.BaseUrl
     Clone.RequireHTTPS = Me.RequireHTTPS
@@ -434,61 +387,9 @@ End Function
 ' Private Functions
 ' ============================================= '
 
-Private Sub RunCallback(Response As RestResponse)
-    ' Run callback function (needs to be a public function),
-    ' passing in response and any defined callback arguments
-    '
-    ' callback({RestResponse})
-    ' OR callback({RestResponse}, {Variant})
-    '
-    ' Example:
-    ' Public Function Callback(response As RestResponse, args As Variant)
-    '     Debug.Print "Callback: " & response.StatusCode
-    '     For i = LBound(args) To UBound(args)
-    '         Debug.Print args(i) & " was passed into async execute"
-    '     Next i
-    ' End Function
-    
-    If Not Me.Authenticator Is Nothing Then
-        ' Don't pass Authenticator and Client with Request to AfterExecute
-        Dim Auth As IAuthenticator
-        Dim Client As RestClient
-        Set Auth = Me.Authenticator
-        Set Client = Me.Client
-        Set Me.Authenticator = Nothing
-        Set Me.Client = Nothing
-        
-        Auth.AfterExecute Client, Me, Response
-    End If
-    If Me.Callback <> "" Then
-        RestHelpers.LogDebug Me.Callback, "RestRequest.RunCallback"
-        If Not IsMissing(Me.CallbackArgs) Then
-            Application.Run Me.Callback, Response, Me.CallbackArgs
-        Else
-            Application.Run Me.Callback, Response
-        End If
-    End If
-
-    
-#If Not Mac Then
-    ' Request is finished, clean up
-    Set Me.HttpRequest = Nothing
-#End If
-End Sub
-
 Private Sub Class_Initialize()
     ' Set default values
     Me.IncludeContentLength = True
     Me.RequestFormat = json
     Me.ResponseFormat = json
-End Sub
-
-Private Sub Class_Terminate()
-    ' Clean up
-#If Not Mac Then
-    If Not Me.HttpRequest Is Nothing Then: Set Me.HttpRequest = Nothing
-#End If
-
-    If Not Me.Authenticator Is Nothing Then: Set Me.Authenticator = Nothing
-    If Not Me.Client Is Nothing Then: Set Me.Client = Nothing
 End Sub
