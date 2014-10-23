@@ -246,7 +246,7 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         .Expect(Response.Cookies.Count).ToEqual 4
         .Expect(Response.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
-        .Expect(Response.Cookies("signed-cookie")).ToContain "special-cookie"
+        .Expect(Response.Cookies("signed-cookie")).ToMatch "special-cookie"
         .Expect(Response.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
         .Expect(Response.Cookies("duplicate-cookie")).ToEqual "B"
     End With
@@ -327,7 +327,9 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("b")).ToEqual "2"
         .Expect(Response.Data("c")).ToEqual "3.14"
     End With
-    
+
+#If Mac Then
+#Else
     With Specs.It("should convert and parse XML")
         Set Request = New RestRequest
         Request.Resource = "xml"
@@ -347,6 +349,7 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
         .Expect(Response.Data.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
     End With
+#End If
     
     With Specs.It("should convert and parse plaintext")
         Set Request = New RestRequest
@@ -382,7 +385,45 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("b")).ToEqual 2
         .Expect(Response.Data("c")).ToEqual 3.14
     End With
-    
+
+#If Mac Then
+    With Specs.It("should prepare cURL request")
+        Set Client = New RestClient
+        Client.BaseUrl = "http://localhost:3000/"
+        Client.Username = "user"
+        Client.Password = "password"
+        Client.ProxyServer = "proxyserver"
+        Client.ProxyBypassList = "proxyserver:80, *.github.com"
+        Client.ProxyUsername = "proxyuser"
+        Client.ProxyPassword = "proxypassword"
+        
+        Set Request = New RestRequest
+        Request.Resource = "text"
+        Request.AddQuerystringParam "type", "message"
+        Request.Method = httpPOST
+        Request.RequestFormat = AvailableFormats.plaintext
+        Request.ResponseFormat = AvailableFormats.json
+        Request.AddBodyString "Howdy!"
+        Request.AddHeader "custom", "Howdy!"
+        Request.AddCookie "test-cookie", "howdy"
+        
+        Dim cURL As String
+        
+        cURL = Client.PrepareCURL(Request)
+        .Expect(cURL).ToMatch "http://localhost:3000/text?type=message"
+        .Expect(cURL).ToMatch "-X POST"
+        .Expect(cURL).ToMatch "--user user:password"
+        .Expect(cURL).ToMatch "--proxy proxyserver"
+        .Expect(cURL).ToMatch "--noproxy proxyserver:80, *.github.com"
+        .Expect(cURL).ToMatch "--proxy-user proxyuser:proxypassword"
+        .Expect(cURL).ToMatch "-H 'Content-Type: text/plain'"
+        .Expect(cURL).ToMatch "-H 'Accept: application/json'"
+        .Expect(cURL).ToMatch "-H 'custom: Howdy!'"
+        .Expect(cURL).ToMatch "--cookie 'test-cookie=howdy;'"
+        .Expect(cURL).ToMatch "-d 'Howdy!'"
+    End With
+#End If
+ 
     Set Client = Nothing
     
     InlineRunner.RunSuite Specs

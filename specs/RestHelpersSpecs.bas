@@ -223,22 +223,22 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should extract parts from url")
-        Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
+        Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual "https"
         .Expect(Parts("Host")).ToEqual "www.google.com"
         .Expect(Parts("Port")).ToEqual "443"
         .Expect(Parts("Path")).ToEqual "/dir/1/2/search.html"
-        .Expect(Parts("Querystring")).ToEqual "arg=0-a&arg1=1-b&arg3-c"
+        .Expect(Parts("Querystring")).ToEqual "message=Howdy World!&other=123"
         .Expect(Parts("Hash")).ToEqual "hash"
         
-        Set Parts = RestHelpers.UrlParts("localhost:3000/dir/1/2/search.html?arg=0-a&arg1=1-b&arg3-c#hash")
+        Set Parts = RestHelpers.UrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World%21&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual ""
         .Expect(Parts("Host")).ToEqual "localhost"
         .Expect(Parts("Port")).ToEqual "3000"
-        .Expect(Parts("Path")).ToEqual "/dir/1/2/search.html"
-        .Expect(Parts("Querystring")).ToEqual "arg=0-a&arg1=1-b&arg3-c"
+        .Expect(Parts("Path")).ToEqual "/dir/1/2/page%202.html"
+        .Expect(Parts("Querystring")).ToEqual "message=Howdy%20World%21&other=123"
         .Expect(Parts("Hash")).ToEqual "hash"
     End With
     

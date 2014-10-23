@@ -29,7 +29,7 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should login")
         Auth.Login
-        .Expect(Auth.Token).ToBeDefined
+        .Expect(Auth.Token).ToNotBeUndefined
     End With
     
     With Specs.It("should skip login if API key is used")
