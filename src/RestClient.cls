@@ -34,7 +34,7 @@ Public Password As String
 Public ProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
-Public ProxyBypassList As Variant
+Public ProxyBypassList As String
 
 ' ============================================= '
 ' Public Methods
@@ -62,9 +62,10 @@ Public Function Execute(Request As RestRequest) As RestResponse
     cURL = Me.PrepareCURL(Request)
     Result = RestHelpers.ExecuteInShell(cURL)
     
-    ' TODO Check Result.ExitCode
-    Set Response = RestHelpers.CreateResponseFromCURL(Result.Output, Request.ResponseFormat)
+    Set Response = RestHelpers.CreateResponseFromCURL(Result, Request.ResponseFormat)
     RestHelpers.LogResponse Response, Request
+    Set Execute = Response
+    Exit Function
     
 ErrorHandling:
 
@@ -166,7 +167,7 @@ End Function
 ' --------------------------------------------- '
 
 Public Sub SetProxy(ProxyServer As String, _
-    Optional Username As String = "", Optional Password As String = "", Optional BypassList As Variant)
+    Optional Username As String = "", Optional Password As String = "", Optional BypassList As String = "")
     
     Me.ProxyServer = ProxyServer
     Me.ProxyUsername = Username
@@ -256,18 +257,53 @@ End Function
 
 Public Function PrepareCURL(Request As RestRequest) As String
     Dim cURL As String
+    cURL = "curl -i"
     
     ' Prepare request
     Set Request = PrepareRequest(Request)
     
-    ' Setup proxy?
+    ' Set timeouts
+    cURL = cURL & " --connect-timeout " & Me.TimeoutMS / 1000
+    cURL = cURL & " --max-time " & 3 * Me.TimeoutMS / 1000
+    
+    ' Setup proxy
+    If Me.ProxyServer <> "" Then
+        cURL = cURL & " --proxy " & Me.ProxyServer
+        
+        If Me.ProxyBypassList <> "" Then
+            cURL = cURL & " --noproxy " & Me.ProxyBypassList
+        End If
+        If Me.ProxyUsername <> "" Then
+            cURL = cURL & " --proxy-user " & Me.ProxyUsername & ":" & Me.ProxyPassword
+        End If
+    End If
     
     ' Setup Basic authentication
+    If Me.Username <> "" Then
+        cURL = cURL & " --user " & Me.Username & ":" & Me.Password
+        Request.AddHeader "Authorization", "Basic " & RestHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+    End If
     
     ' Setup authenticator
     BeforeExecute Request
     
-    ' Set headers
+    ' Set headers and cookies
+    Dim HeaderKey As Variant
+    For Each HeaderKey In Request.Headers.Keys
+        cURL = cURL & " -H '" & HeaderKey & ": " & Request.Headers(HeaderKey) & "'"
+    Next HeaderKey
+    
+    Dim CookieKey As Variant
+    Dim CookieString As String
+    For Each CookieKey In Request.Cookies.Keys
+        CookieString = CookieString & CookieKey & "=" & Request.Cookies(CookieKey) & ";"
+    Next CookieKey
+    cURL = cURL & " --cookie '" & CookieString & "'"
+    
+    ' Add method, data, and url
+    cURL = cURL & " -X " & Request.MethodName
+    cURL = cURL & " -d '" & Request.Body & "'"
+    cURL = cURL & " '" & Request.FullUrl(Me.BaseUrl) & "'"
     
     ' Log request and return
     RestHelpers.LogRequest Request

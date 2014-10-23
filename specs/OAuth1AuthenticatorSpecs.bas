@@ -149,7 +149,7 @@ Sub LinkedInSpecs()
         Set Response = Client.Execute(Request)
         
         .Expect(Response.StatusCode).ToEqual 200
-        .Expect(Response.Data("firstName")).ToBeDefined
+        .Expect(Response.Data("firstName")).ToNotBeUndefined
     End With
     
     With Specs.It("should search with space")
@@ -160,7 +160,7 @@ Sub LinkedInSpecs()
         Set Response = Client.Execute(Request)
         
         .Expect(Response.StatusCode).ToEqual 200
-        .Expect(Response.Data("companies")).ToBeDefined
+        .Expect(Response.Data("companies")).ToNotBeUndefined
         
         If (Response.StatusCode <> 200) Then
             Debug.Print "Error :" & Response.StatusCode & " - " & Response.Content

@@ -29,12 +29,12 @@ Private Declare Function popen Lib "libc.dylib" (ByVal Command As String, ByVal 
 Private Declare Function pclose Lib "libc.dylib" (ByVal File As Long) As Long
 Private Declare Function fread Lib "libc.dylib" (ByVal outStr As String, ByVal size As Long, ByVal Items As Long, ByVal stream As Long) As Long
 Private Declare Function feof Lib "libc.dylib" (ByVal File As Long) As Long
+#End If
 
 Public Type ShellResult
     Output As String
     ExitCode As Long
 End Type
-#End If
 
 Private pDocumentHelper As Object
 Private pElHelper As Object
@@ -360,7 +360,7 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
         For i = 1 To StringLen
             ' Get character and ascii code
             Char = Mid$(UrlVal, i, 1)
-            charCode = asc(Char)
+            charCode = Asc(Char)
             Select Case charCode
                 Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
                     ' Use original for AZaz09-._~
@@ -526,6 +526,8 @@ Public Function UrlParts(Url As String) As Dictionary
     Dim Results As Variant
     Dim ResultPart As Variant
     Dim EqualsIndex As Long
+    Dim Key As String
+    Dim Value As String
     Command = "perl -e '{use URI::URL;" & vbNewLine & _
         "$url = new URI::URL """ & Url & """;" & vbNewLine & _
         "print ""Protocol="" . $url->scheme;" & vbNewLine & _
@@ -539,7 +541,10 @@ Public Function UrlParts(Url As String) As Dictionary
     Results = Split(ExecuteInShell(Command).Output, " | ")
     For Each ResultPart In Results
         EqualsIndex = InStr(1, ResultPart, "=")
-        Parts.Add Trim(VBA.Mid$(ResultPart, 1, EqualsIndex - 1)), Trim(VBA.Mid$(ResultPart, EqualsIndex + 1))
+        Key = Trim(VBA.Mid$(ResultPart, 1, EqualsIndex - 1))
+        Value = Trim(VBA.Mid$(ResultPart, EqualsIndex + 1))
+        
+        Parts.Add Key, Value
     Next ResultPart
     
     If AddedProtocol And Parts.Exists("Protocol") Then
@@ -769,13 +774,98 @@ End Function
 
 ''
 ' Create response for cURL
+' References:
+' http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
+' http://curl.haxx.se/libcurl/c/libcurl-errors.html
 '
 ' @param {String} Raw result from cURL
 ' @return {RestResponse}
 ' --------------------------------------------- '
-Public Function CreateResponseFromCURL(Raw As String, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+    Dim StatusCode As Long
+    Dim StatusText As String
+    Dim Headers As String
+    Dim Body As Variant
+    Dim ResponseText As String
+    
+    If Result.ExitCode > 0 Then
+        Dim ErrorNumber As Long
+        
+        ErrorNumber = Result.ExitCode / 256
+        If ErrorNumber = 28 Then
+            Set CreateResponseFromCURL = CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+        Else
+            LogError "cURL Error: " & ErrorNumber, "RestHelpers.CreateResponseFromCURL"
+        End If
+        
+        Exit Function
+    End If
+    
+    Dim Lines() As String
+    Lines = Split(Result.Output, vbCrLf)
+    
+    ' Extract status code and text from status line
+    Dim StatusLine As String
+    Dim StatusLineParts() As String
+    StatusLine = Lines(0)
+    StatusLineParts = Split(StatusLine)
+    StatusCode = CLng(StatusLineParts(1))
+    StatusText = Mid$(StatusLine, InStr(1, StatusLine, StatusCode) + 4)
+    
+    ' Find blank line before body
+    Dim Line As Variant
+    Dim BlankLineIndex
+    BlankLineIndex = 0
+    For Each Line In Lines
+        If Trim(Line) = "" Then
+            Exit For
+        End If
+        BlankLineIndex = BlankLineIndex + 1
+    Next Line
+    
+    ' Extract body and headers strings
+    Dim HeaderLines() As String
+    Dim BodyLines() As String
+    Dim ReadIndex As Long
+    Dim WriteIndex As Long
+    
+    ReDim HeaderLines(0 To BlankLineIndex - 2)
+    ReDim BodyLines(0 To UBound(Lines) - BlankLineIndex - 1)
+    
+    WriteIndex = 0
+    For ReadIndex = 1 To BlankLineIndex - 1
+        HeaderLines(WriteIndex) = Lines(ReadIndex)
+        WriteIndex = WriteIndex + 1
+    Next ReadIndex
+    
+    WriteIndex = 0
+    For ReadIndex = BlankLineIndex + 1 To UBound(Lines)
+        BodyLines(WriteIndex) = Lines(ReadIndex)
+        WriteIndex = WriteIndex + 1
+    Next ReadIndex
+    
+    ResponseText = Join$(BodyLines, vbCrLf)
+    Body = StringToBytes(ResponseText)
+    
+    ' Create Response
     Set CreateResponseFromCURL = New RestResponse
-    Debug.Print "cURL Result: " & Raw
+    CreateResponseFromCURL.StatusCode = StatusCode
+    CreateResponseFromCURL.StatusDescription = StatusText
+    CreateResponseFromCURL.Body = Body
+    CreateResponseFromCURL.Content = ResponseText
+    
+    ' Convert content to data by format
+    If Format <> AvailableFormats.plaintext Then
+        On Error Resume Next
+        Set CreateResponseFromCURL.Data = RestHelpers.ParseByFormat(CreateResponseFromCURL.Content, Format)
+        On Error GoTo 0
+    End If
+    
+    ' Extract headers
+    Set CreateResponseFromCURL.Headers = ExtractHeaders(Join$(HeaderLines, vbCrLf))
+    
+    ' Extract cookies
+    Set CreateResponseFromCURL.Cookies = ExtractCookies(CreateResponseFromCURL.Headers)
 End Function
 
 ''
@@ -1080,7 +1170,7 @@ End Function
 ' @param {String} Text
 ' @return {String}
 ' --------------------------------------------- '
-Public Function PrepareTextForShell(Text As String) As String
+Public Function PrepareTextForShell(ByVal Text As String) As String
     Text = Replace("""" & Text & """", "!", """'!'""")
     
     ' Guard for ! at beginning or end ("'!'"..." or "..."'!'")
