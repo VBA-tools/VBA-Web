@@ -109,10 +109,10 @@ Public Function Specs() As SpecSuite
     With Specs.It("should URL encode querystring")
         Set Request = New RestRequest
     
-        Request.AddParameter "A B", " !""#$%&'"
+        Request.AddParameter "A B", "$&+,/:;=?@"
         Request.Method = httpGET
         
-        .Expect(Request.FormattedResource).ToEqual "?A+B=+%21%22%23%24%25%26%27"
+        .Expect(Request.FormattedResource).ToEqual "?A+B=%24%26%2B%2C%2F%3A%3B%3D%3F%40"
     End With
     
     With Specs.It("should use body string directly if no parameters")
@@ -257,7 +257,7 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "{""A"":123,""B"":""Howdy!""}"
         
         Request.Format = formurlencoded
-        .Expect(Request.Body).ToEqual "A=123&B=Howdy%21"
+        .Expect(Request.Body).ToEqual "A=123&B=Howdy!"
     End With
     
     With Specs.It("should allow array/collection for body")

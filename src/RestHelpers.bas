@@ -332,12 +332,14 @@ End Function
 
 ''
 ' Url encode the given string
+' Reference: http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
 '
 ' @param {Variant} Text The raw string to encode
 ' @param {Boolean} [SpaceAsPlus = False] Use plus sign for encoded spaces (otherwise %20)
+' @param {Boolean} [EncodeUnsafe = True] Encode unsafe characters
 ' @return {String} Encoded string
 ' --------------------------------------------- '
-Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False) As String
+Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False, Optional EncodeUnsafe As Boolean = True) As String
     Dim UrlVal As String
     Dim StringLen As Long
     
@@ -346,34 +348,39 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
     
     If StringLen > 0 Then
         ReDim Result(StringLen) As String
-        Dim i As Long, charCode As Integer
-        Dim Char As String, space As String
+        Dim i As Long
+        Dim CharCode As Integer
+        Dim Char As String
+        Dim Space As String
         
         ' Set space value
         If SpaceAsPlus Then
-            space = "+"
+            Space = "+"
         Else
-            space = "%20"
+            Space = "%20"
         End If
         
         ' Loop through string characters
         For i = 1 To StringLen
             ' Get character and ascii code
             Char = Mid$(UrlVal, i, 1)
-            charCode = Asc(Char)
-            Select Case charCode
-                Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
-                    ' Use original for AZaz09-._~
-                    Result(i) = Char
-                Case 32
-                    ' Add space
-                    Result(i) = space
-                Case 0 To 15
-                    ' Convert to hex w/ leading 0
-                    Result(i) = "%0" & Hex(charCode)
+            CharCode = Asc(Char)
+            
+            Select Case CharCode
+                Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
+                    ' Reserved characters
+                    Result(i) = "%" & Hex(CharCode)
+                Case 32, 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
+                    ' Unsafe characters
+                    If EncodeUnsafe Then
+                        If CharCode = 32 Then
+                            Result(i) = Space
+                        Else
+                            Result(i) = "%" & Hex(CharCode)
+                        End If
+                    End If
                 Case Else
-                    ' Convert to hex
-                    Result(i) = "%" & Hex(charCode)
+                    Result(i) = Char
             End Select
         Next i
         UrlEncode = Join(Result, "")
@@ -533,18 +540,32 @@ Public Function UrlParts(Url As String) As Dictionary
         "print ""Protocol="" . $url->scheme;" & vbNewLine & _
         "print "" | Host="" . $url->host;" & vbNewLine & _
         "print "" | Port="" . $url->port;" & vbNewLine & _
-        "print "" | Path="" . $url->path;" & vbNewLine & _
-        "print "" | Querystring="" . $url->query;" & vbNewLine & _
+        "print "" | FullPath="" . $url->full_path;" & vbNewLine & _
         "print "" | Hash="" . $url->frag;" & vbNewLine & _
     "}'"
-    
+
     Results = Split(ExecuteInShell(Command).Output, " | ")
     For Each ResultPart In Results
         EqualsIndex = InStr(1, ResultPart, "=")
         Key = Trim(VBA.Mid$(ResultPart, 1, EqualsIndex - 1))
         Value = Trim(VBA.Mid$(ResultPart, EqualsIndex + 1))
         
-        Parts.Add Key, Value
+        If Key = "FullPath" Then
+            ' For properly escaped path and querystring, need to use full_path
+            ' But, need to split FullPath into Path...?Querystring
+            Dim QueryIndex As Integer
+            
+            QueryIndex = InStr(1, Value, "?")
+            If QueryIndex > 0 Then
+                Parts.Add "Path", Mid$(Value, 1, QueryIndex - 1)
+                Parts.Add "Querystring", Mid$(Value, QueryIndex + 1)
+            Else
+                Parts.Add "Path", Value
+                Parts.Add "Querystring", ""
+            End If
+        Else
+            Parts.Add Key, Value
+        End If
     Next ResultPart
     
     If AddedProtocol And Parts.Exists("Protocol") Then
@@ -792,7 +813,9 @@ Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As
         Dim ErrorNumber As Long
         
         ErrorNumber = Result.ExitCode / 256
-        If ErrorNumber = 28 Then
+        ' 7 - CURLE_COULDNT_CONNECT
+        ' 28 - CURLE_OPERATION_TIMEDOUT
+        If ErrorNumber = 7 Or ErrorNumber = 28 Then
             Set CreateResponseFromCURL = CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
         Else
             LogError "cURL Error: " & ErrorNumber, "RestHelpers.CreateResponseFromCURL"
@@ -1151,7 +1174,7 @@ Public Function ExecuteInShell(Command As String) As ShellResult
     End If
     
     Do While feof(File) = 0
-        Chunk = VBA.space$(50)
+        Chunk = VBA.Space$(50)
         Read = fread(Chunk, 1, Len(Chunk) - 1, File)
         If Read > 0 Then
             Chunk = VBA.Left$(Chunk, Read)

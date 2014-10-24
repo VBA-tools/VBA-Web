@@ -131,9 +131,10 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should url encode values")
-        .Expect(RestHelpers.UrlEncode(" !""#$%&'")).ToEqual "%20%21%22%23%24%25%26%27"
+        .Expect(RestHelpers.UrlEncode("$&+,/:;=?@", EncodeUnsafe:=False)).ToEqual "%24%26%2B%2C%2F%3A%3B%3D%3F%40"
+        .Expect(RestHelpers.UrlEncode(" ""<>#%{}|\^~[]`")).ToEqual "%20%22%3C%3E%23%25%7B%7D%7C%5C%5E%7E%5B%5D%60"
         .Expect(RestHelpers.UrlEncode("A + B")).ToEqual "A%20%2B%20B"
-        .Expect(RestHelpers.UrlEncode("A + B", True)).ToEqual "A+%2B+B"
+        .Expect(RestHelpers.UrlEncode("A + B", SpaceAsPlus:=True)).ToEqual "A+%2B+B"
     End With
     
     With Specs.It("should decode url values")
@@ -157,7 +158,7 @@ Public Function Specs() As SpecSuite
         B.Add "d & e", "A + B"
         
         Encoded = RestHelpers.ConvertToUrlEncoded(RestHelpers.CombineObjects(A, B))
-        .Expect(Encoded).ToEqual "a=1&b=4.14&c=Howdy%21&d+%26+e=A+%2B+B"
+        .Expect(Encoded).ToEqual "a=1&b=4.14&c=Howdy!&d+%26+e=A+%2B+B"
     End With
     
     With Specs.It("should parse url-encoded string")
@@ -223,22 +224,22 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should extract parts from url")
-        Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy World!&other=123#hash")
+        Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy%20World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual "https"
         .Expect(Parts("Host")).ToEqual "www.google.com"
         .Expect(Parts("Port")).ToEqual "443"
         .Expect(Parts("Path")).ToEqual "/dir/1/2/search.html"
-        .Expect(Parts("Querystring")).ToEqual "message=Howdy World!&other=123"
+        .Expect(Parts("Querystring")).ToEqual "message=Howdy%20World!&other=123"
         .Expect(Parts("Hash")).ToEqual "hash"
         
-        Set Parts = RestHelpers.UrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World%21&other=123#hash")
+        Set Parts = RestHelpers.UrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual ""
         .Expect(Parts("Host")).ToEqual "localhost"
         .Expect(Parts("Port")).ToEqual "3000"
         .Expect(Parts("Path")).ToEqual "/dir/1/2/page%202.html"
-        .Expect(Parts("Querystring")).ToEqual "message=Howdy%20World%21&other=123"
+        .Expect(Parts("Querystring")).ToEqual "message=Howdy%20World!&other=123"
         .Expect(Parts("Hash")).ToEqual "hash"
     End With
     
