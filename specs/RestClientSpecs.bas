@@ -10,6 +10,10 @@ Attribute VB_Name = "RestClientSpecs"
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
+Public Property Get BaseUrl() As String
+    BaseUrl = "http://httpbin.org"
+End Property
+
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "RestClient"
@@ -24,8 +28,8 @@ Public Function Specs() As SpecSuite
     Dim XMLBody As Object
     
     On Error Resume Next
-    Client.BaseUrl = "http://localhost:3000/"
-    Client.TimeoutMS = 250
+    Client.BaseUrl = BaseUrl
+    Client.TimeoutMS = 500
     
     With Specs.It("should return status code and status description from request")
         Set Request = New RestRequest
@@ -39,81 +43,86 @@ Public Function Specs() As SpecSuite
         Request.AddUrlSegment "code", 304
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 304
-        .Expect(Response.StatusDescription).ToEqual "Not Modified"
+        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "NOT MODIFIED"
         
         Request.AddUrlSegment "code", 404
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 404
-        .Expect(Response.StatusDescription).ToEqual "Not Found"
+        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "NOT FOUND"
         
         Request.AddUrlSegment "code", 500
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 500
-        .Expect(Response.StatusDescription).ToEqual "Internal Server Error"
+        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "INTERNAL SERVER ERROR"
     End With
     
     With Specs.It("should parse request response")
         Set Request = New RestRequest
-        Request.Resource = "json"
+        Request.Resource = "post"
+        Request.Method = httpPOST
+        Request.AddParameter "a", "1"
+        Request.AddParameter "b", 2
+        Request.AddParameter "c", 3.14
+        Request.AddParameter "d", False
+        Request.AddParameter "e", Array(1)
         
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("a")).ToEqual "1"
-        .Expect(Response.Data("b")).ToEqual 2
-        .Expect(Response.Data("c")).ToEqual 3.14
-        .Expect(Response.Data("d")).ToEqual False
-        .Expect(Response.Data("e")(1)).ToEqual 4
-        .Expect(Response.Data("f")("b")).ToEqual 2
+        .Expect(Response.Data("json")("a")).ToEqual "1"
+        .Expect(Response.Data("json")("b")).ToEqual 2
+        .Expect(Response.Data("json")("c")).ToEqual 3.14
+        .Expect(Response.Data("json")("d")).ToEqual False
+        .Expect(Response.Data("json")("e")(1)).ToEqual 1
     End With
-    
+
     With Specs.It("should use headers in request")
         Set Request = New RestRequest
-        Request.Resource = "get"
-        Request.AddHeader "custom", "Howdy!"
+        Request.Resource = "headers"
+        Request.AddHeader "Custom", "Howdy!"
         Request.ContentType = "text/plain"
-        
+
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("headers")("content-type")).ToEqual "text/plain"
-        .Expect(Response.Data("headers")("custom")).ToEqual "Howdy!"
+        .Expect(Response.Data("headers")("Content-Type")).ToEqual "text/plain"
+        .Expect(Response.Data("headers")("Custom")).ToEqual "Howdy!"
     End With
-    
+
     With Specs.It("should use http verb in request")
         Set Request = New RestRequest
 
         Request.Method = httpPOST
         Request.Resource = "post"
         .Expect(Client.Execute(Request).StatusCode).ToEqual 200
-        
+
         Request.Method = httpPUT
         Request.Resource = "put"
         .Expect(Client.Execute(Request).StatusCode).ToEqual 200
     End With
-    
+
     With Specs.It("should use body in request")
         Set Request = New RestRequest
-        Request.Resource = "text"
+        Request.Resource = "post"
         Request.Method = httpPOST
         Request.ContentType = "text/plain"
         Request.AddBodyString "Howdy!"
-        
+
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("body")).ToEqual "Howdy!"
-        
+        .Expect(Response.Data("data")).ToEqual "Howdy!"
+
         Set Body = New Dictionary
         Body.Add "a", 3.14
-        
+
         Set Request = New RestRequest
         Request.Resource = "post"
         Request.Method = httpPOST
         Request.AddBody Body
-        
+
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("body")("a")).ToEqual 3.14
+        .Expect(Response.Data("json")("a")).ToEqual 3.14
     End With
-    
+
     With Specs.It("should pass querystring with request")
         Set Request = New RestRequest
         Request.AddQuerystringParam "a", 1
@@ -121,211 +130,181 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "c", "Howdy!"
         Request.AddQuerystringParam "d", False
         Request.Resource = "get"
-        
+
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("query")("a")).ToEqual "1"
-        .Expect(Response.Data("query")("b")).ToEqual "3.14"
-        .Expect(Response.Data("query")("c")).ToEqual "Howdy!"
-        .Expect(Response.Data("query")("d")).ToEqual "false"
+        .Expect(Response.Data("args")("a")).ToEqual "1"
+        .Expect(Response.Data("args")("b")).ToEqual "3.14"
+        .Expect(Response.Data("args")("c")).ToEqual "Howdy!"
+        .Expect(Response.Data("args")("d")).ToEqual "false"
     End With
-    
+
     With Specs.It("should GET json")
         Set Response = Client.GetJSON("/get")
-        
+
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data).ToNotBeUndefined
     End With
-    
+
     With Specs.It("should POST json")
         Set Body = New Dictionary
         Body.Add "a", 3.14
         Set Response = Client.PostJSON("/post", Body)
-        
+
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("body")("a")).ToEqual 3.14
-        
+        .Expect(Response.Data("json")("a")).ToEqual 3.14
+
         Set Response = Client.PostJSON("/post", Array(1, 2, 3))
-        
+
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("body")(1)).ToEqual 1
+        .Expect(Response.Data("json")(1)).ToEqual 1
     End With
-    
+
     With Specs.It("should include options with GET and POST json")
         Set Options = New Dictionary
         Options.Add "Headers", New Dictionary
-        Options("Headers").Add "custom", "value"
+        Options("Headers").Add "Custom", "value"
         Set Response = Client.GetJSON("/get", Options)
-        
-        .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("headers")("custom")).ToEqual "value"
-    End With
-    
-    With Specs.It("should return 408 on request timeout")
-        Set Request = New RestRequest
-        Request.Resource = "timeout"
-        Request.AddQuerystringParam "ms", 2000
 
-        Client.TimeoutMS = 500
-        Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual 408
-        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
-        Client.TimeoutMS = 2000
+        .Expect(Response.Data).ToNotBeUndefined
+        .Expect(Response.Data("headers")("Custom")).ToEqual "value"
     End With
 
     With Specs.It("should add content-length header (if enabled)")
         Set Request = New RestRequest
-        Request.Resource = "text"
+        Request.Resource = "post"
         Request.Method = httpPOST
         Request.ContentType = "text/plain"
         Request.AddBodyString "Howdy!"
-        
+
         Set Response = Client.Execute(Request)
         .Expect(Request.Headers("Content-Length")).ToEqual "6"
-        
+
         Request.IncludeContentLength = False
         Set Response = Client.Execute(Request)
         .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
-        
+
         Set Request = New RestRequest
         Request.Resource = "post"
         Request.Method = httpPOST
-        
+
         Set Body = New Dictionary
         Body.Add "a", 3.14
         Request.AddBody Body
-        
+
         Set Response = Client.Execute(Request)
         .Expect(Request.Headers("Content-Length")).ToEqual "10"
-        
+
         Request.IncludeContentLength = False
         Set Response = Client.Execute(Request)
         .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
     End With
-    
+
     With Specs.It("should include binary body in response")
         Set Request = New RestRequest
-        Request.Resource = "howdy"
-        
+        Request.Resource = "robots.txt"
+
         Set Response = Client.Execute(Request)
         .Expect(Response.Body).ToNotBeUndefined
-        
+
         If Not IsEmpty(Response.Body) Then
             For i = LBound(Response.Body) To UBound(Response.Body)
                 BodyToString = BodyToString & Chr(Response.Body(i))
             Next i
         End If
-        
-        .Expect(BodyToString).ToEqual "Howdy!"
+
+        .Expect(BodyToString).ToEqual "User-agent: *" & vbLf & "Disallow: /deny" & vbLf
     End With
-    
+
     With Specs.It("should include headers in response")
         Set Request = New RestRequest
-        Request.Resource = "cookie"
+        Request.Resource = "response-headers"
+        Request.AddQuerystringParam "X-Custom", "Howdy!"
         
         Set Response = Client.Execute(Request)
-        .Expect(Response.Headers.Count).ToBeGTE 5
+        .Expect(Response.Headers.Count).ToBeGTE 1
         
         Dim Header As Dictionary
-        Dim NumCookies As Integer
+        Dim CustomValue As String
         For Each Header In Response.Headers
-            If Header("key") = "Set-Cookie" Then
-                NumCookies = NumCookies + 1
+            If Header("key") = "X-Custom" Then
+                CustomValue = Header("value")
             End If
         Next Header
         
-        .Expect(NumCookies).ToEqual 5
+        .Expect(CustomValue).ToEqual "Howdy!"
     End With
-
+    
     With Specs.It("should include cookies in response")
         Set Request = New RestRequest
-        Request.Resource = "cookie"
+        Request.Resource = "response-headers"
+        Request.AddQuerystringParam "Set-Cookie", "a=abc"
+        
+        ' TODO Possible once duplicate querystrings are allowed
+        ' Request.AddQuerystringParam "Set-Cookie", "b=def"
         
         Set Response = Client.Execute(Request)
-        .Expect(Response.Cookies.Count).ToEqual 4
-        .Expect(Response.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
-        .Expect(Response.Cookies("signed-cookie")).ToMatch "special-cookie"
-        .Expect(Response.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
-        .Expect(Response.Cookies("duplicate-cookie")).ToEqual "B"
+'        .Expect(Response.Cookies.Count).ToEqual 2
+'        .Expect(Response.Cookies("a")).ToEqual "abc"
+'        .Expect(Response.Cookies("b")).ToEqual "def"
+        .Expect(Response.Cookies.Count).ToEqual 1
+        .Expect(Response.Cookies("a")).ToEqual "abc"
     End With
-    
+
     With Specs.It("should include cookies with request")
         Set Request = New RestRequest
-        Request.Resource = "cookie"
-        
+        Request.Resource = "cookies"
+        Request.AddCookie "a", "abc"
+        Request.AddCookie "b", "def"
+
         Set Response = Client.Execute(Request)
-    
+
         Set Request = New RestRequest
-        Request.Resource = "get"
-        Request.AddCookie "test-cookie", "howdy"
-        Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
         
-        Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("cookies").Count).ToEqual 1
-        .Expect(Response.Data("cookies")("test-cookie")).ToEqual "howdy"
-        .Expect(Response.Data("signed_cookies").Count).ToEqual 1
-        .Expect(Response.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
+        .Expect(Response.Data("cookies")("a")).ToEqual "abc"
+        .Expect(Response.Data("cookies")("b")).ToEqual "def"
     End With
-    
+
     With Specs.It("should allow separate request and response formats")
         Set Request = New RestRequest
         Request.Resource = "post"
-        
+
         Request.AddParameter "a", 123
         Request.AddParameter "b", 456
         Request.RequestFormat = AvailableFormats.formurlencoded
         Request.ResponseFormat = AvailableFormats.json
         Request.Method = httpPOST
-        
+
         Set Response = Client.Execute(Request)
-        
+
         .Expect(Request.Body).ToEqual "a=123&b=456"
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("headers")("content-type")).ToEqual "application/x-www-form-urlencoded;charset=UTF-8"
-        .Expect(Response.Data("headers")("accept")).ToEqual "application/json"
+        .Expect(Response.Data("headers")("Content-Type")).ToEqual "application/x-www-form-urlencoded;charset=UTF-8"
+        .Expect(Response.Data("headers")("Accept")).ToEqual "application/json"
     End With
-    
+
     With Specs.It("should convert and parse json")
         Set Request = New RestRequest
-        Request.Resource = "json"
+        Request.Resource = "post"
         Request.Format = json
-        Request.Method = httpGET
-        
+        Request.Method = httpPOST
+
         Set Body = New Dictionary
-        Body.Add "a", 123
-        Body.Add "b", 456
+        Body.Add "a", "1"
+        Body.Add "b", 2
+        Body.Add "c", 3.14
         Request.AddBody Body
-        
+
         Set Response = Client.Execute(Request)
-        
-        .Expect(Request.Body).ToEqual "{""a"":123,""b"":456}"
+
+        .Expect(Request.Body).ToEqual "{""a"":""1"",""b"":2,""c"":3.14}"
         .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("a")).ToEqual "1"
-        .Expect(Response.Data("b")).ToEqual 2
-        .Expect(Response.Data("c")).ToEqual 3.14
-    End With
-    
-    With Specs.It("should convert and parse url-encoded")
-        Set Request = New RestRequest
-        Request.Resource = "formurlencoded"
-        Request.Format = formurlencoded
-        Request.Method = httpGET
-        
-        Set Body = New Dictionary
-        Body.Add "a", 123
-        Body.Add "b", 456
-        Request.AddBody Body
-        
-        Set Response = Client.Execute(Request)
-        
-        .Expect(Request.Body).ToEqual "a=123&b=456"
-        .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("a")).ToEqual "1"
-        .Expect(Response.Data("b")).ToEqual "2"
-        .Expect(Response.Data("c")).ToEqual "3.14"
+        .Expect(Response.Data("json")("a")).ToEqual "1"
+        .Expect(Response.Data("json")("b")).ToEqual 2
+        .Expect(Response.Data("json")("c")).ToEqual 3.14
     End With
 
 #If Mac Then
@@ -335,55 +314,32 @@ Public Function Specs() As SpecSuite
         Request.Resource = "xml"
         Request.Format = xml
         Request.Method = httpGET
-        
+
+        Set Response = Client.Execute(Request)
+        .Expect(Response.Content).ToMatch "<slideshow"
+        .Expect(Response.Data).ToNotBeUndefined
+        .Expect(Response.Data.FirstChild.SelectSingleNode("slide").SelectSingleNode("title").Text).ToEqual "Wake up to WonderWidgets!"
+
         Set XMLBody = CreateObject("MSXML2.DOMDocument")
         XMLBody.Async = False
         XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
         Request.AddBody XMLBody
-
-        Set Response = Client.Execute(Request)
-    
         .Expect(Request.Body).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
-        .Expect(Response.Content).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
-        .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
-        .Expect(Response.Data.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
     End With
 #End If
-    
+
     With Specs.It("should convert and parse plaintext")
         Set Request = New RestRequest
-        Request.Resource = "howdy"
+        Request.Resource = "post"
         Request.Format = plaintext
-        Request.Method = httpGET
-        
+        Request.Method = httpPOST
+
         Request.AddBody "Hello?"
         Set Response = Client.Execute(Request)
-        
+
         .Expect(Request.Body).ToEqual "Hello?"
-        .Expect(Response.Content).ToEqual "Howdy!"
+        .Expect(Response.Content).ToMatch """data"": ""Hello?"""
         .Expect(Response.Data).ToBeUndefined
-    End With
-    
-    With Specs.It("should parse GZIP response")
-        Set Request = New RestRequest
-        Request.Resource = "json"
-        Request.Format = json
-        Request.Method = httpGET
-        Request.AddHeader "Accept-Encoding", "gzip, deflate"
-        
-        Set Body = New Dictionary
-        Body.Add "a", 123
-        Body.Add "b", 456
-        Request.AddBody Body
-        
-        Set Response = Client.Execute(Request)
-        
-        .Expect(Request.Body).ToEqual "{""a"":123,""b"":456}"
-        .Expect(Response.Data).ToNotBeUndefined
-        .Expect(Response.Data("a")).ToEqual "1"
-        .Expect(Response.Data("b")).ToEqual 2
-        .Expect(Response.Data("c")).ToEqual 3.14
     End With
 
 #If Mac Then
@@ -423,6 +379,16 @@ Public Function Specs() As SpecSuite
         .Expect(cURL).ToMatch "-d 'Howdy!'"
     End With
 #End If
+
+    With Specs.It("should return 408 on request timeout")
+        Set Request = New RestRequest
+        Request.Resource = "delay/{seconds}"
+        Request.AddUrlSegment "seconds", "2"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual 408
+        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
+    End With
  
     Set Client = Nothing
     

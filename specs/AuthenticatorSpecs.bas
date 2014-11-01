@@ -10,6 +10,10 @@ Attribute VB_Name = "AuthenticatorSpecs"
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
+Public Property Get BaseUrl() As String
+    BaseUrl = "http://httpbin.org"
+End Property
+
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "Authenticator"
@@ -19,7 +23,7 @@ Public Function Specs() As SpecSuite
     Dim Response As RestResponse
     Dim Auth As SpecAuthenticator
     
-    Client.BaseUrl = "http://localhost:3000/"
+    Client.BaseUrl = BaseUrl
     
     With Specs.It("should set parameter")
         Set Auth = New SpecAuthenticator
@@ -31,8 +35,8 @@ Public Function Specs() As SpecSuite
         Request.Method = httpPOST
 
         Set Response = Client.Execute(Request)
-        .Expect(RestHelpers.ParseJSON(CStr(Response.Data("body")))("auth_parameter")).ToEqual "auth"
-        .Expect(RestHelpers.ParseJSON(CStr(Response.Data("body")))("request_parameter")).ToEqual "request"
+        .Expect(RestHelpers.ParseJSON(CStr(Response.Data("data")))("auth_parameter")).ToEqual "auth"
+        .Expect(RestHelpers.ParseJSON(CStr(Response.Data("data")))("request_parameter")).ToEqual "request"
     End With
     
     With Specs.It("should set querystring parameter")
@@ -44,8 +48,8 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "request_query", "request"
 
         Set Response = Client.Execute(Request)
-        .Expect(Response.Data("query")("auth_query")).ToEqual "auth"
-        .Expect(Response.Data("query")("request_query")).ToEqual "request"
+        .Expect(Response.Data("args")("auth_query")).ToEqual "auth"
+        .Expect(Response.Data("args")("request_query")).ToEqual "request"
     End With
     
     With Specs.It("should set header")
@@ -54,19 +58,19 @@ Public Function Specs() As SpecSuite
         
         Set Request = New RestRequest
         Request.Resource = "get"
-        Request.AddHeader "custom-b", "request"
+        Request.AddHeader "X-Custom-B", "request"
 
         Set Response = Client.Execute(Request)
-        .Expect(Response.Data("headers")("custom-a")).ToEqual "auth"
-        .Expect(Response.Data("headers")("custom-b")).ToEqual "request"
+        .Expect(Response.Data("headers")("X-Custom-A")).ToEqual "auth"
+        .Expect(Response.Data("headers")("X-Custom-B")).ToEqual "request"
     End With
     
     With Specs.It("should set cookie")
         Set Auth = New SpecAuthenticator
         Set Client.Authenticator = Auth
-        
+
         Set Request = New RestRequest
-        Request.Resource = "get"
+        Request.Resource = "cookies"
         Request.AddCookie "request_cookie", "request"
 
         Set Response = Client.Execute(Request)
@@ -82,7 +86,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "get"
 
         Set Response = Client.Execute(Request)
-        .Expect(Response.Data("headers")("content-type")).ToEqual "text/plain"
+        .Expect(Response.Data("headers")("Content-Type")).ToMatch "text/plain"
     End With
     
     Set Client = Nothing
