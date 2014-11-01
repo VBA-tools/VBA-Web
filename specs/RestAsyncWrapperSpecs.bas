@@ -15,6 +15,10 @@ Private Declare Function GetTickCount Lib "kernel32" () As Long
 Dim AsyncResponse As RestResponse
 Dim AsyncArgs As Variant
 
+Public Property Get BaseUrl() As String
+    BaseUrl = "http://httpbin.org"
+End Property
+
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "RestAsyncWrapper"
@@ -23,7 +27,7 @@ Public Function Specs() As SpecSuite
     On Error Resume Next
     
     Dim Client As New RestClient
-    Client.BaseUrl = "http://localhost:3000"
+    Client.BaseUrl = BaseUrl
     
     Dim Request As RestRequest
     Dim AsyncWrapper As New RestAsyncWrapper
@@ -45,7 +49,7 @@ Public Function Specs() As SpecSuite
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime * 2
-        .Expect(AsyncResponse).ToBeDefined
+        .Expect(AsyncResponse).ToNotBeUndefined
     End With
     
     With Specs.It("should pass arguments to callback")
@@ -54,7 +58,7 @@ Public Function Specs() As SpecSuite
         
         AsyncWrapper.ExecuteAsync Request, ComplexCallback, Array("A", "B", "C")
         Wait WaitTime
-        .Expect(AsyncResponse).ToBeDefined
+        .Expect(AsyncResponse).ToNotBeUndefined
         If UBound(AsyncArgs) > 1 Then
             .Expect(AsyncArgs(0)).ToEqual "A"
             .Expect(AsyncArgs(1)).ToEqual "B"
@@ -72,36 +76,36 @@ Public Function Specs() As SpecSuite
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 200
-        .Expect(AsyncResponse.StatusDescription).ToEqual "OK"
+        .Expect(VBA.UCase$(AsyncResponse.StatusDescription)).ToEqual "OK"
         
         Request.AddUrlSegment "code", 304
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 304
-        .Expect(AsyncResponse.StatusDescription).ToEqual "Not Modified"
+        .Expect(VBA.UCase$(AsyncResponse.StatusDescription)).ToEqual "NOT MODIFIED"
         
         Request.AddUrlSegment "code", 404
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 404
-        .Expect(AsyncResponse.StatusDescription).ToEqual "Not Found"
+        .Expect(VBA.UCase$(AsyncResponse.StatusDescription)).ToEqual "NOT FOUND"
         
         Request.AddUrlSegment "code", 500
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
         .Expect(AsyncResponse.StatusCode).ToEqual 500
-        .Expect(AsyncResponse.StatusDescription).ToEqual "Internal Server Error"
+        .Expect(VBA.UCase$(AsyncResponse.StatusDescription)).ToEqual "INTERNAL SERVER ERROR"
     End With
     
     With Specs.It("should include binary body in response")
         Set Request = New RestRequest
-        Request.Resource = "howdy"
+        Request.Resource = "robots.txt"
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
-        .Expect(AsyncResponse).ToBeDefined
+        .Expect(AsyncResponse).ToNotBeUndefined
         If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.Body).ToBeDefined
+            .Expect(AsyncResponse.Body).ToNotBeUndefined
             
             If Not IsEmpty(AsyncResponse.Body) Then
                 For i = LBound(AsyncResponse.Body) To UBound(AsyncResponse.Body)
@@ -109,83 +113,82 @@ Public Function Specs() As SpecSuite
                 Next i
             End If
             
-            .Expect(BodyToString).ToEqual "Howdy!"
+            .Expect(BodyToString).ToEqual "User-agent: *" & vbLf & "Disallow: /deny" & vbLf
         End If
     End With
     
     With Specs.It("should include headers in response")
         Set Request = New RestRequest
-        Request.Resource = "cookie"
+        Request.Resource = "response-headers"
+        Request.AddQuerystringParam "X-Custom", "Howdy!"
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
-        .Expect(AsyncResponse).ToBeDefined
-        If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.Headers.Count).ToBeGTE 5
         
+        .Expect(AsyncResponse).ToNotBeUndefined
+        If Not AsyncResponse Is Nothing Then
+            .Expect(AsyncResponse.Headers.Count).ToBeGTE 1
+            
             Dim Header As Dictionary
-            Dim NumCookies As Integer
+            Dim CustomValue As String
             For Each Header In AsyncResponse.Headers
-                If Header("key") = "Set-Cookie" Then
-                    NumCookies = NumCookies + 1
+                If Header("key") = "X-Custom" Then
+                    CustomValue = Header("value")
                 End If
             Next Header
             
-            .Expect(NumCookies).ToEqual 5
+            .Expect(CustomValue).ToEqual "Howdy!"
         End If
     End With
-    
+
     With Specs.It("should include cookies in response")
         Set Request = New RestRequest
-        Request.Resource = "cookie"
+        Request.Resource = "response-headers"
+        Request.AddQuerystringParam "Set-Cookie", "a=abc"
+        
+        ' TODO Possible once duplicate querystrings are allowed
+        ' Request.AddQuerystringParam "Set-Cookie", "b=def"
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
-        .Expect(AsyncResponse).ToBeDefined
+        
+        .Expect(AsyncResponse).ToNotBeUndefined
         If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.Cookies.Count).ToEqual 4
-            .Expect(AsyncResponse.Cookies("unsigned-cookie")).ToEqual "simple-cookie"
-            .Expect(AsyncResponse.Cookies("signed-cookie")).ToContain "special-cookie"
-            .Expect(AsyncResponse.Cookies("tricky;cookie")).ToEqual "includes; semi-colon and space at end "
-            .Expect(AsyncResponse.Cookies("duplicate-cookie")).ToEqual "B"
+            ' .Expect(AsyncResponse.Cookies.Count).ToEqual 2
+            ' .Expect(AsyncResponse.Cookies("a")).ToEqual "abc"
+            ' .Expect(AsyncResponse.Cookies("b")).ToEqual "def"
+            .Expect(AsyncResponse.Cookies.Count).ToEqual 1
+            .Expect(AsyncResponse.Cookies("a")).ToEqual "abc"
         End If
     End With
     
     With Specs.It("should include cookies with request")
         Set Request = New RestRequest
-        Request.Resource = "cookie"
-        
-        Set Response = Client.Execute(Request)
-    
-        Set Request = New RestRequest
-        Request.Resource = "get"
-        Request.AddCookie "test-cookie", "howdy"
-        Request.AddCookie "signed-cookie", Response.Cookies("signed-cookie")
+        Request.Resource = "cookies"
+        Request.AddCookie "a", "abc"
+        Request.AddCookie "b", "def"
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime
-        .Expect(AsyncResponse).ToBeDefined
+        
+        .Expect(AsyncResponse).ToNotBeUndefined
         If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.Data).ToBeDefined
-            If Not IsEmpty(AsyncResponse.Data) Then
-                .Expect(AsyncResponse.Data("cookies").Count).ToEqual 1
-                .Expect(AsyncResponse.Data("cookies")("test-cookie")).ToEqual "howdy"
-                .Expect(AsyncResponse.Data("signed_cookies").Count).ToEqual 1
-                .Expect(AsyncResponse.Data("signed_cookies")("signed-cookie")).ToEqual "special-cookie"
-            End If
+            .Expect(AsyncResponse.Data).ToNotBeUndefined
+            .Expect(AsyncResponse.Data("cookies")("a")).ToEqual "abc"
+            .Expect(AsyncResponse.Data("cookies")("b")).ToEqual "def"
         End If
     End With
     
     ' Note: Weird async issues can occur if timeout spec isn't last
     With Specs.It("should return 408 and close request on request timeout")
         Set Request = New RestRequest
-        Request.Resource = "timeout"
-        Request.AddQuerystringParam "ms", 2000
+        Request.Resource = "delay/{seconds}"
+        Request.AddUrlSegment "seconds", "2"
 
         Client.TimeoutMS = 100
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait 2000
-        .Expect(AsyncResponse).ToBeDefined
+        .Expect(AsyncResponse).ToNotBeUndefined
         If Not AsyncResponse Is Nothing Then
             .Expect(AsyncResponse.StatusCode).ToEqual 408
             .Expect(AsyncResponse.StatusDescription).ToEqual "Request Timeout"
