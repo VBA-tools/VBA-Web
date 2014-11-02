@@ -18,7 +18,7 @@ Examples
 The following examples demonstrate using the Google Maps API to get directions between two locations.
 
 ### GetJSON Example
-```VB
+```VB.net
 Function GetDirections(Origin As String, Destination As String) As String
     ' Create a RestClient for executing requests
     ' and set a base url that all requests will be appended to
@@ -64,7 +64,7 @@ In the above example, the request is fairly simple, so we can skip creating a `R
 
 If we wish to have more control over the request, the following example uses `RestRequest` to define a complex request.
 
-```VB
+```VB.net
 Function GetDirections(Origin As String, Destination As String) As String
     Dim MapsClient As New RestClient
     ' ... Setup client using GetJSON Example
@@ -117,7 +117,7 @@ For more details, see the `RestRequest` page in with [Wiki](https://github.com/t
 
 The above examples execute synchronously, but Excel-REST can run them asynchronously with ease so that your program can keep working and handle the response later once the request completes.
 
-```VB
+```VB.net
 Function GetDirections(Origin As String, Destination As String) As String
     Dim MapsClient As New RestClient
     Dim DirectionsRequest As New RestRequest
@@ -140,7 +140,7 @@ End Sub
 
 The following example demonstrates using an authenticator with Excel-REST to query Twitter. The `TwitterAuthenticator` (found in the `authenticators/` [folder](https://github.com/timhall/Excel-REST/tree/master/authenticators)) uses Twitter's OAuth 1.0a authentication and details of how it was created can be found in the [Wiki](https://github.com/timhall/Excel-REST/wiki/Implementing-your-own-IAuthenticator).
 
-```VB
+```VB.net
 Function QueryTwitter(query As String) As RestResponse
     Dim TwitterClient As New RestClient
     TwitterClient.BaseUrl = "https://api.twitter.com/1.1/"
