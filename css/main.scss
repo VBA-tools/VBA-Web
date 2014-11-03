@@ -1,0 +1,146 @@
+---
+---
+$green: #007233;
+
+$small-screen: 768px;
+$medium-screen: 992px;
+$large-screen: 80em;
+
+@import 'normalize';
+@import 'syntax';
+@import 'mixins';
+@import 'h5bp';
+
+.container {
+  margin: 0 10px;
+
+  @include respond-to(medium) {
+    width: 970px;
+    margin: 0 auto;
+  }
+  @include respond-to(large) {
+    width: 80em;
+  }
+}
+
+.header {
+  @extend .container;
+  @extend .clearfix;
+
+  @include respond-to(medium) {
+    line-height: 60px;  
+  }
+}
+.branding {
+  font-size: 2em;
+  margin: 0;
+  padding: 0;
+
+  @include respond-to(medium) {
+    float: left;
+  }
+
+  a {
+    color: $green;
+    text-decoration: none;
+
+    &:hover {
+      border-bottom: solid 1px;
+    }
+  }
+}
+.navigation {
+  font-size: 1.2em;
+
+  @include respond-to(medium) {
+    float: right;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      float: left;
+      margin-right: 20px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+.navigation-link {
+  color: black;
+  text-decoration: none;
+  border-bottom: solid 1px #aaa;
+  padding: 0 2px 1px 2px;
+
+  &:hover {
+    border-width: 2px;
+  }
+
+  &.download {
+    border-color: $green;
+    color: $green;
+    display: none;
+
+    @include respond-to(medium) {
+      display: inline;
+    }
+  }
+}
+
+.content {
+  @extend .container;
+  @extend .clearfix;
+}
+
+.docs-single {
+  @include respond-to(large) {
+    width: 50em;
+    margin: 0 auto;  
+  }
+}
+.docs-split {
+  @extend .clearfix;
+
+  .instructions, .code {
+    @include respond-to(medium) {
+      width: 40em;  
+    }
+    @include respond-to(large) {
+      float: left;  
+    }
+  }
+}
+
+code {
+  padding: 0.1em 0.3em;
+  margin: 0;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+  font-size: 85%;
+}
+
+pre {
+  border-left: solid 2px #eee;
+  padding: 5px 0 5px 10px;
+  max-width: 45em;
+
+  & > code {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border-radius: 0;
+    font-size: 90%;
+  }
+
+  .hll {
+    background-color: fade-out($green, 0.93);
+    display: block;
+    margin-left: -10px;
+    padding-left: 10px;
+  }
+}

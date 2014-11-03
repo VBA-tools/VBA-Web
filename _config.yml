@@ -1,0 +1,37 @@
+name: Excel-REST
+baseurl: "/Excel-REST"
+
+url: http://timhall.github.io
+github: "https://github.com/timhall/Excel-REST"
+download: "https://github.com/timhall/Excel-REST/releases"
+
+defaults:
+- scope:
+    path: ""
+  values:
+    layout: "default"
+- scope:
+    path: "guides"
+    type: "pages"
+  values:
+    layout: "guides"
+- scope:
+    path: "docs"
+    type: "pages"
+  values:
+    layout: "docs"
+
+exclude:
+- Gemfile
+- Gemfile.lock
+- readme.md
+
+relative_permalinks: true
+highlighter: pygments
+markdown: redcarpet
+redcarpet:
+  extensions:
+  - fenced_code_blocks
+sass:
+  style: :compressed
+  sass_dir: _css
