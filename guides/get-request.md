@@ -138,7 +138,7 @@ Sub GetRequest()
     ' Execute Request
     ' ...
 
-    ' Handle If
+    ' Handle Response
     Response Response.StatusCode = Ok Then
         Dim Route As Dictionary
         Set Route = Response.Data("routes")(1)("legs")(1)
