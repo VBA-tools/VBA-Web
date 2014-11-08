@@ -18,7 +18,7 @@ Excel-REST consists of three primary components:
 
 Instructions...
 
-```VB.net{2-4}
+```VB.net
 Sub GetRequest()
     ' Create Client
     Dim MapsClient As New RestClient
