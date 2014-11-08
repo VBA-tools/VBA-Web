@@ -6,6 +6,7 @@ prev: index.html
 next: setting-up-restclient.html
 ---
 <section class="docs-single">
+
 # Making a GET Request
 
 Excel-REST consists of three primary components: 
@@ -17,9 +18,11 @@ Excel-REST consists of three primary components:
 </section>
 <section class="docs-split">
   <div class="instructions">
+
 ## 1. Create Client
 
 Instructions...
+
   </div>
   <div class="code">
 
@@ -32,12 +35,15 @@ End Sub
 ```
 
   </div>
+
 </section>
 <section class="docs-split">
   <div class="instructions">
+
 ## 2. Create Request
 
 Instructions...
+
   </div>
   <div class="code">
 
@@ -71,11 +77,13 @@ End Sub
 </section>
 <section class="docs-split">
   <div class="instructions">
+
 ## 3. Execute Request
 
 Instructions...
 
 `GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false`
+
   </div>
   <div class="code">
 
@@ -97,6 +105,7 @@ End Sub
 </section>
 <section class="docs-split">
   <div class="instructions">
+
 ## 4. Handle Response
 
 ```json
