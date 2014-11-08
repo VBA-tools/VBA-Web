@@ -1,0 +1,212 @@
+---
+title: Docs
+layout: docs
+---
+<aside class="toc">
+  <a class="toc-title" href="#">
+    Excel-REST <span class="version">(4.0.0)</span>
+  </a>
+  <ul class="toc-section">
+    <li>[GitHub Repository](#)</li>
+  </ul>
+  <a class="toc-title" href="#">Introduction</a>
+  <a class="toc-title" href="#">
+    RestRequest
+  </a>
+  <ul class="toc-section">
+    <li class="toc-subsection"><a href="#RestRequest:Properties">Properties</a></li>
+    <li><a href="#Body">Body</a></li>
+    <li><a href="#Cookies">Cookies</a></li>
+    <li><a href="#Format">Format</a></li>
+    <li><a href="#FormattedResource">FormattedResource</a></li>
+    <li><a href="#Headers">Headers</a></li>
+    <li><a href="#Id">Id</a></li>
+    <li><a href="#Method">Method</a></li>
+    <li><a href="#Parameters">Parameters</a></li>
+    <li><a href="#QuerystringParams">QuerystringParams</a></li>
+    <li><a href="#Resource">Resource</a></li>
+    <li><a href="#ResponseFormat">ResponseFormat</a></li>
+    <li><a href="#RequestFormat">RequestFormat</a></li>
+    <li><a href="#UrlSegments">UrlSegments</a></li>
+    <li class="toc-subsection"><a href="#RestRequest:Methods">Methods</a></li>
+    <li><a href="#Clone">Clone</a></li>
+  </ul>
+  <a class="toc-title" href="#">
+    RestClient
+  </a>
+  <ul class="toc-section">
+    <li><a href="#"></a></li>
+  </ul>
+  <a class="toc-title" href="#">
+    RestResponse
+  </a>
+  <ul class="toc-section">
+    <li><a href="#"></a></li>
+  </ul>
+  <a class="toc-title" href="#">
+    RestHelpers
+  </a>
+  <ul class="toc-section">
+    <li><a href="#"></a></li>
+  </ul>
+</aside>
+<article class="docs">
+  <h2 id="RestRequest" class="docs-title">RestRequest</h2>
+  <section class="docs-subsection">
+    <h3 id="RestRequest:Properties" class="docs-subsection-title">Properties</h3>
+    <p id="Body" class="docs-item">
+      <b class="docs-name">Body</b><code>Get|Let|Set {Variant}</code>
+      <br>
+      <code>Get</code> Body value converted to string using <code>RequestFormat</code> or <code>TODO</code>
+      <br>
+      <code>Let</code> Use <code>String</code> or <code>Array</code> for Body
+      <br>
+      <code>Set</code> Use <code>Collection</code>, <code>Dictionary</code>, or <code>Object</code> for Body
+
+
+{% highlight VB.net %}
+Dim Request As New WebRequest
+
+' Let: String|Array
+Request.Body = "plaintext"
+Request.Body = Array("A", "B", "C")
+
+' Set: Collection|Dictionary|Object
+Set Request.Body = New Collection
+Set Request.Body = New Dictionary
+' Set Request.Body = ...
+
+' Get: Returns Body converted to string
+Debug.Print Request.Body ' -> "..."
+{% endhighlight %}
+    </p>
+    
+    <p id="Cookies" class="docs-item single-line">
+      <b class="docs-name">Cookies</b><code>Get|Set {Collection}</code>
+    </p>
+    
+    <p id="Format" class="docs-item">
+      <b class="docs-name">Format</b><code>Get|Set {WebFormat}</code>
+      <br>
+      Set <code>RequestFormat</code>, <code>ResponseFormat</code>, and <code>Content-Type</code> and <code>Accept</code> headers for the <code>WebRequest</code>
+
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.Format = WebFormat.JSON
+{% endhighlight %}
+
+    </p>
+    
+    <p id="FormattedResource" class="docs-item">
+      <b class="docs-name">FormattedResource</b><code>Get {String}</code>
+      <br>
+      TODO
+    </p>
+    
+    <p id="Headers" class="docs-item single-line">
+      <b class="docs-name">Headers</b><code>Get|Set {Collection}</code>
+    </p>
+    
+    <p id="Id" class="docs-item">
+      <b class="docs-name">Id</b><code>Get {String}</code>
+      <br>
+      TODO
+    </p>
+    
+    <p id="Method" class="docs-item">
+      <b class="docs-name">Method</b><code>Get|Let {WebMethod}</code>
+      <br>
+      TODO
+    </p>
+    
+    <p id="Parameters" class="docs-item single-line">
+      <b class="docs-name">Parameters</b><code>Get|Set {Dictionary}</code>
+    </p>
+    
+    <p id="QuerystringParams" class="docs-item single-line">
+      <b class="docs-name">QuerystringParams</b><code>Get|Set {Collection}</code>
+    </p>
+    
+    <p id="Resource" class="docs-item single-line">
+      <b class="docs-name">Resource</b><code>Get|Let {String}</code>
+      <br>
+      TODO
+    </p>
+    
+    <p id="ResponseFormat" class="docs-item single-line">
+      <b class="docs-name">ResponseFormat</b><code>Get|Let {WebFormat}</code>
+      <br>
+      TODO
+    </p>
+    
+    <p id="RequestFormat" class="docs-item single-line">
+      <b class="docs-name">RequestFormat</b><code>Get|Let {WebFormat}</code>
+      <br>
+      TODO
+    </p>
+    
+    <p id="UrlSegments" class="docs-item single-line">
+      <b class="docs-name">UrlSegments</b><code>Get|Set {Dictionary}</code>
+    </p>
+  </section>
+  <section>
+    <h3 id="RestRequest:Methods">Methods</h3>
+    <p id="Clone" class="docs-item">
+      <b class="docs-name">Clone</b><code>Clone() {WebRequest}</code>
+      <br>
+      TODO
+    </p>
+  </section>
+
+Properties:
+
+- `Body: Get/Let/Set Variant`
+- `Cookies: Get/Set Collection`
+- `Format: Get/Set WebFormat`
+- `FormattedResource: Get String`
+- `Headers: Get/Set Collection`
+- `Id: Get String`
+- `Method: Get/Let WebMethod`
+- `Parameters: Get/Set Dictionary`
+- `QuerystringParams: Get/Set Collection`
+- `Resource: Get/Let String`
+- `ResponseFormat: Get/Let WebFormat`
+- `RequestFormat: Get/Let WebFormat`
+- `UrlSegments: Get/Set Dictionary`
+
+Methods:
+
+- `AddCookie(Key, Value)`
+- `AddHeader(Key, Value)`
+- `AddParameter(Key, Value)`
+- `AddQuerystringParam(Key, Value)`
+- `AddUrlSegment(Key, Value)`
+- `Clone()`
+
+Remove:
+
+- BaseUrl
+- RequireHTTPS
+- IncludeContentLength
+- FullUrl
+- MethodName
+- FormatName
+- ContentType
+- Accept
+- ContentLength
+- AddBody
+- AddBodyString
+
+  <h2 id="RestClient">RestClient</h2>
+
+- b
+
+  <h2 id="RestResponse">RestResponse</h2>
+
+- c
+
+  <h2 id="RestHelpers">RestHelpers</h2>
+
+- d
+
+</article>

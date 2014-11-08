@@ -116,6 +116,33 @@ $large-screen: 80em;
   }
 }
 
+.toc {}
+.toc-title {}
+.toc-section {}
+.docs {
+  font-size: 0.9em;
+  padding-left: 1em;
+}
+.docs-title,
+.docs-subsection-title {
+  margin: 0.5em 0 0.5em -1em;
+}
+.docs-name {
+  line-height: 2.2em;
+  margin-left: -1em;
+
+  & + code {
+    margin-left: 1em;
+  }
+}
+.docs-item {
+  margin: 0;
+
+  &.single-line {
+    margin-top: 0.5em;  
+  }
+}
+
 code {
   padding: 0.1em 0.3em;
   margin: 0;
@@ -125,7 +152,7 @@ code {
 }
 
 pre {
-  border-left: solid 2px #eee;
+  border-left: solid 2px lighten($green, 10%);
   padding: 5px 0 5px 10px;
   max-width: 45em;
 

@@ -1,5 +1,0 @@
----
-title: RestClient
----
-
-# RestClient
