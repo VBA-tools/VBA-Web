@@ -16,13 +16,13 @@ Excel-REST consists of three primary components:
 - `RestResponse` format the response
 
 </section>
+
 <section class="docs-split">
   <div class="instructions">
 
 ## 1. Create Client
 
 Instructions...
-
   </div>
   <div class="code">
 
@@ -33,17 +33,15 @@ Sub GetRequest()
     MapsClient.BaseUrl = "https://maps.googleapis.com/maps/api/"
 End Sub
 ```
-
   </div>
-
 </section>
+
 <section class="docs-split">
   <div class="instructions">
 
 ## 2. Create Request
 
 Instructions...
-
   </div>
   <div class="code">
 
@@ -55,9 +53,9 @@ Sub GetRequest()
     ' Create Request
     Dim DirectionsRequest As New RestRequest
     DirectionsRequest.Resource = "directions/{format}"
-    DirectionsRequest.Method = httpGET
+    DirectionsRequest.Method = httpGE
 
-    ' Set the request format
+    ' Set the request forma
     DirectionsRequest.Format = AvailableTypes.json
 
     ' (Alternatively, replace {format} segment directly)
@@ -72,9 +70,9 @@ Sub GetRequest()
     DirectionsRequest.AddQuerystringParam "sensor", "false"
 End Sub
 ```
-
   </div>
 </section>
+
 <section class="docs-split">
   <div class="instructions">
 
@@ -83,7 +81,6 @@ End Sub
 Instructions...
 
 `GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false`
-
   </div>
   <div class="code">
 
@@ -100,7 +97,6 @@ Sub GetRequest()
     Set Response = MapsClient.Execute(DirectionsRequest)
 End Sub
 ```
-
   </div>
 </section>
 <section class="docs-split">
@@ -128,7 +124,6 @@ End Sub
   ]
 }
 ```
-
   </div>
   <div class="code">
 
@@ -157,6 +152,5 @@ Sub GetRequest()
     End If
 End Sub
 ```
-
   </div>
 </section>

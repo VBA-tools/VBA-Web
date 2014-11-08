@@ -1,7 +1,7 @@
 ---
 id: getting-started
 title: Getting Started
-next: GET-request.html
+next: get-request.html
 ---
 
 # Getting Started
