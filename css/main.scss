@@ -222,13 +222,11 @@ pre {
     margin: 0;
 
     & + h4 {
-      margin-top: 0;
+      margin-top: 0.5em;
     }
   }
   h4 {
-    margin-bottom: 0;
-    overflow-x: auto;
-    white-space: nowrap;
+    margin-bottom: 0.5em;
   }
   p {
     margin-top: 0;
@@ -266,13 +264,17 @@ pre {
   color: #888;
 }
 .docs-name {
-  line-height: 2.2em;
+  line-height: 1em;
 
   & + code {
-    margin-left: 1em;
     background-color: transparent;
     color: #666;
     font-weight: lighter;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: block;
+    line-height: 1.2em;
+    padding: 0;
   }
 }
 .docs-code-link {
