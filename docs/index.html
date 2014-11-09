@@ -7,14 +7,14 @@ layout: docs
     Excel-REST <span class="version">(4.0.0)</span>
   </a>
   <ul class="toc-section">
-    <li>[GitHub Repository](#)</li>
+    <li><a href="https://github.com/timhall/Excel-REST/">Github Repository</a></li>
   </ul>
   <a class="toc-title" href="#">Introduction</a>
   <a class="toc-title" href="#">
-    RestRequest
+    WebRequest
   </a>
   <ul class="toc-section">
-    <li class="toc-subsection"><a href="#RestRequest:Properties">Properties</a></li>
+    <li class="toc-subsection"><a href="#WebRequest:Properties">Properties</a></li>
     <li><a href="#Body">Body</a></li>
     <li><a href="#Cookies">Cookies</a></li>
     <li><a href="#Format">Format</a></li>
@@ -28,61 +28,81 @@ layout: docs
     <li><a href="#ResponseFormat">ResponseFormat</a></li>
     <li><a href="#RequestFormat">RequestFormat</a></li>
     <li><a href="#UrlSegments">UrlSegments</a></li>
-    <li class="toc-subsection"><a href="#RestRequest:Methods">Methods</a></li>
+    <li class="toc-subsection"><a href="#WebRequest:Methods">Methods</a></li>
+    <li><a href="#AddCookie">AddCookie</a></li>
+    <li><a href="#AddHeader">AddHeader</a></li>
+    <li><a href="#AddParameter">AddParameter</a></li>
+    <li><a href="#AddQuerystringParam">AddQuerystringParam</a></li>
+    <li><a href="#AddUrlSegment">AddUrlSegment</a></li>
     <li><a href="#Clone">Clone</a></li>
   </ul>
   <a class="toc-title" href="#">
-    RestClient
+    WebClient
   </a>
   <ul class="toc-section">
     <li><a href="#"></a></li>
   </ul>
   <a class="toc-title" href="#">
-    RestResponse
+    WebResponse
   </a>
   <ul class="toc-section">
     <li><a href="#"></a></li>
   </ul>
   <a class="toc-title" href="#">
-    RestHelpers
+    WebHelpers
   </a>
   <ul class="toc-section">
     <li><a href="#"></a></li>
   </ul>
 </aside>
 <article class="docs">
-  <h2 id="RestRequest" class="docs-title">RestRequest</h2>
+  <h2 id="WebRequest" class="docs-title">WebRequest</h2>
   <section class="docs-subsection">
-    <h3 id="RestRequest:Properties" class="docs-subsection-title">Properties</h3>
+    <h3 id="WebRequest:Properties" class="docs-subsection-title">Properties</h3>
     <p id="Body" class="docs-item">
       <b class="docs-name">Body</b><code>Get|Let|Set {Variant}</code>
       <br>
-      <code>Get</code> Body value converted to string using <code>RequestFormat</code> or <code>TODO</code>
-      <br>
-      <code>Let</code> Use <code>String</code> or <code>Array</code> for Body
-      <br>
-      <code>Set</code> Use <code>Collection</code>, <code>Dictionary</code>, or <code>Object</code> for Body
-
+      <ul>
+        <li><code>Get</code> Body value converted to string using <code>RequestFormat</code> or <code>TODO</code></li>
+        <li><code>Let</code> Use <code>String</code> or <code>Array</code> for Body</li>
+        <li><code>Set</code> Use <code>Collection</code>, <code>Dictionary</code>, or <code>Object</code> for Body</li>
+      </ul>
 
 {% highlight VB.net %}
 Dim Request As New WebRequest
+Request.RequestFormat = WebFormat.JSON
 
 ' Let: String|Array
-Request.Body = "plaintext"
+Request.Body = "text"
+Request.Body ' = "text"
 Request.Body = Array("A", "B", "C")
 
-' Set: Collection|Dictionary|Object
-Set Request.Body = New Collection
-Set Request.Body = New Dictionary
-' Set Request.Body = ...
-
 ' Get: Returns Body converted to string
-Debug.Print Request.Body ' -> "..."
+Request.Body ' = "["A","B","C"]"
+
+' Set: Collection|Dictionary|Object
+Dim Body As Object
+Set Body = New Collection
+Body.Add "Howdy!"
+Set Request.Body = Body
+Request.Body ' = "["Howdy!"]"
+
+Set Body = New Dictionary
+Body.Add "a", 123
+Body.Add "b", 456
+Set Request.Body = Body
+Request.Body ' = "{"a":123,"b":456}"
 {% endhighlight %}
+
     </p>
     
-    <p id="Cookies" class="docs-item single-line">
+    <p id="Cookies" class="docs-item">
       <b class="docs-name">Cookies</b><code>Get|Set {Collection}</code>
+      <br>
+      <span class="docs-note"></span>To add cookies, use <a href="#AddCookie"><code>AddCookie</code></a>.</span>
+      <br>
+      <code>Collection</code> of Cookies to include with request, 
+      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>.
     </p>
     
     <p id="Format" class="docs-item">
@@ -93,6 +113,10 @@ Debug.Print Request.Body ' -> "..."
 {% highlight VB.net %}
 Dim Request As New WebRequest
 Request.Format = WebFormat.JSON
+' -> Request.RequestFormat = WebFormat.JSON
+'    Request.ResponseFormat = WebFormat.JSON
+'    Content-Type: application/json
+'    Accept: application/json
 {% endhighlight %}
 
     </p>
@@ -100,113 +124,230 @@ Request.Format = WebFormat.JSON
     <p id="FormattedResource" class="docs-item">
       <b class="docs-name">FormattedResource</b><code>Get {String}</code>
       <br>
-      TODO
+      Get `Resource` with Url Segments replaced and Querystring added.
+      
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.Resource = "examples/{id}"
+Request.AddUrlSegment "id", 123
+Request.AddQuerystringParam "message", "Hello"
+
+Request.FormattedResource ' = "examples/123?message=Hello"
+{% endhighlight %}
+
     </p>
     
-    <p id="Headers" class="docs-item single-line">
+    <p id="Headers" class="docs-item">
       <b class="docs-name">Headers</b><code>Get|Set {Collection}</code>
+      <br>
+      <span class="docs-note"></span>To add headers, use <a href="#AddHeader"><code>AddHeader</code></a>.</span>
+      <br>
+      <code>Collection</code> of Headers to include with request, 
+      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>.
     </p>
     
     <p id="Id" class="docs-item">
       <b class="docs-name">Id</b><code>Get {String}</code>
       <br>
-      TODO
+      Unique Id of the <code>WebRequest</code> (used internally).
     </p>
     
     <p id="Method" class="docs-item">
       <b class="docs-name">Method</b><code>Get|Let {WebMethod}</code>
       <br>
-      TODO
+      Set the HTTP method to be used for the request: GET, POST, PUT, PATCH, DELETE
+      
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.Method = WebMethod.HTTPGET
+Request.Method = WebMethod.HTTPPOST
+Request.Method = WebMethod.HTTPPUT
+Request.Method = WebMethod.HTTPPATCH
+Request.Method = WebMethod.HTTPDELETE
+{% endhighlight %}
+      
     </p>
     
-    <p id="Parameters" class="docs-item single-line">
-      <b class="docs-name">Parameters</b><code>Get|Set {Dictionary}</code>
-    </p>
-    
-    <p id="QuerystringParams" class="docs-item single-line">
+    <p id="QuerystringParams" class="docs-item">
       <b class="docs-name">QuerystringParams</b><code>Get|Set {Collection}</code>
+      <br>
+      <span class="docs-note"></span>To add Querystring parameters, use <a href="#AddQuerystringParam"><code>AddQuerystringParam</code></a>.</span>
     </p>
     
-    <p id="Resource" class="docs-item single-line">
+    <p id="Resource" class="docs-item">
       <b class="docs-name">Resource</b><code>Get|Let {String}</code>
       <br>
-      TODO
+      Set the request's portion of the url to be appended to the client's <a href="#BaseUrl"><code>BaseUrl</code></a>.
+      Can include <a href="#UrlSegments">Url Segments</a> for dynamic values
+      and <a href="#QuerystringParams">Querystring parameters</a> are smart enough to be appended to existing querystring
+      (or added to resource if there isn't an existing querystring).
+      
+{% highlight VB.net %}
+Dim Client As New WebClient
+Client.BaseUrl = "https://api.example.com/"
+
+Dim Request As New WebRequest
+Request.Resource = "messages"
+
+' -> Url: https://api.example.com/messages
+
+Request.Resource = "messages/{id}?a=1"
+Request.AddUrlSegment "id", 123
+Request.AddQuerystringParam "b", 2
+
+' -> Url: https://api.example.com/messages/123?a=1&b=2
+{% endhighlight %}
+      
     </p>
     
-    <p id="ResponseFormat" class="docs-item single-line">
+    <p id="ResponseFormat" class="docs-item">
       <b class="docs-name">ResponseFormat</b><code>Get|Let {WebFormat}</code>
       <br>
-      TODO
+      Set the format to use for converting the response <code>Content</code> to <code>Data</code> 
+      and for the <code>Accept</code> header
+      
+      <i>Note</i>: If <code>WebFormat.Custom</code> is used, the <code>Accept</code> header
+      must be added explicitly with <a href="#AddHeader"><code>AddHeader</code></a> 
+      and the <a href="#TODO"><code>TODO</code></a> should be set.
+
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.ResponseFormat = WebFormat.JSON
+
+' -> Accept: application/json
+
+Dim Response As WebResponse
+' ... from Execute
+Response.Content ' = {"message":"Howdy!"}
+
+' -> Parse Content to JSON Dictionary
+Response.Data("message") ' = "Howdy!"
+
+' For custom format, set 
+Request.ResponseFormat = WebFormat.Custom
+Request.AddHeader "Accept", "..."
+Request.TODO = ...
+{% endhighlight %}
+
     </p>
     
-    <p id="RequestFormat" class="docs-item single-line">
+    <p id="RequestFormat" class="docs-item">
       <b class="docs-name">RequestFormat</b><code>Get|Let {WebFormat}</code>
       <br>
-      TODO
+      Set the format to use for converting the response <code>Content</code> to <code>Data</code> 
+      and for the <code>Accept</code> header
+      
+      <i>Note</i>: If <code>WebFormat.Custom</code> is used, the <code>Content-Type</code> header
+      must be added explicitly with <a href="#AddHeader"><code>AddHeader</code></a> 
+      and the <a href="#TODO"><code>TODO</code></a> should be set.
+
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.Body = Array("A", "B", "C")
+
+Request.RequestFormat = WebFormat.JSON
+
+' -> Content-Type: application/json
+' -> Convert Body to JSON string
+Request.Body ' = "["A","B","C"]"
+
+' For custom format, set 
+Request.RequestFormat = WebFormat.Custom
+Request.AddHeader "Content-Type", "..."
+Request.TODO = ...
+{% endhighlight %}
+
     </p>
     
-    <p id="UrlSegments" class="docs-item single-line">
+    <p id="UrlSegments" class="docs-item">
       <b class="docs-name">UrlSegments</b><code>Get|Set {Dictionary}</code>
+      <br>
+      <span class="docs-note"></span>To add Url Segments, use <a href="#AddUrlSegment"><code>AddUrlSegment</code></a>.</span>
+      <br>
+      <code>Collection</code> of Headers to include with request, 
+      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>.
+      Url Segments are used to easily add dynamic values to <code>Resource</code>.
+      Create a Url Segment in <code>Resource</code> with curly brackets and then replace with dynamic value with <a href="#AddUrlSegment"><code>AddUrlSegment</code></a>:
+      
+{% highlight VB.net %}
+Dim Request As New WebRequest
+
+Dim User As String
+Dim Id As Long
+User = "Tim"
+Id = 123
+
+' OK: Use string concatenation for dynamic values
+Request.Resource = User & "/messages/" & Id
+
+' BETTER: Use Url Segments for dynamic values
+Request.Resource = "{user}/messages/{id}"
+Request.AddUrlSegment "user", User
+Request.AddUrlSegment "id", Id
+
+Request.FormattedResource ' = "Tim/messages/123"
+{% endhighlight %}
+
     </p>
   </section>
   <section>
-    <h3 id="RestRequest:Methods">Methods</h3>
-    <p id="Clone" class="docs-item">
-      <b class="docs-name">Clone</b><code>Clone() {WebRequest}</code>
+    <h3 id="WebRequest:Methods">Methods</h3>
+    <p id="AddCookie" class="docs-item">
+      <b class="docs-name">AddCookie</b><code>AddCookie(Key, Value)</code>
       <br>
-      TODO
+      Add cookie to be sent with request.
+    </p>
+    <p id="AddHeader" class="docs-item">
+      <b class="docs-name">AddHeader</b><code>AddHeader(Key, Value)</code>
+      <br>
+      Add header to be sent with request.
+    </p>
+    <p id="AddQuerystringParam" class="docs-item">
+      <b class="docs-name">AddQuerystringParam</b><code>AddQuerystringParam(Key, Value)</code>
+      <br>
+      Add querystring parameter to <code>FormattedResource</code> for request
+    </p>
+    <p id="AddUrlSegment" class="docs-item">
+      <b class="docs-name">AddUrlSegment</b><code>AddUrlSegment(Key, Value)</code>
+      <br>
+      Add url segment to replace in <code>Resource</code>
+      
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.Resource = "{user}/messages/{id}"
+
+Request.AddUrlSegment "user", "Tim"
+Request.AddUrlSegment "id", 123
+
+Request.FormattedResource ' = "Tim/messages/123"
+{% endhighlight %}
+      
+    </p>
+    <p id="Clone" class="docs-item single-line">
+      <b class="docs-name">Clone</b><code>Clone() {WebRequest}</code>
     </p>
   </section>
 
-Properties:
+  <p>
+    Items to remove:
+    <ul>
+      <li><b>Parameters</b>: Explicitly use <code>QuerystringParams</code> or <code>Body</code></li>
+      <li><b>BaseUrl</b>: Should only be used in <code>WebClient</code></li>
+      <li><b>RequireHTTPS</b>: Should be set explicitly in <code>WebClient.BaseUrl</code> or <code>WebRequest.Resource</code></li>
+      <li><b>IncludeContentLength</b>: Should alway be included</li>
+      <li><b>FullUrl</b>: Should be determined in <code>WebClient</code></li>
+      <li><b>MethodName</b>: Don't need explicit Property for this</li>
+      <li><b>FormatName</b>: Only used in <code>{format}</code>, set explicitly if needed</li>
+      <li><b>ContentType</b>: Set with <code>AddHeader</code> if needed</li>
+      <li><b>Accept</b>: Set with <code>AddHeader</code> if needed</li>
+      <li><b>ContentLength</b>: No reason it should be different size than actual content length</li>
+      <li><b>AddParameter</b>: Explicitly use <code>AddQuerystringParam</code> or <code>Body</code></li>
+      <li><b>AddBody</b>: Use Let/Set with <code>Body</code></li>
+      <li><b>AddBodyString</b>: Use Let with <code>Body</code></li>
+    </ul>
+  </p>
 
-- `Body: Get/Let/Set Variant`
-- `Cookies: Get/Set Collection`
-- `Format: Get/Set WebFormat`
-- `FormattedResource: Get String`
-- `Headers: Get/Set Collection`
-- `Id: Get String`
-- `Method: Get/Let WebMethod`
-- `Parameters: Get/Set Dictionary`
-- `QuerystringParams: Get/Set Collection`
-- `Resource: Get/Let String`
-- `ResponseFormat: Get/Let WebFormat`
-- `RequestFormat: Get/Let WebFormat`
-- `UrlSegments: Get/Set Dictionary`
-
-Methods:
-
-- `AddCookie(Key, Value)`
-- `AddHeader(Key, Value)`
-- `AddParameter(Key, Value)`
-- `AddQuerystringParam(Key, Value)`
-- `AddUrlSegment(Key, Value)`
-- `Clone()`
-
-Remove:
-
-- BaseUrl
-- RequireHTTPS
-- IncludeContentLength
-- FullUrl
-- MethodName
-- FormatName
-- ContentType
-- Accept
-- ContentLength
-- AddBody
-- AddBodyString
-
-  <h2 id="RestClient">RestClient</h2>
-
-- b
-
-  <h2 id="RestResponse">RestResponse</h2>
-
-- c
-
-  <h2 id="RestHelpers">RestHelpers</h2>
-
-- d
-
+  <h2 id="RestClient">WebClient</h2>
+  <h2 id="RestResponse">WebResponse</h2>
+  <h2 id="RestHelpers">WebHelpers</h2>
 </article>
