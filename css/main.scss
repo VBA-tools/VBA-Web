@@ -69,9 +69,11 @@ pre {
 .header {
   @extend .container;
   @extend .clearfix;
+  margin-bottom: 8px;
 
   @include respond-to(medium) {
-    line-height: 60px;  
+    line-height: 60px;
+    margin-bottom: 0;
   }
 }
 .branding {
@@ -218,6 +220,10 @@ pre {
 }
 
 .documentation {
+  h2 {
+    border-bottom: solid 1px #eee;
+    padding-bottom: 0.4em;
+  }
   h3 {
     margin: 0;
 
@@ -264,7 +270,7 @@ pre {
   color: #888;
 }
 .docs-name {
-  line-height: 1em;
+  line-height: 1.2em;
 
   & + code {
     background-color: transparent;
@@ -275,6 +281,7 @@ pre {
     display: block;
     line-height: 1.2em;
     padding: 0;
+    margin-top: 1px;
   }
 }
 .docs-code-link {
