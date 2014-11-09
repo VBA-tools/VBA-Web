@@ -11,17 +11,60 @@ $large-screen: 80em;
 @import 'mixins';
 @import 'h5bp';
 
+// Base
+// ----------------------------------------------------- //
+
+body {
+  font-size: 14px;
+  line-height: 1.5em;
+}
+
+code {
+  padding: 0.1em 0.3em;
+  margin: 0;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+pre {
+  border-left: solid 2px lighten($green, 10%);
+  padding: 5px 0 5px 10px;
+  max-width: 45em;
+  line-height: 1.4em;
+
+  & > code {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border-radius: 0;
+    font-size: 90%;
+  }
+
+  .hll {
+    background-color: fade-out($green, 0.93);
+    display: block;
+    margin-left: -10px;
+    padding-left: 10px;
+  }
+}
+
 .container {
-  margin: 0 10px;
+  padding: 0 10px;
+  position: relative;
 
   @include respond-to(medium) {
     width: 970px;
     margin: 0 auto;
+    padding: 0;
   }
   @include respond-to(large) {
     width: 80em;
   }
 }
+
+// Header
+// ----------------------------------------------------- //
 
 .header {
   @extend .container;
@@ -92,10 +135,16 @@ $large-screen: 80em;
   }
 }
 
+// Content
+// ----------------------------------------------------- //
+
 .content {
   @extend .container;
   @extend .clearfix;
 }
+
+// Guides
+// ----------------------------------------------------- //
 
 .docs-single {
   @include respond-to(large) {
@@ -116,58 +165,121 @@ $large-screen: 80em;
   }
 }
 
-.toc {}
-.toc-title {}
-.toc-section {}
-.docs {
-  font-size: 0.9em;
-  padding-left: 1em;
+// Docs
+// ----------------------------------------------------- //
+
+.toc {
+  font-size: 0.85em;
+
+  a {
+    text-decoration: none;
+    color: #000;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @include respond-to(medium) {
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    width: 220px;
+    padding-bottom: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
-.docs-title,
+.toc-title {
+  display: block;
+  font-weight: bold;
+  margin-top: 0.5em;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+.toc-section {
+  margin: 0;
+  padding-left: 1.8em;
+}
+.toc-subsection {
+  list-style: none;
+  margin-left: -1.2em;
+  color: #888;
+  text-transform: uppercase;
+  font-size: 0.9em;
+
+  & > a {
+    color: #888;
+  }
+  li + & {
+    margin-top: 0.5em;
+  }
+}
+
+.documentation {
+  h3 {
+    margin: 0;
+
+    & + h4 {
+      margin-top: 0;
+    }
+  }
+  h4 {
+    margin-bottom: 0;
+  }
+  p {
+    margin-top: 0;
+
+    a:not(.docs-code-link) {
+      color: #000;
+      text-decoration: none;
+      border-bottom: solid 1px #ccc;
+
+      &:hover {
+        border-color: #000;
+      }
+    }
+  }
+  pre {}
+  ul {
+    margin-top: 0;
+    padding-left: 1.2em;
+  }
+
+  @include respond-to(medium) {
+    margin: 0 0 0 240px;
+  }
+}
+.docs-title {
+
+}
+.docs-subsection {
+
+}
 .docs-subsection-title {
-  margin: 0.5em 0 0.5em -1em;
+  text-transform: uppercase;
+  font-weight: normal;
+  font-size: 1em;
+  color: #888;
 }
 .docs-name {
   line-height: 2.2em;
-  margin-left: -1em;
 
   & + code {
     margin-left: 1em;
+    background-color: transparent;
+    color: #666;
+    font-weight: lighter;
   }
 }
-.docs-item {
-  margin: 0;
-
-  &.single-line {
-    margin-top: 0.5em;  
-  }
-}
-
-code {
-  padding: 0.1em 0.3em;
-  margin: 0;
-  background-color: rgba(0,0,0,0.04);
-  border-radius: 3px;
-  font-size: 85%;
-}
-
-pre {
-  border-left: solid 2px lighten($green, 10%);
-  padding: 5px 0 5px 10px;
-  max-width: 45em;
+.docs-code-link {
+  color: #000;
+  text-decoration: none;
+  border: none;
 
   & > code {
-    padding: 0;
-    margin: 0;
-    background: none;
-    border-radius: 0;
-    font-size: 90%;
-  }
-
-  .hll {
-    background-color: fade-out($green, 0.93);
-    display: block;
-    margin-left: -10px;
-    padding-left: 10px;
+    border: solid 1px #bbb;
   }
 }
