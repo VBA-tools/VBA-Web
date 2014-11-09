@@ -169,8 +169,6 @@ pre {
 // ----------------------------------------------------- //
 
 .toc {
-  font-size: 0.85em;
-
   a {
     text-decoration: none;
     color: #000;
@@ -188,6 +186,7 @@ pre {
     padding-bottom: 20px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    font-size: 0.85em;
   }
 }
 .toc-title {
