@@ -1,20 +1,39 @@
 ---
 id: getting-started
 title: Getting Started
-next: get-request.html
 ---
 
-# Getting Started
+# Guides
 
-## Install Excel-REST:
+<aside class="guides-toc">
 
-1. Download the most recent release: 
+### Getting Started
 
-## About the example:
+1. [Download VBA-Web](#download)
+2. [Install VBA-Web](#install)
 
-Next: [Making a GET Request]({{ page.next }})
+### Create a Trello Client
 
-## Table of Contents:
+1. [Setting up a WebClient](trello/#setting-up)
+2. [GET Request (Get board / card)](trello/#get-card)
+3. [POST Request (Create card)](trello/#create-card)
+4. [PUT Request (Update card)](trello/#update-card)
+5. [DELETE Request (Delete card)](trello/#delete-card)
+6. [Custom Authenticator](trello/#authenticator)
 
-- [Making a GET Request](get-request.html)
-- [Setting up a RestClient](setting-up-restclient.html)
+</aside>
+<article class="guides">
+
+## Getting Started
+
+(Getting started video)
+
+<h3 id="download">Download VBA-Web</h3>
+
+...
+
+<h3 id="install">Install VBA-Web</h3>
+
+...
+
+</article>

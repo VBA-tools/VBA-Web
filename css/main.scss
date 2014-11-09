@@ -76,6 +76,16 @@ pre {
     margin-bottom: 0;
   }
 }
+.l-fixed-header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  height: 60px;
+  z-index: 1000;
+  background-color: #fff;
+  border-bottom: solid 1px #eee;
+}
+
 .branding {
   font-size: 2em;
   margin: 0;
@@ -143,6 +153,8 @@ pre {
 .content {
   @extend .container;
   @extend .clearfix;
+
+  margin-top: 60px;
 }
 
 // Guides
@@ -185,7 +197,7 @@ pre {
     top: 60px;
     bottom: 0;
     width: 220px;
-    padding-bottom: 20px;
+    padding: 10px 0 20px 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     font-size: 0.85em;
