@@ -102,7 +102,7 @@ Request.Body ' = "{"a":123,"b":456}"
       <span class="docs-note"></span>To add cookies, use <a href="#AddCookie"><code>AddCookie</code></a>.</span>
       <br>
       <code>Collection</code> of Cookies to include with request, 
-      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>.
+      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>).
     </p>
     
     <p id="Format" class="docs-item">
@@ -143,7 +143,7 @@ Request.FormattedResource ' = "examples/123?message=Hello"
       <span class="docs-note"></span>To add headers, use <a href="#AddHeader"><code>AddHeader</code></a>.</span>
       <br>
       <code>Collection</code> of Headers to include with request, 
-      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>.
+      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>).
     </p>
     
     <p id="Id" class="docs-item">
@@ -172,6 +172,9 @@ Request.Method = WebMethod.HTTPDELETE
       <b class="docs-name">QuerystringParams</b><code>Get|Set {Collection}</code>
       <br>
       <span class="docs-note"></span>To add Querystring parameters, use <a href="#AddQuerystringParam"><code>AddQuerystringParam</code></a>.</span>
+      <br>
+      <code>Collection</code> of Querystring parameters to include with request, 
+      stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>)
     </p>
     
     <p id="Resource" class="docs-item">
@@ -323,8 +326,10 @@ Request.FormattedResource ' = "Tim/messages/123"
 {% endhighlight %}
       
     </p>
-    <p id="Clone" class="docs-item single-line">
+    <p id="Clone" class="docs-item">
       <b class="docs-name">Clone</b><code>Clone() {WebRequest}</code>
+      <br>
+      Clone the request (used internally for async functionality)
     </p>
   </section>
 
@@ -347,7 +352,121 @@ Request.FormattedResource ' = "Tim/messages/123"
     </ul>
   </p>
 
-  <h2 id="RestClient">WebClient</h2>
-  <h2 id="RestResponse">WebResponse</h2>
-  <h2 id="RestHelpers">WebHelpers</h2>
+  <h2 id="WebClient">WebClient</h2>
+  <section class="docs-subsection">
+    <h3 id="WebClient:Properties" class="docs-subsection-title">Properties</h3>
+    <p id="Authenticator" class="docs-item">
+      <b class="docs-name">Authenticator</b><code>Get|Set {IAuthenticator}</code>
+      <br>
+      Attach an authenticator to the client for authenticating requests.
+      
+{% highlight VB.net %}
+Dim Client As New WebClient
+Dim Auth As New OAuth1Authenticator
+Auth.Setup ...
+
+Set Client.Authenticator = Auth
+' -> All requests use Auth to add "Authorization" header
+{% endhighlight %}
+      
+    </p>
+    <p id="BaseUrl" class="docs-item">
+      <b class="docs-name">BaseUrl</b><code>Get|Let {String}</code>
+      <br>
+      Set base url that is shared by all requests and that the request <code>Resource></code> is appended to
+      
+{% highlight VB.net %}
+' Desired URLs
+' https://api.example.com/v1/messages
+' https://api.example.com/v1/users/id
+'                           ^
+' -> Split by shared base url and unique request resource
+
+Dim Client As New WebClient
+Client.BaseUrl = "https://api.example.com/v1/"
+
+Dim Request As New WebRequest
+Request.Resource = "messages"
+Request.Resource = "users/{id}"
+{% endhighlight %}
+      
+    </p>
+    <p id="Password" class="docs-item">
+      <b class="docs-name">Password</b><code>Get|Let {String}</code>
+      <br>
+      Password for Basic Authentication
+    </p>
+    <p id="ProxyBypassList" class="docs-item">
+      <b class="docs-name">ProxyBypassList</b>Get|Let {String}<code></code>
+      <br>
+      Comma separated list of domains to bypass the proxy
+    </p>
+    <p id="ProxyPassword" class="docs-item">
+      <b class="docs-name">ProxyPassword</b><code>Get|Let {String}</code>
+      <br>
+      Password for proxy
+    </p>
+    <p id="ProxyServer" class="docs-item">
+      <b class="docs-name">ProxyServer</b><code>Get|Let {String}</code>
+      <br>
+      Proxy server to pass requests through (except for those that match bypass list)
+    </p>
+    <p id="ProxyUsername" class="docs-item">
+      <b class="docs-name">ProxyUsername</b><code>Get|Let {String}</code>
+      <br>
+      Username for proxy
+    </p>
+    <p id="TimeoutMS" class="docs-item">
+      <b class="docs-name">TimeoutMS</b><code>Get|Let {Long}</code>
+      <br>
+      Timeout (in milliseconds) to wait for timeout in each request phase (Resolve, Connect, Send, Receive)
+    </p>
+    <p id="Username" class="docs-item">
+      <b class="docs-name">Username</b><code>Get|Let {String}</code>
+      <br>
+      Username for Basic Authentication
+    </p>
+  </section>
+  <sectionclass="docs-subsection">
+    <h3 id="WebClient:Methods" class="docs-subsection-title">Methods</h3>
+    <p id="Execute" class="docs-item">
+      <b class="docs-name">Execute</b><code>Execute(Request) {WebResponse}</code>
+      <br>
+      TODO...
+    </p>
+    <p id="GetJSON" class="docs-item">
+      <b class="docs-name">GetJSON</b><code>GetJSON(Url, [Options]) {WebResponse}</code>
+      <br>
+      TODO...
+    </p>
+    <p id="PostJSON" class="docs-item">
+      <b class="docs-name">PostJSON</b><code>PostJSON(Url, Body, [Options]) {WebResponse}</code>
+      <br>
+      TODO...
+    </p>
+    <p id="SetProxy" class="docs-item">
+      <b class="docs-name">SetProxy</b><code>SetProxy(Server, [Username], [Password], [BypassList])</code>
+      <br>
+      TODO...
+    </p>
+    <p id="PrepareRequest" class="docs-item">
+      <b class="docs-name">PrepareRequest</b><code>PrepareRequest(Request) {WebRequest}</code>
+      <br>
+      (Internal) TODO...
+    </p>
+    <p id="PrepareHttpRequest" class="docs-item">
+      <b class="docs-name">PrepareHttpRequest</b><code>PrepareHttpRequest(Request, [Async]) {WinHttpRequest}</code>
+      <br>
+      (Internal) TODO...
+    </p>
+    <p id="PrepareCURL" class="docs-item">
+      <b class="docs-name">PrepareCURL</b><code>PrepareCURL(Request) {String}</code>
+      <br>
+      (Internal) TODO...
+    </p>
+  </section>
+  
+  <h2 id="WebResponse">WebResponse</h2>
+  <h2 id="WebHelpers">WebHelpers</h2>
+  <h2 id="WebAsyncWrapper">WebAsyncWrapper</h2>
 </article>
