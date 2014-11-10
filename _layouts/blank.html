@@ -21,10 +21,12 @@
     <script type="text/javascript">
       var header = document.querySelector('.fixed-header');
       var headroom = new Headroom(header, {
-        offset: 50,
-        tolerance: 50
-      });
-      headroom.init();
+        offset: 60,
+        tolerance: {
+          down: 10,
+          up: 20
+        }
+      }).init();
     </script>
     <script>
       (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
