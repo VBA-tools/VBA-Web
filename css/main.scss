@@ -6,6 +6,9 @@ $small-screen: 768px;
 $medium-screen: 992px;
 $large-screen: 80em;
 
+$header-height: 60px;
+$header-height-small: 40px;
+
 @import 'normalize';
 @import 'syntax';
 @import 'mixins';
@@ -59,7 +62,7 @@ pre {
     padding: 0;
   }
   @include respond-to(large) {
-    width: 80em;
+    width: $large-screen;
   }
 }
 
@@ -70,29 +73,38 @@ pre {
   @extend .container;
   @extend .clearfix;
   margin-bottom: 8px;
+  line-height: $header-height;
 
-  @include respond-to(medium) {
-    line-height: 60px;
-    margin-bottom: 0;
+  @include respond-up-to(small) {
+    line-height: $header-height-small;
   }
 }
-.l-fixed-header {
+.fixed-header {
   position: fixed;
   width: 100%;
   top: 0;
-  height: 60px;
+  height: $header-height;
   z-index: 1000;
   background-color: #fff;
   border-bottom: solid 1px #eee;
+
+  @include respond-up-to(small) {
+    &.headroom--unpinned {
+      display: none;
+    }
+    
+    height: $header-height-small;
+  }
 }
 
 .branding {
   font-size: 2em;
   margin: 0;
   padding: 0;
+  float: left;
 
-  @include respond-to(medium) {
-    float: left;
+  @include respond-up-to(small) {
+    font-size: 1.4em;
   }
 
   a {
@@ -106,9 +118,10 @@ pre {
 }
 .navigation {
   font-size: 1.2em;
+  float: right;
 
-  @include respond-to(medium) {
-    float: right;
+  @include respond-up-to(small) {
+    font-size: 1em;
   }
 
   ul {
@@ -118,10 +131,14 @@ pre {
 
     li {
       float: left;
-      margin-right: 20px;
+      margin-left: 20px;
 
-      &:last-child {
-        margin-right: 0;
+      &:first-child {
+        margin-left: 0;
+      }
+
+      @include respond-up-to(small) {
+        margin-left: 10px;
       }
     }
   }
@@ -136,16 +153,19 @@ pre {
     border-width: 2px;
   }
 
-  &.download {
+  .download-link > & {
     border-color: $green;
     color: $green;
-    display: none;
-
-    @include respond-to(medium) {
-      display: inline;
-    }
   }
 }
+
+.download-link {
+  @include respond-up-to(small) {
+    display: none;
+    visibility: hidden;
+  }
+}
+
 
 // Content
 // ----------------------------------------------------- //
@@ -154,7 +174,12 @@ pre {
   @extend .container;
   @extend .clearfix;
 
-  margin-top: 60px;
+  position: absolute;
+  top: $header-height + 5px;
+
+  @include respond-up-to(small) {
+    top: $header-height-small + 5px;
+  }
 }
 
 // Guides

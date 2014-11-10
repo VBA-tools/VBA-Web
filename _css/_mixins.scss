@@ -15,3 +15,20 @@
     }
   }
 }
+@mixin respond-up-to($breakpoint) {
+  @if $breakpoint == "small" {
+    @media (max-width: $small-screen - 1) {
+      @content
+    }
+  }
+  @else if $breakpoint == "medium" {
+    @media (max-width: $medium-screen - 1) {
+      @content
+    }
+  }
+  @else if $breakpoint == "large" {
+    @media (max-width: $large-screen - 1) {
+      @content
+    }
+  }
+}
