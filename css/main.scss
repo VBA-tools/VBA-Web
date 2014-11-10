@@ -200,12 +200,12 @@ pre {
   display: block;
   content: " ";
   visibility: hidden;
-  margin-top: -$header-height - 10px;
-  height: $header-height + 10px;
+  margin-top: -10px;
+  height: 10px;
 
-  @include respond-up-to(small) {
-    margin-top: -$header-height-small - 10px;
-    height: $header-height-small + 10px;
+  @include respond-to(small) {
+    margin-top: -$header-height - 10px;
+    height: $header-height + 10px;  
   }
 }
 
@@ -235,6 +235,8 @@ pre {
 // ----------------------------------------------------- //
 
 .toc {
+  padding: 10px 0 20px 0;
+
   a {
     text-decoration: none;
     color: #000;
@@ -249,7 +251,6 @@ pre {
     top: 60px;
     bottom: 0;
     width: 220px;
-    padding: 10px 0 20px 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     font-size: 0.85em;
