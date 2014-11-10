@@ -20,6 +20,7 @@ $header-height-small: 40px;
 body {
   font-size: 14px;
   line-height: 1.5em;
+  overflow-y: scroll;
 }
 
 code {
@@ -268,8 +269,19 @@ pre {
 .toc-section {
   margin: 0;
   padding-left: 1.8em;
+
+  & > li {
+    list-style: none;
+    margin-left: -1em;
+
+    &:before {
+      content: "-";
+      margin-right: 0.5em;
+    }
+  }
 }
-.toc-subsection {
+.toc-subsection,
+li.toc-subsection {
   list-style: none;
   margin-left: -1.2em;
   color: #888;
@@ -281,6 +293,11 @@ pre {
   }
   li + & {
     margin-top: 0.5em;
+  }
+
+  &:before {
+    content: "";
+    margin: 0;
   }
 }
 
