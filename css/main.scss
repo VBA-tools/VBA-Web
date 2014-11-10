@@ -188,11 +188,24 @@ pre {
   @extend .container;
   @extend .clearfix;
 
-  position: absolute;
-  top: $header-height + 5px;
+  // position: absolute;
+  top: $header-height;
 
   @include respond-up-to(small) {
-    top: $header-height-small + 5px;
+    top: $header-height-small;
+  }
+}
+
+.anchor:before {
+  display: block;
+  content: " ";
+  visibility: hidden;
+  margin-top: -$header-height - 10px;
+  height: $header-height + 10px;
+
+  @include respond-up-to(small) {
+    margin-top: -$header-height-small - 10px;
+    height: $header-height-small + 10px;
   }
 }
 

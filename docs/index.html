@@ -7,23 +7,26 @@ layout: docs
     Excel-REST <span class="version">(4.0.0)</span>
   </a>
   <ul class="toc-section">
-    <li><a href="https://github.com/timhall/Excel-REST/">Github Repository</a></li>
+    <li><a href="https://github.com/timhall/Excel-REST/" target="_blank">Github Repository</a></li>
   </ul>
   <a class="toc-title" href="#">Introduction</a>
   <ul class="toc-section">
     <li><a href="#Installation">Installation</a></li>
   </ul>
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#WebRequest">
     WebRequest
   </a>
   <ul class="toc-section">
     <li class="toc-subsection"><a href="#WebRequest-Properties">Properties</a></li>
     <li><a href="#Resource">Resource</a></li>
     <li><a href="#Method">Method</a></li>
-    <li><a href="#Format">Format</a></li>
     <li><a href="#Body">Body</a></li>
+    <li><a href="#Format">Format</a></li>
     <li><a href="#RequestFormat">RequestFormat</a></li>
     <li><a href="#ResponseFormat">ResponseFormat</a></li>
+    <li><a href="#CustomFormat">CustomFormat</a></li>
+    <li><a href="#CustomRequestFormat">CustomRequestFormat</a></li>
+    <li><a href="#CustomResponseFormat">CustomResponseFormat</a></li>
     <li><a href="#Id">Id</a></li>
     <li><a href="#FormattedResource">FormattedResource</a></li>
     <li><a href="#Cookies">Cookies</a></li>
@@ -36,11 +39,9 @@ layout: docs
     <li><a href="#AddHeader">AddHeader</a></li>
     <li><a href="#AddQuerystringParam">AddQuerystringParam</a></li>
     <li><a href="#AddUrlSegment">AddUrlSegment</a></li>
-    <li><a href="#CustomBodyConverter">CustomBodyConverter</a></li>
-    <li><a href="#CustomResponseParser">CustomResponseParser</a></li>
     <li><a href="#Clone">Clone</a></li>
   </ul>
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#WebClient">
     WebClient
   </a>
   <ul class="toc-section">
@@ -78,14 +79,14 @@ layout: docs
   </ul>
 </aside>
 <article class="documentation">
-  <h2 id="Introduction" class="docs-title">Introduction</h2>
-  <h4 id="Installation" class="docs-name">Installation</h4>
+  <h2 id="Introduction" class="docs-title anchor">Introduction</h2>
+  <h4 id="Installation" class="docs-name anchor">Installation</h4>
 
-  <h2 id="WebRequest" class="docs-title">WebRequest</h2>
+  <h2 id="WebRequest" class="docs-title anchor">WebRequest</h2>
   <section class="docs-subsection">
-    <h3 id="WebRequest-Properties" class="docs-subsection-title">Properties</h3>
+    <h3 id="WebRequest-Properties" class="docs-subsection-title anchor">Properties</h3>
     
-    <h4 id="Resource"><b class="docs-name">Resource</b><code>Get|Let {String}</code></h4>
+    <h4 id="Resource" class="anchor"><b class="docs-name">Resource</b><code>Get|Let {String}</code></h4>
     <p>
       Set the request's portion of the url to be appended to the client's <a href="#BaseUrl" class="docs-code-link"><code>BaseUrl</code></a>.
       Can include <a href="#UrlSegments">Url Segments</a> for dynamic values
@@ -109,7 +110,7 @@ Request.AddQuerystringParam "b", 2
 ' -> Url: https://api.example.com/messages/123?a=1&b=2
 {% endhighlight %}
 
-    <h4 id="Method"><b class="docs-name">Method</b><code>Get|Let {WebMethod}</code></h4>
+    <h4 id="Method" class="anchor"><b class="docs-name">Method</b><code>Get|Let {WebMethod}</code></h4>
     <p>
       Set the HTTP method to be used for the request: GET, POST, PUT, PATCH, DELETE
     </p>
@@ -123,21 +124,7 @@ Request.Method = WebMethod.HTTPPATCH
 Request.Method = WebMethod.HTTPDELETE
 {% endhighlight %}
 
-    <h4 id="Format"><b class="docs-name">Format</b><code>Get|Set {WebFormat}</code></h4>
-    <p>
-      Set <code>RequestFormat</code>, <code>ResponseFormat</code>, and <code>Content-Type</code> and <code>Accept</code> headers for the <code>WebRequest</code>
-    </p>
-
-{% highlight VB.net %}
-Dim Request As New WebRequest
-Request.Format = WebFormat.JSON
-' -> Request.RequestFormat = WebFormat.JSON
-'    Request.ResponseFormat = WebFormat.JSON
-'    Content-Type: application/json
-'    Accept: application/json
-{% endhighlight %}
-
-    <h4 id="Body"><b class="docs-name">Body</b><code>Get|Let|Set {Variant}</code></h4>
+    <h4 id="Body" class="anchor"><b class="docs-name">Body</b><code>Get|Let|Set {Variant}</code></h4>
     <ul>
       <li><code>Get</code> Body value converted to string using <code>RequestFormat</code> or <code>TODO</code></li>
       <li><code>Let</code> Use <code>String</code> or <code>Array</code> for Body</li>
@@ -170,7 +157,21 @@ Set Request.Body = Body
 Request.Body ' = "{"a":123,"b":456}"
 {% endhighlight %}
 
-    <h4 id="RequestFormat"><b class="docs-name">RequestFormat</b><code>Get|Let {WebFormat}</code></h4>
+    <h4 id="Format" class="anchor"><b class="docs-name">Format</b><code>Get|Set {WebFormat}</code></h4>
+    <p>
+      Set <code>RequestFormat</code>, <code>ResponseFormat</code>, and <code>Content-Type</code> and <code>Accept</code> headers for the <code>WebRequest</code>
+    </p>
+
+{% highlight VB.net %}
+Dim Request As New WebRequest
+Request.Format = WebFormat.JSON
+' -> Request.RequestFormat = WebFormat.JSON
+'    Request.ResponseFormat = WebFormat.JSON
+'    Content-Type: application/json
+'    Accept: application/json
+{% endhighlight %}
+
+    <h4 id="RequestFormat" class="anchor"><b class="docs-name">RequestFormat</b><code>Get|Let {WebFormat}</code></h4>
     <p>
       Set the format to use for converting the response <code>Content</code> to <code>Data</code> 
       and for the <code>Accept</code> header
@@ -196,7 +197,7 @@ Request.AddHeader "Content-Type", "..."
 Request.TODO = ...
 {% endhighlight %}
 
-    <h4 id="ResponseFormat"><b class="docs-name">ResponseFormat</b><code>Get|Let {WebFormat}</code></h4>
+    <h4 id="ResponseFormat" class="anchor"><b class="docs-name">ResponseFormat</b><code>Get|Let {WebFormat}</code></h4>
     <p>
       Set the format to use for converting the response <code>Content</code> to <code>Data</code> 
       and for the <code>Accept</code> header
@@ -224,13 +225,68 @@ Request.ResponseFormat = WebFormat.Custom
 Request.AddHeader "Accept", "..."
 Request.TODO = ...
 {% endhighlight %}
-    
-    <h4 id="Id"><b class="docs-name">Id</b><code>Get {String}</code></h4>
+
+    <h4 id="CustomFormat" class="anchor"><b class="docs-name">CustomFormat</b><code>Get|Let {String}</code></h4>
+    <p>
+      Use converter registered with <a href="RegisterConverter" class="docs-code-link"><code>WebClient.RegisterConverter</code></a>
+      to convert <code>Body</code> to string and parse response.
+      (Automatically sets <code>Format</code> to <code>WebFormat.Custom</code>)
+    </p>
+
+{% highlight VB.net %}
+Dim Client As New WebClient
+Client.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+
+Dim Request As New WebRequest
+Request.CustomFormat = "csv"
+
+' -> Body converted to string with Module.ConvertToCSV 
+'    Response is parsed with Module.ParseCSV
+'    Content-Type and Accept headers: "text/csv"
+{% endhighlight %}
+
+    <h4 id="CustomRequestFormat" class="anchor"><b class="docs-name">CustomRequestFormat</b><code>Get|Let {String}</code></h4>
+    <p>
+      Use converter registered with <a href="RegisterConverter" class="docs-code-link"><code>WebClient.RegisterConverter</code></a>
+      to convert <code>Body</code> to string.
+      (Automatically sets <code>RequestFormat</code> to <code>WebFormat.Custom</code>)
+    </p>
+
+{% highlight VB.net %}
+Dim Client As New WebClient
+Client.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+
+Dim Request As New WebRequest
+Request.CustomRequestFormat = "csv"
+
+' -> Body converted to string with Module.ConvertToCSV
+'    Content-Type: "text/csv"
+{% endhighlight %}
+
+    <h4 id="CustomResponseFormat" class="anchor"><b class="docs-name">CustomResponseFormat</b><code>Get|Let {String}</code></h4>
+    <p>
+      Use converter registered with <a href="RegisterConverter" class="docs-code-link"><code>WebClient.RegisterConverter</code></a>
+      to parse response.
+      (Automatically sets <code>ResponseFormat</code> to <code>WebFormat.Custom</code>)
+    </p>
+
+{% highlight VB.net %}
+Dim Client As New WebClient
+Client.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+
+Dim Request As New WebRequest
+Request.CustomResponseFormat = "csv"
+
+' -> Response is parsed with Module.ParseCSV
+'    Accept: "text/csv"
+{% endhighlight %}
+ 
+    <h4 id="Id" class="anchor"><b class="docs-name">Id</b><code>Get {String}</code></h4>
     <p>
       Unique Id of the <code>WebRequest</code> (used internally).
     </p>
 
-    <h4 id="FormattedResource"><b class="docs-name">FormattedResource</b><code>Get {String}</code></h4>
+    <h4 id="FormattedResource" class="anchor"><b class="docs-name">FormattedResource</b><code>Get {String}</code></h4>
     <p>
       Get <code>Resource</code> with Url Segments replaced and Querystring added.
     </p>
@@ -244,7 +300,7 @@ Request.AddQuerystringParam "message", "Hello"
 Request.FormattedResource ' = "examples/123?message=Hello"
 {% endhighlight %}
 
-    <h4 id="Cookies"><b class="docs-name">Cookies</b><code>Get|Set {Collection}</code></h4>
+    <h4 id="Cookies" class="anchor"><b class="docs-name">Cookies</b><code>Get|Set {Collection}</code></h4>
     <p>
       <span class="docs-note"></span>To add cookies, use <a href="#AddCookie" class="docs-code-link"><code>AddCookie</code></a>.</span>
       <br>
@@ -252,7 +308,7 @@ Request.FormattedResource ' = "examples/123?message=Hello"
       stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>).
     </p>
     
-    <h4 id="Headers"><b class="docs-name">Headers</b><code>Get|Set {Collection}</code></h4>
+    <h4 id="Headers" class="anchor"><b class="docs-name">Headers</b><code>Get|Set {Collection}</code></h4>
     <p>
       <span class="docs-note"></span>To add headers, use <a href="#AddHeader" class="docs-code-link"><code>AddHeader</code></a>.</span>
       <br>
@@ -260,7 +316,7 @@ Request.FormattedResource ' = "examples/123?message=Hello"
       stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>).
     </p>
     
-    <h4 id="QuerystringParams"><b class="docs-name">QuerystringParams</b><code>Get|Set {Collection}</code></h4>
+    <h4 id="QuerystringParams" class="anchor"><b class="docs-name">QuerystringParams</b><code>Get|Set {Collection}</code></h4>
     <p>
       <span class="docs-note"></span>To add Querystring parameters, use <a href="#AddQuerystringParam" class="docs-code-link"><code>AddQuerystringParam</code></a>.</span>
       <br>
@@ -268,7 +324,7 @@ Request.FormattedResource ' = "examples/123?message=Hello"
       stored as <code>WebHelpers.KeyValue</code> (<code>Dictionary: {key: "", value: ""}</code>)
     </p>
     
-    <h4 id="UrlSegments"><b class="docs-name">UrlSegments</b><code>Get|Set {Dictionary}</code></h4>
+    <h4 id="UrlSegments" class="anchor"><b class="docs-name">UrlSegments</b><code>Get|Set {Dictionary}</code></h4>
     <p>
       <span class="docs-note"></span>To add Url Segments, use <a href="#AddUrlSegment" class="docs-code-link"><code>AddUrlSegment</code></a>.</span>
       <br>
@@ -300,21 +356,21 @@ Request.FormattedResource ' = "Tim/messages/123"
   </section>
 
   <section>
-    <h3 id="WebRequest-Methods" class="docs-subsection-title">Methods</h3>
+    <h3 id="WebRequest-Methods" class="docs-subsection-title anchor">Methods</h3>
     
-    <h4 id="AddCookie"><b class="docs-name">AddCookie</b><code>AddCookie(Key, Value)</code></h4>
+    <h4 id="AddCookie" class="anchor"><b class="docs-name">AddCookie</b><code>AddCookie(Key, Value)</code></h4>
     <p>
       Add cookie to be sent with request.
     </p>
-    <h4 id="AddHeader"><b class="docs-name">AddHeader</b><code>AddHeader(Key, Value)</code></h4>
+    <h4 id="AddHeader" class="anchor"><b class="docs-name">AddHeader</b><code>AddHeader(Key, Value)</code></h4>
     <p>
       Add header to be sent with request.
     </p>
-    <h4 id="AddQuerystringParam"><b class="docs-name">AddQuerystringParam</b><code>AddQuerystringParam(Key, Value)</code></h4>
+    <h4 id="AddQuerystringParam" class="anchor"><b class="docs-name">AddQuerystringParam</b><code>AddQuerystringParam(Key, Value)</code></h4>
     <p>
       Add querystring parameter to <code>FormattedResource</code> for request
     </p>
-    <h4 id="AddUrlSegment"><b class="docs-name">AddUrlSegment</b><code>AddUrlSegment(Key, Value)</code></h4>
+    <h4 id="AddUrlSegment" class="anchor"><b class="docs-name">AddUrlSegment</b><code>AddUrlSegment(Key, Value)</code></h4>
     <p>
       Add url segment to replace in <code>Resource</code>
     </p>
@@ -329,7 +385,7 @@ Request.AddUrlSegment "id", 123
 Request.FormattedResource ' = "Tim/messages/123"
 {% endhighlight %}
     
-    <h4 id="CustomBodyConverter"><b class="docs-name">CustomBodyConverter</b><code>CustomBodyConverter(Callback, [Context|Host|Parent|Instance])</code></h4>
+    <h4 id="CustomBodyConverter" class="anchor"><b class="docs-name">CustomBodyConverter</b><code>CustomBodyConverter(Callback, [Context|Host|Parent|Instance])</code></h4>
     <p>
       Register custom body converter with Function signature: <code>...(Body As Variant) As String</code>.
       When used, the <code>RequestFormat</code> is automatically set to <code>WebFormat.Custom</code>
@@ -347,7 +403,7 @@ Dim Instance As New ...
 Request.CustomBodyConverter "FunctionInsideOfInstance", Instance
 {% endhighlight %}
 
-    <h4 id="CustomResponseParser"><b class="docs-name">CustomResponseParser</b><code>CustomResponseParser(Callback, [Instance])</code></h4>
+    <h4 id="CustomResponseParser" class="anchor"><b class="docs-name">CustomResponseParser</b><code>CustomResponseParser(Callback, [Instance])</code></h4>
     <p>
       Register custom response parser with Function signature: <code>...(Content As String, Body As Variant) As Variant</code>.
       When used, the <code>ResponseFormat</code> is automatically set to <code>WebFormat.Custom</code>
@@ -365,7 +421,7 @@ Dim Instance As New ...
 Request.CustomResponseParser "FunctionInsideOfInstance", Instance
 {% endhighlight %}
     
-    <h4 id="Clone"><b class="docs-name">Clone</b><code>Clone() {WebRequest}</code></h4>
+    <h4 id="Clone" class="anchor"><b class="docs-name">Clone</b><code>Clone() {WebRequest}</code></h4>
     <p>
       Clone the request (used internally for async functionality)
     </p>
@@ -390,11 +446,11 @@ Request.CustomResponseParser "FunctionInsideOfInstance", Instance
     </ul>
   </p>
 
-  <h2 id="WebClient">WebClient</h2>
+  <h2 id="WebClient" class="docs-title anchor">WebClient</h2>
   <section class="docs-subsection">
-    <h3 id="WebClient-Properties" class="docs-subsection-title">Properties</h3>
+    <h3 id="WebClient-Properties" class="docs-subsection-title anchor">Properties</h3>
 
-    <h4 id="BaseUrl"><b class="docs-name">BaseUrl</b><code>Get|Let {String}</code></h4>
+    <h4 id="BaseUrl" class="anchor"><b class="docs-name">BaseUrl</b><code>Get|Let {String}</code></h4>
     <p>
       Set base url that is shared by all requests and that the request <code>Resource></code> is appended to
     </p>
@@ -414,16 +470,16 @@ Request.Resource = "messages"
 Request.Resource = "users/{id}"
 {% endhighlight %}
 
-    <h4 id="Username"><b class="docs-name">Username</b><code>Get|Let {String}</code></h4>
+    <h4 id="Username" class="anchor"><b class="docs-name">Username</b><code>Get|Let {String}</code></h4>
     <p>
       Username for Basic Authentication
     </p>
-    <h4 id="Password"><b class="docs-name">Password</b><code>Get|Let {String}</code></h4>
+    <h4 id="Password" class="anchor"><b class="docs-name">Password</b><code>Get|Let {String}</code></h4>
     <p>
       Password for Basic Authentication
     </p>
 
-    <h4 id="Authenticator"><b class="docs-name">Authenticator</b><code>Get|Set {IAuthenticator}</code></h4>
+    <h4 id="Authenticator" class="anchor"><b class="docs-name">Authenticator</b><code>Get|Set {IAuthenticator}</code></h4>
     <p>
       Attach an authenticator to the client for authenticating requests.
     </p>
@@ -437,63 +493,63 @@ Set Client.Authenticator = Auth
 ' -> All requests use Auth to add "Authorization" header
 {% endhighlight %}
     
-    <h4 id="TimeoutMS"><b class="docs-name">TimeoutMS</b><code>Get|Let {Long}</code></h4>
+    <h4 id="TimeoutMS" class="anchor"><b class="docs-name">TimeoutMS</b><code>Get|Let {Long}</code></h4>
     <p>
       Timeout (in milliseconds) to wait for timeout in each request phase (Resolve, Connect, Send, Receive)
     </p>
 
-    <h4 id="ProxyServer"><b class="docs-name">ProxyServer</b><code>Get|Let {String}</code></h4>
+    <h4 id="ProxyServer" class="anchor"><b class="docs-name">ProxyServer</b><code>Get|Let {String}</code></h4>
     <p>
       Proxy server to pass requests through (except for those that match bypass list)
     </p>
-    <h4 id="ProxyUsername"><b class="docs-name">ProxyUsername</b><code>Get|Let {String}</code></h4>
+    <h4 id="ProxyUsername" class="anchor"><b class="docs-name">ProxyUsername</b><code>Get|Let {String}</code></h4>
     <p>
       Username for proxy
     </p>
-    <h4 id="ProxyPassword"><b class="docs-name">ProxyPassword</b><code>Get|Let {String}</code></h4>
+    <h4 id="ProxyPassword" class="anchor"><b class="docs-name">ProxyPassword</b><code>Get|Let {String}</code></h4>
     <p>
       Password for proxy
     </p>
-    <h4 id="ProxyBypassList"><b class="docs-name">ProxyBypassList</b><code>Get|Let {String}</code></h4>
+    <h4 id="ProxyBypassList" class="anchor"><b class="docs-name">ProxyBypassList</b><code>Get|Let {String}</code></h4>
     <p>
       Comma separated list of domains to bypass the proxy
     </p>
     
   </section>
   <sectionclass="docs-subsection">
-    <h3 id="WebClient:Methods" class="docs-subsection-title">Methods</h3>
+    <h3 id="WebClient-Methods" class="docs-subsection-title anchor">Methods</h3>
     
-    <h4 id="Execute"><b class="docs-name">Execute</b><code>Execute(Request) {WebResponse}</code></h4>
+    <h4 id="Execute" class="anchor"><b class="docs-name">Execute</b><code>Execute(Request) {WebResponse}</code></h4>
     <p>
       TODO...
     </p>
-    <h4 id="GetJSON"><b class="docs-name">GetJSON</b><code>GetJSON(Url, [Options]) {WebResponse}</code></h4>
+    <h4 id="GetJSON" class="anchor"><b class="docs-name">GetJSON</b><code>GetJSON(Url, [Options]) {WebResponse}</code></h4>
     <p>
       TODO...
     </p>
-    <h4 id="PostJSON"><b class="docs-name">PostJSON</b><code>PostJSON(Url, Body, [Options]) {WebResponse}</code></h4>
+    <h4 id="PostJSON" class="anchor"><b class="docs-name">PostJSON</b><code>PostJSON(Url, Body, [Options]) {WebResponse}</code></h4>
     <p>
       TODO...
     </p>
-    <h4 id="SetProxy"><b class="docs-name">SetProxy</b><code>SetProxy(Server, [Username], [Password], [BypassList])</code></h4>
+    <h4 id="SetProxy" class="anchor"><b class="docs-name">SetProxy</b><code>SetProxy(Server, [Username], [Password], [BypassList])</code></h4>
     <p>
       TODO...
     </p>
-    <h4 id="PrepareRequest"><b class="docs-name">PrepareRequest</b><code>PrepareRequest(Request) {WebRequest}</code></h4>
+    <h4 id="PrepareRequest" class="anchor"><b class="docs-name">PrepareRequest</b><code>PrepareRequest(Request) {WebRequest}</code></h4>
     <p>
       (Internal) TODO...
     </p>
-    <h4 id="PrepareHttpRequest"><b class="docs-name">PrepareHttpRequest</b><code>PrepareHttpRequest(Request, [Async]) {WinHttpRequest}</code></h4>
+    <h4 id="PrepareHttpRequest" class="anchor"><b class="docs-name">PrepareHttpRequest</b><code>PrepareHttpRequest(Request, [Async]) {WinHttpRequest}</code></h4>
     <p>
       (Internal) TODO...
     </p>
-    <h4 id="PrepareCURL"><b class="docs-name">PrepareCURL</b><code>PrepareCURL(Request) {String}</code></h4>
+    <h4 id="PrepareCURL" class="anchor"><b class="docs-name">PrepareCURL</b><code>PrepareCURL(Request) {String}</code></h4>
     <p>
       (Internal) TODO...
     </p>
   </section>
   
-  <h2 id="WebResponse">WebResponse</h2>
-  <h2 id="WebHelpers">WebHelpers</h2>
-  <h2 id="WebAsyncWrapper">WebAsyncWrapper</h2>
+  <h2 id="WebResponse" class="docs-title anchor">WebResponse</h2>
+  <h2 id="WebHelpers" class="docs-title anchor">WebHelpers</h2>
+  <h2 id="WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
 </article>
