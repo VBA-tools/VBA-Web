@@ -36,6 +36,8 @@ layout: docs
     <li><a href="#AddHeader">AddHeader</a></li>
     <li><a href="#AddQuerystringParam">AddQuerystringParam</a></li>
     <li><a href="#AddUrlSegment">AddUrlSegment</a></li>
+    <li><a href="#CustomBodyConverter">CustomBodyConverter</a></li>
+    <li><a href="#CustomResponseParser">CustomResponseParser</a></li>
     <li><a href="#Clone">Clone</a></li>
   </ul>
   <a class="toc-title" href="#">
@@ -325,6 +327,42 @@ Request.AddUrlSegment "user", "Tim"
 Request.AddUrlSegment "id", 123
 
 Request.FormattedResource ' = "Tim/messages/123"
+{% endhighlight %}
+    
+    <h4 id="CustomBodyConverter"><b class="docs-name">CustomBodyConverter</b><code>CustomBodyConverter(Callback, [Context|Host|Parent|Instance])</code></h4>
+    <p>
+      Register custom body converter with Function signature: <code>...(Body As Variant) As String</code>.
+      When used, the <code>RequestFormat</code> is automatically set to <code>WebFormat.Custom</code>
+      and the <code>Content-Type</code> header should be set explicitly with <a href="AddHeader"><code>AddHeader</code></a>
+    </p>
+    
+{% highlight VB.net %}
+Dim Request As New WebRequest
+
+' Set body converter to be Public Function declared in Module
+Request.CustomBodyConverter "Module.FunctionThatReturnsString"
+
+' Set body converter to be Public Function declared in the given class instance
+Dim Instance As New ...
+Request.CustomBodyConverter "FunctionInsideOfInstance", Instance
+{% endhighlight %}
+
+    <h4 id="CustomResponseParser"><b class="docs-name">CustomResponseParser</b><code>CustomResponseParser(Callback, [Instance])</code></h4>
+    <p>
+      Register custom response parser with Function signature: <code>...(Content As String, Body As Variant) As Variant</code>.
+      When used, the <code>ResponseFormat</code> is automatically set to <code>WebFormat.Custom</code>
+      and the <code>Accept</code> header should be set explicitly with <a href="AddHeader"><code>AddHeader</code></a>
+    </p>
+    
+{% highlight VB.net %}
+Dim Request As New WebRequest
+
+' Set response parser to be Public Function declared in Module
+Request.CustomResponseParser "Module.FunctionThatReturnsVariant"
+
+' Set response parser to be Public Function declared in the given class instance
+Dim Instance As New ...
+Request.CustomResponseParser "FunctionInsideOfInstance", Instance
 {% endhighlight %}
     
     <h4 id="Clone"><b class="docs-name">Clone</b><code>Clone() {WebRequest}</code></h4>
