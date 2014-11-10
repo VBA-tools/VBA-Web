@@ -89,8 +89,13 @@ pre {
   border-bottom: solid 1px #eee;
 
   @include respond-up-to(small) {
+    transition: transform 200ms linear;
+    
+    &.headroom--pinned, &.headroom--top {
+      transform: translateY(0%);
+    }
     &.headroom--unpinned {
-      display: none;
+      transform: translateY(-100%);
     }
     
     height: $header-height-small;
