@@ -61,6 +61,7 @@ layout: docs
     <li><a href="#GetJSON">GetJSON</a></li>
     <li><a href="#PostJSON">PostJSON</a></li>
     <li><a href="#SetProxy">SetProxy</a></li>
+    <li><a href="#RegisterConverter">RegisterConverter</a></li>
     <li><a href="#PrepareRequest">PrepareRequest</a></li>
     <li><a href="#PrepareHttpRequest">PrepareHttpRequest</a></li>
     <li><a href="#PrepareCURL">PrepareCURL</a></li>
@@ -535,6 +536,63 @@ Set Client.Authenticator = Auth
     <p>
       TODO...
     </p>
+    <h4 id="RegisterConverter" class="anchor"><b class="docs-name">RegisterConverter</b><code>RegisterConverter(Name, MediaType, ConvertCallback, ParseCallback, [Instance])</code></h4>
+    <dl class="docs-details">
+      <dt><code>Name {String}</code></dt>
+      <dd>Key for using converter in <code>CustomFormat</code>, <code>CustomRequestFormat</code>, or <code>CustomResponseFormat</code></dd>
+      <dt><code>MediaType {String}</code></dt>
+      <dd>Media-Type for use with <code>Content-Type</code> and <code>Accept</code> headers</dd>
+      <dt><code>ConvertCallback {String}</code></dt>
+      <dd>Public Function to call to convert <code>Body</code> to string</dd>
+      <dt><code>ParseCallback {String}</code></dt>
+      <dd>Public Function to parse response <code>Content</code> to <code>Data</code></dd>
+      <dt><code>[Instance] {Object}</code></dt>
+      <dd>Object instance for callbacks (otherwise use global)</dd>
+    </dl>
+    <p>
+      Register custom converter for types not supported by VBA-Web (e.g. CSV, plist, etc.).
+      Each converter has a unique name for identifying it in <code>WebRequest</code>
+      and a Media-Type for use in the <code>Content-Type</code> and <code>Accept</code> headers.
+    </p>
+    <p>
+      Two callbacks need to be specified for the converter: <code>ConvertCallback</code> and <code>ParseCallback</code>.
+      <code>Instance</code> is used if the callbacks are Public Functions of a given Class instance.
+      Otherwise, if no instance is given, the callbacks should be functions in the global namespace.
+    </p>
+    <p>
+      The signature for <code>ConvertCallback</code> should be: <code>Public Function ...(Body As Variant) As String</code>,
+      where <code>Body</code> is the body value stored in the <code>WebRequest</code>.
+      <br>
+      The signature for <code>ParseCallback</code> should be: <code>Public Function ...(Content As String, Body As Variant) As Variant</code>,
+      where <code>Content</code> is the response content string and <code>Body</code> is the raw binary response body.
+    </p>
+
+{% highlight VB.net %}
+' Module: Converters
+Public Function ConvertToCSV(Body As Variant) As String
+  ' Convert Dictionary/Collection/Array to String
+End Function
+Public Function ParseCSV(Content As String, Body As Variant) As Variant
+  ' Parse String to Dictionary/Collection/Array
+End Function
+
+Dim Client As New WebClient
+Client.RegisterConverter "csv", "text/csv", "Converters.ConvertToCSV", "Converters.ParseCSV"
+
+' (With Instance)
+
+' Class: PListConverter
+Public Function ConvertToPList(Body As Variant) As String
+  ' Convert Dictionary/Collection/Array to String
+End Function
+Public Function ParsePList(Content As String) As Variant
+  ' Parse String to Dictionary/Collection/Array
+End Function
+
+Dim Instance As New PListConverter
+Client.RegisterConverter "plist", "application/x-plist", "ConvertToPList", "ParsePList", Instance
+{% endhighlight %}
+
     <h4 id="PrepareRequest" class="anchor"><b class="docs-name">PrepareRequest</b><code>PrepareRequest(Request) {WebRequest}</code></h4>
     <p>
       (Internal) TODO...

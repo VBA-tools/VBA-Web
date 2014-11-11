@@ -197,18 +197,30 @@ pre {
   }
 }
 
-.anchor:before {
-  display: block;
-  content: " ";
-  visibility: hidden;
-  margin-top: -10px;
-  height: 10px;
+// .anchor {
+//   position: relative;
+//   z-index: 1;
 
-  @include respond-to(small) {
-    margin-top: -$header-height - 10px;
-    height: $header-height + 10px;  
-  }
-}
+//   &:before {
+//     display: block;
+//     content: " ";
+//     visibility: hidden;
+//     margin-top: -10px;
+//     height: 10px;
+//     -webkit-user-select: none;  /* Chrome all / Safari all */
+//     -moz-user-select: none;     /* Firefox all */
+//     -ms-user-select: none;      /* IE 10+ */
+
+//     /* No support for these yet, use at own risk */
+//     -o-user-select: none;
+//     user-select: none;  
+
+//     @include respond-to(small) {
+//       margin-top: -$header-height - 10px;
+//       height: $header-height + 10px;  
+//     }
+//   }
+// }
 
 // Guides
 // ----------------------------------------------------- //
@@ -316,8 +328,13 @@ li.toc-subsection {
   h4 {
     margin-bottom: 0.5em;
   }
-  p {
+
+  // Set z-index to 10 to be above special anchor positioning
+  & > p,
+  & .docs-subsection > p {
     margin-top: 0;
+    position: relative;
+    z-index: 10;
 
     a:not(.docs-code-link) {
       color: #000;
@@ -329,10 +346,17 @@ li.toc-subsection {
       }
     }
   }
-  pre {}
-  ul {
+  & > pre,
+  & .docs-subsection > pre {
+    position: relative;
+    z-index: 10;
+  }
+  & > ul,
+  & .docs-subsection > ul {
     margin-top: 0;
     padding-left: 1.2em;
+    position: relative;
+    z-index: 10;
   }
 
   @include respond-to(medium) {
@@ -373,5 +397,23 @@ li.toc-subsection {
 
   & > code {
     border: solid 1px #bbb;
+  }
+}
+.docs-details {
+  font-size: 0.94em;
+  margin: 0 0 0 0.5em;
+  line-height: 1.5em;
+
+  & > dt {
+    float: left;
+    margin-right: 4px;
+
+    & > code {
+      background-color: transparent;
+    }
+    &:after {
+      content: "-";
+      margin-left: 2px;
+    }
   }
 }
