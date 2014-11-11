@@ -516,7 +516,7 @@ Set Client.Authenticator = Auth
     </p>
     
   </section>
-  <sectionclass="docs-subsection">
+  <section class="docs-subsection">
     <h3 id="WebClient-Methods" class="docs-subsection-title anchor">Methods</h3>
     
     <h4 id="Execute" class="anchor"><b class="docs-name">Execute</b><code>Execute(Request) {WebResponse}</code></h4>
@@ -550,6 +550,289 @@ Set Client.Authenticator = Auth
   </section>
   
   <h2 id="WebResponse" class="docs-title anchor">WebResponse</h2>
+  <section class="docs-subsection">
+    <h3 id="WebResponse-Properties" class="docs-subsection-title anchor">Properties</h3>
+    
+    <h4 id="StatusCode" class="anchor"><b class="docs-name">StatusCode</b><code>Get|Let {WebStatusCode}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="StatusDescription" class="anchor"><b class="docs-name">StatusDescription</b><code>Get|Let {String}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Content" class="anchor"><b class="docs-name">Content</b><code>Get|Let {String}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Data" class="anchor"><b class="docs-name">Data</b><code>Get|Let|Set {Variant}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Body" class="anchor"><b class="docs-name">Body</b><code>Get|Let {Variant}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Headers" class="anchor"><b class="docs-name">Headers</b><code>Get|Set {Collection}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Cookies" class="anchor"><b class="docs-name">Cookies</b><code>Get|Set {Dictionary}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+  </section>
+  
   <h2 id="WebHelpers" class="docs-title anchor">WebHelpers</h2>
+  <section class="docs-subsection">
+    <h3 id="WebHelpers-Types" class="docs-subsection-title anchor">Types</h3>
+    
+    <h4 id="WebStatusCode" class="anchor"><b class="docs-name">WebStatusCode</b><code>WebStatusCode</code></h4>
+    <dl>
+      <dt>...</dt>
+    </dl>
+  </section>
+  <section class="docs-subsection">
+    <h3 id="WebHelpers-Properties" class="docs-subsection-title anchor">Properties</h3>
+    
+    <h4 id="EnableLogging" class="anchor"><b class="docs-name">EnableLogging</b><code>Get|Let {Boolean}</code></h4>
+    <p>
+      TODO
+    </p>
+    
+  </section>
+  <section class="docs-subsection">
+    <h3 id="WebHelpers-Methods" class="docs-subsection-title anchor">Methods</h3>
+    
+    <h4 id="LogDebug" class="anchor"><b class="docs-name">LogDebug</b><code>LogDebug</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="LogError" class="anchor"><b class="docs-name">LogError</b><code>LogError</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="LogRequest" class="anchor"><b class="docs-name">LogRequest</b><code>LogRequest</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="LogResponse" class="anchor"><b class="docs-name">LogResponse</b><code>LogResponse</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Obfuscate" class="anchor"><b class="docs-name">Obfuscate</b><code>Obfuscate</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ParseJSON" class="anchor"><b class="docs-name">ParseJSON</b><code>ParseJSON</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ConvertToJSON" class="anchor"><b class="docs-name">ConvertToJSON</b><code>ConvertToJSON</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ParseUrlEncoded" class="anchor"><b class="docs-name">ParseUrlEncoded</b><code>ParseUrlEncoded</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ConvertToUrlEncoded" class="anchor"><b class="docs-name">ConvertToUrlEncoded</b><code>ConvertToUrlEncoded</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ParseXML" class="anchor"><b class="docs-name">ParseXML</b><code>ParseXML</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ConvertToXML" class="anchor"><b class="docs-name">ConvertToXML</b><code>ConvertToXML</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ParseByFormat" class="anchor"><b class="docs-name">ParseByFormat</b><code>ParseByFormat</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ConvertToFormat" class="anchor"><b class="docs-name">ConvertToFormat</b><code>ConvertToFormat</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="UrlEncode" class="anchor"><b class="docs-name">UrlEncode</b><code>UrlEncode</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="UrlDecode" class="anchor"><b class="docs-name">UrlDecode</b><code>UrlDecode</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="Base64Encode" class="anchor"><b class="docs-name">Base64Encode</b><code>Base64Encode</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="JoinUrl" class="anchor"><b class="docs-name">JoinUrl</b><code>JoinUrl</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="IncludesProtocol" class="anchor"><b class="docs-name">IncludesProtocol</b><code>IncludesProtocol</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="RemoveProtocol" class="anchor"><b class="docs-name">RemoveProtocol</b><code>RemoveProtocol</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="UrlParts" class="anchor"><b class="docs-name">UrlParts</b><code>UrlParts</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CombineObjects" class="anchor"><b class="docs-name">CombineObjects</b><code>CombineObjects</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="SortDictionary" class="anchor"><b class="docs-name">SortDictionary</b><code>SortDictionary</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="IsArray" class="anchor"><b class="docs-name">IsArray</b><code>IsArray</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="AddToDictionary" class="anchor"><b class="docs-name">AddToDictionary</b><code>AddToDictionary</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CloneDictionary" class="anchor"><b class="docs-name">CloneDictionary</b><code>CloneDictionary</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="SetHeadersForHttp" class="anchor"><b class="docs-name">SetHeadersForHttp</b><code>SetHeadersForHttp</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CreateResponse" class="anchor"><b class="docs-name">CreateResponse</b><code>CreateResponse</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CreateResponseFromHttp" class="anchor"><b class="docs-name">CreateResponseFromHttp</b><code>CreateResponseFromHttp</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CreateResponseFromCURL" class="anchor"><b class="docs-name">CreateResponseFromCURL</b><code>CreateResponseFromCURL</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ExtractHeaders" class="anchor"><b class="docs-name">ExtractHeaders</b><code>ExtractHeaders</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="ExtractCookies" class="anchor"><b class="docs-name">ExtractCookies</b><code>ExtractCookies</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CreateRequestFromOptions" class="anchor"><b class="docs-name">CreateRequestFromOptions</b><code>CreateRequestFromOptions</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="UpdateResponse" class="anchor"><b class="docs-name">UpdateResponse</b><code>UpdateResponse</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="FormatToName" class="anchor"><b class="docs-name">FormatToName</b><code>FormatToName</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="FormatToContentType" class="anchor"><b class="docs-name">FormatToContentType</b><code>FormatToContentType(...)</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="AddAsyncRequest" class="anchor internal"><b class="docs-name">AddAsyncRequest</b><code>AddAsyncRequest(...)</code></h4>
+    <h4 id="GetAsyncRequest" class="anchor internal"><b class="docs-name">GetAsyncRequest</b><code>GetAsyncRequest(...)</code></h4>
+    <h4 id="RemoveAsyncRequest" class="anchor internal"><b class="docs-name">RemoveAsyncRequest</b><code>RemoveAsyncRequest(...)</code></h4>
+    
+    <h4 id="StartTimeoutTimer" class="anchor internal"><b class="docs-name">StartTimeoutTimer</b><code>StartTimeoutTimer(...)</code></h4>
+    <h4 id="StopTimeoutTimer" class="anchor internal"><b class="docs-name">StopTimeoutTimer</b><code>StopTimeoutTimer(...)</code></h4>
+    <h4 id="TimeoutTimerExpired" class="anchor internal"><b class="docs-name">TimeoutTimerExpired</b><code>TimeoutTimerExpired(...)</code></h4>
+    
+    <h4 id="ExecuteInShell" class="anchor"><b class="docs-name">ExecuteInShell</b><code>ExecuteInShell(...)</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="HMACSHA1" class="anchor"><b class="docs-name">HMACSHA1</b><code>HMACSHA1(...)</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="HMACSHA256" class="anchor"><b class="docs-name">HMACSHA256</b><code>HMACSHA256(...)</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="MD5" class="anchor"><b class="docs-name">MD5</b><code>MD5(...)</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h4 id="CreateNonce" class="anchor"><b class="docs-name">CreateNonce</b><code>CreateNonce(...)</code></h4>
+    <p>
+      TODO
+    </p>
+    
+    <h3>Internal</h3>
+  </section>
+  <p>
+    Private:
+    <ul>
+      <li>PrepareTextForShell</li>
+    </ul>
+    
+    Remove:
+    <ul>
+      <li>FilterObject?</li>
+      <li>All crypto except for basic (HMACSHA1, HMACSH256, and MD5)</li>
+    </ul>
+  </p>
+  
   <h2 id="WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
 </article>
