@@ -105,7 +105,7 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
             
             ' (Salesforce specific, but shouldn't affect any other OAuth2 clients)
             If Response.Exists("instance_url") Then
-                Request.BaseUrl = Response("instance_url")
+                Client.BaseUrl = Response("instance_url")
             End If
         Else
             RestHelpers.LogError "Failed to read OAuth2 Token: " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"

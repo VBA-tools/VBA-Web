@@ -21,7 +21,7 @@ Attribute VB_Name = "RestHelpers"
 ' 6. Timing
 ' 7. Mac
 ' 8. Cryptography
-' vba-json
+' 9. Converters
 ' --------------------------------------------- '
 
 #If Mac Then
@@ -49,7 +49,11 @@ Private pDocumentHelper As Object
 Private pElHelper As Object
 Private pAsyncRequests As Dictionary
 
-Public Enum StatusCodes
+' --------------------------------------------- '
+' Types
+' --------------------------------------------- '
+
+Public Enum WebStatusCode
     Ok = 200
     Created = 201
     NoContent = 204
@@ -64,6 +68,20 @@ Public Enum StatusCodes
     BadGateway = 502
     ServiceUnavailable = 503
     GatewayTimeout = 504
+End Enum
+Public Enum WebMethod
+    httpGET = 0
+    httpPOST = 1
+    httpPUT = 2
+    httpDELETE = 3
+    httpPATCH = 4
+End Enum
+Public Enum WebFormat
+    plaintext = 0
+    json = 1
+    formurlencoded = 2
+    xml = 3
+    custom = 9
 End Enum
 
 Public EnableLogging As Boolean
@@ -111,20 +129,23 @@ End Sub
 '
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-Public Sub LogRequest(Request As RestRequest)
+Public Sub LogRequest(Request As RestRequest, Optional FullUrl As String = "")
     If EnableLogging Then
+        If FullUrl = "" Then
+            FullUrl = Request.FormattedResource
+        End If
+    
         Debug.Print "--> Request - " & Format(Now, "Long Time")
-        Debug.Print Request.MethodName & " " & Request.FullUrl
+        Debug.Print MethodToName(Request.Method) & " " & FullUrl
         
-        Dim HeaderKey As Variant
-        For Each HeaderKey In Request.Headers.Keys()
-            Debug.Print HeaderKey & ": " & Request.Headers(HeaderKey)
-        Next HeaderKey
+        Dim KeyValue As Dictionary
+        For Each KeyValue In Request.Headers
+            Debug.Print KeyValue("Key") & ": " & KeyValue("Value")
+        Next KeyValue
         
-        Dim CookieKey As Variant
-        For Each CookieKey In Request.Cookies.Keys()
-            Debug.Print "Cookie: " & CookieKey & "=" & Request.Cookies(CookieKey)
-        Next CookieKey
+        For Each KeyValue In Request.Cookies
+            Debug.Print "Cookie: " & KeyValue("Key") & "=" & KeyValue("Value")
+        Next KeyValue
         
         If Request.Body <> "" Then
             Debug.Print vbNewLine & Request.Body
@@ -144,15 +165,14 @@ Public Sub LogResponse(Response As RestResponse, Request As RestRequest)
         Debug.Print "<-- Response - " & Format(Now, "Long Time")
         Debug.Print Response.StatusCode & " " & Response.StatusDescription
         
-        Dim Header As Dictionary
-        For Each Header In Response.Headers
-            Debug.Print Header("key") & ": " & Header("value")
-        Next Header
+        Dim KeyValue As Dictionary
+        For Each KeyValue In Response.Headers
+            Debug.Print KeyValue("Key") & ": " & KeyValue("Value")
+        Next KeyValue
         
-        Dim CookieKey As Variant
-        For Each CookieKey In Response.Cookies.Keys()
-            Debug.Print "Cookie: " & CookieKey & "=" & Response.Cookies(CookieKey)
-        Next CookieKey
+        For Each KeyValue In Response.Cookies
+            Debug.Print "Cookie: " & KeyValue("Key") & "=" & KeyValue("Value")
+        Next KeyValue
         
         Debug.Print vbNewLine & Response.Content & vbNewLine
     End If
@@ -227,37 +247,27 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
 End Function
 
 ''
-' Convert dictionary to url encoded string
-' TODO: Handle arrays and collections
+' Convert dictionary/collection of key-value to url encoded string
 '
 ' @param {Variant} Obj
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
 ' --------------------------------------------- '
 Public Function ConvertToUrlEncoded(Obj As Variant) As String
-    If IsArray(Obj) Then
-        ' TODO Handle arrays and collections
-        Err.Raise vbObjectError + 1, "RestHelpers.ConvertToUrlEncoded", "Arrays are not currently supported by ConvertToUrlEncoded"
-    End If
-    
     Dim Encoded As String
-    Dim ParameterKey As Variant
-    Dim Value As Variant
-    
-    For Each ParameterKey In Obj.Keys()
-        If Len(Encoded) > 0 Then: Encoded = Encoded & "&"
-        Value = Obj(ParameterKey)
-        
-        ' Convert boolean to lowercase
-        If VarType(Value) = vbBoolean Then
-            If Value Then
-                Value = "true"
-            Else
-                Value = "false"
-            End If
-        End If
-        
-        Encoded = Encoded & UrlEncode(ParameterKey, True) & "=" & UrlEncode(Value, True)
-    Next ParameterKey
+
+    If TypeOf Obj Is Collection Then
+        Dim KeyValue As Dictionary
+        For Each KeyValue In Obj
+            If Len(Encoded) > 0 Then: Encoded = Encoded & "&"
+            Encoded = Encoded & GetUrlEncodedKeyValue(KeyValue("Key"), KeyValue("Value"))
+        Next KeyValue
+    Else
+        Dim Key As Variant
+        For Each Key In Obj.Keys()
+            If Len(Encoded) > 0 Then: Encoded = Encoded & "&"
+            Encoded = Encoded & GetUrlEncodedKeyValue(Key, Obj(Key))
+        Next Key
+    End If
     
     ConvertToUrlEncoded = Encoded
 End Function
@@ -295,16 +305,16 @@ End Function
 ' Parse given string into object (Dictionary or Collection) for given format
 '
 ' @param {String} Value
-' @param {AvailableFormats} Format
+' @param {WebFormat} Format
 ' @return {Object}
 ' --------------------------------------------- '
-Public Function ParseByFormat(Value As String, Format As AvailableFormats) As Object
+Public Function ParseByFormat(Value As String, Format As WebFormat) As Object
     Select Case Format
-    Case AvailableFormats.json
+    Case WebFormat.json
         Set ParseByFormat = ParseJSON(Value)
-    Case AvailableFormats.formurlencoded
+    Case WebFormat.formurlencoded
         Set ParseByFormat = ParseUrlEncoded(Value)
-    Case AvailableFormats.xml
+    Case WebFormat.xml
         Set ParseByFormat = ParseXML(Value)
     End Select
 End Function
@@ -313,16 +323,16 @@ End Function
 ' Convert object to given format
 '
 ' @param {Variant} Obj
-' @param {AvailableFormats} Format
+' @param {WebFormat} Format
 ' @return {String}
 ' --------------------------------------------- '
-Public Function ConvertToFormat(Obj As Variant, Format As AvailableFormats) As String
+Public Function ConvertToFormat(Obj As Variant, Format As WebFormat) As String
     Select Case Format
-    Case AvailableFormats.json
+    Case WebFormat.json
         ConvertToFormat = ConvertToJSON(Obj)
-    Case AvailableFormats.formurlencoded
+    Case WebFormat.formurlencoded
         ConvertToFormat = ConvertToUrlEncoded(Obj)
-    Case AvailableFormats.xml
+    Case WebFormat.xml
         ConvertToFormat = ConvertToXML(Obj)
     End Select
 End Function
@@ -361,7 +371,7 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
         For i = 1 To StringLen
             ' Get character and ascii code
             Char = Mid$(UrlVal, i, 1)
-            CharCode = Asc(Char)
+            CharCode = asc(Char)
             
             Select Case CharCode
                 Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
@@ -425,7 +435,7 @@ End Function
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 Public Function Base64Encode(Text As String) As String
-    Base64Encode = Replace(BytesToBase64(StringToBytes(Text)), vbLf, "")
+    Base64Encode = Replace(StringToBase64(Text), vbLf, "")
 End Function
 
 ' ============================================= '
@@ -451,37 +461,6 @@ Public Function JoinUrl(LeftSide As String, RightSide As String) As String
         JoinUrl = LeftSide & "/" & RightSide
     Else
         JoinUrl = LeftSide & RightSide
-    End If
-End Function
-
-''
-' Check if protocol is included with url
-'
-' @param {String} Url
-' @return {String} Found protocol
-' --------------------------------------------- '
-Public Function IncludesProtocol(Url As String) As String
-    Dim Parts As New Dictionary
-    Set Parts = UrlParts(Url)
-    
-    If Parts("Protocol") <> "" Then
-        IncludesProtocol = Parts("Protocol") & "://"
-    End If
-End Function
-
-''
-' Remove protocol from url (if present)
-'
-' @param {String} Url
-' @return {String} Url without protocol
-' --------------------------------------------- '
-Public Function RemoveProtocol(Url As String) As String
-    Dim Protocol As String
-    
-    RemoveProtocol = Url
-    Protocol = IncludesProtocol(RemoveProtocol)
-    If Protocol <> "" Then
-        RemoveProtocol = Replace(RemoveProtocol, Protocol, "")
     End If
 End Function
 
@@ -606,14 +585,14 @@ End Function
 ' ============================================= '
 
 ''
-' Combine two objects
+' Combine two dictionaries, folding the second into the first
 '
-' @param {Dictionary} OriginalObj Original object to add values to
+' @param {Dictionary} OriginalObj dictionary to add values to
 ' @param {Dictionary} NewObj New object containing values to add to original object
 ' @param {Boolean} [OverwriteOriginal=True] Overwrite any values that already exist in the original object
 ' @return {Dictionary} Combined object
 ' --------------------------------------------- '
-Public Function CombineObjects(ByVal OriginalObj As Dictionary, ByVal NewObj As Dictionary, _
+Public Function CombineDictionaries(ByVal OriginalObj As Dictionary, ByVal NewObj As Dictionary, _
     Optional OverwriteOriginal As Boolean = True) As Dictionary
     
     Dim Combined As New Dictionary
@@ -636,17 +615,17 @@ Public Function CombineObjects(ByVal OriginalObj As Dictionary, ByVal NewObj As 
         Next Key
     End If
     
-    Set CombineObjects = Combined
+    Set CombineDictionaries = Combined
 End Function
 
 ''
 ' Apply whitelist to given object to filter out unwanted key/values
 '
 ' @param {Dictionary} Original model to filter
-' @param {Variant} WhiteList Array of values to retain in the model
+' @param {Variant} WhiteList Array|String of value(s) to retain in the model
 ' @return {Dictionary} Filtered object
 ' --------------------------------------------- '
-Public Function FilterObject(ByVal Original As Dictionary, Whitelist As Variant) As Dictionary
+Public Function FilterDictionary(ByVal Original As Dictionary, Whitelist As Variant) As Dictionary
     Dim Filtered As New Dictionary
     Dim i As Integer
     
@@ -662,20 +641,7 @@ Public Function FilterObject(ByVal Original As Dictionary, Whitelist As Variant)
         End If
     End If
     
-    Set FilterObject = Filtered
-End Function
-
-''
-' Sort dictionary
-' TODO
-'
-' Source: http://www.cpearson.com/excel/CollectionsAndDictionaries.htm
-'         http://www.cpearson.com/excel/SortingArrays.aspx
-' --------------------------------------------- '
-Public Function SortDictionary(ByVal Dict As Dictionary, SortByKey As Boolean, _
-    Optional Descending As Boolean = False, Optional CompareMode As VbCompareMethod = vbTextCompare) As Dictionary
-    
-    Set SortDictionary = Dict
+    Set FilterDictionary = Filtered
 End Function
 
 ''
@@ -685,32 +651,11 @@ End Function
 ' @return {Boolean}
 ' --------------------------------------------- '
 Public Function IsArray(Obj As Variant) As Boolean
-    If Not IsEmpty(Obj) Then
-        If IsObject(Obj) Then
-            If TypeOf Obj Is Collection Then
-                IsArray = True
-            End If
-        ElseIf VarType(Obj) = vbArray Or VarType(Obj) = 8204 Then
-            ' VarType = 8204 seems to arise from Array(...) constructor
-            IsArray = True
-        End If
-    End If
+    Select Case VarType(Obj)
+    Case VBA.vbArray To VBA.vbArray + VBA.vbByte
+        IsArray = True
+    End Select
 End Function
-
-''
-' Add or update key/value in dictionary
-'
-' @param {Dictionary} Dict
-' @param {String} Key
-' @param {Variant} Value
-' --------------------------------------------- '
-Public Sub AddToDictionary(ByRef Dict As Dictionary, Key As String, Value As Variant)
-    If Not Dict.Exists(Key) Then
-        Dict.Add Key, Value
-    Else
-        Dict(Key) = Value
-    End If
-End Sub
 
 ''
 ' Clone dictionary
@@ -726,6 +671,53 @@ Public Function CloneDictionary(Dict As Dictionary) As Dictionary
     Next Key
 End Function
 
+''
+' Clone collection
+'
+' Note: Keys are not transferred to clone
+'
+' @param {Collection} Coll
+' @return {Collection}
+' --------------------------------------------- '
+Public Function CloneCollection(Coll As Collection) As Collection
+    Set CloneCollection = New Collection
+    Dim Item As Variant
+    For Each Item In Coll
+        CloneCollection.Add Item
+    Next Item
+End Function
+
+''
+' Helper for creating key-value Dictionary for collection
+'
+' @param {String} Key
+' @param {Variant} Value
+' @return {Dictionary}
+' --------------------------------------------- '
+Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
+    Dim KeyValue As New Dictionary
+    KeyValue("Key") = Key
+    KeyValue("Value") = Value
+    Set CreateKeyValue = KeyValue
+End Function
+
+''
+' Helper for finding key-value in Collection of key-value
+'
+' @param {Collection} KeyValues
+' @param {String} Key to find
+' @return {Variant}
+' --------------------------------------------- '
+Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Variant
+    Dim KeyValue As Dictionary
+    For Each KeyValue In KeyValues
+        If KeyValue("Key") = Key Then
+            FindInKeyValues = KeyValue("Value")
+            Exit Function
+        End If
+    Next KeyValue
+End Function
+
 ' ============================================= '
 ' 5. Request preparation / handling
 ' ============================================= '
@@ -737,25 +729,25 @@ End Function
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
 Public Sub SetHeadersForHttp(ByRef Http As Object, Request As RestRequest)
-    Dim HeaderKey As Variant
-    For Each HeaderKey In Request.Headers.Keys()
-        Http.setRequestHeader HeaderKey, Request.Headers(HeaderKey)
-    Next HeaderKey
+    Dim HeaderKeyValue As Dictionary
+    For Each HeaderKeyValue In Request.Headers
+        Http.setRequestHeader HeaderKeyValue("Key"), HeaderKeyValue("Value")
+    Next HeaderKeyValue
     
-    Dim CookieKey As Variant
-    For Each CookieKey In Request.Cookies.Keys()
-        Http.setRequestHeader "Cookie", CookieKey & "=" & Request.Cookies(CookieKey)
-    Next CookieKey
+    Dim CookieKeyValue As Dictionary
+    For Each CookieKeyValue In Request.Cookies
+        Http.setRequestHeader "Cookie", CookieKeyValue("Key") & "=" & CookieKeyValue("Value")
+    Next CookieKeyValue
 End Sub
 
 ''
 ' Create simple response
 '
-' @param {StatusCodes} StatusCode
+' @param {WebStatusCode} StatusCode
 ' @param {String} StatusDescription
 ' @return {RestResponse}
 ' --------------------------------------------- '
-Public Function CreateResponse(StatusCode As StatusCodes, StatusDescription As String) As RestResponse
+Public Function CreateResponse(StatusCode As WebStatusCode, StatusDescription As String) As RestResponse
     Set CreateResponse = New RestResponse
     CreateResponse.StatusCode = StatusCode
     CreateResponse.StatusDescription = StatusDescription
@@ -765,10 +757,10 @@ End Function
 ' Create response for http
 '
 ' @param {WinHttpRequest} Http
-' @param {AvailableFormats} [Format=json]
+' @param {WebFormat} [Format=json]
 ' @return {RestResponse}
 ' --------------------------------------------- '
-Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As WebFormat = WebFormat.json) As RestResponse
     Set CreateResponseFromHttp = New RestResponse
     
     CreateResponseFromHttp.StatusCode = Http.Status
@@ -777,7 +769,7 @@ Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As 
     CreateResponseFromHttp.Content = Http.ResponseText
     
     ' Convert content to data by format
-    If Format <> AvailableFormats.plaintext Then
+    If Format <> WebFormat.plaintext Then
         On Error Resume Next
         Set CreateResponseFromHttp.Data = RestHelpers.ParseByFormat(Http.ResponseText, Format)
         On Error GoTo 0
@@ -799,7 +791,7 @@ End Function
 ' @param {String} Raw result from cURL
 ' @return {RestResponse}
 ' --------------------------------------------- '
-Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As AvailableFormats = AvailableFormats.json) As RestResponse
+Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As WebFormat = WebFormat.json) As RestResponse
     Dim StatusCode As Long
     Dim StatusText As String
     Dim Headers As String
@@ -813,7 +805,7 @@ Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As
         ' 7 - CURLE_COULDNT_CONNECT
         ' 28 - CURLE_OPERATION_TIMEDOUT
         If ErrorNumber = 7 Or ErrorNumber = 28 Then
-            Set CreateResponseFromCURL = CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+            Set CreateResponseFromCURL = CreateResponse(WebStatusCode.RequestTimeout, "Request Timeout")
         Else
             LogError "cURL Error: " & ErrorNumber, "RestHelpers.CreateResponseFromCURL"
         End If
@@ -875,7 +867,7 @@ Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As
     CreateResponseFromCURL.Content = ResponseText
     
     ' Convert content to data by format
-    If Format <> AvailableFormats.plaintext Then
+    If Format <> WebFormat.plaintext Then
         On Error Resume Next
         Set CreateResponseFromCURL.Data = RestHelpers.ParseByFormat(CreateResponseFromCURL.Content, Format)
         On Error GoTo 0
@@ -921,11 +913,12 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
             End If
             
             If Not Multiline Then
-                Set Header = New Dictionary
-                Header.Add "key", Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1))
-                Header.Add "value", Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i))))
+                Set Header = CreateKeyValue( _
+                    Key:=Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1)), _
+                    Value:=Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i)))) _
+                )
             Else
-                Header("value") = Header("value") & vbCrLf & Lines(i)
+                Header("Value") = Header("Value") & vbCrLf & Lines(i)
             End If
         End If
     Next i
@@ -937,18 +930,18 @@ End Function
 ' Extract cookies from response headers
 '
 ' @param {Collection} Headers
-' @return {Dictionary} Cookies
+' @return {Collection} Cookies
 ' --------------------------------------------- '
-Public Function ExtractCookies(Headers As Collection) As Dictionary
-    Dim Cookies As New Dictionary
+Public Function ExtractCookies(Headers As Collection) As Collection
+    Dim Cookies As New Collection
     Dim Cookie As String
     Dim Key As String
     Dim Value As String
     Dim Header As Dictionary
     
     For Each Header In Headers
-        If Header("key") = "Set-Cookie" Then
-            Cookie = Header("value")
+        If Header("Key") = "Set-Cookie" Then
+            Cookie = Header("Value")
             Key = Mid$(Cookie, 1, InStr(1, Cookie, "=") - 1)
             Value = Mid$(Cookie, InStr(1, Cookie, "=") + 1, Len(Cookie))
             
@@ -956,11 +949,7 @@ Public Function ExtractCookies(Headers As Collection) As Dictionary
                 Value = Mid$(Value, 1, InStr(1, Value, ";") - 1)
             End If
             
-            If Cookies.Exists(Key) Then
-                Cookies(Key) = UrlDecode(Value)
-            Else
-                Cookies.Add Key, UrlDecode(Value)
-            End If
+            Cookies.Add CreateKeyValue(Key, UrlDecode(Value))
         End If
     Next Header
     
@@ -1024,40 +1013,42 @@ Public Function UpdateResponse(ByRef Original As RestResponse, Updated As RestRe
 End Function
 
 ''
-' Get name for format
+' Get content-type for format
 '
-' @param {AvailableFormats} Format
+' @param {WebFormat} Format
 ' @return {String}
 ' --------------------------------------------- '
-Public Function FormatToName(Format As AvailableFormats) As String
+Public Function FormatToContentType(Format As WebFormat) As String
     Select Case Format
-    Case AvailableFormats.formurlencoded
-        FormatToName = "form-urlencoded"
-    Case AvailableFormats.json
-        FormatToName = "json"
-    Case AvailableFormats.xml
-        FormatToName = "xml"
-    Case AvailableFormats.plaintext
-        FormatToName = "txt"
+    Case WebFormat.formurlencoded
+        FormatToContentType = "application/x-www-form-urlencoded;charset=UTF-8"
+    Case WebFormat.json
+        FormatToContentType = "application/json"
+    Case WebFormat.xml
+        FormatToContentType = "application/xml"
+    Case WebFormat.plaintext
+        FormatToContentType = "text/plain"
     End Select
 End Function
 
 ''
-' Get content-type for format
+' Get name for method
 '
-' @param {AvailableFormats} Format
+' @param {} Method
 ' @return {String}
 ' --------------------------------------------- '
-Public Function FormatToContentType(Format As AvailableFormats) As String
-    Select Case Format
-    Case AvailableFormats.formurlencoded
-        FormatToContentType = "application/x-www-form-urlencoded;charset=UTF-8"
-    Case AvailableFormats.json
-        FormatToContentType = "application/json"
-    Case AvailableFormats.xml
-        FormatToContentType = "application/xml"
-    Case AvailableFormats.plaintext
-        FormatToContentType = "text/plain"
+Public Function MethodToName(Method As WebMethod) As String
+    Select Case Method
+    Case WebMethod.httpDELETE
+        MethodToName = "DELETE"
+    Case WebMethod.httpPUT
+        MethodToName = "PUT"
+    Case WebMethod.httpPATCH
+        MethodToName = "PATCH"
+    Case WebMethod.httpPOST
+        MethodToName = "POST"
+    Case WebMethod.httpGET
+        MethodToName = "GET"
     End Select
 End Function
 
@@ -1141,7 +1132,7 @@ Public Sub TimeoutTimerExpired(RequestId As String)
     If Not AsyncWrapper Is Nothing Then
         StopTimeoutTimer AsyncWrapper
         
-        LogDebug "Async Timeout: " & AsyncWrapper.Request.FullUrl, "RestHelpers.TimeoutTimerExpired"
+        LogDebug "Async Timeout: " & AsyncWrapper.Request.FormattedResource, "RestHelpers.TimeoutTimerExpired"
         AsyncWrapper.TimedOut
     End If
 End Sub
@@ -1204,8 +1195,8 @@ Public Function PrepareTextForShell(ByVal Text As String) As String
     PrepareTextForShell = Text
 End Function
 
-
 #End If
+
 ' ============================================= '
 ' 8. Cryptography
 ' ============================================= '
@@ -1220,7 +1211,23 @@ End Function
 ' @return {String} HMAC-SHA1
 ' --------------------------------------------- '
 Public Function HMACSHA1(Text As String, Secret As String, Optional Format As String = "Hex") As String
-    HMACSHA1 = BytesToFormat(HMACSHA1AsBytes(Text, Secret), Format)
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
+    HMACSHA1 = ExecuteInShell(Command).Output
+#Else
+    Dim Crypto As Object
+    Dim Bytes() As Byte
+    
+    Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
+    Crypto.Key = StringToANSIBytes(Secret)
+    Bytes = Crypto.ComputeHash_2(StringToANSIBytes(Text))
+    HMACSHA1 = ANSIBytesToHex(Bytes)
+#End If
+
+    If Format = "Base64" Then
+        HMACSHA1 = HexToBase64(HMACSHA1)
+    End If
 End Function
 
 ''
@@ -1232,7 +1239,23 @@ End Function
 ' @return {String} HMAC-SHA256
 ' --------------------------------------------- '
 Public Function HMACSHA256(Text As String, Secret As String, Optional Format As String = "Hex") As String
-    HMACSHA256 = BytesToFormat(HMACSHA256AsBytes(Text, Secret), Format)
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
+    HMACSHA256 = ExecuteInShell(Command).Output
+#Else
+    Dim Crypto As Object
+    Dim Bytes() As Byte
+    
+    Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
+    Crypto.Key = StringToANSIBytes(Secret)
+    Bytes = Crypto.ComputeHash_2(StringToBytes(Text))
+    HMACSHA256 = ANSIBytesToHex(Bytes)
+#End If
+
+    If Format = "Base64" Then
+        HMACSHA256 = HexToBase64(HMACSHA256)
+    End If
 End Function
 
 ''
@@ -1244,125 +1267,22 @@ End Function
 ' @return {String} MD5 Hash
 ' --------------------------------------------- '
 Public Function MD5(Text As String, Optional Format As String = "Hex") As String
-    MD5 = BytesToFormat(MD5AsBytes(Text), Format)
-End Function
-
-
-Public Function HMACSHA1AsBytes(Text As String, Secret As String) As Byte()
-#If Mac Then
-    Dim Command As String
-    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA1AsBytes = HexToBytes(ExecuteInShell(Command).Output)
-#Else
-    Dim Crypto As Object
-    Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
-    
-    Crypto.Key = StringToBytes(Secret)
-    HMACSHA1AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
-#End If
-End Function
-
-Public Function HMACSHA256AsBytes(Text As String, Secret As String) As Byte()
-#If Mac Then
-    Dim Command As String
-    Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA256AsBytes = HexToBytes(ExecuteInShell(Command).Output)
-#Else
-    Dim Crypto As Object
-    Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
-    
-    Crypto.Key = StringToBytes(Secret)
-    HMACSHA256AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
-#End If
-End Function
-
-Public Function MD5AsBytes(Text As String) As Byte()
 #If Mac Then
     Dim Command As String
     Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
-    MD5AsBytes = HexToBytes(ExecuteInShell(Command).Output)
+    MD5 = HexToBytes(ExecuteInShell(Command).Output)
 #Else
     Dim Crypto As Object
-    Set Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
-    
-    MD5AsBytes = Crypto.ComputeHash_2(StringToBytes(Text))
-#End If
-End Function
-
-''
-' Convert string to bytes
-'
-' @param {String} Text
-' @return {Byte()}
-' --------------------------------------------- '
-Public Function StringToBytes(Text As String) As Byte()
-    StringToBytes = StrConv(Text, vbFromUnicode)
-End Function
-
-Public Function BytesToString(Bytes() As Byte) As String
-    BytesToString = StrConv(Bytes, vbUnicode)
-End Function
-
-Public Function BytesToHex(Bytes() As Byte) As String
-    Dim i As Integer
-    For i = LBound(Bytes) To UBound(Bytes)
-        BytesToHex = BytesToHex & LCase(Right("0" & Hex$(Bytes(i)), 2))
-    Next i
-End Function
-
-Public Function HexToBytes(Hex As String) As Byte()
     Dim Bytes() As Byte
-    Dim HexIndex As Integer
-    Dim ByteIndex As Integer
     
-    ' Remove linefeeds
-    Hex = Replace(Hex, vbLf, "")
-    
-    ReDim Bytes(Len(Hex) / 2 - 1)
-    ByteIndex = 0
-    For HexIndex = 1 To Len(Hex) Step 2
-        Bytes(ByteIndex) = CLng("&H" & Mid$(Hex, HexIndex, 2))
-        ByteIndex = ByteIndex + 1
-    Next HexIndex
-    
-    HexToBytes = Bytes
-End Function
-
-Public Function BytesToBase64(Bytes() As Byte) As String
-#If Mac Then
-    Dim Command As String
-    Command = "printf " & PrepareTextForShell(BytesToString(Bytes)) & " | openssl base64"
-    BytesToBase64 = ExecuteInShell(Command).Output
-#Else
-    Dim xml As Object
-    Dim Node As Object
-    Set xml = CreateObject("MSXML2.DOMDocument")
-
-    ' byte array to base64
-    Set Node = xml.createElement("b64")
-    Node.DataType = "bin.base64"
-    Node.nodeTypedValue = Bytes
-    BytesToBase64 = Node.Text
-
-    Set Node = Nothing
-    Set xml = Nothing
+    Set Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
+    Bytes = Crypto.ComputeHash_2(StringToANSIBytes(Text))
+    MD5 = ANSIBytesToHex(Bytes)
 #End If
-End Function
 
-''
-' Convert bytes to given format (Hex or Base64)
-'
-' @param {Byte()} Bytes
-' @param {String} Format (Hex or Base64)
-' @return {String}
-' --------------------------------------------- '
-Public Function BytesToFormat(Bytes() As Byte, Format As String) As String
-    Select Case UCase(Format)
-    Case "HEX"
-        BytesToFormat = BytesToHex(Bytes)
-    Case "BASE64"
-        BytesToFormat = BytesToBase64(Bytes)
-    End Select
+    If Format = "Base64" Then
+        MD5 = HexToBase64(MD5)
+    End If
 End Function
 
 ''
@@ -1385,6 +1305,120 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
         Result = Result + Mid$(Str, random, 1)
     Next
     CreateNonce = Result
+End Function
+
+Private Function StringToANSIBytes(Text As String) As Byte()
+    Dim Bytes() As Byte
+    Dim ANSIBytes() As Byte
+    Dim ByteIndex As Long
+    Dim ANSIIndex As Long
+    
+    ' Take first byte from unicode bytes
+    Bytes = Text
+    ReDim ANSIBytes(Int(UBound(Bytes) / 2))
+    
+    ANSIIndex = LBound(Bytes)
+    For ByteIndex = LBound(Bytes) To UBound(Bytes) Step 2
+        ANSIBytes(ANSIIndex) = Bytes(ByteIndex)
+        ANSIIndex = ANSIIndex + 1
+    Next ByteIndex
+    
+    StringToANSIBytes = ANSIBytes
+End Function
+
+Private Function ANSIBytesToString(Bytes() As Byte) As String
+    Dim i As Long
+    For i = LBound(Bytes) To UBound(Bytes)
+        ANSIBytesToString = ANSIBytesToString & VBA.Chr$(Bytes(i))
+    Next i
+End Function
+
+Private Function HexToANSIBytes(Hex As String) As Byte()
+    Dim Bytes() As Byte
+    Dim HexIndex As Integer
+    Dim ByteIndex As Integer
+
+    ' Remove linefeeds
+    Hex = VBA.Replace(Hex, vbLf, "")
+
+    ReDim Bytes(VBA.Len(Hex) / 2 - 1)
+    ByteIndex = 0
+    For HexIndex = 1 To Len(Hex) Step 2
+        Bytes(ByteIndex) = VBA.CLng("&H" & VBA.Mid$(Hex, HexIndex, 2))
+        ByteIndex = ByteIndex + 1
+    Next HexIndex
+    
+    HexToANSIBytes = Bytes
+End Function
+
+Private Function ANSIBytesToHex(Bytes() As Byte)
+    Dim i As Long
+    For i = LBound(Bytes) To UBound(Bytes)
+        ANSIBytesToHex = ANSIBytesToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(Bytes(i)), 2))
+    Next i
+End Function
+
+Private Function StringToHex(ByVal Text As String) As String
+    ' Convert single-byte character to hex
+    ' (May need better international handling in the future)
+    Dim Bytes() As Byte
+    Dim i As Integer
+    
+    Bytes = StringToANSIBytes(Text)
+    For i = LBound(Bytes) To UBound(Bytes)
+        StringToHex = StringToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(Bytes(i)), 2))
+    Next i
+End Function
+
+Private Function StringToBase64(ByVal Text As String) As String
+#If Mac Then
+    Dim Command As String
+    Command = "printf " & PrepareTextForShell(Text) & " | openssl base64"
+    HexToBase64 = ExecuteInShell(Command).Output
+#Else
+    ' Use XML to convert to Base64
+    ' but XML requires bytes, so convert to bytes first
+    Dim xml As Object
+    Dim Node As Object
+    Set xml = CreateObject("MSXML2.DOMDocument")
+    
+    Set Node = xml.createElement("b64")
+    Node.DataType = "bin.base64"
+    Node.nodeTypedValue = StringToANSIBytes(Text)
+    StringToBase64 = Node.Text
+
+    Set Node = Nothing
+    Set xml = Nothing
+#End If
+End Function
+
+Private Function HexToBase64(ByVal Hex As String) As String
+    HexToBase64 = StringToBase64(ANSIBytesToString(HexToANSIBytes(Hex)))
+End Function
+
+' ============================================= '
+' 9. Converters
+' ============================================= '
+
+''
+' Helper for url-encoded to create key=value pair
+'
+' @param {Variant} Key
+' @param {Variant} Value
+' @return {String}
+' --------------------------------------------- '
+Private Function GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
+    ' Convert boolean to lowercase
+    If VarType(Value) = VBA.vbBoolean Then
+        If Value Then
+            Value = "true"
+        Else
+            Value = "false"
+        End If
+    End If
+    
+    ' Url encode key and value (using + for spaces)
+    GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
 End Function
 
 ''
@@ -1885,7 +1919,7 @@ Private Function JSON_StringIsLargeNumber(JSON_String As Variant) As Boolean
         JSON_StringIsLargeNumber = True
         
         For i = 1 To JSON_Length
-            JSON_CharCode = VBA.Asc(VBA.Mid$(JSON_String, i, 1))
+            JSON_CharCode = VBA.asc(VBA.Mid$(JSON_String, i, 1))
             Select Case JSON_CharCode
             ' Look for .|0-9|E|e
             Case 46, 48 To 57, 69, 101

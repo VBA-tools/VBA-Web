@@ -119,7 +119,7 @@ Private Function TokenRequest() As RestRequest
         "Basic " & RestHelpers.Base64Encode(Me.ConsumerKey & ":" & Me.ConsumerSecret)
 
     ' 2. Include grant_type in body
-    TokenRequest.AddBodyString "grant_type=client_credentials"
+    TokenRequest.Body = "grant_type=client_credentials"
 
     ' 3. Set content-type as form-urlencoded
     TokenRequest.ContentType = "application/x-www-form-urlencoded;charset=UTF-8"

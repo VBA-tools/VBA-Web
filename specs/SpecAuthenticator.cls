@@ -44,7 +44,7 @@ End Sub
 Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
     ' It should:
     ' Add parameter, header, cookie, content-type
-    Request.AddParameter "auth_parameter", "auth"
+    Request.AddBodyParameter "auth_parameter", "auth"
     Request.AddQuerystringParam "auth_query", "auth"
     Request.AddHeader "Content-Type", "text/plain"
     Request.AddHeader "X-Custom-A", "auth"

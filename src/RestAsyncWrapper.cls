@@ -87,8 +87,7 @@ Public Sub PrepareAndExecuteRequest(Request As RestRequest, Callback As String, 
     Me.Callback = Callback
     Me.CallbackArgs = CallbackArgs
     
-    Set Request = Me.Client.PrepareRequest(Request)
-    Set Me.Request = Request
+    Set Me.Request = Request.Clone
     Set Me.Http = Me.Client.PrepareHttpRequest(Request)
 
     StartTimeoutTimer
@@ -110,7 +109,7 @@ End Sub
 Public Sub TimedOut()
     ' Callback
     RestHelpers.LogDebug "Timed out", "RestAsyncWrapper.TimedOut"
-    RunCallback RestHelpers.CreateResponse(StatusCodes.RequestTimeout, "Request Timeout")
+    RunCallback RestHelpers.CreateResponse(WebStatusCode.RequestTimeout, "Request Timeout")
 End Sub
 
 ' ============================================= '

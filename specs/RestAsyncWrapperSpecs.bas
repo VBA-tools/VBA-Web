@@ -132,8 +132,8 @@ Public Function Specs() As SpecSuite
             Dim Header As Dictionary
             Dim CustomValue As String
             For Each Header In AsyncResponse.Headers
-                If Header("key") = "X-Custom" Then
-                    CustomValue = Header("value")
+                If Header("Key") = "X-Custom" Then
+                    CustomValue = Header("Value")
                 End If
             Next Header
             

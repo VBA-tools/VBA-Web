@@ -60,11 +60,11 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "post"
         Request.Method = httpPOST
-        Request.AddParameter "a", "1"
-        Request.AddParameter "b", 2
-        Request.AddParameter "c", 3.14
-        Request.AddParameter "d", False
-        Request.AddParameter "e", Array(1)
+        Request.AddBodyParameter "a", "1"
+        Request.AddBodyParameter "b", 2
+        Request.AddBodyParameter "c", 3.14
+        Request.AddBodyParameter "d", False
+        Request.AddBodyParameter "e", Array(1)
         
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
@@ -104,7 +104,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "post"
         Request.Method = httpPOST
         Request.ContentType = "text/plain"
-        Request.AddBodyString "Howdy!"
+        Request.Body = "Howdy!"
 
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
@@ -116,7 +116,7 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "post"
         Request.Method = httpPOST
-        Request.AddBody Body
+        Set Request.Body = Body
 
         Set Response = Client.Execute(Request)
         .Expect(Response.Data).ToNotBeUndefined
@@ -164,27 +164,45 @@ Public Function Specs() As SpecSuite
 
     With Specs.It("should include options with GET and POST json")
         Set Options = New Dictionary
-        Options.Add "Headers", New Dictionary
-        Options("Headers").Add "Custom", "value"
+        Options.Add "Headers", New Collection
+        Options("Headers").Add RestHelpers.CreateKeyValue("Custom", "value")
         Set Response = Client.GetJSON("/get", Options)
 
         .Expect(Response.Data).ToNotBeUndefined
         .Expect(Response.Data("headers")("Custom")).ToEqual "value"
     End With
+    
+    With Specs.It("should automatically add slash between base and resource")
+        Set Request = New RestRequest
+    
+        Client.BaseUrl = "https://facebook.com/api"
+        Request.Resource = "status"
+        .Expect(Client.GetFullUrl(Request.FormattedResource)).ToEqual "https://facebook.com/api/status"
+    
+        Client.BaseUrl = "https://facebook.com/api"
+        Request.Resource = "/status"
+        .Expect(Client.GetFullUrl(Request.FormattedResource)).ToEqual "https://facebook.com/api/status"
+    
+        Client.BaseUrl = "https://facebook.com/api/"
+        Request.Resource = "status"
+        .Expect(Client.GetFullUrl(Request.FormattedResource)).ToEqual "https://facebook.com/api/status"
 
-    With Specs.It("should add content-length header (if enabled)")
+        Client.BaseUrl = "https://facebook.com/api/"
+        Request.Resource = "/status"
+        .Expect(Client.GetFullUrl(Request.FormattedResource)).ToEqual "https://facebook.com/api/status"
+        
+        Client.BaseUrl = BaseUrl
+    End With
+    
+    With Specs.It("should add content-length header")
         Set Request = New RestRequest
         Request.Resource = "post"
         Request.Method = httpPOST
         Request.ContentType = "text/plain"
-        Request.AddBodyString "Howdy!"
+        Request.Body = "Howdy!"
 
         Set Response = Client.Execute(Request)
-        .Expect(Request.Headers("Content-Length")).ToEqual "6"
-
-        Request.IncludeContentLength = False
-        Set Response = Client.Execute(Request)
-        .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
+        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "6"
 
         Set Request = New RestRequest
         Request.Resource = "post"
@@ -192,14 +210,10 @@ Public Function Specs() As SpecSuite
 
         Set Body = New Dictionary
         Body.Add "a", 3.14
-        Request.AddBody Body
+        Set Request.Body = Body
 
         Set Response = Client.Execute(Request)
-        .Expect(Request.Headers("Content-Length")).ToEqual "10"
-
-        Request.IncludeContentLength = False
-        Set Response = Client.Execute(Request)
-        .Expect(Request.Headers.Exists("Content-Length")).ToEqual False
+        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "10"
     End With
 
     With Specs.It("should include binary body in response")
@@ -229,8 +243,8 @@ Public Function Specs() As SpecSuite
         Dim Header As Dictionary
         Dim CustomValue As String
         For Each Header In Response.Headers
-            If Header("key") = "X-Custom" Then
-                CustomValue = Header("value")
+            If Header("Key") = "X-Custom" Then
+                CustomValue = Header("Value")
             End If
         Next Header
         
@@ -272,11 +286,11 @@ Public Function Specs() As SpecSuite
         Set Request = New RestRequest
         Request.Resource = "post"
 
-        Request.AddParameter "a", 123
-        Request.AddParameter "b", 456
-        Request.RequestFormat = AvailableFormats.formurlencoded
-        Request.ResponseFormat = AvailableFormats.json
-        Request.Method = httpPOST
+        Request.AddBodyParameter "a", 123
+        Request.AddBodyParameter "b", 456
+        Request.RequestFormat = WebFormat.formurlencoded
+        Request.ResponseFormat = WebFormat.json
+        Request.Method = WebMethod.httpPOST
 
         Set Response = Client.Execute(Request)
 
@@ -289,14 +303,14 @@ Public Function Specs() As SpecSuite
     With Specs.It("should convert and parse json")
         Set Request = New RestRequest
         Request.Resource = "post"
-        Request.Format = json
-        Request.Method = httpPOST
+        Request.Format = WebFormat.json
+        Request.Method = WebMethod.httpPOST
 
         Set Body = New Dictionary
         Body.Add "a", "1"
         Body.Add "b", 2
         Body.Add "c", 3.14
-        Request.AddBody Body
+        Set Request.Body = Body
 
         Set Response = Client.Execute(Request)
 
@@ -323,7 +337,7 @@ Public Function Specs() As SpecSuite
         Set XMLBody = CreateObject("MSXML2.DOMDocument")
         XMLBody.Async = False
         XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
-        Request.AddBody XMLBody
+        Set Request.Body = XMLBody
         .Expect(Request.Body).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
     End With
 #End If
@@ -334,7 +348,7 @@ Public Function Specs() As SpecSuite
         Request.Format = plaintext
         Request.Method = httpPOST
 
-        Request.AddBody "Hello?"
+        Request.Body = "Hello?"
         Set Response = Client.Execute(Request)
 
         .Expect(Request.Body).ToEqual "Hello?"
@@ -357,8 +371,8 @@ Public Function Specs() As SpecSuite
         Request.Resource = "text"
         Request.AddQuerystringParam "type", "message"
         Request.Method = httpPOST
-        Request.RequestFormat = AvailableFormats.plaintext
-        Request.ResponseFormat = AvailableFormats.json
+        Request.RequestFormat = WebFormat.plaintext
+        Request.ResponseFormat = WebFormat.json
         Request.AddBodyString "Howdy!"
         Request.AddHeader "custom", "Howdy!"
         Request.AddCookie "test-cookie", "howdy"
