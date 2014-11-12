@@ -95,7 +95,7 @@ End Sub
 
 Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
     If Response.StatusCode = 401 And Not Me.IsAuthenticated Then
-        RestHelpers.LogDebug "Extract Authenticate and retry 401 request " & Request.FullUrl(Client.BaseUrl), "Digest.AfterExecute"
+        RestHelpers.LogDebug "Extract Authenticate and retry 401 request " & Client.GetFullUrl(Request.FormattedResource), "Digest.AfterExecute"
         ExtractAuthenticateInformation Response
         
         Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -105,7 +105,7 @@ End Sub
 
 Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
     Dim Uri As String
-    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Path")
+    Uri = RestHelpers.UrlParts(Client.GetFullUrl(Request.FormattedResource))("Path")
 
     CreateHeader = "Digest" & _
         " username=""" & Me.Username & """" & _
@@ -125,10 +125,10 @@ Public Function CalculateResponse(Client As RestClient, Request As RestRequest) 
     Dim HA1 As String
     Dim HA2 As String
     Dim Uri As String
-    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Path")
+    Uri = RestHelpers.UrlParts(Client.GetFullUrl(Request.FormattedResource))("Path")
     
     HA1 = CalculateHA1
-    HA2 = CalculateHA2(Request.MethodName, Uri)
+    HA2 = CalculateHA2(RestHelpers.MethodToName(Request.Method), Uri)
     
     CalculateResponse = RestHelpers.MD5(HA1 & ":" & Me.ServerNonce & ":" & FormattedRequestCount & ":" & Me.ClientNonce & ":" & qop & ":" & HA2)
 End Function

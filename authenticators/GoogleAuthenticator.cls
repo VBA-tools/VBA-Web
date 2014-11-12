@@ -332,14 +332,16 @@ End Sub
 Private Function TokenRequest() As RestRequest
     Set TokenRequest = New RestRequest
     TokenRequest.Resource = "o/oauth2/token"
-    TokenRequest.Method = AvailableMethods.httpPOST
-    TokenRequest.Format = AvailableFormats.formurlencoded
+    TokenRequest.Method = WebMethod.httpPOST
+    TokenRequest.Format = WebFormat.formurlencoded
     
-    TokenRequest.AddParameter "code", Me.AuthorizationCode
-    TokenRequest.AddParameter "client_id", Me.ClientId
-    TokenRequest.AddParameter "client_secret", Me.ClientSecret
-    TokenRequest.AddParameter "redirect_uri", RedirectUri
-    TokenRequest.AddParameter "grant_type", "authorization_code"
+    Dim Body As New Dictionary
+    Body.Add "code", Me.AuthorizationCode
+    Body.Add "client_id", Me.ClientId
+    Body.Add "client_secret", Me.ClientSecret
+    Body.Add "redirect_uri", RedirectUri
+    Body.Add "grant_type", "authorization_code"
+    Set TokenRequest.Body = Body
 End Function
 
 Private Function OAuthIsComplete(IE As Object) As Boolean

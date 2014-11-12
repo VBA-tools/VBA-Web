@@ -31,7 +31,7 @@ Public Function Specs() As SpecSuite
 
         Set Request = New RestRequest
         Request.Resource = "post"
-        Request.AddParameter "request_parameter", "request"
+        Request.AddBodyParameter "request_parameter", "request"
         Request.Method = httpPOST
 
         Set Response = Client.Execute(Request)

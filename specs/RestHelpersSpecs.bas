@@ -24,12 +24,11 @@ Public Function Specs() As SpecSuite
     ' 7. Cryptography
     ' --------------------------------------------- '
     
-    Dim json As String
+    Dim JSONString As String
     Dim Parsed As Object
     Dim Obj As Object
     Dim Coll As Collection
     Dim A As Dictionary
-    Dim B As Dictionary
     Dim Combined As Dictionary
     Dim Whitelist As Variant
     Dim Filtered As Dictionary
@@ -37,7 +36,7 @@ Public Function Specs() As SpecSuite
     Dim Parts As Dictionary
     Dim ResponseHeaders As String
     Dim Headers As Collection
-    Dim Cookies As Dictionary
+    Dim Cookies As Collection
     Dim Options As Dictionary
     Dim Request As RestRequest
     Dim Response As RestResponse
@@ -49,8 +48,8 @@ Public Function Specs() As SpecSuite
     ' ============================================= '
     
     With Specs.It("should parse json")
-        json = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
-        Set Parsed = RestHelpers.ParseJSON(json)
+        JSONString = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
+        Set Parsed = RestHelpers.ParseJSON(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -61,8 +60,8 @@ Public Function Specs() As SpecSuite
             .Expect(Parsed("e").Count).ToEqual 2
         End If
         
-        json = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
-        Set Parsed = RestHelpers.ParseJSON(json)
+        JSONString = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
+        Set Parsed = RestHelpers.ParseJSON(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -76,8 +75,8 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should overwrite parsed json for duplicate keys")
-        json = "{""a"":1,""a"":2,""a"":3}"
-        Set Parsed = RestHelpers.ParseJSON(json)
+        JSONString = "{""a"":1,""a"":2,""a"":3}"
+        Set Parsed = RestHelpers.ParseJSON(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -86,8 +85,8 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should parse json numbers")
-        json = "{""a"":1,""b"":1.23,""c"":14.6000000000,""d"":14.6e6,""e"":14.6E6,""f"":100000000000000}"
-        Set Parsed = RestHelpers.ParseJSON(json)
+        JSONString = "{""a"":1,""b"":1.23,""c"":14.6000000000,""d"":14.6e6,""e"":14.6E6,""f"":100000000000000}"
+        Set Parsed = RestHelpers.ParseJSON(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -110,8 +109,8 @@ Public Function Specs() As SpecSuite
         Obj.Add "f", Empty
         Obj.Add "g", Null
         
-        json = RestHelpers.ConvertToJSON(Obj)
-        .Expect(json).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
+        JSONString = RestHelpers.ConvertToJSON(Obj)
+        .Expect(JSONString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
         
         Set Obj = New Dictionary
         Obj.Add "a", "Howdy!"
@@ -126,8 +125,8 @@ Public Function Specs() As SpecSuite
         Coll.Add Empty
         Coll.Add Null
         
-        json = RestHelpers.ConvertToJSON(Coll)
-        .Expect(json).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
+        JSONString = RestHelpers.ConvertToJSON(Coll)
+        .Expect(JSONString).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
     End With
     
     With Specs.It("should url encode values")
@@ -147,18 +146,16 @@ Public Function Specs() As SpecSuite
         .Expect(RestHelpers.Base64Encode("Howdy!")).ToEqual "SG93ZHkh"
     End With
     
-    With Specs.It("should combine and convert parameters to url-encoded string")
+    With Specs.It("should convert to url-encoded string")
         Set A = New Dictionary
-        Set B = New Dictionary
         
         A.Add "a", 1
         A.Add "b", 3.14
-        B.Add "b", 4.14
-        B.Add "c", "Howdy!"
-        B.Add "d & e", "A + B"
+        A.Add "c", "Howdy!"
+        A.Add "d & e", "A + B"
         
-        Encoded = RestHelpers.ConvertToUrlEncoded(RestHelpers.CombineObjects(A, B))
-        .Expect(Encoded).ToEqual "a=1&b=4.14&c=Howdy!&d+%26+e=A+%2B+B"
+        Encoded = RestHelpers.ConvertToUrlEncoded(A)
+        .Expect(Encoded).ToEqual "a=1&b=3.14&c=Howdy!&d+%26+e=A+%2B+B"
     End With
     
     With Specs.It("should parse url-encoded string")
@@ -205,24 +202,6 @@ Public Function Specs() As SpecSuite
         .Expect(RestHelpers.JoinUrl("a", "")).ToEqual "a"
     End With
     
-    With Specs.It("should identify protocols")
-        .Expect(RestHelpers.IncludesProtocol("http://testing.com")).ToEqual "http://"
-        .Expect(RestHelpers.IncludesProtocol("https://testing.com")).ToEqual "https://"
-        .Expect(RestHelpers.IncludesProtocol("ftp://testing.com")).ToEqual "ftp://"
-        .Expect(RestHelpers.IncludesProtocol("//testing.com")).ToEqual ""
-        .Expect(RestHelpers.IncludesProtocol("testing.com/http://")).ToEqual ""
-        .Expect(RestHelpers.IncludesProtocol("http://https://testing.com")).ToEqual "http://"
-    End With
-    
-    With Specs.It("should remove protocols")
-        .Expect(RestHelpers.RemoveProtocol("http://testing.com")).ToEqual "testing.com"
-        .Expect(RestHelpers.RemoveProtocol("https://testing.com")).ToEqual "testing.com"
-        .Expect(RestHelpers.RemoveProtocol("ftp://testing.com")).ToEqual "testing.com"
-        .Expect(RestHelpers.RemoveProtocol("htp://testing.com")).ToEqual "testing.com"
-        .Expect(RestHelpers.RemoveProtocol("testing.com/http://")).ToEqual "testing.com/http://"
-        .Expect(RestHelpers.RemoveProtocol("http://https://testing.com")).ToEqual "https://testing.com"
-    End With
-    
     With Specs.It("should extract parts from url")
         Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy%20World!&other=123#hash")
         
@@ -247,7 +226,7 @@ Public Function Specs() As SpecSuite
     ' 4. Object/Dictionary/Collection helpers
     ' ============================================= '
     
-    With Specs.It("should combine objects, with overwrite option")
+    With Specs.It("should combine dictionaries, with overwrite option")
         Set A = New Dictionary
         Set B = New Dictionary
         
@@ -256,18 +235,18 @@ Public Function Specs() As SpecSuite
         B.Add "b", 4.14
         B.Add "c", "Howdy!"
         
-        Set Combined = RestHelpers.CombineObjects(A, B)
+        Set Combined = RestHelpers.CombineDictionaries(A, B)
         .Expect(Combined("a")).ToEqual 1
         .Expect(Combined("b")).ToEqual 4.14
         .Expect(Combined("c")).ToEqual "Howdy!"
         
-        Set Combined = RestHelpers.CombineObjects(A, B, OverwriteOriginal:=False)
+        Set Combined = RestHelpers.CombineDictionaries(A, B, OverwriteOriginal:=False)
         .Expect(Combined("a")).ToEqual 1
         .Expect(Combined("b")).ToEqual 3.14
         .Expect(Combined("c")).ToEqual "Howdy!"
     End With
     
-    With Specs.It("should filter object by whitelist")
+    With Specs.It("should filter dictionary by whitelist")
         Set Obj = New Dictionary
         Obj.Add "a", 1
         Obj.Add "b", 3.14
@@ -275,7 +254,7 @@ Public Function Specs() As SpecSuite
         
         Whitelist = Array("a", "b")
         
-        Set Filtered = RestHelpers.FilterObject(Obj, Whitelist)
+        Set Filtered = RestHelpers.FilterDictionary(Obj, Whitelist)
         .Expect(Obj.Exists("dangerous")).ToEqual True
         .Expect(Filtered.Exists("a")).ToEqual True
         .Expect(Filtered.Exists("b")).ToEqual True
@@ -299,8 +278,8 @@ Public Function Specs() As SpecSuite
             
         Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
         .Expect(Headers.Count).ToEqual 9
-        .Expect(Headers.Item(5)("key")).ToEqual "Set-Cookie"
-        .Expect(Headers.Item(5)("value")).ToEqual "unsigned-cookie=simple-cookie; Path=/"
+        .Expect(Headers.Item(5)("Key")).ToEqual "Set-Cookie"
+        .Expect(Headers.Item(5)("Value")).ToEqual "unsigned-cookie=simple-cookie; Path=/"
     End With
     
     With Specs.It("should extract multi-line headers from response headers")
@@ -316,8 +295,8 @@ Public Function Specs() As SpecSuite
             
         Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
         .Expect(Headers.Count).ToEqual 6
-        .Expect(Headers.Item(3)("key")).ToEqual "WWW-Authenticate"
-        .Expect(Headers.Item(3)("value")).ToEqual "Digest realm=""abc@host.com""" & vbCrLf & _
+        .Expect(Headers.Item(3)("Key")).ToEqual "WWW-Authenticate"
+        .Expect(Headers.Item(3)("Value")).ToEqual "Digest realm=""abc@host.com""" & vbCrLf & _
             "nonce=""abc""" & vbCrLf & _
             "qop=auth" & vbCrLf & _
             "opaque=""abc"""
@@ -336,9 +315,8 @@ Public Function Specs() As SpecSuite
     
         Set Headers = RestHelpers.ExtractHeaders(ResponseHeaders)
         Set Cookies = RestHelpers.ExtractCookies(Headers)
-        .Expect(Cookies.Count).ToEqual 3
-        .Expect(Cookies("unsigned-cookie")).ToEqual "simple-cookie"
-        .Expect(Cookies("duplicate-cookie")).ToEqual "B"
+        .Expect(Cookies.Count).ToEqual 4
+        .Expect(RestHelpers.FindInKeyValues(Cookies, "unsigned-cookie")).ToEqual "simple-cookie"
     End With
     
     With Specs.It("should create request from options")
@@ -349,20 +327,20 @@ Public Function Specs() As SpecSuite
         Set Request = RestHelpers.CreateRequestFromOptions(Options)
         .Expect(Request.Headers.Count).ToEqual 0
         
-        Options.Add "Headers", New Dictionary
-        Options("Headers").Add "HeaderKey", "HeaderValue"
+        Options.Add "Headers", New Collection
+        Options("Headers").Add RestHelpers.CreateKeyValue("HeaderKey", "HeaderValue")
         Set Request = RestHelpers.CreateRequestFromOptions(Options)
-        .Expect(Request.Headers("HeaderKey")).ToEqual "HeaderValue"
+        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "HeaderKey")).ToEqual "HeaderValue"
         
-        Options.Add "Cookies", New Dictionary
-        Options("Cookies").Add "CookieKey", "CookieValue"
+        Options.Add "Cookies", New Collection
+        Options("Cookies").Add RestHelpers.CreateKeyValue("CookieKey", "CookieValue")
         Set Request = RestHelpers.CreateRequestFromOptions(Options)
-        .Expect(Request.Cookies("CookieKey")).ToEqual "CookieValue"
+        .Expect(RestHelpers.FindInKeyValues(Request.Cookies, "CookieKey")).ToEqual "CookieValue"
         
-        Options.Add "QuerystringParams", New Dictionary
-        Options("QuerystringParams").Add "QuerystringKey", "QuerystringValue"
+        Options.Add "QuerystringParams", New Collection
+        Options("QuerystringParams").Add RestHelpers.CreateKeyValue("QuerystringKey", "QuerystringValue")
         Set Request = RestHelpers.CreateRequestFromOptions(Options)
-        .Expect(Request.QuerystringParams("QuerystringKey")).ToEqual "QuerystringValue"
+        .Expect(RestHelpers.FindInKeyValues(Request.QuerystringParams, "QuerystringKey")).ToEqual "QuerystringValue"
         
         Options.Add "UrlSegments", New Dictionary
         Options("UrlSegments").Add "SegmentKey", "SegmentValue"

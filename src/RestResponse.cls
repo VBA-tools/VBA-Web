@@ -22,16 +22,16 @@ Attribute VB_Exposed = True
 ' Properties
 ' --------------------------------------------- '
 
-Public StatusCode As StatusCodes
+Public StatusCode As WebStatusCode
 Public StatusDescription As String
 Public Content As String
 Public Data As Variant
 Public Body As Variant
 Public Headers As Collection
-Public Cookies As Dictionary
+Public Cookies As Collection
 
 Private Sub Class_Initialize()
     Body = Array()
     Set Headers = New Collection
-    Set Cookies = New Dictionary
+    Set Cookies = New Collection
 End Sub

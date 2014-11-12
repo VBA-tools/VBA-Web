@@ -47,9 +47,9 @@ Public Function Specs() As SpecSuite
     With Specs.It("should property format request parameters")
         Set Request = New RestRequest
         Request.Resource = "resource"
-        Request.AddParameter "a", True
-        Request.AddParameter "b", "abc"
-        Request.AddParameter "c", 1.23
+        Request.AddQuerystringParam "a", True
+        Request.AddQuerystringParam "b", "abc"
+        Request.AddQuerystringParam "c", 1.23
     
         .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=true&b=abc&c=1.23"
     End With
@@ -58,7 +58,7 @@ Public Function Specs() As SpecSuite
         Client.BaseUrl = "HTTP://localhost:3000/testing"
         Set Request = New RestRequest
         Request.Resource = "?a=123&b=456"
-        Request.AddParameter "c", "Howdy!"
+        Request.AddQuerystringParam "c", "Howdy!"
         Request.AddQuerystringParam "d", 789
         
         .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=123&b=456&c=Howdy!&d=789"
@@ -71,7 +71,7 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "a", "a b"
         
         .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=a%20b"
-        .Expect(Request.FullUrl(Client.BaseUrl)).ToEqual "http://localhost:3000/testing?a=a+b"
+        .Expect(Client.GetFullUrl(Request.FormattedResource)).ToEqual "http://localhost:3000/testing?a=a+b"
     End With
     
     Set Client = New RestClient
@@ -79,7 +79,7 @@ Public Function Specs() As SpecSuite
     
     Client.BaseUrl = "HTTP://localhost:3000/"
     Request.Resource = "testing"
-    Request.AddParameter "a", 123
+    Request.AddQuerystringParam "a", 123
     Request.AddQuerystringParam "b", 456
     
     Auth.Nonce = "1234"

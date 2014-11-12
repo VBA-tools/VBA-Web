@@ -186,7 +186,7 @@ Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As
     base = base & "&" & "oauth_token" & "=" & Me.Token
     base = base & "&" & "oauth_version=1.0"
     
-    CreateBaseString = Request.MethodName() & "&" & RestHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & RestHelpers.UrlEncode(base)
+    CreateBaseString = RestHelpers.MethodToName(Request.Method) & "&" & RestHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & RestHelpers.UrlEncode(base)
 End Function
 
 Public Function RequestUrl(Client As RestClient, Request As RestRequest) As String
@@ -204,7 +204,7 @@ Public Function RequestUrl(Client As RestClient, Request As RestRequest) As Stri
 ' Unless specified, URL scheme and authority MUST be lowercase and include the port number; http default port 80 and https default port 443 MUST be excluded.
 
     Dim Parts As Dictionary
-    Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
+    Set Parts = RestHelpers.UrlParts(Client.GetFullUrl(Request.FormattedResource))
     
     ' Url scheme and authority MUST be lowercase
     RequestUrl = LCase(Parts("Protocol") & "://" & Parts("Host"))
@@ -224,7 +224,7 @@ Public Function RequestParameters(Client As RestClient, Request As RestRequest) 
 ' TODO Sort parameters by key then value
     
     Dim Parts As Dictionary
-    Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
+    Set Parts = RestHelpers.UrlParts(Client.GetFullUrl(Request.FormattedResource))
     
     ' Remove leading ?
     RequestParameters = Parts("Querystring")
