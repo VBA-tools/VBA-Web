@@ -90,7 +90,7 @@ Main
 Sub Main()
   On Error Resume Next
 
-  PrintLn "Excel-REST v3.1.4 Development"
+  PrintLn "Excel-REST v4.0.0-beta.2 Development"
   
   ExcelWasOpen = OpenExcel(Excel)
 
