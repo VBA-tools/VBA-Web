@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v3.1.4
+' RestClient v4.0.0-beta.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Interact with REST web services from Excel
@@ -19,7 +19,7 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v3.1.4 (https://github.com/timhall/Excel-REST)"
+Private Const UserAgent As String = "Excel Client v4.0.0-beta.2 (https://github.com/timhall/Excel-REST)"
 Private Const DefaultTimeoutMS As Long = 5000
 
 ' --------------------------------------------- '

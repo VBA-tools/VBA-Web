@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestAsyncWrapper v3.1.4
+' RestAsyncWrapper v4.0.0-beta.2
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Wrapper RestClient and RestRequest that enables callback-style async requests
