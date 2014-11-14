@@ -258,16 +258,15 @@ Public Function PrepareCURL(Request As RestRequest) As String
     BeforeExecute Request
     
     ' Set headers and cookies
-    Dim HeaderKey As Variant
-    For Each HeaderKey In Request.Headers.Keys
-        cURL = cURL & " -H '" & HeaderKey & ": " & Request.Headers(HeaderKey) & "'"
-    Next HeaderKey
+    Dim KeyValue As Dictionary
+    For Each KeyValue In Request.Headers
+        cURL = cURL & " -H '" & KeyValue("Key") & ": " & KeyValue("Value") & "'"
+    Next KeyValue
     
-    Dim CookieKey As Variant
     Dim CookieString As String
-    For Each CookieKey In Request.Cookies.Keys
-        CookieString = CookieString & CookieKey & "=" & Request.Cookies(CookieKey) & ";"
-    Next CookieKey
+    For Each KeyValue In Request.Cookies
+        CookieString = CookieString & KeyValue("Key") & "=" & KeyValue("Value") & ";"
+    Next KeyValue
     cURL = cURL & " --cookie '" & CookieString & "'"
     
     ' Add method, data, and url
