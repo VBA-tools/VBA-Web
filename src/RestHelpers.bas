@@ -1,6 +1,6 @@
 Attribute VB_Name = "RestHelpers"
 ''
-' RestHelpers v4.0.0-beta.2
+' RestHelpers v4.0.0-beta.3
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Common helpers RestClient
@@ -1250,7 +1250,7 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
     
     Set Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
     Crypto.Key = StringToANSIBytes(Secret)
-    Bytes = Crypto.ComputeHash_2(StringToBytes(Text))
+    Bytes = Crypto.ComputeHash_2(StringToANSIBytes(Text))
     HMACSHA256 = ANSIBytesToHex(Bytes)
 #End If
 
