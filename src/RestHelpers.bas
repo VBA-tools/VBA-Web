@@ -802,9 +802,10 @@ Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As
         Dim ErrorNumber As Long
         
         ErrorNumber = Result.ExitCode / 256
+        ' 5 - CURLE_COULDNT_RESOLVE
         ' 7 - CURLE_COULDNT_CONNECT
         ' 28 - CURLE_OPERATION_TIMEDOUT
-        If ErrorNumber = 7 Or ErrorNumber = 28 Then
+        If ErrorNumber = 5 Or ErrorNumber = 7 Or ErrorNumber = 28 Then
             Set CreateResponseFromCURL = CreateResponse(WebStatusCode.RequestTimeout, "Request Timeout")
         Else
             LogError "cURL Error: " & ErrorNumber, "RestHelpers.CreateResponseFromCURL"
@@ -857,7 +858,7 @@ Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As
     Next ReadIndex
     
     ResponseText = Join$(BodyLines, vbCrLf)
-    Body = StringToBytes(ResponseText)
+    Body = StringToANSIBytes(ResponseText)
     
     ' Create Response
     Set CreateResponseFromCURL = New RestResponse
@@ -1214,7 +1215,7 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
 #If Mac Then
     Dim Command As String
     Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA1 = ExecuteInShell(Command).Output
+    HMACSHA1 = Replace(ExecuteInShell(Command).Output, vbLf, "")
 #Else
     Dim Crypto As Object
     Dim Bytes() As Byte
@@ -1242,7 +1243,7 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
 #If Mac Then
     Dim Command As String
     Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA256 = ExecuteInShell(Command).Output
+    HMACSHA256 = Replace(ExecuteInShell(Command).Output, vbLf, "")
 #Else
     Dim Crypto As Object
     Dim Bytes() As Byte
@@ -1270,7 +1271,7 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim Command As String
     Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
-    MD5 = HexToBytes(ExecuteInShell(Command).Output)
+    MD5 = Replace(ExecuteInShell(Command).Output, vbLf, "")
 #Else
     Dim Crypto As Object
     Dim Bytes() As Byte
@@ -1313,15 +1314,17 @@ Private Function StringToANSIBytes(Text As String) As Byte()
     Dim ByteIndex As Long
     Dim ANSIIndex As Long
     
-    ' Take first byte from unicode bytes
-    Bytes = Text
-    ReDim ANSIBytes(Int(UBound(Bytes) / 2))
-    
-    ANSIIndex = LBound(Bytes)
-    For ByteIndex = LBound(Bytes) To UBound(Bytes) Step 2
-        ANSIBytes(ANSIIndex) = Bytes(ByteIndex)
-        ANSIIndex = ANSIIndex + 1
-    Next ByteIndex
+    If Len(Text) > 0 Then
+        ' Take first byte from unicode bytes
+        Bytes = Text
+        ReDim ANSIBytes(Int(UBound(Bytes) / 2))
+        
+        ANSIIndex = LBound(Bytes)
+        For ByteIndex = LBound(Bytes) To UBound(Bytes) Step 2
+            ANSIBytes(ANSIIndex) = Bytes(ByteIndex)
+            ANSIIndex = ANSIIndex + 1
+        Next ByteIndex
+    End If
     
     StringToANSIBytes = ANSIBytes
 End Function
@@ -1374,7 +1377,7 @@ Private Function StringToBase64(ByVal Text As String) As String
 #If Mac Then
     Dim Command As String
     Command = "printf " & PrepareTextForShell(Text) & " | openssl base64"
-    HexToBase64 = ExecuteInShell(Command).Output
+    StringToBase64 = ExecuteInShell(Command).Output
 #Else
     ' Use XML to convert to Base64
     ' but XML requires bytes, so convert to bytes first

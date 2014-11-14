@@ -29,7 +29,7 @@ Public Function Specs() As SpecSuite
     
     On Error Resume Next
     Client.BaseUrl = BaseUrl
-    Client.TimeoutMS = 500
+    Client.TimeoutMS = 5000
     
     With Specs.It("should return status code and status description from request")
         Set Request = New RestRequest
@@ -38,7 +38,7 @@ Public Function Specs() As SpecSuite
         Request.AddUrlSegment "code", 200
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 200
-        .Expect(Response.StatusDescription).ToEqual "OK"
+        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "OK"
         
         Request.AddUrlSegment "code", 304
         Set Response = Client.Execute(Request)
@@ -373,7 +373,7 @@ Public Function Specs() As SpecSuite
         Request.Method = httpPOST
         Request.RequestFormat = WebFormat.plaintext
         Request.ResponseFormat = WebFormat.json
-        Request.AddBodyString "Howdy!"
+        Request.Body = "Howdy!"
         Request.AddHeader "custom", "Howdy!"
         Request.AddCookie "test-cookie", "howdy"
         
@@ -395,6 +395,10 @@ Public Function Specs() As SpecSuite
 #End If
 
     With Specs.It("should return 408 on request timeout")
+        Set Client = New RestClient
+        Client.BaseUrl = BaseUrl
+        Client.TimeoutMS = 500
+        
         Set Request = New RestRequest
         Request.Resource = "delay/{seconds}"
         Request.AddUrlSegment "seconds", "2"
