@@ -24,11 +24,12 @@ Option Explicit
 ' Constants and Private Variables
 ' --------------------------------------------- '
 
-Private pHeaders As Collection
-Private pQuerystringParams As Collection
-Private pUrlSegments As Dictionary
-Private pCookies As Collection
+Private pRequestFormat As WebFormat
+Private pResponseFormat As WebFormat
+Private pCustomRequestFormat As String
+Private pCustomResponseFormat As String
 Private pBody As Variant
+Private pConvertedBody As String
 Private pContentType As String
 Private pAccept As String
 Private pContentLength As Long
@@ -40,8 +41,10 @@ Private pId As String
 
 Public Resource As String
 Public Method As WebMethod
-Public RequestFormat As WebFormat
-Public ResponseFormat As WebFormat
+Public Headers As Collection
+Public QuerystringParams As Collection
+Public UrlSegments As Dictionary
+Public Cookies As Collection
 
 Public Property Get Format() As WebFormat
     Format = RequestFormat
@@ -51,43 +54,51 @@ Public Property Let Format(Value As WebFormat)
     Me.ResponseFormat = Value
 End Property
 
-Public Property Get Headers() As Collection
-    If pHeaders Is Nothing Then: Set pHeaders = New Collection
-    Set Headers = pHeaders
+Public Property Get RequestFormat() As WebFormat
+    RequestFormat = pRequestFormat
 End Property
-Public Property Set Headers(Value As Collection)
-    Set pHeaders = Value
-End Property
-
-Public Property Get QuerystringParams() As Collection
-    If pQuerystringParams Is Nothing Then: Set pQuerystringParams = New Collection
-    Set QuerystringParams = pQuerystringParams
-End Property
-Public Property Set QuerystringParams(Value As Collection)
-    Set pQuerystringParams = Value
+Public Property Let RequestFormat(Value As WebFormat)
+    pRequestFormat = Value
+    pConvertedBody = ""
 End Property
 
-Public Property Get UrlSegments() As Dictionary
-    If pUrlSegments Is Nothing Then: Set pUrlSegments = New Dictionary
-    Set UrlSegments = pUrlSegments
+Public Property Get ResponseFormat() As WebFormat
+    ResponseFormat = pResponseFormat
 End Property
-Public Property Set UrlSegments(Value As Dictionary)
-    Set pUrlSegments = Value
+Public Property Let ResponseFormat(Value As WebFormat)
+    pResponseFormat = Value
+    pConvertedBody = ""
 End Property
 
-Public Property Get Cookies() As Collection
-    If pCookies Is Nothing Then: Set pCookies = New Collection
-    Set Cookies = pCookies
+Public Property Get CustomRequestFormat() As String
+    CustomRequestFormat = pCustomRequestFormat
 End Property
-Public Property Set Cookies(Value As Collection)
-    Set pCookies = Value
+Public Property Let CustomRequestFormat(Value As String)
+    pCustomRequestFormat = Value
+    pConvertedBody = ""
+    
+    If Value <> "" Then
+        pRequestFormat = WebFormat.custom
+    End If
+End Property
+
+Public Property Get CustomResponseFormat() As String
+    CustomResponseFormat = pCustomResponseFormat
+End Property
+Public Property Let CustomResponseFormat(Value As String)
+    pCustomResponseFormat = Value
+    pConvertedBody = ""
+    
+    If Value <> "" Then
+        ResponseFormat = WebFormat.custom
+    End If
 End Property
 
 Public Property Get ContentType() As String
     If pContentType <> "" Then
         ContentType = pContentType
     Else
-        ContentType = RestHelpers.FormatToContentType(Me.RequestFormat)
+        ContentType = RestHelpers.FormatToMediaType(Me.RequestFormat, Me.CustomRequestFormat)
     End If
 End Property
 Public Property Let ContentType(Value As String)
@@ -98,7 +109,7 @@ Public Property Get Accept() As String
     If pAccept <> "" Then
         Accept = pAccept
     Else
-        Accept = RestHelpers.FormatToContentType(Me.ResponseFormat)
+        Accept = RestHelpers.FormatToMediaType(Me.ResponseFormat, Me.CustomResponseFormat)
     End If
 End Property
 Public Property Let Accept(Value As String)
@@ -120,26 +131,32 @@ Public Property Get Body() As Variant
     If Not IsEmpty(pBody) Then
         If VarType(pBody) = vbString Then
             Body = pBody
+        ElseIf pConvertedBody = "" Then
+            Body = RestHelpers.ConvertToFormat(pBody, Me.RequestFormat, Me.CustomRequestFormat)
+            pConvertedBody = Body
         Else
-            If Me.RequestFormat <> WebFormat.plaintext Then
-                Body = RestHelpers.ConvertToFormat(pBody, Me.RequestFormat)
-            End If
+            Body = pConvertedBody
         End If
     End If
 End Property
 Public Property Let Body(Value As Variant)
+    ' Clear existing converted body
+    pConvertedBody = ""
+    
     pBody = Value
 End Property
 Public Property Set Body(Value As Variant)
+    ' Clear existing converted body
+    pConvertedBody = ""
+    
     Set pBody = Value
 End Property
 
 Public Property Get FormattedResource() As String
-    Dim Segment As Variant
-    
     FormattedResource = Me.Resource
     
     ' Replace url segments
+    Dim Segment As Variant
     For Each Segment In Me.UrlSegments.Keys
         FormattedResource = Replace(FormattedResource, "{" & Segment & "}", Me.UrlSegments(Segment))
     Next Segment
@@ -157,10 +174,7 @@ Public Property Get FormattedResource() As String
 End Property
 
 Public Property Get Id() As String
-    If pId = "" Then
-        pId = RestHelpers.CreateNonce
-    End If
-    
+    If pId = "" Then: pId = RestHelpers.CreateNonce
     Id = pId
 End Property
 
@@ -185,7 +199,7 @@ End Sub
 ' @param {String} Value
 ' --------------------------------------------- '
 Public Sub AddUrlSegment(Segment As String, Value As Variant)
-    Me.UrlSegments(Segment) = Value
+    Me.UrlSegments.Item(Segment) = Value
 End Sub
 
 ''
@@ -229,6 +243,17 @@ Public Sub AddBodyParameter(Key As String, Value As Variant)
 End Sub
 
 ''
+' Prepare request for execution
+' --------------------------------------------- '
+Public Sub Prepare()
+    ' Add general headers to request
+    Me.AddHeader "User-Agent", WebUserAgent
+    Me.AddHeader "Content-Type", Me.ContentType
+    Me.AddHeader "Accept", Me.Accept
+    Me.AddHeader "Content-Length", CStr(Me.ContentLength)
+End Sub
+
+''
 ' Clone request
 '
 ' @return {RestRequest}
@@ -242,6 +267,8 @@ Public Function Clone() As RestRequest
     Clone.ContentType = Me.ContentType
     Clone.RequestFormat = Me.RequestFormat
     Clone.ResponseFormat = Me.ResponseFormat
+    Clone.CustomRequestFormat = Me.CustomRequestFormat
+    Clone.CustomResponseFormat = Me.CustomResponseFormat
     
     Set Clone.Headers = RestHelpers.CloneCollection(Me.Headers)
     Set Clone.QuerystringParams = RestHelpers.CloneCollection(Me.QuerystringParams)
@@ -255,6 +282,32 @@ Public Function Clone() As RestRequest
     End If
 End Function
 
+''
+' Create from options
+'
+' @param {Dictionary} Options
+' - Headers {Collection}
+' - Cookies {Collection}
+' - QuerystringParams {Collection}
+' - UrlSegments {DIctionary}
+' --------------------------------------------- '
+Public Sub CreateFromOptions(Options As Dictionary)
+    If Not Options Is Nothing Then
+        If Options.Exists("Headers") Then
+            Set Me.Headers = Options("Headers")
+        End If
+        If Options.Exists("Cookies") Then
+            Set Me.Cookies = Options("Cookies")
+        End If
+        If Options.Exists("QuerystringParams") Then
+            Set Me.QuerystringParams = Options("QuerystringParams")
+        End If
+        If Options.Exists("UrlSegments") Then
+            Set Me.UrlSegments = Options("UrlSegments")
+        End If
+    End If
+End Sub
+
 ' ============================================= '
 ' Private Functions
 ' ============================================= '
@@ -263,5 +316,9 @@ Private Sub Class_Initialize()
     ' Set default values
     Me.RequestFormat = WebFormat.json
     Me.ResponseFormat = WebFormat.json
+    Set Me.Headers = New Collection
+    Set Me.QuerystringParams = New Collection
+    Set Me.UrlSegments = New Dictionary
+    Set Me.Cookies = New Collection
     Me.ContentLength = -1
 End Sub

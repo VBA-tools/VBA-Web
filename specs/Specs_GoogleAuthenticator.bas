@@ -1,9 +1,9 @@
-Attribute VB_Name = "GoogleAuthenticatorSpecs"
+Attribute VB_Name = "Specs_GoogleAuthenticator"
 ''
-' GoogleAuthenticatorSpecs
+' Specs_GoogleAuthenticator
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
-' General specs for the GoogleAuthenticator class
+' Specs for GoogleAuthenticator
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)

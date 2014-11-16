@@ -1,9 +1,9 @@
-Attribute VB_Name = "OAuth1AuthenticatorSpecs"
+Attribute VB_Name = "Specs_OAuth1Authenticator"
 ''
-' OAuth1AuthenticatorSpecs
+' Specs_OAuth1Authenticator
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
-' General specs for the OAuth1Authenctiator class
+' Specs for OAuth1Authenctiator
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -71,7 +71,7 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "a", "a b"
         
         .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=a%20b"
-        .Expect(Client.GetFullUrl(Request.FormattedResource)).ToEqual "http://localhost:3000/testing?a=a+b"
+        .Expect(Client.GetFullRequestUrl(Request)).ToEqual "http://localhost:3000/testing?a=a+b"
     End With
     
     Set Client = New RestClient

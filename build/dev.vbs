@@ -66,23 +66,24 @@ Async = Array( _
 
 Dim Specs
 Specs = Array( _
-  "RestClientSpecs.bas", _
-  "RestRequestSpecs.bas", _
-  "RestHelpersSpecs.bas" _
+  "Specs_RestClient.bas", _
+  "Specs_RestRequest.bas", _
+  "Specs_RestResponse.bas", _
+  "Specs_RestHelpers.bas" _
 )
 
 Dim AuthSpecs
 AuthSpecs = Array( _
-  "AuthenticatorSpecs.bas", _
-  "DigestAuthenticatorSpecs.bas", _
-  "GoogleAuthenticatorSpecs.bas", _
-  "OAuth1AuthenticatorSpecs.bas", _
+  "Specs_IAuthenticator.bas", _
+  "Specs_DigestAuthenticator.bas", _
+  "Specs_GoogleAuthenticator.bas", _
+  "Specs_OAuth1Authenticator.bas", _
   "SpecAuthenticator.cls" _
 )
 
 Dim AsyncSpecs
 AsyncSpecs = Array( _
-  "RestAsyncWrapperSpecs.bas" _
+  "Specs_RestAsyncWrapper.bas" _
 )
 
 Main

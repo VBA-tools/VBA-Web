@@ -19,7 +19,6 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-Private Const UserAgent As String = "Excel Client v4.0.0-beta.3 (https://github.com/timhall/Excel-REST)"
 Private Const DefaultTimeoutMS As Long = 5000
 
 ' --------------------------------------------- '
@@ -48,31 +47,50 @@ Public ProxyBypassList As String
 ' --------------------------------------------- '
 
 Public Function Execute(Request As RestRequest) As RestResponse
-    Dim Response As RestResponse
+    Dim Http As Object
+    Dim Response As New RestResponse
+    
+    On Error GoTo ErrorHandling
 
 #If Mac Then
-    On Error GoTo ErrorHandling
-    
     Dim cURL As String
     Dim Result As ShellResult
     
-    cURL = Me.PrepareCURL(Request)
+    cURL = Me.PrepareCURLRequestRequest(Request)
     Result = RestHelpers.ExecuteInShell(cURL)
     
-    Set Response = RestHelpers.CreateResponseFromCURL(Result, Request.ResponseFormat)
-    RestHelpers.LogResponse Response, Request
-    Set Execute = Response
-    Exit Function
+    If Result.ExitCode > 0 Then
+        Dim ErrorNumber As Long
+        Dim ErrorMessage As String
+        ErrorNumber = Result.ExitCode / 256
+        
+        Select Case ErrorNumber
+        Case 5, 6, 7, 12, 28
+            ' 5 = CURLE_COULDNT_RESOLVE_PROXY
+            ' 6 = CURLE_COULDNT_RESOLVE_HOST
+            ' 7 = CURLE_COULDNT_CONNECT
+            ' 12 = CURLE_FTP_ACCEPT_TIMEOUT
+            ' 28 = CURLE_OPERATION_TIMEDOUT
+            
+            Err.Raise vbObjectError + 1, "The operation timed out"
+        Case 1
+            ' 1 = CURLE_UNSUPPORTED_PROTOCOL
+            Err.Raise vbObjectError + 1, "The protocol used in the request is not supported (1: CURLE_UNSUPPORTED_PROTOCOL)" & vbNewLine & _
+                "URL: " & Client.GetFullRequestUrl(Request) & vbNewLine & _
+                "Protocol: " & RestHelpers.UrlParts(Client.GetFullRequestUrl(Request))("Protocol")
+        Case 3
+            ' 3 = CURLE_URL_MALFORMAT
+            Err.Raise vbObjectError + 1, "The URL was not properly formatted (3: CURLE_URL_MALFORMAT)" & _
+                "URL: " & Client.GetFullRequestUrl(Request)
+        Case Else
+            Err.Raise vbObjectError + 1, "cURL Error #" & ErrorNumber & vbNewLine & _
+                "Details: http://curl.haxx.se/libcurl/c/libcurl-errors.html"
+        End Select
+    End If
     
-ErrorHandling:
+    Response.CreateFromCURL Me, Request, Result.Output
 
-    ' Rethrow error
-    RestHelpers.LogError Err.Description, "RestClient.Execute", Err.Number
-    Err.Raise Err.Number, Source:=Err.Source, Description:=Err.Description
 #Else
-    On Error GoTo ErrorHandling
-    
-    Dim Http As Object
     Set Http = Me.PrepareHttpRequest(Request)
     
     Http.Send Request.Body
@@ -80,8 +98,11 @@ ErrorHandling:
         DoEvents
     Loop
     
-    Set Response = RestHelpers.CreateResponseFromHttp(Http, Request.ResponseFormat)
-    RestHelpers.LogResponse Response, Request
+    Response.CreateFromHttp Me, Request, Http
+    
+#End If
+
+    RestHelpers.LogResponse Me, Request, Response
     
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.AfterExecute Me, Request, Response
@@ -96,8 +117,10 @@ ErrorHandling:
     Set Http = Nothing
     If InStr(Err.Description, "The operation timed out") > 0 Or InStr(Err.Description, "A connection with the server could not be established") > 0 Then
         ' Return 408
-        Set Response = RestHelpers.CreateResponse(WebStatusCode.RequestTimeout, "Request Timeout")
-        RestHelpers.LogResponse Response, Request
+        Response.StatusCode = WebStatusCode.RequestTimeout
+        Response.StatusDescription = "Request Timeout"
+        
+        RestHelpers.LogResponse Me, Request, Response
         Set Execute = Response
         Err.Clear
     Else
@@ -105,7 +128,6 @@ ErrorHandling:
         RestHelpers.LogError Err.Description, "RestClient.Execute", Err.Number
         Err.Raise Err.Number, Source:=Err.Source, Description:=Err.Description
     End If
-#End If
 End Function
 
 ''
@@ -121,8 +143,8 @@ End Function
 ' --------------------------------------------- '
 
 Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestResponse
-    Dim Request As RestRequest
-    Set Request = RestHelpers.CreateRequestFromOptions(Options)
+    Dim Request As New RestRequest
+    Request.CreateFromOptions Options
     Request.Resource = Url
     Request.Format = WebFormat.json
     Request.Method = WebMethod.httpGET
@@ -144,12 +166,16 @@ End Function
 ' --------------------------------------------- '
 
 Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dictionary) As RestResponse
-    Dim Request As RestRequest
-    Set Request = RestHelpers.CreateRequestFromOptions(Options)
+    Dim Request As New RestRequest
+    Request.CreateFromOptions Options
     Request.Resource = Url
     Request.Format = WebFormat.json
     Request.Method = WebMethod.httpPOST
-    Request.Body = Body
+    If IsObject(Body) Then
+        Set Request.Body = Body
+    Else
+        Request.Body = Body
+    End If
     
     Set PostJSON = Me.Execute(Request)
 End Function
@@ -186,6 +212,12 @@ Public Function PrepareHttpRequest(Request As RestRequest, Optional Async As Boo
     ' Set timeouts
     Http.SetTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
+    ' Setup authenticator
+    BeforeExecute Request
+    
+    ' Open http request
+    Http.Open RestHelpers.MethodToName(Request.Method), Me.GetFullRequestUrl(Request), Async
+    
     ' Setup proxy
     If Me.ProxyServer <> "" Then
         LogDebug "SetProxy: " & Me.ProxyServer, "RestClient.PrepareHttpRequest"
@@ -207,28 +239,29 @@ Public Function PrepareHttpRequest(Request As RestRequest, Optional Async As Boo
         Request.AddHeader "Authorization", "Basic " & RestHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
-    ' Setup authenticator
-    BeforeExecute Request
-    
-    ' Open http request
-    Http.Open RestHelpers.MethodToName(Request.Method), Me.GetFullUrl(Request.FormattedResource), Async
-    
     ' Set headers on http request (after open)
-    RestHelpers.SetHeadersForHttp Http, Request
+    Dim KeyValue As Dictionary
+    For Each KeyValue In Request.Headers
+        Http.setRequestHeader KeyValue("Key"), KeyValue("Value")
+    Next KeyValue
+    
+    For Each KeyValue In Request.Cookies
+        Http.setRequestHeader "Cookie", KeyValue("Key") & "=" & KeyValue("Value")
+    Next KeyValue
     
     ' Log request and return
-    RestHelpers.LogRequest Request, Me.GetFullUrl(Request.FormattedResource)
+    RestHelpers.LogRequest Me, Request
     Set PrepareHttpRequest = Http
 End Function
 
 ''
-' Prepare cURL command for given RestRequest
+' Prepare cURL request for given RestRequest
 '
 ' @param {RestRequest} Request
 ' @return {String}
 ' --------------------------------------------- '
 
-Public Function PrepareCURL(Request As RestRequest) As String
+Public Function PrepareCURLRequest(Request As RestRequest) As String
     Dim cURL As String
     cURL = "curl -i"
     
@@ -272,48 +305,46 @@ Public Function PrepareCURL(Request As RestRequest) As String
     ' Add method, data, and url
     cURL = cURL & " -X " & RestHelpers.MethodToName(Request.Method)
     cURL = cURL & " -d '" & Request.Body & "'"
-    cURL = cURL & " '" & Me.GetFullUrl(Request.FormattedResource) & "'"
+    cURL = cURL & " '" & Me.GetFullRequestUrl(Request) & "'"
     
     ' Log request and return
-    RestHelpers.LogRequest Request, Me.GetFullUrl(Request.FormattedResource)
-    PrepareCURL = cURL
+    RestHelpers.LogRequest Me, Request
+    PrepareCURLRequest = cURL
 End Function
 
 ''
-' Get full url given the request resource
+' Get full url for the given path
 '
-' @param {String} Resource
+' @param {String} Path
 ' @return {String}
 ' --------------------------------------------- '
 
-Public Function GetFullUrl(Resource As String) As String
-    GetFullUrl = RestHelpers.JoinUrl(Me.BaseUrl, Resource)
+Public Function GetFullUrl(Path As String) As String
+    GetFullUrl = RestHelpers.JoinUrl(Me.BaseUrl, Path)
+End Function
+
+''
+' Get full url for the given RestRequest
+'
+' @param {RestRequest} Request
+' @return {String}
+' --------------------------------------------- '
+Public Function GetFullRequestUrl(Request As RestRequest) As String
+    GetFullRequestUrl = GetFullUrl(Request.FormattedResource)
 End Function
 
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
 
-''
-' Prepare Request for execution
-'
-' @param {RestRequest} Request
-' --------------------------------------------- '
-Private Sub PrepareRequest(ByRef Request As RestRequest)
-    ' Add general headers to request
-    Request.AddHeader "User-Agent", UserAgent
-    Request.AddHeader "Content-Type", Request.ContentType
-    Request.AddHeader "Accept", Request.Accept
-    Request.AddHeader "Content-Length", CStr(Request.ContentLength)
-End Sub
-
 Private Sub BeforeExecute(Request As RestRequest)
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.BeforeExecute Me, Request
     End If
     
-    ' Prepare request (after BeforeExecute)
-    PrepareRequest Request
+    ' Preparing request includes adding headers
+    ' -> Needs to happen after BeforeExecute in case headers were changed
+    Request.Prepare
 End Sub
 
 Private Sub Class_Initialize()

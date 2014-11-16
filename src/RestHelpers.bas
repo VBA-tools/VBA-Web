@@ -40,6 +40,8 @@ Private Declare Sub JSON_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (JSON_MemoryDestination As Any, JSON_MemorySource As Any, ByVal JSON_ByteLength As Long)
 #End If
 
+Public Const WebUserAgent As String = "Excel Client v4.0.0-beta.3 (https://github.com/timhall/Excel-REST)"
+
 Public Type ShellResult
     Output As String
     ExitCode As Long
@@ -48,6 +50,7 @@ End Type
 Private pDocumentHelper As Object
 Private pElHelper As Object
 Private pAsyncRequests As Dictionary
+Private pConverters As Dictionary
 
 ' --------------------------------------------- '
 ' Types
@@ -118,10 +121,12 @@ Public Sub LogError(Message As String, Optional From As String = "", Optional Er
         From = "Excel-REST"
     End If
     If ErrNumber >= 0 Then
-        From = From & ": " & ErrNumber
+        From = From & ": " & ErrNumber & ", "
+    Else
+        From = From & ": "
     End If
     
-    Debug.Print "ERROR - " & From & ": " & Message
+    Debug.Print "ERROR - " & From & Message
 End Sub
 
 ''
@@ -129,14 +134,10 @@ End Sub
 '
 ' @param {RestRequest} Request
 ' --------------------------------------------- '
-Public Sub LogRequest(Request As RestRequest, Optional FullUrl As String = "")
+Public Sub LogRequest(Client As RestClient, Request As RestRequest)
     If EnableLogging Then
-        If FullUrl = "" Then
-            FullUrl = Request.FormattedResource
-        End If
-    
         Debug.Print "--> Request - " & Format(Now, "Long Time")
-        Debug.Print MethodToName(Request.Method) & " " & FullUrl
+        Debug.Print MethodToName(Request.Method) & " " & Client.GetFullRequestUrl(Request)
         
         Dim KeyValue As Dictionary
         For Each KeyValue In Request.Headers
@@ -160,7 +161,7 @@ End Sub
 '
 ' @param {RestResponse} Response
 ' --------------------------------------------- '
-Public Sub LogResponse(Response As RestResponse, Request As RestRequest)
+Public Sub LogResponse(Client As RestClient, Request As RestRequest, Response As RestResponse)
     If EnableLogging Then
         Debug.Print "<-- Response - " & Format(Now, "Long Time")
         Debug.Print Response.StatusCode & " " & Response.StatusDescription
@@ -308,7 +309,14 @@ End Function
 ' @param {WebFormat} Format
 ' @return {Object}
 ' --------------------------------------------- '
-Public Function ParseByFormat(Value As String, Format As WebFormat) As Object
+Public Function ParseByFormat(Value As String, Format As WebFormat, _
+    Optional CustomFormat As String = "", Optional Bytes As Variant) As Object
+    
+    ' Don't attempt to parse blank values
+    If Value = "" And VBA.IsEmpty(Bytes) Then
+        Exit Function
+    End If
+    
     Select Case Format
     Case WebFormat.json
         Set ParseByFormat = ParseJSON(Value)
@@ -316,6 +324,29 @@ Public Function ParseByFormat(Value As String, Format As WebFormat) As Object
         Set ParseByFormat = ParseUrlEncoded(Value)
     Case WebFormat.xml
         Set ParseByFormat = ParseXML(Value)
+    Case WebFormat.custom
+        Dim Converter As Dictionary
+        Dim Callback As String
+        
+        Set Converter = GetConverter(CustomFormat)
+        Callback = Converter("ParseCallback")
+        
+        If Converter.Exists("Instance") Then
+            Dim Instance As Object
+            Set Instance = Converter("Instance")
+        
+            If Converter("ParseType") = "Binary" Then
+                Set ParseByFormat = CallByName(Instance, Callback, VbMethod, Bytes)
+            Else
+                Set ParseByFormat = CallByName(Instance, Callback, VbMethod, Value)
+            End If
+        Else
+            If Converter("ParseType") = "Binary" Then
+                Set ParseByFormat = Application.Run(Callback, Bytes)
+            Else
+                Set ParseByFormat = Application.Run(Callback, Value)
+            End If
+        End If
     End Select
 End Function
 
@@ -326,7 +357,7 @@ End Function
 ' @param {WebFormat} Format
 ' @return {String}
 ' --------------------------------------------- '
-Public Function ConvertToFormat(Obj As Variant, Format As WebFormat) As String
+Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As String
     Select Case Format
     Case WebFormat.json
         ConvertToFormat = ConvertToJSON(Obj)
@@ -334,6 +365,23 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat) As String
         ConvertToFormat = ConvertToUrlEncoded(Obj)
     Case WebFormat.xml
         ConvertToFormat = ConvertToXML(Obj)
+    Case WebFormat.custom
+        Dim Converter As Dictionary
+        Dim Callback As String
+        
+        Set Converter = GetConverter(CustomFormat)
+        Callback = Converter("ConvertCallback")
+        
+        If Converter.Exists("Instance") Then
+            Dim Instance As Object
+            Set Instance = Converter("Instance")
+            ConvertToFormat = CallByName(Instance, Callback, VbMethod, Obj)
+        Else
+            ConvertToFormat = Application.Run(Callback, Obj)
+        End If
+    Case Else
+        ' Plain text
+        ConvertToFormat = Obj
     End Select
 End Function
 
@@ -371,7 +419,7 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
         For i = 1 To StringLen
             ' Get character and ascii code
             Char = Mid$(UrlVal, i, 1)
-            CharCode = asc(Char)
+            CharCode = Asc(Char)
             
             Select Case CharCode
                 Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
@@ -436,6 +484,43 @@ End Function
 ' --------------------------------------------- '
 Public Function Base64Encode(Text As String) As String
     Base64Encode = Replace(StringToBase64(Text), vbLf, "")
+End Function
+
+''
+' Register custom converter to use with requests
+'
+' @param {String} Name
+' @param {String} MediaType
+' @param {String} ConvertCallback
+' @param {String} ParseCallback
+' @param {Object} [Instance]
+' @param {String} [ParseType="String"] Use Content="String" or Body="Binary" in ParseCallback
+' --------------------------------------------- '
+Public Sub RegisterConverter( _
+    Name As String, MediaType As String, ConvertCallback As String, ParseCallback As String, _
+    Optional Instance As Object, Optional ParseType As String = "String")
+
+    Dim Converter As New Dictionary
+    Converter("MediaType") = MediaType
+    Converter("ConvertCallback") = ConvertCallback
+    Converter("ParseCallback") = ParseCallback
+    Converter("ParseType") = ParseType
+    
+    If Not IsEmpty(Instance) And Not Instance Is Nothing Then
+        Set Converter("Instance") = Instance
+    End If
+    
+    If pConverters Is Nothing Then: Set pConverters = New Dictionary
+    Set pConverters(Name) = Converter
+End Sub
+
+' Helper for getting custom converter
+Private Function GetConverter(CustomFormat As String) As Dictionary
+    If pConverters.Exists(CustomFormat) Then
+        Set GetConverter = pConverters(CustomFormat)
+    Else
+        Err.Raise 11001, "RestHelpers", "No matching converter was registered for custom format: " & CustomFormat
+    End If
 End Function
 
 ' ============================================= '
@@ -545,7 +630,7 @@ Public Function UrlParts(Url As String) As Dictionary
     Next ResultPart
     
     If AddedProtocol And Parts.Exists("Protocol") Then
-        Parts.Remove "Protocol"
+        Parts("Protocol") = ""
     End If
 #Else
     ' Create document/element is expensive, cache after creation
@@ -583,66 +668,6 @@ End Function
 ' ============================================= '
 ' 4. Object/Dictionary/Collection/Array helpers
 ' ============================================= '
-
-''
-' Combine two dictionaries, folding the second into the first
-'
-' @param {Dictionary} OriginalObj dictionary to add values to
-' @param {Dictionary} NewObj New object containing values to add to original object
-' @param {Boolean} [OverwriteOriginal=True] Overwrite any values that already exist in the original object
-' @return {Dictionary} Combined object
-' --------------------------------------------- '
-Public Function CombineDictionaries(ByVal OriginalObj As Dictionary, ByVal NewObj As Dictionary, _
-    Optional OverwriteOriginal As Boolean = True) As Dictionary
-    
-    Dim Combined As New Dictionary
-    
-    Dim OriginalKey As Variant
-    Dim Key As Variant
-    
-    If Not OriginalObj Is Nothing Then
-        For Each Key In OriginalObj.Keys()
-            Combined.Add Key, OriginalObj(Key)
-        Next Key
-    End If
-    If Not NewObj Is Nothing Then
-        For Each Key In NewObj.Keys()
-            If Combined.Exists(Key) And OverwriteOriginal Then
-                Combined(Key) = NewObj(Key)
-            ElseIf Not Combined.Exists(Key) Then
-                Combined.Add Key, NewObj(Key)
-            End If
-        Next Key
-    End If
-    
-    Set CombineDictionaries = Combined
-End Function
-
-''
-' Apply whitelist to given object to filter out unwanted key/values
-'
-' @param {Dictionary} Original model to filter
-' @param {Variant} WhiteList Array|String of value(s) to retain in the model
-' @return {Dictionary} Filtered object
-' --------------------------------------------- '
-Public Function FilterDictionary(ByVal Original As Dictionary, Whitelist As Variant) As Dictionary
-    Dim Filtered As New Dictionary
-    Dim i As Integer
-    
-    If IsArray(Whitelist) Then
-        For i = LBound(Whitelist) To UBound(Whitelist)
-            If Original.Exists(Whitelist(i)) Then
-                Filtered.Add Whitelist(i), Original(Whitelist(i))
-            End If
-        Next i
-    ElseIf VarType(Whitelist) = vbString Then
-        If Original.Exists(Whitelist) Then
-            Filtered.Add Whitelist, Original(Whitelist)
-        End If
-    End If
-    
-    Set FilterDictionary = Filtered
-End Function
 
 ''
 ' Check if given is an array
@@ -723,312 +748,23 @@ End Function
 ' ============================================= '
 
 ''
-' Set headers to http object for given request
-'
-' @param {WinHttpRequest} Http request
-' @param {RestRequest} Request
-' --------------------------------------------- '
-Public Sub SetHeadersForHttp(ByRef Http As Object, Request As RestRequest)
-    Dim HeaderKeyValue As Dictionary
-    For Each HeaderKeyValue In Request.Headers
-        Http.setRequestHeader HeaderKeyValue("Key"), HeaderKeyValue("Value")
-    Next HeaderKeyValue
-    
-    Dim CookieKeyValue As Dictionary
-    For Each CookieKeyValue In Request.Cookies
-        Http.setRequestHeader "Cookie", CookieKeyValue("Key") & "=" & CookieKeyValue("Value")
-    Next CookieKeyValue
-End Sub
-
-''
-' Create simple response
-'
-' @param {WebStatusCode} StatusCode
-' @param {String} StatusDescription
-' @return {RestResponse}
-' --------------------------------------------- '
-Public Function CreateResponse(StatusCode As WebStatusCode, StatusDescription As String) As RestResponse
-    Set CreateResponse = New RestResponse
-    CreateResponse.StatusCode = StatusCode
-    CreateResponse.StatusDescription = StatusDescription
-End Function
-
-''
-' Create response for http
-'
-' @param {WinHttpRequest} Http
-' @param {WebFormat} [Format=json]
-' @return {RestResponse}
-' --------------------------------------------- '
-Public Function CreateResponseFromHttp(ByRef Http As Object, Optional Format As WebFormat = WebFormat.json) As RestResponse
-    Set CreateResponseFromHttp = New RestResponse
-    
-    CreateResponseFromHttp.StatusCode = Http.Status
-    CreateResponseFromHttp.StatusDescription = Http.StatusText
-    CreateResponseFromHttp.Body = Http.ResponseBody
-    CreateResponseFromHttp.Content = Http.ResponseText
-    
-    ' Convert content to data by format
-    If Format <> WebFormat.plaintext Then
-        On Error Resume Next
-        Set CreateResponseFromHttp.Data = RestHelpers.ParseByFormat(Http.ResponseText, Format)
-        On Error GoTo 0
-    End If
-    
-    ' Extract headers
-    Set CreateResponseFromHttp.Headers = ExtractHeaders(Http.getAllResponseHeaders)
-    
-    ' Extract cookies
-    Set CreateResponseFromHttp.Cookies = ExtractCookies(CreateResponseFromHttp.Headers)
-End Function
-
-''
-' Create response for cURL
-' References:
-' http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
-' http://curl.haxx.se/libcurl/c/libcurl-errors.html
-'
-' @param {String} Raw result from cURL
-' @return {RestResponse}
-' --------------------------------------------- '
-Public Function CreateResponseFromCURL(Result As ShellResult, Optional Format As WebFormat = WebFormat.json) As RestResponse
-    Dim StatusCode As Long
-    Dim StatusText As String
-    Dim Headers As String
-    Dim Body As Variant
-    Dim ResponseText As String
-    
-    If Result.ExitCode > 0 Then
-        Dim ErrorNumber As Long
-        
-        ErrorNumber = Result.ExitCode / 256
-        ' 5 - CURLE_COULDNT_RESOLVE
-        ' 7 - CURLE_COULDNT_CONNECT
-        ' 28 - CURLE_OPERATION_TIMEDOUT
-        If ErrorNumber = 5 Or ErrorNumber = 7 Or ErrorNumber = 28 Then
-            Set CreateResponseFromCURL = CreateResponse(WebStatusCode.RequestTimeout, "Request Timeout")
-        Else
-            LogError "cURL Error: " & ErrorNumber, "RestHelpers.CreateResponseFromCURL"
-        End If
-        
-        Exit Function
-    End If
-    
-    Dim Lines() As String
-    Lines = Split(Result.Output, vbCrLf)
-    
-    ' Extract status code and text from status line
-    Dim StatusLine As String
-    Dim StatusLineParts() As String
-    StatusLine = Lines(0)
-    StatusLineParts = Split(StatusLine)
-    StatusCode = CLng(StatusLineParts(1))
-    StatusText = Mid$(StatusLine, InStr(1, StatusLine, StatusCode) + 4)
-    
-    ' Find blank line before body
-    Dim Line As Variant
-    Dim BlankLineIndex
-    BlankLineIndex = 0
-    For Each Line In Lines
-        If Trim(Line) = "" Then
-            Exit For
-        End If
-        BlankLineIndex = BlankLineIndex + 1
-    Next Line
-    
-    ' Extract body and headers strings
-    Dim HeaderLines() As String
-    Dim BodyLines() As String
-    Dim ReadIndex As Long
-    Dim WriteIndex As Long
-    
-    ReDim HeaderLines(0 To BlankLineIndex - 2)
-    ReDim BodyLines(0 To UBound(Lines) - BlankLineIndex - 1)
-    
-    WriteIndex = 0
-    For ReadIndex = 1 To BlankLineIndex - 1
-        HeaderLines(WriteIndex) = Lines(ReadIndex)
-        WriteIndex = WriteIndex + 1
-    Next ReadIndex
-    
-    WriteIndex = 0
-    For ReadIndex = BlankLineIndex + 1 To UBound(Lines)
-        BodyLines(WriteIndex) = Lines(ReadIndex)
-        WriteIndex = WriteIndex + 1
-    Next ReadIndex
-    
-    ResponseText = Join$(BodyLines, vbCrLf)
-    Body = StringToANSIBytes(ResponseText)
-    
-    ' Create Response
-    Set CreateResponseFromCURL = New RestResponse
-    CreateResponseFromCURL.StatusCode = StatusCode
-    CreateResponseFromCURL.StatusDescription = StatusText
-    CreateResponseFromCURL.Body = Body
-    CreateResponseFromCURL.Content = ResponseText
-    
-    ' Convert content to data by format
-    If Format <> WebFormat.plaintext Then
-        On Error Resume Next
-        Set CreateResponseFromCURL.Data = RestHelpers.ParseByFormat(CreateResponseFromCURL.Content, Format)
-        On Error GoTo 0
-    End If
-    
-    ' Extract headers
-    Set CreateResponseFromCURL.Headers = ExtractHeaders(Join$(HeaderLines, vbCrLf))
-    
-    ' Extract cookies
-    Set CreateResponseFromCURL.Cookies = ExtractCookies(CreateResponseFromCURL.Headers)
-End Function
-
-''
-' Extract headers from response headers
-'
-' @param {String} ResponseHeaders
-' @return {Collection} Headers
-' --------------------------------------------- '
-Public Function ExtractHeaders(ResponseHeaders As String) As Collection
-    Dim Headers As New Collection
-    Dim Header As Dictionary
-    Dim Multiline As Boolean
-    Dim Key As String
-    Dim Value As String
-    
-    Dim Lines As Variant
-    Lines = Split(ResponseHeaders, vbCrLf)
-    
-    Dim i As Integer
-    For i = LBound(Lines) To (UBound(Lines) + 1)
-        If i > UBound(Lines) Then
-            Headers.Add Header
-        ElseIf Lines(i) <> "" Then
-            If InStr(1, Lines(i), ":") = 0 And Not Header Is Nothing Then
-                ' Assume part of multi-line header
-                Multiline = True
-            ElseIf Multiline Then
-                ' Close out multi-line string
-                Multiline = False
-                Headers.Add Header
-            ElseIf Not Header Is Nothing Then
-                Headers.Add Header
-            End If
-            
-            If Not Multiline Then
-                Set Header = CreateKeyValue( _
-                    Key:=Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1)), _
-                    Value:=Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i)))) _
-                )
-            Else
-                Header("Value") = Header("Value") & vbCrLf & Lines(i)
-            End If
-        End If
-    Next i
-    
-    Set ExtractHeaders = Headers
-End Function
-
-''
-' Extract cookies from response headers
-'
-' @param {Collection} Headers
-' @return {Collection} Cookies
-' --------------------------------------------- '
-Public Function ExtractCookies(Headers As Collection) As Collection
-    Dim Cookies As New Collection
-    Dim Cookie As String
-    Dim Key As String
-    Dim Value As String
-    Dim Header As Dictionary
-    
-    For Each Header In Headers
-        If Header("Key") = "Set-Cookie" Then
-            Cookie = Header("Value")
-            Key = Mid$(Cookie, 1, InStr(1, Cookie, "=") - 1)
-            Value = Mid$(Cookie, InStr(1, Cookie, "=") + 1, Len(Cookie))
-            
-            If InStr(1, Value, ";") Then
-                Value = Mid$(Value, 1, InStr(1, Value, ";") - 1)
-            End If
-            
-            Cookies.Add CreateKeyValue(Key, UrlDecode(Value))
-        End If
-    Next Header
-    
-    Set ExtractCookies = Cookies
-End Function
-
-''
-' Create request from options
-'
-' @param {Dictionary} Options
-' - Headers
-' - Cookies
-' - QuerystringParams
-' - UrlSegments
-' --------------------------------------------- '
-Public Function CreateRequestFromOptions(Options As Dictionary) As RestRequest
-    Dim Request As New RestRequest
-    
-    If Not IsEmpty(Options) And Not Options Is Nothing Then
-        If Options.Exists("Headers") Then
-            Set Request.Headers = Options("Headers")
-        End If
-        If Options.Exists("Cookies") Then
-            Set Request.Cookies = Options("Cookies")
-        End If
-        If Options.Exists("QuerystringParams") Then
-            Set Request.QuerystringParams = Options("QuerystringParams")
-        End If
-        If Options.Exists("UrlSegments") Then
-            Set Request.UrlSegments = Options("UrlSegments")
-        End If
-    End If
-    
-    Set CreateRequestFromOptions = Request
-End Function
-
-''
-' Update response with another response
-'
-' @param {RestResponse) Original (Updated by reference)
-' @param {RestResponse) Updated
-' @return {RestResponse}
-' --------------------------------------------- '
-Public Function UpdateResponse(ByRef Original As RestResponse, Updated As RestResponse) As RestResponse
-    Original.StatusCode = Updated.StatusCode
-    Original.StatusDescription = Updated.StatusDescription
-    Original.Content = Updated.Content
-    Original.Body = Updated.Body
-    Set Original.Headers = Updated.Headers
-    Set Original.Cookies = Updated.Cookies
-    
-    If Not IsEmpty(Updated.Data) Then
-        If IsObject(Updated.Data) Then
-            Set Original.Data = Updated.Data
-        Else
-            Original.Data = Updated.Data
-        End If
-    End If
-    
-    Set UpdateResponse = Original
-End Function
-
-''
 ' Get content-type for format
 '
 ' @param {WebFormat} Format
 ' @return {String}
 ' --------------------------------------------- '
-Public Function FormatToContentType(Format As WebFormat) As String
+Public Function FormatToMediaType(Format As WebFormat, Optional CustomFormat As String) As String
     Select Case Format
     Case WebFormat.formurlencoded
-        FormatToContentType = "application/x-www-form-urlencoded;charset=UTF-8"
+        FormatToMediaType = "application/x-www-form-urlencoded;charset=UTF-8"
     Case WebFormat.json
-        FormatToContentType = "application/json"
+        FormatToMediaType = "application/json"
     Case WebFormat.xml
-        FormatToContentType = "application/xml"
-    Case WebFormat.plaintext
-        FormatToContentType = "text/plain"
+        FormatToMediaType = "application/xml"
+    Case WebFormat.custom
+        FormatToMediaType = GetConverter(CustomFormat)("MediaType")
+    Case Else
+        FormatToMediaType = "text/plain"
     End Select
 End Function
 
@@ -1515,7 +1251,8 @@ End Function
 ' @param {Variant} JSON_DictionaryCollectionOrArray (Dictionary, Collection, or Array)
 ' @return {String}
 ' -------------------------------------- '
-Public Function ConvertToJSON(ByVal JSON_DictionaryCollectionOrArray As Variant, Optional JSON_ConvertLargeNumbersFromString As Boolean = True) As String
+Public Function ConvertToJSON(ByVal JSON_DictionaryCollectionOrArray As Variant, _
+    Optional JSON_ConvertLargeNumbersFromString As Boolean = True) As String
     Dim JSON_Buffer As String
     Dim JSON_BufferPosition As Long
     Dim JSON_BufferLength As Long
@@ -1656,7 +1393,9 @@ End Function
 ' Private Functions
 ' ============================================= '
 
-Private Function JSON_ParseObject(JSON_String As String, ByRef JSON_Index As Long, Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Dictionary
+Private Function JSON_ParseObject(JSON_String As String, ByRef JSON_Index As Long, _
+    Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Dictionary
+    
     Dim JSON_Key As String
     Dim JSON_NextChar As String
     
@@ -1680,15 +1419,19 @@ Private Function JSON_ParseObject(JSON_String As String, ByRef JSON_Index As Lon
             JSON_Key = JSON_ParseKey(JSON_String, JSON_Index)
             JSON_NextChar = JSON_Peek(JSON_String, JSON_Index)
             If JSON_NextChar = "[" Or JSON_NextChar = "{" Then
-                Set JSON_ParseObject.Item(JSON_Key) = JSON_ParseValue(JSON_String, JSON_Index, JSON_ConvertLargeNumbersToString)
+                Set JSON_ParseObject.Item(JSON_Key) = _
+                    JSON_ParseValue(JSON_String, JSON_Index, JSON_ConvertLargeNumbersToString)
             Else
-                JSON_ParseObject.Item(JSON_Key) = JSON_ParseValue(JSON_String, JSON_Index, JSON_ConvertLargeNumbersToString)
+                JSON_ParseObject.Item(JSON_Key) = _
+                JSON_ParseValue(JSON_String, JSON_Index, JSON_ConvertLargeNumbersToString)
             End If
         Loop
     End If
 End Function
 
-Private Function JSON_ParseArray(JSON_String As String, ByRef JSON_Index As Long, Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Collection
+Private Function JSON_ParseArray(JSON_String As String, ByRef JSON_Index As Long, _
+    Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Collection
+    
     Set JSON_ParseArray = New Collection
     
     JSON_SkipSpaces JSON_String, JSON_Index
@@ -1712,7 +1455,9 @@ Private Function JSON_ParseArray(JSON_String As String, ByRef JSON_Index As Long
     End If
 End Function
 
-Private Function JSON_ParseValue(JSON_String As String, ByRef JSON_Index As Long, Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Variant
+Private Function JSON_ParseValue(JSON_String As String, ByRef JSON_Index As Long, _
+    Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Variant
+    
     JSON_SkipSpaces JSON_String, JSON_Index
     Select Case VBA.Mid$(JSON_String, JSON_Index, 1)
     Case "{"
@@ -1734,7 +1479,8 @@ Private Function JSON_ParseValue(JSON_String As String, ByRef JSON_Index As Long
         ElseIf VBA.InStr("+-0123456789", VBA.Mid$(JSON_String, JSON_Index, 1)) Then
             JSON_ParseValue = JSON_ParseNumber(JSON_String, JSON_Index, JSON_ConvertLargeNumbersToString)
         Else
-            Err.Raise 10001, "JSONConverter", JSON_ParseErrorMessage(JSON_String, JSON_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
+            Err.Raise 10001, "JSONConverter", _
+                JSON_ParseErrorMessage(JSON_String, JSON_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
         End If
     End Select
 End Function
@@ -1799,7 +1545,9 @@ Private Function JSON_ParseString(JSON_String As String, ByRef JSON_Index As Lon
     Loop
 End Function
 
-Private Function JSON_ParseNumber(JSON_String As String, ByRef JSON_Index As Long, Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Variant
+Private Function JSON_ParseNumber(JSON_String As String, ByRef JSON_Index As Long, _
+    Optional JSON_ConvertLargeNumbersToString As Boolean = True) As Variant
+    
     Dim JSON_Char As String
     Dim JSON_Value As String
     
@@ -1817,7 +1565,8 @@ Private Function JSON_ParseNumber(JSON_String As String, ByRef JSON_Index As Lon
             ' This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
             ' See: http://support.microsoft.com/kb/269370
             '
-            ' Fix: Parse -> String, Convert -> String longer than 15 characters containing only numbers and decimal points -> Number
+            ' Fix: Parse -> String,
+            '        Convert -> String longer than 15 characters containing only numbers and decimal points -> Number
             If JSON_ConvertLargeNumbersToString And Len(JSON_Value) >= 16 Then
                 JSON_ParseNumber = JSON_Value
             Else
@@ -1894,7 +1643,9 @@ Private Function JSON_Encode(ByVal JSON_Text As Variant) As String
     JSON_Encode = JSON_BufferToString(JSON_Buffer, JSON_BufferPosition, JSON_BufferLength)
 End Function
 
-Private Function JSON_Peek(JSON_String As String, ByVal JSON_Index As Long, Optional JSON_NumberOfCharacters As Long = 1) As String
+Private Function JSON_Peek(JSON_String As String, ByVal JSON_Index As Long, _
+    Optional JSON_NumberOfCharacters As Long = 1) As String
+    
     ' "Peek" at the next number of characters without incrementing JSON_Index (ByVal instead of ByRef)
     JSON_SkipSpaces JSON_String, JSON_Index
     JSON_Peek = VBA.Mid$(JSON_String, JSON_Index, JSON_NumberOfCharacters)
@@ -1922,7 +1673,7 @@ Private Function JSON_StringIsLargeNumber(JSON_String As Variant) As Boolean
         JSON_StringIsLargeNumber = True
         
         For i = 1 To JSON_Length
-            JSON_CharCode = VBA.asc(VBA.Mid$(JSON_String, i, 1))
+            JSON_CharCode = VBA.Asc(VBA.Mid$(JSON_String, i, 1))
             Select Case JSON_CharCode
             ' Look for .|0-9|E|e
             Case 46, 48 To 57, 69, 101

@@ -55,7 +55,6 @@ End Property
 ' @param {RestRequest} Request The request to execute
 ' @param {String} Callback Name of function to call when request completes
 ' @param {Variant} [CallbackArgs] Variable array of arguments that get passed directly to callback function
-' @return {Boolean} Status of initiating request
 ' --------------------------------------------- '
 
 Public Sub ExecuteAsync(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant)
@@ -70,6 +69,7 @@ End Sub
 
 ''
 ' Clone wrapper
+' @internal
 ' --------------------------------------------- '
 Public Function Clone() As RestAsyncWrapper
     Set Clone = New RestAsyncWrapper
@@ -82,8 +82,11 @@ End Function
 ' @param {RestRequest} Request
 ' @param {String} Callback
 ' @param {Variant} [CallbackArgs]
+' @internal
 ' --------------------------------------------- '
 Public Sub PrepareAndExecuteRequest(Request As RestRequest, Callback As String, Optional ByVal CallbackArgs As Variant)
+    On Error GoTo ErrorHandling
+
     Me.Callback = Callback
     Me.CallbackArgs = CallbackArgs
     
@@ -105,11 +108,16 @@ End Sub
 
 ''
 ' Handle timeouts
+' @internal
 ' --------------------------------------------- '
 Public Sub TimedOut()
+    Dim Response As New RestResponse
+    Response.StatusCode = WebStatusCode.RequestTimeout
+    Response.StatusDescription = "Request Timeout"
+
     ' Callback
     RestHelpers.LogDebug "Timed out", "RestAsyncWrapper.TimedOut"
-    RunCallback RestHelpers.CreateResponse(WebStatusCode.RequestTimeout, "Request Timeout")
+    RunCallback Response
 End Sub
 
 ' ============================================= '
@@ -131,7 +139,7 @@ Private Sub RunCallback(Response As RestResponse)
     '     Next i
     ' End Function
     
-    RestHelpers.LogResponse Response, Me.Request
+    RestHelpers.LogResponse Me.Client, Me.Request, Response
     
     If Not Me.Client.Authenticator Is Nothing Then
         Me.Client.Authenticator.AfterExecute Me.Client, Me.Request, Response
@@ -147,7 +155,6 @@ Private Sub RunCallback(Response As RestResponse)
     
     Set Me.Http = Nothing
     Set Me.Request = Nothing
-    
 End Sub
 
 ''
@@ -171,8 +178,8 @@ Private Sub Http_OnResponseFinished()
     StopTimeoutTimer
     
     ' Callback
-    Dim Response As RestResponse
-    Set Response = RestHelpers.CreateResponseFromHttp(Me.Http, Me.Request.ResponseFormat)
+    Dim Response As New RestResponse
+    Response.CreateFromHttp Me.Client, Me.Request, Me.Http
     RunCallback Response
 End Sub
 
