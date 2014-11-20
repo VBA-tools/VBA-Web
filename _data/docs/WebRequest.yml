@@ -1,0 +1,340 @@
+Properties:
+  # Resource
+  - name: Resource
+    code: "Get|Let {String}"
+    description: |
+      Set the request's portion of the url to be appended to the client's [`BaseUrl`](#BaseUrl).
+      Can include [Url Segments](#UrlSegments) for dynamic values
+      and [Querystring parameters]("#QuerystringParams") 
+      are smart enough to be appended to existing querystring
+      (or added to resource if there isn't an existing querystring).
+    example: |
+      Dim Client As New WebClient
+      Client.BaseUrl = "https://api.example.com/"
+
+      Dim Request As New WebRequest
+      Request.Resource = "messages"
+
+      ' -> Url: https://api.example.com/messages
+
+      Request.Resource = "messages/{id}?a=1"
+      Request.AddUrlSegment "id", 123
+      Request.AddQuerystringParam "b", 2
+
+      ' -> Url: https://api.example.com/messages/123?a=1&b=2
+  
+  # Method
+  - name: Method
+    code: "Get|Let {WebMethod}"
+    description: |
+      Set the HTTP method to be used for the request: GET, POST, PUT, PATCH, DELETE
+    example: |
+      Dim Request As New WebRequest
+      Request.Method = WebMethod.httpGET
+      Request.Method = WebMethod.httpPOST
+      Request.Method = WebMethod.httpPUT
+      Request.Method = WebMethod.httpPATCH
+      Request.Method = WebMethod.httpDELETE
+  
+  # Body
+  - name: Body
+    code: "Get|Let|Set {Variant}"
+    details:
+      Get: Body value converted to string using `RequestFormat` or `CustomRequestFormat`
+      Let: Use `String` or `Array` for Body
+      Set: Use `Collection`, `Dictionary`, or `Object` for Body
+    example: |
+      Dim Request As New WebRequest
+      Request.RequestFormat = WebFormat.JSON
+
+      ' Let: String|Array
+      Request.Body = "text"
+      Request.Body ' = "text"
+
+      Request.Body = Array("A", "B", "C")
+      Request.Body ' = "["A","B","C"]"
+
+      ' Set: Collection|Dictionary|Object
+      Dim Body As Object
+      Set Body = New Collection
+      Body.Add "Howdy!"
+      Set Request.Body = Body
+      Request.Body ' = "["Howdy!"]"
+
+      Set Body = New Dictionary
+      Body.Add "a", 123
+      Body.Add "b", 456
+      Set Request.Body = Body
+      Request.Body ' = "{"a":123,"b":456}"
+
+  # Format
+  - name: Format
+    code: "Get|Let {WebFormat}"
+    description: |
+      Set `RequestFormat`, `ResponseFormat`, and `Content-Type` and `Accept`
+      headers for the `WebRequest`
+    example: |
+      Dim Request As New WebRequest
+      Request.Format = WebFormat.JSON
+      ' -> Request.RequestFormat = WebFormat.JSON
+      '    Request.ResponseFormat = WebFormat.JSON
+      '    Content-Type: application/json
+      '    Accept: application/json
+  
+  # RequestFormat
+  - name: RequestFormat
+    code: "Get|Let {WebFormat}"
+    description: |
+      Set the format to use for converting the response `Body` to string and for the `Content-Type` header
+      
+      _Note_: If `WebFormat.Custom` is used, the [`CustomRequestFormat`](#CustomRequestFormat) must be set.
+    example: |
+      Dim Request As New WebRequest
+      Request.Body = Array("A", "B", "C")
+
+      Request.RequestFormat = WebFormat.JSON
+
+      ' -> Content-Type: application/json
+      ' -> Convert Body to JSON string
+      Request.Body ' = "["A","B","C"]"
+  
+  # ResponseFormat
+  - name: ResponseFormat
+    code: "Get|Let {WebFormat}"
+    description: |
+      Set the format to use for converting the response `Content` to `Data` and for the `Accept` header
+
+      _Note_: If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#CustomResponseFormat) must be set.
+    example: |
+      Dim Request As New WebRequest
+      Request.ResponseFormat = WebFormat.JSON
+
+      ' -> Accept: application/json
+
+      Dim Response As WebResponse
+      ' ... from Execute
+      Response.Content ' = {"message":"Howdy!"}
+
+      ' -> Parse Content to JSON Dictionary
+      Response.Data("message") ' = "Howdy!"
+
+  # CustomRequestFormat
+  - name: CustomRequestFormat
+    code: "Get|Let {String}"
+    description: |
+      Use converter registered with [`WebHelpers.RegisterConverter`](#RegisterConverter)
+      to convert `Body` to string and set `Content-Type` header.
+
+      (Automatically sets `RequestFormat` to `WebFormat.Custom`)
+    example: |
+      RestHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+
+      Dim Request As New WebRequest
+      Request.CustomRequestFormat = "csv"
+
+      ' -> Content-Type: "text/csv"
+      ' -> Body converted to string with Module.ConvertToCSV
+
+  # CustomResponseFormat
+  - name: CustomResponseFormat
+    code: "Get|Let {String}"
+    description: |
+      Use converter registered with [`WebHelpers.RegisterConverter`](#RegisterConverter)
+      to convert the response `Content` to `Data` and set `Accept` header.
+
+      (Automatically sets `ResponseFormat` to `WebFormat.Custom`)
+    example: |
+      RestHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+
+      Dim Request As New WebRequest
+      Request.CustomResponseFormat = "csv"
+
+      ' -> Accept: text/csv
+      ' -> WebResponse Content converted Data with Module.ParseCSV
+
+  # ContentType
+  - name: ContentType
+    code: "Get|Let {String}"
+    description: |
+      TODO
+    example: |
+      ' TODO
+
+  # Accept
+  - name: Accept
+    code: "Get|Let {String}"
+    description: |
+      TODO
+    example: |
+      ' TODO
+
+  # ContentLength
+  - name: ContentLength
+    code: "Get|Let {TODO}"
+    description: |
+      TODO
+    example: |
+      ' TODO
+
+  # Id
+  - name: Id
+    code: "Get {String}"
+    description: |
+      Unique Id of the `WebRequest`.
+
+  # FormattedResource
+  - name: FormattedResource
+    code: "Get {String}"
+    description: |
+      Get `Resource` with Url Segments replaced and Querystring added.
+    example: |
+      Dim Request As New WebRequest
+      Request.Resource = "examples/{Id}"
+      Request.AddUrlSegment "Id", 123
+      Request.AddQuerystringParam "message", "Hello"
+
+      Request.FormattedResource ' = "examples/123?message=Hello"
+
+  # Cookies
+  - name: Cookies
+    code: "Get|Set Collection"
+    description: |
+      _Note_: To add cookies, use [`AddCookie`](#AddCookie).
+
+      `Collection` of Cookies to include with request,
+      stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
+
+  # Headers
+  - name: Headers
+    code: "Get|Set Collection"
+    description: |
+      _Note_: To add headers, use [`AddHeader`](#AddHeader).
+
+      `Collection` of Headers to include with request,
+      stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
+
+  # QuerystringParams
+  - name: QuerystringParams
+    code: "Get|Set Collection"
+    description: |
+      _Note_: To add Querystring parameters, use [`AddQuerystringParam`](#AddQuerystringParam).
+
+      `Collection` of Querystring parameters to include with request,
+      stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
+
+  # UrlSegments
+  - name: UrlSegments
+    code: "Get|Set Dictionary"
+    description: |
+      _Note_: To add Url Segments, use [`AddUrlSegment`](#AddUrlSegment)
+
+      Url Segments are used to easily add dynamic values to `Resource`.
+      Create a Url Segement in `Resource` with curly brackets and then
+      replace with dynamic value with [`AddUrlSegment`](#AddUrlSegment).
+    example: |
+      Dim Request As New WebRequest
+
+      Dim User As String
+      Dim Id As Long
+      User = "Tim"
+      Id = 123
+
+      ' OK: Use string concatenation for dynamic values
+      Request.Resource = User & "/messages/" & Id
+
+      ' BETTER: Use Url Segments for dynamic values
+      Request.Resource = "{User}/messages/{Id}"
+      Request.AddUrlSegment "User", User
+      Request.AddUrlSegment "Id", Id
+
+      Request.FormattedResource ' = "Tim/messages/123"
+
+Methods:
+  # AddBodyParameter
+  - name: AddBodyParameter
+    code: "AddBodyParameter(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      TODO
+    example: |
+      ' TODO
+
+  # AddCookie
+  - name: AddCookie
+    code: "AddCookie(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Add cookie to be sent with request.
+    example: |
+      Dim Request As New WebRequest
+      Request.AddCookie "a", "abc"
+      Request.AddCookie "b", 123
+
+      ' -> Header: Cookie: a=abc; b=123;
+
+  # AddHeader
+  - name: AddHeader
+    code: "AddHeader(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Add header to be sent with request
+    example: |
+      Dim Request As New WebRequest
+      Request.AddHeader "Authentication", "Bearer ..."
+
+      ' -> Header: Authentication: Bearer ...
+
+  # AddQuerystringParam
+  - name: AddQuerystringParam
+    code: "AddQuerystringParam(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Add querysting parameter to be used in `FormattedResource` for request.
+    example: |
+      Dim Request As New WebRequest
+      Request.Resource = "messages"
+      Request.AddQuerystringParam "from", "Tim"
+
+      Request.FormattedResource ' = "messages?from=Tim"
+
+  # AddUrlSegment
+  - name: AddUrlSegment
+    code: "AddUrlSegment(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Url Segments are used to easily add dynamic values to `Resource`.
+      Create a Url Segement in `Resource` with curly brackets and then
+      replace with dynamic value with `AddUrlSegment`.
+    example: |
+      Dim Request As New WebRequest
+
+      Dim User As String
+      Dim Id As Long
+      User = "Tim"
+      Id = 123
+
+      ' OK: Use string concatenation for dynamic values
+      Request.Resource = User & "/messages/" & Id
+
+      ' BETTER: Use Url Segments for dynamic values
+      Request.Resource = "{User}/messages/{Id}"
+      Request.AddUrlSegment "User", User
+      Request.AddUrlSegment "Id", Id
+
+      Request.FormattedResource ' = "Tim/messages/123"
+
+  # Clone
+  - name: Clone 
+    code: "Clone()"
+    description: |
+      Clone the request (used internally for async functionality)

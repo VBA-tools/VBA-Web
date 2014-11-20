@@ -1,0 +1,119 @@
+Properties:
+  # BaseUrl
+  - name: BaseUrl
+    code: "Get|Let {String}"
+    description: |
+      Set the base url that is shared by all requests 
+      and that the request `Resource` is appended to.
+    example: |
+      ' Desired URLs
+      ' https://api.example.com/v1/messages
+      ' https://api.example.com/v1/users/id
+      '                 BaseUrl <- ^ -> Resource
+
+      Dim Client As New WebClient
+      Client.BaseUrl = "https://api.example.com/v1/"
+
+      Dim Request As New WebRequest
+      Request.Resource = "messages"
+      Request.Resource = "users/{id}"
+
+  # Username
+  - name: Username
+    code: "Get|Let {String}"
+    description: |
+      Username for Basic Authentication
+
+  # Password
+  - name: Password
+    code: "Get|Let {String}"
+    description: |
+      Password for Basic Authentication
+
+  # Authenticator
+  - name: Authenticator
+    code: "Get|Set {IAuthenticator}"
+    description: |
+      Attach an authenticator to the client for authentication requests.
+    example: |
+      Dim Client As New WebClient
+      Dim Auth As New OAuth1Authenticator
+      Auth.Setup ...
+
+      Set Client.Authenticator = Auth
+      ' -> All requests use Auth to add "Authorization" header
+
+  # TimeoutMS
+  - name: TimeoutMS
+    code: "Get|Let {Long}"
+    description: |
+      Timeout (in milliseconds) to wait for timeout in each request phase 
+      (Resolve, Connect, Send, Receive).
+
+  # ProxyServer
+  - name: ProxyServer
+    code: "Get|Let {String}"
+    description: |
+      Proxy server to pass requests through (except for those that match `ProxyBypassList`)
+
+  # ProxyUsername
+  - name: ProxyUsername
+    code: "Get|Let {String}"
+    description: |
+      Username for proxy
+
+  # ProxyPassword
+  - name: ProxyPassword
+    code: "Get|Let {String}"
+    description: |
+      Password for proxy
+
+  # ProxyBypassList
+  - name: ProxyBypassList
+    code: "Get|Let {String}"
+    description: |
+      Comma separated list of domains to bypass the proxy
+
+Methods:
+  # Execute
+  - name: Execute
+    code: "Execute(Request) {WebResponse}"
+    description: |
+      TODO...
+    example: |
+      ' TODO...
+
+  # GetJSON
+  - name: GetJSON
+    code: "GetJSON(Url, [Options]) {WebResponse}"
+    description: |
+      TODO...
+    example: |
+      ' TODO...
+
+  # PostJSON
+  - name: PostJSON
+    code: "PostJSON(Url, Body, [Options]) {WebResponse}"
+    description: |
+      TODO...
+    example: |
+      ' TODO...
+
+  # SetProxy
+  - name: SetProxy
+    code: "SetProxy(Server, [Username], [Password], [BypassList])"
+    description: |
+      TODO...
+    example: |
+      ' TODO...
+
+  # PrepareHttpRequest
+  - name: PrepareHttpRequest
+    code: "PrepareHttpRequest()"
+    internal: true
+
+
+  # PrepareCURL
+  - name: PrepareCURL
+    code: "PrepareCURL()"
+    internal: true
