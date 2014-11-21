@@ -19,6 +19,10 @@ layout: docs
     WebRequest
   </a>
   <ul class="toc-section">
+    {% if site.data.docs.WebRequest.Intro %}
+    <li><a href="#WebRequest">Introduction</a></li>
+    {% endif %}
+
     <li class="toc-subsection"><a href="#WebRequest-Properties">Properties</a></li>
     {% for property in site.data.docs.WebRequest.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
@@ -34,6 +38,10 @@ layout: docs
     WebClient
   </a>
   <ul class="toc-section">
+    {% if site.data.docs.WebClient.Intro %}
+    <li><a href="#WebClient">Introduction</a></li>
+    {% endif %}
+
     <li class="toc-subsection"><a href="#WebClient-Properties">Properties</a></li>
     {% for property in site.data.docs.WebClient.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
@@ -45,10 +53,14 @@ layout: docs
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#WebResponse">
     WebResponse
   </a>
   <ul class="toc-section">
+    {% if site.data.docs.WebResponse.Intro %}
+    <li><a href="#WebResponse">Introduction</a></li>
+    {% endif %}
+
     <li class="toc-subsection"><a href="#WebResponse-Properties">Properties</a></li>
     {% for property in site.data.docs.WebResponse.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
@@ -60,10 +72,14 @@ layout: docs
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#WebHelpers">
     WebHelpers
   </a>
   <ul class="toc-section">
+    {% if site.data.docs.WebHelpers.Intro %}
+    <li><a href="#WebHelpers">Introduction</a></li>
+    {% endif %}
+
     <li class="toc-subsection"><a href="#WebHelpers-Properties">Properties</a></li>
     {% for property in site.data.docs.WebHelpers.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
@@ -75,14 +91,13 @@ layout: docs
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#IWebAuthenticator">
     IWebAuthenticator
   </a>
   <ul class="toc-section">
-    <li class="toc-subsection"><a href="#IWebAuthenticator-Properties">Properties</a></li>
-    {% for property in site.data.docs.IWebAuthenticator.Properties%}
-    <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
-    {% endfor %}
+    {% if site.data.docs.IWebAuthenticator.Intro %}
+    <li><a href="#IWebAuthenticator">Introduction</a></li>
+    {% endif %}
 
     <li class="toc-subsection"><a href="#IWebAuthenticator-Methods">Methods</a></li>
     {% for method in site.data.docs.IWebAuthenticator.Methods%}
@@ -90,10 +105,14 @@ layout: docs
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#WebAsyncWrapper">
     WebAsyncWrapper
   </a>
   <ul class="toc-section">
+    {% if site.data.docs.WebAsyncWrapper.Intro %}
+    <li><a href="#WebAsyncWrapper">Introduction</a></li>
+    {% endif %}
+
     <li class="toc-subsection"><a href="#WebAsyncWrapper-Properties">Properties</a></li>
     {% for property in site.data.docs.WebAsyncWrapper.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
@@ -113,6 +132,11 @@ layout: docs
   WebRequest
   ====================================================================== -->
   <h2 id="WebRequest" class="docs-title anchor">WebRequest</h2>
+  <section class="docs-subsection">
+    {% if site.data.docs.WebRequest.Intro %}
+    {{ site.data.docs.WebRequest.Intro | markdownify }}
+    {% endif %}
+  </section>
   <section class="docs-subsection">
     <h3 id="WebRequest-Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebRequest.Properties %}
@@ -175,6 +199,11 @@ layout: docs
   ====================================================================== -->
   <h2 id="WebClient" class="docs-title anchor">WebClient</h2>
   <section class="docs-subsection">
+    {% if site.data.docs.WebClient.Intro %}
+    {{ site.data.docs.WebClient.Intro | markdownify }}
+    {% endif %}
+  </section>
+  <section class="docs-subsection">
     <h3 id="WebClient-Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebClient.Properties %}
     <h4 id="{{ property.name }}" class="anchor">
@@ -235,6 +264,11 @@ layout: docs
   WebResponse
   ====================================================================== -->
   <h2 id="WebResponse" class="docs-title anchor">WebResponse</h2>
+  <section class="docs-subsection">
+    {% if site.data.docs.WebResponse.Intro %}
+    {{ site.data.docs.WebResponse.Intro | markdownify }}
+    {% endif %}
+  </section>
   <section class="docs-subsection">
     <h3 id="WebResponse-Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebResponse.Properties %}
@@ -297,6 +331,11 @@ layout: docs
   ====================================================================== -->
   <h2 id="WebHelpers" class="docs-title anchor">WebHelpers</h2>
   <section class="docs-subsection">
+    {% if site.data.docs.WebHelpers.Intro %}
+    {{ site.data.docs.WebHelpers.Intro | markdownify }}
+    {% endif %}
+  </section>
+  <section class="docs-subsection">
     <h3 id="WebHelpers-Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebHelpers.Properties %}
     <h4 id="{{ property.name }}" class="anchor">
@@ -358,32 +397,9 @@ layout: docs
   ====================================================================== -->
   <h2 id="IWebAuthenticator" class="docs-title anchor">IWebAuthenticator</h2>
   <section class="docs-subsection">
-    <h3 id="IWebAuthenticator-Properties" class="docs-subsection-title anchor">Properties</h3>
-    {% for property in site.data.docs.IWebAuthenticator.Properties %}
-    <h4 id="{{ property.name }}" class="anchor">
-      <b class="docs-name">{{ property.name }}</b>
-      <code>{{ property.code }}</code>
-    </h4>
-    {% if property.details %}
-    <dl class="docs-details">
-      {% for detail in property.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
+    {% if site.data.docs.IWebAuthenticator.Intro %}
+    {{ site.data.docs.IWebAuthenticator.Intro | markdownify }}
     {% endif %}
-    {% if property.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if property.description %}
-    {{ property.description | markdownify }}
-    {% endif %}
-{% if property.example %}
-{% highlight VB.net %}
-{{ property.example }}
-{% endhighlight %}
-{% endif %}
-    {% endfor %}
   </section>
   <section class="docs-subsection">
     <h3 id="IWebAuthenticator-Methods" class="docs-subsection-title anchor">Methods</h3>
@@ -418,6 +434,11 @@ layout: docs
   WebAsyncWrapper
   ====================================================================== -->
   <h2 id="WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
+  <section class="docs-subsection">
+    {% if site.data.docs.WebAsyncWrapper.Intro %}
+    {{ site.data.docs.WebAsyncWrapper.Intro | markdownify }}
+    {% endif %}
+  </section>
   <section class="docs-subsection">
     <h3 id="WebAsyncWrapper-Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebAsyncWrapper.Properties %}

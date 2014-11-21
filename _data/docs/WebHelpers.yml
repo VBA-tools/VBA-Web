@@ -76,7 +76,7 @@ Properties:
       ' Headers...
       '
       ' <-- Response - (Time)
-      ' ... error, typo
+      ' 404 ...
 
 Methods:
   # LogDebug

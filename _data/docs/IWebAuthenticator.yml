@@ -1,0 +1,21 @@
+Methods:
+  # BeforeExecute
+  - name: BeforeExecute
+    code: "BeforeExecute(Client, Request)"
+    details:
+      Client: "{WebClient}"
+      Request: "`ByRef {WebRequest}`"
+    description: |
+      Hook for taking action before a request is executed.
+      Useful for adding headers (e.g. "Authorization"), cookies, etc.
+
+  # AfterExecute
+  - name: AfterExecute
+    code: "AfterExecute(Client, Request, Response)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`{WebRequest}`"
+      Response: "`ByRef {WebResponse}"
+    description: |
+      Hook for taking action after a request has been executed.
+      Useful for handling `401 Unauthorized` or other issues
