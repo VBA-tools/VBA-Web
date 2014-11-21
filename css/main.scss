@@ -408,6 +408,8 @@ li.toc-subsection {
   }
 }
 .docs-details {
+  @extend .clearfix;
+
   margin: 0 0 0.5em 0.5em;
   line-height: 1.5em;
 

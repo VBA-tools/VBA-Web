@@ -1,5 +1,520 @@
 Properties:
-  
+  # WebStatusCode
+  - name: WebStatusCode
+    code: "{WebStatusCode}"
+    details:
+      Ok: "`200`"
+      Created: "`201`"
+      NoContent: "`204`"
+      BadRequest: "`400`"
+      Unauthorized: "`401`"
+      Forbidden: "`403`"
+      NotFound: "`404`"
+      RequestTimeout: "`408`"
+      UnsupportedMediaType: "`415`"
+      InternalServerError: "`500`"
+      BadGateway: "`502`"
+      ServiceUnavailable: "`503`"
+      GatewayTimeout: "`504`"
+    description:
+      Helper for common http status codes.
+      (Use underlying status code for any codes not listed)
+    example: |
+      Dim Response As WebResponse
+
+      If Response.StatusCode = WebStatusCode.Ok Then
+        ' Ok
+      ElseIf Response.StatusCode = 418 Then
+        ' I'm a teapot
+      End If
+
+  # WebMethod
+  - name: WebMethod
+    code: "{WebMethod}"
+    details:
+      HttpGet: "`0`"
+      HttpPost: "`1`"
+      HttpPut: "`2`"
+      HttpDelete: "`3`"
+      HttpPatch: "`4`"
+
+  # WebFormat
+  - name: WebFormat
+    code: "{WebFormat}"
+    details:
+      PlainText: "`0`"
+      Json: "`1`"
+      FormUrlEncoded: "`2`"
+      Xml: "`3`"
+      Custom: "`4`"
+
+  # EnableLogging
+  - name: EnableLogging
+    code: "Get|Let {Boolean}"
+    description: |
+      Enable logging of requests and responses and other internal messages from VBA-Web.
+      Should be the first step in debugging VBA-Web
+      if something isn't working as expected.
+      Open immediate window (ctrl+g or View > Immediate Window) to view logs.
+    example: |
+      Dim Client As New WebClient
+      Client.BaseUrl = "https://api.example.com/v1/"
+
+      Dim RequestWithTypo As New WebRequest
+      RequestWithTypo.Resource = "peeple/{id}"
+      RequestWithType.AddUrlSegment "idd", 123
+
+      ' Enable logging before the request is executed
+      WebHelpers.EnableLogging = True
+
+      Dim Response As WebResponse
+      Set Response = Client.Execute(Request)
+
+      ' Immediate window:
+      ' --> Request - (Time)
+      ' GET https://api.example.com/v1/peeple/{id}
+      ' Headers...
+      '
+      ' <-- Response - (Time)
+      ' ... error, typo
 
 Methods:
+  # LogDebug
+  - name: LogDebug
+    code: "LogDebug(Message, [From])"
+    details:
+      Message: "`{String}`"
+      From: "`{String}` _Optional_"
+    description: |
+      Log message (when logging is enabled with `EnableLogging`) 
+      with optional location where the message is coming from.
+      Useful when writing extensions to VBA-Web
+      (like an `IWebAuthenticator`).
+    example: |
+      LogDebug "Executing request..."
+      ' -> VBA-Web: Executing request...
+
+      LogDebug "Executing request...", "Module.Function"
+      ' -> Module.Function: Executing request...
+
+  # LogError
+  - name: LogError
+    code: "LogError(Message, [From], [ErrNumber])"
+    details:
+      Message: "`{String}`"
+      From: "`{String}` _Optional_"
+      ErrNumber: "`{Long}` _Optional_"
+    description: |
+      Log error (even when logging is disabled with `EnableLogging`)
+      with optional location where the message is coming from and error number.
+      Useful when writing extensions to VBA-Web
+      (like an `IWebAuthenticator`).
+    example: |
+      WebHelpers.LogError "Something went wrong"
+      ' -> ERROR - VBA-Web: Something went wrong
+
+      WebHelpers.LogError "Something went wrong", "Module.Function"
+      ' -> ERROR - Module.Function: Something went wrong
+
+      WebHelpers.LogError "Something went wrong", "Module.Function", 100
+      ' -> ERROR - Module.Function: 100, Something went wrong
+
+  # LogRequest
+  - name: LogRequest
+    code: "LogRequest(Client, Request)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`{WebRequest}`"
+    description: |
+      Log details of the request (Url, headers, cookies, body, etc.).
+
+  # LogResponse
+  - name: LogResponse
+    code: "LogResponse(Client, Request, Response)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`{WebRequest}`"
+      Response: "`{WebResponse}`"
+    description: |
+      Log details of the response (Status, headers, content, etc.).
+
+  # Obfuscate
+  - name: Obfuscate
+    code: "Obfuscate(Secure, [Character])"
+    details:
+      Secure: "`{String}` Message to obfuscate"
+      Character: "`{String}` _Optional_ Character to obfuscate with (\"*\" is default)"
+    description: |
+      Obfuscate any secure information before logging.
+    example: |
+      Dim Password As String
+      Password = "Secret"
+
+      LogDebug "Password = " & Obfuscate(Password)
+      ' -> Password = ******
+
+  # ParseJSON
+  - name: ParseJSON
+    code: "ParseJSON(Value) {Object}"
+    details:
+      Value: "`{String}` JSON value to parse"
+    description: |
+      Parse JSON value to `Dictionary` if it's an object
+      or `Collection` if it's an array.
+
+  # ConvertToJSON
+  - name: ConvertToJSON
+    code: "ConvertToJSON(Value) {String}"
+    details:
+      Value: "`{Variant}` `Dictionary`, `Collection`, or `Array` to convert to string"
+    description: |
+      Convert `Dictionary`, `Collection`, or `Array` to JSON string.
+
+  # ParseUrlEncoded
+  - name: ParseUrlEncoded
+    code: "ParseUrlEncoded(Value) {Dictionary}"
+    details:
+      Value: "`{String}` Url-Encoded value to parse"
+    description: |
+      Parse Url-Encoded value to `Dictionary`.
+
+  # ConvertToUrlEncoded
+  - name: ConvertToUrlEncoded
+    code: "ConvertToUrlEncoded(Value) {String}"
+    details:
+      Value: "`{Dictionary}` Value to convert to Url-Encoded string"
+    description: |
+      Convert `Dictionary` to Url-Encoded string.
+
+  # ParseXML
+  - name: ParseXML
+    code: "ParseXML(Value) {Dictionary}"
+    details:
+      Value: "`{String}` XML value to parse"
+    description: |
+      Parse XML value to `Dictionary`.
+
+  # ConvertToXML
+  - name: ConvertToXML
+    code: "ConvertToXML(Value) {String}"
+    details:
+      Value: "`Dictionary` Value to convert to XML"
+    description: |
+      Convert `Dictionary` to XML.
+
+  # ParseByFormat
+  - name: ParseByFormat
+    code: "ParseByFormat(Value, Format, [CustomFormat], [Bytes]) {Object}"
+    details:
+      Value: "`{String}` Value to parse"
+      Format: "`{WebFormat}`"
+      CustomFormat: "`{String}` _Optional_ Name of registered custom converter"
+      Bytes: "`{Variant}` _Optional_ Bytes for custom converter (if `ParseType = \"Binary\"`)"
+    description: |
+      Helper for parsing value to given `WebFormat` or custom format.
+      Returns `Dictionary` or `Collection` based on given `Value`.
+
+  # ConvertToFormat
+  - name: ConvertToFormat
+    code: "ConvertToFormat(Value, Format, [CustomFormat]) {String}"
+    details:
+      Value: "`{Variant}` `Dictionary`, `Collection`, or `Array` to convert to string"
+      Format: "`{WebFormat}`"
+      CustomFormat: "`{String}` _Optional_ Name of registered custom converter"
+    description: |
+      Helper for converting value to given `WebFormat` or custom format.
+
+      _Note_ Only some converters handle `Collection` or `Array`.
+
+  # UrlEncode
+  - name: UrlEncode
+    code: "UrlEncode(Text, SpaceAsPlus, EncodeUnsafe) {String}"
+    details:
+      Text: "`{Variant}` Text to encode"
+      SpaceAsPlus: |
+        "`{Boolean}` _Optional_ Default is `False`"
+
+        `%20` if `False` / `+` if `True`
+      EncodeUnsafe: |
+        "`{Boolean}` _Optional_ Default is `True`"
+
+        Encode characters that could be misunderstood within URLs.<br>
+        (``SPACE, ", <, >, #, %, {, }, |, \, ^, ~, `, [, ]``)
+    description: |
+      Encode string for URLs.
   
+  # UrlDecode
+  - name: UrlDecode
+    code: "UrlDecode(Encoded) {String}"
+    details:
+      Encoded: "`{String}` Text to decode"
+    description: |
+      Decode Url-encoded string.
+  
+  # Base64Encode
+  - name: Base64Encode
+    code: "Base64Encode(Text) {String}"
+    details:
+      Text: "`{String}` Text to encode"
+    description: |
+      Base64-encode text.
+
+  # RegisterConverter
+  - name: RegisterConverter
+    code: "RegisterConverter(Name, MediaType, ConvertCallback, ParseCallback, [Instance], [ParseType])"
+    details:
+      Name: "`{String}` Name of converter for use with `CustomRequestFormat` or `CustomResponseFormat`"
+      MediaType: "`{String}` Media type to use for `Content-Type` and `Accept` headers"
+      ConvertCallback: "`{String}` Global or object function name for converting"
+      ParseCallback: "`{String}` Global or object function name for parsing"
+      Instance: "`{Object}` _Optional_ Use instance methods for `ConvertCallback` and `ParseCallback`"
+      ParseType: "`{String}` _Optional_ `\"String\"` (default) or `\"Binary\"` to pass raw binary response to `ParseCallback`"
+    description: |
+      Register custom converter for converting request `Body` and response `Content`.
+      If the `ConvertCallback` or `ParseCallback` are object methods, 
+      pass in an object instance.
+      If the `ParseCallback` needs the raw binary response value (e.g. file download),
+      set `ParseType = "Binary"`, otherwise `"String"` is used.
+
+      - `ConvertCallback` signature: `Function ...(Value As Variant) As String`
+      - `ParseCallback` signature: `Function ...(Value As String) As Object`
+    example: |
+      ' 1. Use global module functions for Convert and Parse
+      ' ---
+      ' Module: CSVConverter
+      Function ParseCSV(Value As String) As Object
+        ' ...
+      End Function
+      Function ConvertToCSV(Value As Variant) As String
+        ' ...
+      End Function
+
+      WebHelpers.RegisterConverter "csv", "text/csv", _
+        "CSVConverter.ConvertToCSV", "CSVConverter.ParseCSV"
+
+      ' 2. Use object instance functions for Convert and Parse
+      ' ---
+      ' Object: CSVConverterClass
+      ' same as above...
+
+      Dim Converter As New CSVConverterClass
+      WebHelpers.RegisterConverter "csv", "text/csv", _
+        "ConvertToCSV", "ParseCSV", Instance:=Converter
+
+      ' 3. Pass raw binary value to ParseCallback
+      ' ---
+      ' Module: ImageConverter
+      Function ParseImage(Bytes As Variant) As Object
+        ' ...
+      End Function
+      Function ConvertToImage(Value As Variant) As String
+        ' ...
+      End Function
+
+      WebHelpers.RegisterConverter "image", "image/jpeg", _
+        "ImageConverter.ConvertToImage", "ImageConverter.ParseImage", _
+        ParseType:="Binary"
+
+  # JoinUrl
+  - name: JoinUrl
+    code: "JoinUrl(LeftSide, RightSide) {String}"
+    details:
+      LeftSide: "`{String}`"
+      RightSide: "`{String}`"
+    description: |
+      Join two url parts, handling "/" in between them.
+      (Simple implementation that only handles "/")
+    example: |
+      WebHelpers.JoinUrl "a/", "/b"
+      ' -> a/b
+
+      WebHelpers.JoinUrl "a", "b"
+      ' -> a/b
+
+  # UrlParts
+  - name: UrlParts
+    code: "UrlParts(Url) {Dictionary}"
+    details:
+      Url: "`{String}`"
+    description: |
+      Get relevant parts of the given url. Returns `Protocol`, `Host`, `Port`, `Path`, `Querystring`, and `Hash`
+    example: |
+      WebHelpers.UrlParts "https://www.google.com/a/b/c.html?a=1&b=2#hash"
+      ' -> Protocol = https
+      '    Host = www.google.com
+      '    Port = 443
+      '    Path = /a/b/c.html
+      '    Querystring = a=1&b=2
+      '    Hash = hash
+
+      WebHelpers.UrlParts "localhost:3000/a/b/c"
+      ' -> Protocol = ""
+      '    Host = localhost
+      '    Port = 3000
+      '    Path = /a/b/c
+      '    Querystring = ""
+      '    Hash = ""
+
+  # IsArray
+  - name: IsArray
+    code: "IsArray(Obj) {Boolean}"
+    details:
+      Obj: "`{Variant}`"
+    description: |
+      Robust check if the given is an array. 
+      Handles `Variant`, `Array(...)`, and `Type()` (e.g. `Byte(8)`)
+
+  # CloneDictionary
+  - name: CloneDictionary
+    code: "CloneDictionary(Dict) {Dictionary}"
+    details:
+      Dict: "`{Dictionary}`"
+    description: |
+      Create a cloned copy of the `Dictionary`.
+      This is not a deep copy, so children objects are copied by reference.
+
+  # CloneCollection
+  - name: CloneCollection
+    code: "CloneCollection(Coll) {Collection}"
+    details:
+      Coll: "`{Collection}`"
+    description: |
+      Create a cloned copy of the `Collection`.
+      This is not a deep copy, so children objects are copied by reference.
+
+  # CreateKeyValue
+  - name: CreateKeyValue
+    code: "CreateKeyValue(Key, Value) {Dictionary}"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Helper for creating `Key-Value` pair with `Dictionary`.
+      Used in `WebRequest`/`WebResponse` `Cookies`, `Headers`, and `QuerystringParams`
+    example: |
+      WebHelpers.CreateKeyValue "abc", 123
+      ' -> {"Key": "abc", "Value": 123}
+
+  # FindInKeyValues
+  - name: FindInKeyValues
+    code: "FindInKeyValues(KeyValues, Key) {Variant}"
+    details:
+      KeyValues: "`{Collection}` of `Key-Value`"
+      Key: "`{Variant}`"
+    description: |
+      Search a `Collection` of `Key-Value` and retrieve the value for the given key.
+    example: |
+      Dim KeyValues As New Collection
+      KeyValues.Add WebHelpers.CreateKeyValue("abc", 123)
+
+      WebHelpers.FindInKeyValues KeyValues, "abc"
+      ' -> 123
+
+      WebHelpers.FindInKeyValues KeyValues, "unknown"
+      ' -> Empty
+
+  # FormatToMediaType
+  - name: FormatToMediaType
+    code: "FormatToMediaType(Format, [CustomFormat]) {String}"
+    details:
+      Format: "`{WebFormat}`"
+      CustomFormat: "`{String}` _Optional_ Needed if `Format = WebFormat.Custom`"
+    description: |
+      Get the media-type for the given format / custom format.
+
+  # MethodToName
+  - name: MethodToName
+    code: "MethodToName(Method) {String}"
+    details:
+      Method: "`{WebMethod}`"
+    description: |
+      Get the method name for the given `WebMethod`
+    example: |
+      WebHelpers.MethodToName WebMethod.HttpPost
+      ' -> "POST"
+
+  # AddAsyncRequest
+  - name: AddAsyncRequest
+    code: "AddAsyncRequest()"
+    internal: true
+
+  # GetAsyncRequest
+  - name: GetAsyncRequest
+    code: "GetAsyncRequest()"
+    internal: true
+
+  # RemoveAsyncRequest
+  - name: RemoveAsyncRequest
+    code: "RemoveAsyncRequest()"
+    internal: true
+
+  # StartTimeoutTimer
+  - name: StartTimeoutTimer
+    code: "StartTimeoutTimer()"
+    internal: true
+
+  # StopTimeoutTimer
+  - name: StopTimeoutTimer
+    code: "StopTimeoutTimer()"
+    internal: true
+
+  # TimeoutTimerExpired
+  - name: TimeoutTimerExpired
+    code: "TimeoutTimerExpired()"
+    internal: true
+
+  # ExecuteInShell
+  - name: ExecuteInShell
+    code: "ExecuteInShell()"
+    internal: true
+
+  # PrepareTextForShell
+  - name: PrepareTextForShell
+    code: "PrepareTextForShell()"
+    internal: true
+
+  # HMACSHA1
+  - name: HMACSHA1
+    code: "HMACSHA1(Text, Secret, [Format]) {String}"
+    details:
+      Text: "`{String}`"
+      Secret: "`{String}`"
+      Format: "`{String}` _Optional_ `\"Hex\"` or `\"Base64\"` encoding for result"
+    description: |
+      Determine the HMAC for the given text and secret using the SHA1 hash algorithm.
+    example:
+      WebHelpers.HMACSHA1 "Howdy!", "Secret"
+      ' -> c8fdf74a9d62aa41ac8136a1af471cec028fb157
+
+  # HMACSHA256
+  - name: HMACSHA256
+    code: "HMACSHA256(Text, Secret, [Format]) {String}"
+    details:
+      Text: "`{String}`"
+      Secret: "`{String}`"
+      Format: "`{String}` _Optional_ `\"Hex\"` or `\"Base64\"` encoding for result"
+    description: |
+      Determine the HMAC for the given text and secret using the SHA256 hash algorithm.
+    example:
+      WebHelpers.HMACSHA256 "Howdy!", "Secret"
+      ' -> fb5d65...
+
+  # MD5
+  - name: MD5
+    code: "MD5(Text, [Format]) {String}"
+    details:
+      Text: "`{String}`"
+      Format: "`{String}` _Optional_ `\"Hex\"` or `\"Base64\"` encoding for result"
+    description: |
+      Determine the MD5 hash of the given text.
+    example: |
+      WebHelpers.MD5 "Howdy!"
+      ' -> 7105f32280940271293ee00ac97da5a7
+
+  # CreateNonce
+  - name: CreateNonce
+    code: "CreateNonce([NonceLength])"
+    details:
+      NonceLength: "`{Integer}` _Optional_ Default is 32"
+    description: |
+      Create random alphanumeric nonce (0-9a-zA-Z)
