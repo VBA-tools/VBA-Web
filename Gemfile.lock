@@ -20,6 +20,7 @@ GEM
     colorator (0.1)
     execjs (2.2.2)
     fast-stemmer (1.0.2)
+    ffi (1.9.6)
     ffi (1.9.6-x64-mingw32)
     gemoji (2.1.0)
     github-pages (28)
@@ -86,6 +87,8 @@ GEM
     mercenary (0.3.4)
     mini_portile (0.6.0)
     minitest (5.4.2)
+    nokogiri (1.6.3.1)
+      mini_portile (= 0.6.0)
     nokogiri (1.6.3.1-x64-mingw32)
       mini_portile (= 0.6.0)
     parslet (1.5.0)
@@ -111,6 +114,7 @@ GEM
     yajl-ruby (1.1.0)
 
 PLATFORMS
+  ruby
   x64-mingw32
 
 DEPENDENCIES

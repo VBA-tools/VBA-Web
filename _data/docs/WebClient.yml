@@ -9,7 +9,7 @@ Properties:
       ' Desired URLs
       ' https://api.example.com/v1/messages
       ' https://api.example.com/v1/users/id
-      '                 BaseUrl <- ^ -> Resource
+      '                BaseUrl <- ^ -> Resource
 
       Dim Client As New WebClient
       Client.BaseUrl = "https://api.example.com/v1/"
@@ -81,9 +81,26 @@ Methods:
     details:
       Request: "`{WebRequest}`"
     description: |
-      TODO
+      Execute the given request 
+      (append the request's `FormattedResource` to the `BaseUrl`) 
+      and return the response.
     example: |
-      ' TODO
+      Dim Message As String
+    
+      Dim Client As New WebClient
+      Client.BaseUrl = "https://api.example.com/v1/"
+      
+      Dim Request As New WebRequest
+      Request.Resource = "messages/{id}"
+      Request.AddUrlSegment "id", 123
+      
+      ' Add querystring, body, headers, cookies, etc. for request
+      
+      Dim Response As WebResponse
+      Set Response = Client.Execute(Request)
+      
+      ' -> GET https://api.example/com/v1/messages/123
+      '    headers, cookies, and body...
 
   # GetJSON
   - name: GetJSON
@@ -92,21 +109,59 @@ Methods:
       Url: "`{String}`"
       Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams (`Collection` of `KeyValue`) and UrlSegments (`Dictionary`)"
     description: |
-      TODO
+      Get JSON from the given URL (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
     example: |
-      ' TODO
+      Dim Client As New WebClient
+      Dim Url As String
+      Url = "https://api.example.com/v1/messages/1"
+      
+      Dim Response As WebResponse
+      Set Response = Client.GetJSON(Url)
+      
+      Dim Headers As New Collection
+      Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+      
+      Dim Options As New Dictionary
+      Options.Add "Headers", Headers
+      
+      Set Response = Client.GetJSON(Url, Options)
 
   # PostJSON
   - name: PostJSON
     code: "PostJSON(Url, Body, [Options]) {WebResponse}"
     details:
       Url: "`{String}`"
-      Body: "`{Variant}` TODO"
-      Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams (`Collection` of `KeyValue`) and UrlSegments (`Dictionary`)"
+      Body: "`{Variant}` `Array`, `Collection`, or `Dictionary` to post"
+      Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments"
     description: |
-      TODO
+      Post JSON Body (`Array`, `Collection`, `Dictionary`) to the given URL 
+      (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
+      
+      The following options are accepted: `Headers`, `Cookies`, `QuerystringParams`, and `UrlSegments`.
+      
+      - `Headers`, `Cookies`, and `UrlSegments`, if given, must be `Collection` of `KeyValue` 
+        (create with [`WebHelpers.CreateKeyValue`](#CreateKeyValue)) 
+      - `UrlSegments`, if given, must be a `Dictionary`.
     example: |
-      ' TODO
+      Dim Client As New WebClient
+      Dim Url As String
+      Url = "https://api.example.com/v1/messages/1"
+      
+      ' Body
+      ' Array, Collection, or Dictionary
+      Dim Body As New Dictionary
+      Body.Add "message", "Howdy!"
+      
+      Dim Response As WebResponse
+      Set Response = Client.PostJSON(Url, Body)
+      
+      Dim Headers As New Collection
+      Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+      
+      Dim Options As New Dictionary
+      Options.Add "Headers", Headers
+      
+      Set Response = Client.PostJSON(Url, Body, Options)
 
   # SetProxy
   - name: SetProxy
@@ -150,7 +205,6 @@ Methods:
   - name: PrepareHttpRequest
     code: "PrepareHttpRequest(Request[Async]) {WinHttpRequest}"
     internal: true
-
 
   # PrepareCURL
   - name: PrepareCURL
