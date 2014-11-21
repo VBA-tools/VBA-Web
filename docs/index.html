@@ -49,13 +49,13 @@ layout: docs
     WebResponse
   </a>
   <ul class="toc-section">
-    <li class="toc-subsection"><a href="#WebClient-Properties">Properties</a></li>
-    {% for property in site.data.docs.WebClient.Properties%}
+    <li class="toc-subsection"><a href="#WebResponse-Properties">Properties</a></li>
+    {% for property in site.data.docs.WebResponse.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebClient-Methods">Methods</a></li>
-    {% for method in site.data.docs.WebClient.Methods%}
+    <li class="toc-subsection"><a href="#WebResponse-Methods">Methods</a></li>
+    {% for method in site.data.docs.WebResponse.Methods%}
     <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
     {% endfor %}
   </ul>
@@ -76,16 +76,16 @@ layout: docs
   </ul>
 
   <a class="toc-title" href="#">
-    WebIAuthenticator
+    IWebAuthenticator
   </a>
   <ul class="toc-section">
-    <li class="toc-subsection"><a href="#WebIAuthenticator-Properties">Properties</a></li>
-    {% for property in site.data.docs.WebIAuthenticator.Properties%}
+    <li class="toc-subsection"><a href="#IWebAuthenticator-Properties">Properties</a></li>
+    {% for property in site.data.docs.IWebAuthenticator.Properties%}
     <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebIAuthenticator-Methods">Methods</a></li>
-    {% for method in site.data.docs.WebIAuthenticator.Methods%}
+    <li class="toc-subsection"><a href="#IWebAuthenticator-Methods">Methods</a></li>
+    {% for method in site.data.docs.IWebAuthenticator.Methods%}
     <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
     {% endfor %}
   </ul>
@@ -128,6 +128,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if property.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if property.description %}
     {{ property.description | markdownify }}
     {% endif %}
@@ -152,6 +155,9 @@ layout: docs
       <dd>{{ detail[1] | markdownify }}</dd>
       {% endfor %}
     </dl>
+    {% endif %}
+    {% if method.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
     {% endif %}
     {% if method.description %}
     {{ method.description | markdownify }}
@@ -183,6 +189,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if property.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if property.description %}
     {{ property.description | markdownify }}
     {% endif %}
@@ -208,6 +217,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if method.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if method.description %}
     {{ method.description | markdownify }}
     {% endif %}
@@ -222,10 +234,10 @@ layout: docs
   <!--
   WebResponse
   ====================================================================== -->
-  <h2 id="WebRequest" class="docs-title anchor">WebRequest</h2>
+  <h2 id="WebResponse" class="docs-title anchor">WebResponse</h2>
   <section class="docs-subsection">
-    <h3 id="WebRequest-Properties" class="docs-subsection-title anchor">Properties</h3>
-    {% for property in site.data.docs.WebRequest.Properties %}
+    <h3 id="WebResponse-Properties" class="docs-subsection-title anchor">Properties</h3>
+    {% for property in site.data.docs.WebResponse.Properties %}
     <h4 id="{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
@@ -238,6 +250,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if property.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if property.description %}
     {{ property.description | markdownify }}
     {% endif %}
@@ -249,8 +264,8 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebRequest-Methods" class="docs-subsection-title anchor">Methods</h3>
-    {% for method in site.data.docs.WebRequest.Methods %}
+    <h3 id="WebResponse-Methods" class="docs-subsection-title anchor">Methods</h3>
+    {% for method in site.data.docs.WebResponse.Methods %}
     <h4 id="{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -262,6 +277,9 @@ layout: docs
       <dd>{{ detail[1] | markdownify }}</dd>
       {% endfor %}
     </dl>
+    {% endif %}
+    {% if method.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
     {% endif %}
     {% if method.description %}
     {{ method.description | markdownify }}
@@ -293,6 +311,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if property.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if property.description %}
     {{ property.description | markdownify }}
     {% endif %}
@@ -318,6 +339,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if method.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if method.description %}
     {{ method.description | markdownify }}
     {% endif %}
@@ -330,12 +354,12 @@ layout: docs
   </section>
 
   <!--
-  WebIAuthenticator
+  IWebAuthenticator
   ====================================================================== -->
-  <h2 id="WebIAuthenticator" class="docs-title anchor">WebIAuthenticator</h2>
+  <h2 id="IWebAuthenticator" class="docs-title anchor">IWebAuthenticator</h2>
   <section class="docs-subsection">
-    <h3 id="WebIAuthenticator-Properties" class="docs-subsection-title anchor">Properties</h3>
-    {% for property in site.data.docs.WebIAuthenticator.Properties %}
+    <h3 id="IWebAuthenticator-Properties" class="docs-subsection-title anchor">Properties</h3>
+    {% for property in site.data.docs.IWebAuthenticator.Properties %}
     <h4 id="{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
@@ -348,6 +372,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if property.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if property.description %}
     {{ property.description | markdownify }}
     {% endif %}
@@ -359,8 +386,8 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebIAuthenticator-Methods" class="docs-subsection-title anchor">Methods</h3>
-    {% for method in site.data.docs.WebIAuthenticator.Methods %}
+    <h3 id="IWebAuthenticator-Methods" class="docs-subsection-title anchor">Methods</h3>
+    {% for method in site.data.docs.IWebAuthenticator.Methods %}
     <h4 id="{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -372,6 +399,9 @@ layout: docs
       <dd>{{ detail[1] | markdownify }}</dd>
       {% endfor %}
     </dl>
+    {% endif %}
+    {% if method.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
     {% endif %}
     {% if method.description %}
     {{ method.description | markdownify }}
@@ -403,6 +433,9 @@ layout: docs
       {% endfor %}
     </dl>
     {% endif %}
+    {% if property.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
+    {% endif %}
     {% if property.description %}
     {{ property.description | markdownify }}
     {% endif %}
@@ -427,6 +460,9 @@ layout: docs
       <dd>{{ detail[1] | markdownify }}</dd>
       {% endfor %}
     </dl>
+    {% endif %}
+    {% if method.internal %}
+    <p><em class="docs-internal">(Internal)</em></p>
     {% endif %}
     {% if method.description %}
     {{ method.description | markdownify }}

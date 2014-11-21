@@ -34,7 +34,7 @@ code {
 pre {
   border-left: solid 2px lighten($green, 10%);
   padding: 5px 0 5px 10px;
-  max-width: 45em;
+  max-width: 50em;
   line-height: 1.4em;
 
   & > code {
@@ -400,13 +400,13 @@ li.toc-subsection {
   }
 }
 .docs-details {
-  font-size: 0.94em;
-  margin: 0 0 0 0.5em;
+  margin: 0 0 0.2em 0.5em;
   line-height: 1.5em;
 
   & > dt {
     float: left;
     margin-right: 4px;
+    clear: both;
 
     & > code {
       background-color: transparent;
@@ -416,4 +416,24 @@ li.toc-subsection {
       margin-left: 2px;
     }
   }
+  & > dd {
+    p {
+      margin: 0;  
+    }
+
+    /* Assume em inside of details is "Optional" note */
+    em {
+      font-style: normal;
+      text-transform: uppercase;
+      font-size: 0.8em;
+      color: #666;
+    }
+  }
+}
+.docs-internal {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  color: #555;
+  font-style: normal;
+  font-weight: normal;
 }

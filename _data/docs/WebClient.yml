@@ -78,42 +78,81 @@ Methods:
   # Execute
   - name: Execute
     code: "Execute(Request) {WebResponse}"
+    details:
+      Request: "`{WebRequest}`"
     description: |
-      TODO...
+      TODO
     example: |
-      ' TODO...
+      ' TODO
 
   # GetJSON
   - name: GetJSON
     code: "GetJSON(Url, [Options]) {WebResponse}"
+    details:
+      Url: "`{String}`"
+      Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams (`Collection` of `KeyValue`) and UrlSegments (`Dictionary`)"
     description: |
-      TODO...
+      TODO
     example: |
-      ' TODO...
+      ' TODO
 
   # PostJSON
   - name: PostJSON
     code: "PostJSON(Url, Body, [Options]) {WebResponse}"
+    details:
+      Url: "`{String}`"
+      Body: "`{Variant}` TODO"
+      Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams (`Collection` of `KeyValue`) and UrlSegments (`Dictionary`)"
     description: |
-      TODO...
+      TODO
     example: |
-      ' TODO...
+      ' TODO
 
   # SetProxy
   - name: SetProxy
     code: "SetProxy(Server, [Username], [Password], [BypassList])"
+    details:
+      Server: "`{String}` Proxy server to pass requests through"
+      Username: "`{String}` _Optional_ Username for proxy"
+      Password: "`{String}` _Optional_ Password for proxy"
+      BypassList: "`{String}` _Optional_ Comma-separated list of servers that should bypass proxy"
     description: |
-      TODO...
+      Helper for setting proxy values.
     example: |
-      ' TODO...
+      Dim Client As New RestClient
+
+      ' Just Server
+      Client.SetProxy "proxy_server:80"
+
+      ' Server + Username and Password
+      Client.SetProxy "proxy_server:80", "Tim", "Password"
+
+      ' Server + Username and Password + BypassList
+      Client.SetProxy "proxy_server:80", "Tim", "Password", "<local>,*.bypass.com"
+
+  # GetFullUrl
+  - name: GetFullUrl
+    code: "GetFullUrl(Path) {String}"
+    details:
+      Path: "`{String}`"
+    description:
+      Get full url by joining given path and `BaseUrl`.
+
+  # GetFullRequestUrl
+  - name: GetFullRequestUrl
+    code: "GetFullRequestUrl(Request) {String}"
+    details:
+      Request: "`{WebRequest}`"
+    description:
+      Get full request url by joining `BaseUrl` and `Request.FormattedResource`.
 
   # PrepareHttpRequest
   - name: PrepareHttpRequest
-    code: "PrepareHttpRequest()"
+    code: "PrepareHttpRequest(Request[Async]) {WinHttpRequest}"
     internal: true
 
 
   # PrepareCURL
   - name: PrepareCURL
-    code: "PrepareCURL()"
+    code: "PrepareCURLRequest(Request) {String}"
     internal: true
