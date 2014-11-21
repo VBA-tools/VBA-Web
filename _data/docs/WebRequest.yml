@@ -87,7 +87,7 @@ Properties:
     description: |
       Set the format to use for converting the response `Body` to string and for the `Content-Type` header
       
-      _Note_: If `WebFormat.Custom` is used, the [`CustomRequestFormat`](#CustomRequestFormat) must be set.
+      _Note_ If `WebFormat.Custom` is used, the [`CustomRequestFormat`](#CustomRequestFormat) must be set.
     example: |
       Dim Request As New WebRequest
       Request.Body = Array("A", "B", "C")
@@ -104,7 +104,7 @@ Properties:
     description: |
       Set the format to use for converting the response `Content` to `Data` and for the `Accept` header
 
-      _Note_: If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#CustomResponseFormat) must be set.
+      _Note_ If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#CustomResponseFormat) must be set.
     example: |
       Dim Request As New WebRequest
       Request.ResponseFormat = WebFormat.Json
