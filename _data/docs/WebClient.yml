@@ -85,15 +85,13 @@ Methods:
       (append the request's `FormattedResource` to the `BaseUrl`) 
       and return the response.
     example: |
-      Dim Message As String
-    
       Dim Client As New WebClient
       Client.BaseUrl = "https://api.example.com/v1/"
-      
+
       Dim Request As New WebRequest
       Request.Resource = "messages/{id}"
       Request.AddUrlSegment "id", 123
-      
+
       ' Add querystring, body, headers, cookies, etc. for request
       
       Dim Response As WebResponse
@@ -107,7 +105,11 @@ Methods:
     code: "GetJSON(Url, [Options]) {WebResponse}"
     details:
       Url: "`{String}`"
-      Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams (`Collection` of `KeyValue`) and UrlSegments (`Dictionary`)"
+      Options: |
+        `{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments
+
+        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#CreateKeyValue))
+        - `UrlSegments`: `Dictionary`
     description: |
       Get JSON from the given URL (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
     example: |
@@ -132,16 +134,14 @@ Methods:
     details:
       Url: "`{String}`"
       Body: "`{Variant}` `Array`, `Collection`, or `Dictionary` to post"
-      Options: "`{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments"
+      Options: |
+        `{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments
+
+        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#CreateKeyValue))
+        - `UrlSegments`: `Dictionary`
     description: |
       Post JSON Body (`Array`, `Collection`, `Dictionary`) to the given URL 
       (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
-      
-      The following options are accepted: `Headers`, `Cookies`, `QuerystringParams`, and `UrlSegments`.
-      
-      - `Headers`, `Cookies`, and `UrlSegments`, if given, must be `Collection` of `KeyValue` 
-        (create with [`WebHelpers.CreateKeyValue`](#CreateKeyValue)) 
-      - `UrlSegments`, if given, must be a `Dictionary`.
     example: |
       Dim Client As New WebClient
       Dim Url As String

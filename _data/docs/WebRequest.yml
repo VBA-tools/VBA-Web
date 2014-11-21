@@ -5,7 +5,7 @@ Properties:
     description: |
       Set the request's portion of the url to be appended to the client's [`BaseUrl`](#BaseUrl).
       Can include [Url Segments](#UrlSegments) for dynamic values
-      and [Querystring parameters]("#QuerystringParams") 
+      and [Querystring parameters](#QuerystringParams) 
       are smart enough to be appended to existing querystring
       (or added to resource if there isn't an existing querystring).
     example: |
@@ -22,7 +22,7 @@ Properties:
       Request.AddQuerystringParam "b", 2
 
       ' -> Url: https://api.example.com/messages/123?a=1&b=2
-  
+
   # Method
   - name: Method
     code: "Get|Let {WebMethod}"
@@ -30,12 +30,12 @@ Properties:
       Set the HTTP method to be used for the request: GET, POST, PUT, PATCH, DELETE
     example: |
       Dim Request As New WebRequest
-      Request.Method = WebMethod.httpGET
-      Request.Method = WebMethod.httpPOST
-      Request.Method = WebMethod.httpPUT
-      Request.Method = WebMethod.httpPATCH
-      Request.Method = WebMethod.httpDELETE
-  
+      Request.Method = WebMethod.HttpGet
+      Request.Method = WebMethod.HttpPost
+      Request.Method = WebMethod.HttpPut
+      Request.Method = WebMethod.HttpPatch
+      Request.Method = WebMethod.HttpDelete
+
   # Body
   - name: Body
     code: "Get|Let|Set {Variant}"
@@ -45,7 +45,7 @@ Properties:
       Set: Use `Collection`, `Dictionary`, or `Object` for Body
     example: |
       Dim Request As New WebRequest
-      Request.RequestFormat = WebFormat.JSON
+      Request.RequestFormat = WebFormat.Json
 
       ' Let: String|Array
       Request.Body = "text"
@@ -75,9 +75,9 @@ Properties:
       headers for the `WebRequest`
     example: |
       Dim Request As New WebRequest
-      Request.Format = WebFormat.JSON
-      ' -> Request.RequestFormat = WebFormat.JSON
-      '    Request.ResponseFormat = WebFormat.JSON
+      Request.Format = WebFormat.Json
+      ' -> Request.RequestFormat = WebFormat.Json
+      '    Request.ResponseFormat = WebFormat.Json
       '    Content-Type: application/json
       '    Accept: application/json
   
@@ -92,7 +92,7 @@ Properties:
       Dim Request As New WebRequest
       Request.Body = Array("A", "B", "C")
 
-      Request.RequestFormat = WebFormat.JSON
+      Request.RequestFormat = WebFormat.Json
 
       ' -> Content-Type: application/json
       ' -> Convert Body to JSON string
@@ -107,7 +107,7 @@ Properties:
       _Note_: If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#CustomResponseFormat) must be set.
     example: |
       Dim Request As New WebRequest
-      Request.ResponseFormat = WebFormat.JSON
+      Request.ResponseFormat = WebFormat.Json
 
       ' -> Accept: application/json
 
@@ -156,25 +156,37 @@ Properties:
   - name: ContentType
     code: "Get|Let {String}"
     description: |
-      TODO
+      Set automatically from `RequestFormat` or `CustomRequestFormat`,
+      but can be overriden to set `Content-Type` header for request.
     example: |
-      ' TODO
+      Dim Request As New WebRequest
+      Request.ContentType = "text/csv"
+
+      ' -> Content-Type: text/csv
 
   # Accept
   - name: Accept
     code: "Get|Let {String}"
     description: |
-      TODO
+      Set automatically from `ResponseFormat` or `CustomResponseFormat`,
+      but can be overriden to set `Accept` header for request.
     example: |
-      ' TODO
+      Dim Request As New WebRequest
+      Request.Accept = "text/csv"
+
+      ' -> Accept: text/csv
 
   # ContentLength
   - name: ContentLength
-    code: "Get|Let {TODO}"
+    code: "Get|Let {Long}"
     description: |
-      TODO
+      Set automatically by length of `Body`, 
+      but can be overriden to set `Content-Length` header for request.
     example: |
-      ' TODO
+      Dim Request As New WebRequest
+      Request.ContentLength = 200
+
+      ' -> Content-Length: 200
 
   # Id
   - name: Id
@@ -199,7 +211,7 @@ Properties:
   - name: Cookies
     code: "Get|Set Collection"
     description: |
-      _Note_: To add cookies, use [`AddCookie`](#AddCookie).
+      _Note_ To add cookies, use [`AddCookie`](#AddCookie).
 
       `Collection` of Cookies to include with request,
       stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
@@ -208,7 +220,7 @@ Properties:
   - name: Headers
     code: "Get|Set Collection"
     description: |
-      _Note_: To add headers, use [`AddHeader`](#AddHeader).
+      _Note_ To add headers, use [`AddHeader`](#AddHeader).
 
       `Collection` of Headers to include with request,
       stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
@@ -217,7 +229,7 @@ Properties:
   - name: QuerystringParams
     code: "Get|Set Collection"
     description: |
-      _Note_: To add Querystring parameters, use [`AddQuerystringParam`](#AddQuerystringParam).
+      _Note_ To add Querystring parameters, use [`AddQuerystringParam`](#AddQuerystringParam).
 
       `Collection` of Querystring parameters to include with request,
       stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
@@ -226,7 +238,7 @@ Properties:
   - name: UrlSegments
     code: "Get|Set Dictionary"
     description: |
-      _Note_: To add Url Segments, use [`AddUrlSegment`](#AddUrlSegment)
+      _Note_ To add Url Segments, use [`AddUrlSegment`](#AddUrlSegment)
 
       Url Segments are used to easily add dynamic values to `Resource`.
       Create a Url Segement in `Resource` with curly brackets and then
@@ -257,9 +269,22 @@ Methods:
       Key: "`{String}`"
       Value: "`{Variant}`"
     description: |
-      TODO
+      Add `Key-Value` to `Body`. `Body` must be a `Dictionary` (if it's an `Array` or `Collection` an error is thrown)
     example: |
-      ' TODO
+      Dim Request As New WebRequest
+      Request.Format = WebFormat.Json
+
+      Request.AddBodyParameter "a", 123
+      Request.Body ' = "{"a":123}"
+
+      ' Can add parameters to existing Dictionary
+      Dim Body As New Dictionary
+      Body.Add "a", 123
+
+      Set Request.Body = Body
+      Request.AddBodyParameter "b", 456
+
+      Request.Body ' = "{"a":123,"b":456}"
 
   # AddCookie
   - name: AddCookie
@@ -336,5 +361,4 @@ Methods:
   # Clone
   - name: Clone 
     code: "Clone()"
-    description: |
-      Clone the request (used internally for async functionality)
+    internal: true

@@ -329,21 +329,19 @@ li.toc-subsection {
     margin-bottom: 0.5em;
   }
 
-  // Set z-index to 10 to be above special anchor positioning
   & > p,
   & .docs-subsection > p {
     margin-top: 0;
     position: relative;
-    z-index: 10;
+  }
 
-    a:not(.docs-code-link) {
-      color: #000;
-      text-decoration: none;
-      border-bottom: solid 1px #ccc;
+  & a {
+    color: #000;
+    text-decoration: none;
+    border-bottom: solid 1px #ccc;
 
-      &:hover {
-        border-color: #000;
-      }
+    &:hover {
+      border-color: #000;
     }
   }
   & > pre,
@@ -351,12 +349,22 @@ li.toc-subsection {
     position: relative;
     z-index: 10;
   }
+
   & > ul,
   & .docs-subsection > ul {
     margin-top: 0;
     padding-left: 1.2em;
     position: relative;
     z-index: 10;
+  }
+
+  /* Assume em inside of details is "Optional" note */
+  em {
+    font-style: normal;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    color: #666;
+    margin-right: 0.5em;
   }
 
   @include respond-to(medium) {
@@ -400,7 +408,7 @@ li.toc-subsection {
   }
 }
 .docs-details {
-  margin: 0 0 0.2em 0.5em;
+  margin: 0 0 0.5em 0.5em;
   line-height: 1.5em;
 
   & > dt {
@@ -417,16 +425,14 @@ li.toc-subsection {
     }
   }
   & > dd {
+    -webkit-margin-start: 20px;
+
     p {
       margin: 0;  
     }
-
-    /* Assume em inside of details is "Optional" note */
-    em {
-      font-style: normal;
-      text-transform: uppercase;
-      font-size: 0.8em;
-      color: #666;
+    ul {
+      margin: 0;
+      padding-left: 1em;
     }
   }
 }
