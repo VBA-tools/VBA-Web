@@ -1,9 +1,9 @@
-Attribute VB_Name = "Specs_RestClient"
+Attribute VB_Name = "Specs_WebClient"
 ''
-' Specs_RestClient
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' Specs_WebClient
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Specs for RestClient
+' Specs for WebClient
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -12,11 +12,11 @@ Attribute VB_Name = "Specs_RestClient"
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "RestClient"
+    Specs.Description = "WebClient"
     
-    Dim Client As New RestClient
-    Dim Request As RestRequest
-    Dim Response As RestResponse
+    Dim Client As New WebClient
+    Dim Request As WebRequest
+    Dim Response As WebResponse
     Dim Body As Dictionary
     Dim BodyToString As String
     Dim i As Integer
@@ -48,16 +48,16 @@ Public Function Specs() As SpecSuite
     ' Execute
     ' --------------------------------------------- '
     With Specs.It("Execute should set method, url, headers, cookies, and body")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "put"
-        Request.Method = WebMethod.httpPUT
+        Request.Method = WebMethod.HttpPut
         Request.AddQuerystringParam "number", 123
         Request.AddQuerystringParam "string", "abc"
         Request.AddQuerystringParam "boolean", True
         Request.AddHeader "X-Custom", "Howdy!"
         Request.AddCookie "abc", 123
-        Request.RequestFormat = WebFormat.formurlencoded
-        Request.ResponseFormat = WebFormat.json
+        Request.RequestFormat = WebFormat.FormUrlEncoded
+        Request.ResponseFormat = WebFormat.Json
         Request.AddBodyParameter "message", "Howdy!"
         
         Set Response = Client.Execute(Request)
@@ -65,14 +65,14 @@ Public Function Specs() As SpecSuite
         .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
         .Expect(Response.Data("url")).ToEqual "http://httpbin.org/put?number=123&string=abc&boolean=true"
         .Expect(Response.Data("headers")("X-Custom")).ToEqual "Howdy!"
-        .Expect(Response.Data("headers")("Content-Type")).ToMatch RestHelpers.FormatToMediaType(WebFormat.formurlencoded)
-        .Expect(Response.Data("headers")("Accept")).ToMatch RestHelpers.FormatToMediaType(WebFormat.json)
+        .Expect(Response.Data("headers")("Content-Type")).ToMatch WebHelpers.FormatToMediaType(WebFormat.FormUrlEncoded)
+        .Expect(Response.Data("headers")("Accept")).ToMatch WebHelpers.FormatToMediaType(WebFormat.Json)
         .Expect(Response.Data("headers")("Cookie")).ToMatch "abc=123"
         .Expect(Response.Data("form")("message")).ToEqual "Howdy!"
     End With
     
     With Specs.It("Execute should use Basic Authentication")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "basic-auth/{user}/{password}"
         Request.AddUrlSegment "user", "Tim"
         Request.AddUrlSegment "password", "Secret123"
@@ -110,11 +110,11 @@ Public Function Specs() As SpecSuite
     With Specs.It("should GetJSON with options")
         Set Options = New Dictionary
         Options.Add "Headers", New Collection
-        Options("Headers").Add RestHelpers.CreateKeyValue("X-Custom", "Howdy!")
+        Options("Headers").Add WebHelpers.CreateKeyValue("X-Custom", "Howdy!")
         Options.Add "Cookies", New Collection
-        Options("Cookies").Add RestHelpers.CreateKeyValue("abc", 123)
+        Options("Cookies").Add WebHelpers.CreateKeyValue("abc", 123)
         Options.Add "QuerystringParams", New Collection
-        Options("QuerystringParams").Add RestHelpers.CreateKeyValue("message", "Howdy!")
+        Options("QuerystringParams").Add WebHelpers.CreateKeyValue("message", "Howdy!")
         Options.Add "UrlSegments", New Dictionary
         Options("UrlSegments").Add "resource", "get"
         
@@ -159,11 +159,11 @@ Public Function Specs() As SpecSuite
         
         Set Options = New Dictionary
         Options.Add "Headers", New Collection
-        Options("Headers").Add RestHelpers.CreateKeyValue("X-Custom", "Howdy!")
+        Options("Headers").Add WebHelpers.CreateKeyValue("X-Custom", "Howdy!")
         Options.Add "Cookies", New Collection
-        Options("Cookies").Add RestHelpers.CreateKeyValue("abc", 123)
+        Options("Cookies").Add WebHelpers.CreateKeyValue("abc", 123)
         Options.Add "QuerystringParams", New Collection
-        Options("QuerystringParams").Add RestHelpers.CreateKeyValue("message", "Howdy!")
+        Options("QuerystringParams").Add WebHelpers.CreateKeyValue("message", "Howdy!")
         Options.Add "UrlSegments", New Dictionary
         Options("UrlSegments").Add "resource", "post"
         
@@ -202,7 +202,7 @@ Public Function Specs() As SpecSuite
     ' GetFullRequestUrl
     ' --------------------------------------------- '
     With Specs.It("should GetFullRequestUrl of Request")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Client.BaseUrl = "https://facebook.com/api"
         Request.Resource = "status"
@@ -230,7 +230,7 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
 #If Mac Then
     With Specs.It("should PrepareCURLRequest")
-        Set Client = New RestClient
+        Set Client = New WebClient
         Client.BaseUrl = "http://localhost:3000/"
         Client.Username = "user"
         Client.Password = "password"
@@ -239,12 +239,12 @@ Public Function Specs() As SpecSuite
         Client.ProxyUsername = "proxyuser"
         Client.ProxyPassword = "proxypassword"
         
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "text"
         Request.AddQuerystringParam "type", "message"
-        Request.Method = httpPOST
-        Request.RequestFormat = WebFormat.plaintext
-        Request.ResponseFormat = WebFormat.json
+        Request.Method = HttpPost
+        Request.RequestFormat = WebFormat.PlainText
+        Request.ResponseFormat = WebFormat.Json
         Request.Body = "Howdy!"
         Request.AddHeader "custom", "Howdy!"
         Request.AddCookie "test-cookie", "howdy"
@@ -269,7 +269,7 @@ Public Function Specs() As SpecSuite
     With Specs.It("Execute should handle timeout errors")
         Client.TimeoutMS = 500
         
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "delay/{seconds}"
         Request.AddUrlSegment "seconds", "2"
         
@@ -278,9 +278,9 @@ Public Function Specs() As SpecSuite
         .Expect(Response.StatusDescription).ToEqual "Request Timeout"
     End With
     
-    ' Move to RestResponse
+    ' Move to WebResponse
 '    With Specs.It("should return status code and status description from request")
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "status/{code}"
 '        Request.ResponseFormat = WebFormat.plaintext
 '
@@ -306,7 +306,7 @@ Public Function Specs() As SpecSuite
 '    End With
 '
 '    With Specs.It("should parse request response")
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "post"
 '        Request.Method = httpPOST
 '        Request.AddBodyParameter "a", "1"
@@ -325,7 +325,7 @@ Public Function Specs() As SpecSuite
 '    End With
 '
 '    With Specs.It("should include binary body in response")
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "robots.txt"
 '        Request.ResponseFormat = WebFormat.plaintext
 '
@@ -342,7 +342,7 @@ Public Function Specs() As SpecSuite
 '    End With
 '
 '    With Specs.It("should include headers in response")
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "response-headers"
 '        Request.AddQuerystringParam "X-Custom", "Howdy!"
 '
@@ -361,21 +361,21 @@ Public Function Specs() As SpecSuite
 '    End With
 '
 '    With Specs.It("should include cookies in response")
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "response-headers"
 '        Request.AddQuerystringParam "Set-Cookie", "a=abc"
 '
 '        Set Response = Client.Execute(Request)
 '        .Expect(Response.Cookies.Count).ToEqual 1
-'        .Expect(RestHelpers.FindInKeyValues(Response.Cookies, "a")).ToEqual "abc"
+'        .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "a")).ToEqual "abc"
 '    End With
 '
 '#If Mac Then
 '#Else
 '    With Specs.It("should convert and parse XML")
-'        Set Request = New RestRequest
-'        Request.Resource = "xml"
-'        Request.Format = WebFormat.xml
+'        Set Request = New WebRequest
+'        Request.Resource = "Xml"
+'        Request.Format = WebFormat.Xml
 '        Request.Method = httpGET
 '
 '        Set Response = Client.Execute(Request)

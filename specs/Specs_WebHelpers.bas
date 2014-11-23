@@ -1,9 +1,9 @@
-Attribute VB_Name = "Specs_RestHelpers"
+Attribute VB_Name = "Specs_WebHelpers"
 ''
-' Specs_RestHelpers
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' Specs_WebHelpers
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Specs for RestHelpers
+' Specs for WebHelpers
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -12,7 +12,7 @@ Attribute VB_Name = "Specs_RestHelpers"
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "RestHelpers"
+    Specs.Description = "WebHelpers"
     
     ' Contents:
     ' 1. Logging
@@ -56,8 +56,8 @@ Public Function Specs() As SpecSuite
     ' Obfuscate
     ' --------------------------------------------- '
     With Specs.It("should obfuscate string (with character option)")
-        .Expect(RestHelpers.Obfuscate("secret")).ToEqual "******"
-        .Expect(RestHelpers.Obfuscate("abc", "_")).ToEqual "___"
+        .Expect(WebHelpers.Obfuscate("secret")).ToEqual "******"
+        .Expect(WebHelpers.Obfuscate("abc", "_")).ToEqual "___"
     End With
 
     ' ============================================= '
@@ -68,7 +68,7 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("should parse JSON")
         JSONString = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
-        Set Parsed = RestHelpers.ParseJSON(JSONString)
+        Set Parsed = WebHelpers.ParseJSON(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -80,7 +80,7 @@ Public Function Specs() As SpecSuite
         End If
         
         JSONString = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
-        Set Parsed = RestHelpers.ParseJSON(JSONString)
+        Set Parsed = WebHelpers.ParseJSON(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -105,7 +105,7 @@ Public Function Specs() As SpecSuite
         Obj.Add "f", Empty
         Obj.Add "g", Null
         
-        JSONString = RestHelpers.ConvertToJSON(Obj)
+        JSONString = WebHelpers.ConvertToJSON(Obj)
         .Expect(JSONString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
         
         Set Obj = New Dictionary
@@ -121,14 +121,14 @@ Public Function Specs() As SpecSuite
         Coll.Add Empty
         Coll.Add Null
         
-        JSONString = RestHelpers.ConvertToJSON(Coll)
+        JSONString = WebHelpers.ConvertToJSON(Coll)
         .Expect(JSONString).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
     End With
     
     ' ParseUrlEncoded
     ' --------------------------------------------- '
     With Specs.It("should parse URL-encoded")
-        Set Parsed = RestHelpers.ParseUrlEncoded("a=1&b=3.14&c=Howdy%21&d+%26+e=A+%2B+B")
+        Set Parsed = WebHelpers.ParseUrlEncoded("a=1&b=3.14&c=Howdy%21&d+%26+e=A+%2B+B")
         
         .Expect(Parsed("a")).ToEqual "1"
         .Expect(Parsed("b")).ToEqual "3.14"
@@ -146,7 +146,7 @@ Public Function Specs() As SpecSuite
         Obj.Add "c", "Howdy!"
         Obj.Add "d & e", "A + B"
         
-        Encoded = RestHelpers.ConvertToUrlEncoded(Obj)
+        Encoded = WebHelpers.ConvertToUrlEncoded(Obj)
         .Expect(Encoded).ToEqual "a=1&b=3.14&c=Howdy!&d+%26+e=A+%2B+B"
     End With
    
@@ -155,7 +155,7 @@ Public Function Specs() As SpecSuite
     ' ParseXml
     ' --------------------------------------------- '
     With Specs.It("should parse XML")
-        Set Parsed = RestHelpers.ParseXML("<Point><X>1.23</X><Y>4.56</Y></Point>")
+        Set Parsed = WebHelpers.ParseXML("<Point><X>1.23</X><Y>4.56</Y></Point>")
         
         .Expect(Parsed.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
         .Expect(Parsed.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
@@ -169,7 +169,7 @@ Public Function Specs() As SpecSuite
         Obj.Async = False
         Obj.LoadXML XMLString
 
-        Encoded = RestHelpers.ConvertToXML(Obj)
+        Encoded = WebHelpers.ConvertToXML(Obj)
         .Expect(Encoded).ToEqual XMLString
     End With
 #End If
@@ -183,54 +183,54 @@ Public Function Specs() As SpecSuite
     ' UrlEncode
     ' --------------------------------------------- '
     With Specs.It("should url-encode string (with space as plus and encode unsafe options)")
-        .Expect(RestHelpers.UrlEncode("$&+,/:;=?@", EncodeUnsafe:=False)).ToEqual "%24%26%2B%2C%2F%3A%3B%3D%3F%40"
-        .Expect(RestHelpers.UrlEncode(" ""<>#%{}|\^~[]`")).ToEqual "%20%22%3C%3E%23%25%7B%7D%7C%5C%5E%7E%5B%5D%60"
-        .Expect(RestHelpers.UrlEncode("A + B")).ToEqual "A%20%2B%20B"
-        .Expect(RestHelpers.UrlEncode("A + B", SpaceAsPlus:=True)).ToEqual "A+%2B+B"
+        .Expect(WebHelpers.UrlEncode("$&+,/:;=?@", EncodeUnsafe:=False)).ToEqual "%24%26%2B%2C%2F%3A%3B%3D%3F%40"
+        .Expect(WebHelpers.UrlEncode(" ""<>#%{}|\^~[]`")).ToEqual "%20%22%3C%3E%23%25%7B%7D%7C%5C%5E%7E%5B%5D%60"
+        .Expect(WebHelpers.UrlEncode("A + B")).ToEqual "A%20%2B%20B"
+        .Expect(WebHelpers.UrlEncode("A + B", SpaceAsPlus:=True)).ToEqual "A+%2B+B"
     End With
     
     ' UrlDecode
     ' --------------------------------------------- '
     With Specs.It("should url-decode string")
-        .Expect(RestHelpers.UrlDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
-        .Expect(RestHelpers.UrlDecode("A%20%2B%20B")).ToEqual "A + B"
-        .Expect(RestHelpers.UrlDecode("A+%2B+B")).ToEqual "A + B"
+        .Expect(WebHelpers.UrlDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
+        .Expect(WebHelpers.UrlDecode("A%20%2B%20B")).ToEqual "A + B"
+        .Expect(WebHelpers.UrlDecode("A+%2B+B")).ToEqual "A + B"
     End With
     
     ' Base64Encode
     ' --------------------------------------------- '
     With Specs.It("should Base64 encode string")
-        .Expect(RestHelpers.Base64Encode("Howdy!")).ToEqual "SG93ZHkh"
+        .Expect(WebHelpers.Base64Encode("Howdy!")).ToEqual "SG93ZHkh"
     End With
     
     ' RegisterConverter
     ' --------------------------------------------- '
     With Specs.It("RegisterConverter should register and use converter")
-        RestHelpers.RegisterConverter "custom-a", "X-a", "Specs_RestHelpers.SimpleConverter", "Specs_RestHelpers.SimpleParser"
+        WebHelpers.RegisterConverter "custom-a", "X-a", "Specs_WebHelpers.SimpleConverter", "Specs_WebHelpers.SimpleParser"
         
         Set Obj = New Dictionary
         Obj.Add "message", "Howdy!"
         
-        JSONString = RestHelpers.ConvertToFormat(Obj, WebFormat.custom, "custom-a")
+        JSONString = WebHelpers.ConvertToFormat(Obj, WebFormat.Custom, "custom-a")
         .Expect(JSONString).ToEqual "{""message"":""Howdy!"",""response"":""Goodbye!""}"
     End With
     
     With Specs.It("RegisterConverter should register and use converter with instance")
         Dim Converter As New SpecConverter
-        RestHelpers.RegisterConverter "custom-b", "X-b", "ConvertToCustom", "ParseCustom", Converter
+        WebHelpers.RegisterConverter "custom-b", "X-b", "ConvertToCustom", "ParseCustom", Converter
         
-        Set Parsed = RestHelpers.ParseByFormat("{""message"":""Howdy!""}", WebFormat.custom, "custom-b")
+        Set Parsed = WebHelpers.ParseByFormat("{""message"":""Howdy!""}", WebFormat.Custom, "custom-b")
         .Expect(Parsed).ToNotBeUndefined
         .Expect(Parsed("response")).ToEqual "Goodbye!"
     End With
     
     With Specs.It("RegisterConverter should register and use converter with Binary ParseType")
-        RestHelpers.RegisterConverter "custom-c", "X-c", "Specs_RestHelpers.SimpleConverter", "Specs_RestHelpers.ComplexParser", ParseType:="Binary"
+        WebHelpers.RegisterConverter "custom-c", "X-c", "Specs_WebHelpers.SimpleConverter", "Specs_WebHelpers.ComplexParser", ParseType:="Binary"
         
         Str = "Howdy!"
         Bytes = Str
         
-        Set Parsed = RestHelpers.ParseByFormat("", WebFormat.custom, "custom-c", Array(72, 111, 119, 100, 121, 33))
+        Set Parsed = WebHelpers.ParseByFormat("", WebFormat.Custom, "custom-c", Array(72, 111, 119, 100, 121, 33))
         .Expect(Parsed).ToNotBeUndefined
         .Expect(Parsed("message")).ToEqual "Howdy!"
         .Expect(Parsed("response")).ToEqual "Goodbye!"
@@ -243,21 +243,21 @@ Public Function Specs() As SpecSuite
     ' JoinUrl
     ' --------------------------------------------- '
     With Specs.It("JoinUrl should join url with /")
-        .Expect(RestHelpers.JoinUrl("a", "b")).ToEqual "a/b"
-        .Expect(RestHelpers.JoinUrl("a/", "b")).ToEqual "a/b"
-        .Expect(RestHelpers.JoinUrl("a", "/b")).ToEqual "a/b"
-        .Expect(RestHelpers.JoinUrl("a/", "/b")).ToEqual "a/b"
+        .Expect(WebHelpers.JoinUrl("a", "b")).ToEqual "a/b"
+        .Expect(WebHelpers.JoinUrl("a/", "b")).ToEqual "a/b"
+        .Expect(WebHelpers.JoinUrl("a", "/b")).ToEqual "a/b"
+        .Expect(WebHelpers.JoinUrl("a/", "/b")).ToEqual "a/b"
     End With
     
     With Specs.It("JoinUrl should not join blank urls with /")
-        .Expect(RestHelpers.JoinUrl("", "b")).ToEqual "b"
-        .Expect(RestHelpers.JoinUrl("a", "")).ToEqual "a"
+        .Expect(WebHelpers.JoinUrl("", "b")).ToEqual "b"
+        .Expect(WebHelpers.JoinUrl("a", "")).ToEqual "a"
     End With
     
     ' UrlParts
     ' --------------------------------------------- '
     With Specs.It("should extract parts from url")
-        Set Parts = RestHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy%20World!&other=123#hash")
+        Set Parts = WebHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy%20World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual "https"
         .Expect(Parts("Host")).ToEqual "www.google.com"
@@ -266,7 +266,7 @@ Public Function Specs() As SpecSuite
         .Expect(Parts("Querystring")).ToEqual "message=Howdy%20World!&other=123"
         .Expect(Parts("Hash")).ToEqual "hash"
         
-        Set Parts = RestHelpers.UrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World!&other=123#hash")
+        Set Parts = WebHelpers.UrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual ""
         .Expect(Parts("Host")).ToEqual "localhost"
@@ -286,11 +286,11 @@ Public Function Specs() As SpecSuite
         Arr = Array(1, 2, 3)
         Erase Bytes
         
-        .Expect(RestHelpers.IsArray(Arr)).ToEqual True
-        .Expect(RestHelpers.IsArray(Bytes)).ToEqual True
-        .Expect(RestHelpers.IsArray(Strings)).ToEqual True
-        .Expect(RestHelpers.IsArray(Var)).ToEqual False
-        .Expect(RestHelpers.IsArray(New Collection)).ToEqual False
+        .Expect(WebHelpers.IsArray(Arr)).ToEqual True
+        .Expect(WebHelpers.IsArray(Bytes)).ToEqual True
+        .Expect(WebHelpers.IsArray(Strings)).ToEqual True
+        .Expect(WebHelpers.IsArray(Var)).ToEqual False
+        .Expect(WebHelpers.IsArray(New Collection)).ToEqual False
     End With
     
     ' CloneDictionary
@@ -305,7 +305,7 @@ Public Function Specs() As SpecSuite
         OriginalDict.Add "f", New Dictionary
         OriginalDict("f").Add "message", "Howdy!"
         
-        Set ClonedDict = RestHelpers.CloneDictionary(OriginalDict)
+        Set ClonedDict = WebHelpers.CloneDictionary(OriginalDict)
         
         .Expect(ClonedDict("a")).ToEqual "abc"
         .Expect(ClonedDict("b")).ToEqual 123
@@ -332,7 +332,7 @@ Public Function Specs() As SpecSuite
         OriginalColl.Add New Dictionary
         OriginalColl(6).Add "message", "Howdy!"
         
-        Set ClonedColl = RestHelpers.CloneCollection(OriginalColl)
+        Set ClonedColl = WebHelpers.CloneCollection(OriginalColl)
         
         .Expect(ClonedColl(1)).ToEqual "abc"
         .Expect(ClonedColl(2)).ToEqual 123
@@ -348,7 +348,7 @@ Public Function Specs() As SpecSuite
     ' CreateKeyValue
     ' --------------------------------------------- '
     With Specs.It("should create Key-Value Dictionary")
-        Set KeyValue = RestHelpers.CreateKeyValue("abc", 123)
+        Set KeyValue = WebHelpers.CreateKeyValue("abc", 123)
         .Expect(KeyValue("Key")).ToEqual "abc"
         .Expect(KeyValue("Value")).ToEqual 123
     End With
@@ -357,12 +357,12 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("should find Value by Key in Key-Values")
         Set KeyValues = New Collection
-        KeyValues.Add RestHelpers.CreateKeyValue("a", 123)
-        KeyValues.Add RestHelpers.CreateKeyValue("b", 456)
-        KeyValues.Add RestHelpers.CreateKeyValue("c", 789)
+        KeyValues.Add WebHelpers.CreateKeyValue("a", 123)
+        KeyValues.Add WebHelpers.CreateKeyValue("b", 456)
+        KeyValues.Add WebHelpers.CreateKeyValue("c", 789)
         
-        .Expect(RestHelpers.FindInKeyValues(KeyValues, "b")).ToEqual 456
-        .Expect(RestHelpers.FindInKeyValues(KeyValues, "d")).ToBeEmpty
+        .Expect(WebHelpers.FindInKeyValues(KeyValues, "b")).ToEqual 456
+        .Expect(WebHelpers.FindInKeyValues(KeyValues, "d")).ToBeEmpty
     End With
     
     ' ============================================= '
@@ -371,9 +371,9 @@ Public Function Specs() As SpecSuite
     
     ' FormatToMediaType
     With Specs.It("FormatToMediaType should handle custom converters")
-        .Expect(RestHelpers.FormatToMediaType(WebFormat.custom, "custom-a")).ToEqual "X-a"
-        .Expect(RestHelpers.FormatToMediaType(WebFormat.custom, "custom-b")).ToEqual "X-b"
-        .Expect(RestHelpers.FormatToMediaType(WebFormat.custom, "custom-c")).ToEqual "X-c"
+        .Expect(WebHelpers.FormatToMediaType(WebFormat.Custom, "custom-a")).ToEqual "X-a"
+        .Expect(WebHelpers.FormatToMediaType(WebFormat.Custom, "custom-b")).ToEqual "X-b"
+        .Expect(WebHelpers.FormatToMediaType(WebFormat.Custom, "custom-c")).ToEqual "X-c"
     End With
     
     ' MethodToName
@@ -399,8 +399,8 @@ Public Function Specs() As SpecSuite
     ' PrepareTextForShell
     ' --------------------------------------------- '
     With Specs.It("should prepare text for shell (wrap string and !)")
-        .Expect(RestHelpers.PrepareTextForShell("""message""")).ToEqual """""message"""""
-        .Expect(RestHelpers.PrepareTextForShell("!abc!")).ToEqual "'!'""abc""'!'"
+        .Expect(WebHelpers.PrepareTextForShell("""message""")).ToEqual """""message"""""
+        .Expect(WebHelpers.PrepareTextForShell("!abc!")).ToEqual "'!'""abc""'!'"
     End With
 #End If
     
@@ -411,30 +411,30 @@ Public Function Specs() As SpecSuite
     ' HMACSHA1
     ' --------------------------------------------- '
     With Specs.It("should calculate HMAC with SHA1 algorithm")
-        .Expect(RestHelpers.HMACSHA1("test", "secret")).ToEqual "1aa349585ed7ecbd3b9c486a30067e395ca4b356"
-        .Expect(RestHelpers.HMACSHA1("123456789", "987654321")).ToEqual "eea1a8e956b1b26067e6d0bef57e54490b8892a9"
+        .Expect(WebHelpers.HMACSHA1("test", "secret")).ToEqual "1aa349585ed7ecbd3b9c486a30067e395ca4b356"
+        .Expect(WebHelpers.HMACSHA1("123456789", "987654321")).ToEqual "eea1a8e956b1b26067e6d0bef57e54490b8892a9"
     End With
     
     ' HMACSHA256
     ' --------------------------------------------- '
     With Specs.It("should calculate HMAC with SHA256 algorithm")
-        .Expect(RestHelpers.HMACSHA256("test", "secret")).ToEqual "0329a06b62cd16b33eb6792be8c60b158d89a2ee3a876fce9a881ebb488c0914"
-        .Expect(RestHelpers.HMACSHA256("123456789", "987654321")).ToEqual "3122584687113ac66d3c2f3c3518c789eef536a298121e0dbc82fc8fe7621e73"
+        .Expect(WebHelpers.HMACSHA256("test", "secret")).ToEqual "0329a06b62cd16b33eb6792be8c60b158d89a2ee3a876fce9a881ebb488c0914"
+        .Expect(WebHelpers.HMACSHA256("123456789", "987654321")).ToEqual "3122584687113ac66d3c2f3c3518c789eef536a298121e0dbc82fc8fe7621e73"
     End With
     
     ' MD5
     ' --------------------------------------------- '
     With Specs.It("should MD5 hash string")
-        .Expect(RestHelpers.MD5("test")).ToEqual "098f6bcd4621d373cade4e832627b4f6"
-        .Expect(RestHelpers.MD5("123456789")).ToEqual "25f9e794323b453885f5181f1b624d0b"
-        .Expect(RestHelpers.MD5("Mufasa:testrealm@host.com:Circle Of Life")).ToEqual "939e7578ed9e3c518a452acee763bce9"
+        .Expect(WebHelpers.MD5("test")).ToEqual "098f6bcd4621d373cade4e832627b4f6"
+        .Expect(WebHelpers.MD5("123456789")).ToEqual "25f9e794323b453885f5181f1b624d0b"
+        .Expect(WebHelpers.MD5("Mufasa:testrealm@host.com:Circle Of Life")).ToEqual "939e7578ed9e3c518a452acee763bce9"
     End With
     
     ' CreateNonce
     ' --------------------------------------------- '
     With Specs.It("should create Nonce of specified length")
-        .Expect(Len(RestHelpers.CreateNonce)).ToEqual 32
-        .Expect(Len(RestHelpers.CreateNonce(20))).ToEqual 20
+        .Expect(Len(WebHelpers.CreateNonce)).ToEqual 32
+        .Expect(Len(WebHelpers.CreateNonce(20))).ToEqual 20
     End With
     
     InlineRunner.RunSuite Specs
@@ -442,10 +442,10 @@ End Function
 
 Function SimpleConverter(Body As Variant) As String
     Body.Add "response", "Goodbye!"
-    SimpleConverter = RestHelpers.ConvertToJSON(Body)
+    SimpleConverter = WebHelpers.ConvertToJSON(Body)
 End Function
 Function SimpleParser(Content As String) As Object
-    Set SimpleParser = RestHelpers.ParseJSON(Content)
+    Set SimpleParser = WebHelpers.ParseJSON(Content)
     SimpleParser.Add "response", "Goodbye!"
 End Function
 Function ComplexParser(Body As Variant) As Object
@@ -456,6 +456,6 @@ Function ComplexParser(Body As Variant) As Object
         Content = Content & Chr(Body(i))
     Next i
     
-    Set ComplexParser = RestHelpers.ParseJSON("{""message"":""" & Content & """}")
+    Set ComplexParser = WebHelpers.ParseJSON("{""message"":""" & Content & """}")
     ComplexParser.Add "response", "Goodbye!"
 End Function

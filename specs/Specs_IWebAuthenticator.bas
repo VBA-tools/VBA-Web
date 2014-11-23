@@ -1,9 +1,9 @@
-Attribute VB_Name = "Specs_IAuthenticator"
+Attribute VB_Name = "Specs_IWebAuthenticator"
 ''
-' Specs_IAuthenticator
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' Specs_IWebAuthenticator
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Specs for IAuthenticator
+' Specs for IWebAuthenticator
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -12,11 +12,11 @@ Attribute VB_Name = "Specs_IAuthenticator"
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "Authenticator"
+    Specs.Description = "IWebAuthenticator"
     
-    Dim Client As New RestClient
-    Dim Request As RestRequest
-    Dim Response As RestResponse
+    Dim Client As New WebClient
+    Dim Request As WebRequest
+    Dim Response As WebResponse
     Dim Auth As SpecAuthenticator
     
     Client.BaseUrl = HttpbinBaseUrl
@@ -25,21 +25,21 @@ Public Function Specs() As SpecSuite
 '        Set Auth = New SpecAuthenticator
 '        Set Client.Authenticator = Auth
 '
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "get"
 '        Request.AddBodyParameter "request_parameter", "request"
 '        Request.Method = httpGET
 '
 '        Set Response = Client.Execute(Request)
-'        .Expect(RestHelpers.ParseJSON(CStr(Response.Data("data")))("auth_parameter")).ToEqual "auth"
-'        .Expect(RestHelpers.ParseJSON(CStr(Response.Data("data")))("request_parameter")).ToEqual "request"
+'        .Expect(WebHelpers.ParseJSON(CStr(Response.Data("data")))("auth_parameter")).ToEqual "auth"
+'        .Expect(WebHelpers.ParseJSON(CStr(Response.Data("data")))("request_parameter")).ToEqual "request"
 '    End With
 
 '    With Specs.It("should set querystring parameter")
 '        Set Auth = New SpecAuthenticator
 '        Set Client.Authenticator = Auth
 '
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "get"
 '        Request.AddQuerystringParam "request_query", "request"
 '
@@ -52,7 +52,7 @@ Public Function Specs() As SpecSuite
 '        Set Auth = New SpecAuthenticator
 '        Set Client.Authenticator = Auth
 '
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "get"
 '        Request.AddHeader "X-Custom-B", "request"
 '
@@ -65,7 +65,7 @@ Public Function Specs() As SpecSuite
 '        Set Auth = New SpecAuthenticator
 '        Set Client.Authenticator = Auth
 '
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "cookies"
 '        Request.AddCookie "request_cookie", "request"
 '
@@ -78,7 +78,7 @@ Public Function Specs() As SpecSuite
 '        Set Auth = New SpecAuthenticator
 '        Set Client.Authenticator = Auth
 '
-'        Set Request = New RestRequest
+'        Set Request = New WebRequest
 '        Request.Resource = "get"
 '
 '        Set Response = Client.Execute(Request)

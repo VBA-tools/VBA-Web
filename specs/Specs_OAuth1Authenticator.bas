@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_OAuth1Authenticator"
 ''
 ' Specs_OAuth1Authenticator
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Specs for OAuth1Authenctiator
 '
@@ -14,8 +14,8 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "OAuth1Authenticator"
         
-    Dim Client As New RestClient
-    Dim Request As New RestRequest
+    Dim Client As New WebClient
+    Dim Request As New WebRequest
     Dim Auth As New OAuth1Authenticator
     Dim ConsumerKey As String
     Dim ConsumerSecret As String
@@ -45,7 +45,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should property format request parameters")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "resource"
         Request.AddQuerystringParam "a", True
         Request.AddQuerystringParam "b", "abc"
@@ -56,7 +56,7 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should include explicit and implicit querystring parameters")
         Client.BaseUrl = "HTTP://localhost:3000/testing"
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "?a=123&b=456"
         Request.AddQuerystringParam "c", "Howdy!"
         Request.AddQuerystringParam "d", 789
@@ -66,7 +66,7 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should handle spaces in parameters correctly")
         Client.BaseUrl = "http://localhost:3000/"
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "testing"
         Request.AddQuerystringParam "a", "a b"
         
@@ -74,8 +74,8 @@ Public Function Specs() As SpecSuite
         .Expect(Client.GetFullRequestUrl(Request)).ToEqual "http://localhost:3000/testing?a=a+b"
     End With
     
-    Set Client = New RestClient
-    Set Request = New RestRequest
+    Set Client = New WebClient
+    Set Request = New WebRequest
     
     Client.BaseUrl = "HTTP://localhost:3000/"
     Request.Resource = "testing"
@@ -93,7 +93,7 @@ Public Function Specs() As SpecSuite
             "&oauth_token=" & Token & _
             "&oauth_version=1.0")
     
-    ExpectedSignature = RestHelpers.HMACSHA1(ExpectedBaseString, ConsumerSecret & "&" & TokenSecret, "Base64")
+    ExpectedSignature = WebHelpers.HMACSHA1(ExpectedBaseString, ConsumerSecret & "&" & TokenSecret, "Base64")
     
     With Specs.It("should include method, resource, parameters, and oauth values in base string")
         .Expect(Auth.CreateBaseString(Auth.Nonce, Auth.Timestamp, Client, Request)).ToEqual ExpectedBaseString
@@ -111,7 +111,7 @@ End Function
 Sub LinkedInSpecs()
     Dim Specs As New SpecSuite
     
-    Dim Client As New RestClient
+    Dim Client As New WebClient
     Client.BaseUrl = "http://api.linkedin.com/v1/"
     
     Dim Auth As New OAuth1Authenticator
@@ -139,11 +139,11 @@ Sub LinkedInSpecs()
         
     Set Client.Authenticator = Auth
     
-    Dim Request As RestRequest
-    Dim Response As RestResponse
+    Dim Request As WebRequest
+    Dim Response As WebResponse
     
     With Specs.It("should get profile")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "people/~?format={format}"
         
         Set Response = Client.Execute(Request)
@@ -153,7 +153,7 @@ Sub LinkedInSpecs()
     End With
     
     With Specs.It("should search with space")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "company-search?format={format}"
         Request.AddQuerystringParam "keywords", "microsoft corp"
         

@@ -1,8 +1,8 @@
 ''
 ' Dev
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Development steps for Excel-REST
+' Development steps for VBA-Web
 ' Run: cscript dev.vbs
 '
 ' @author: tim.hall.engr@gmail.com
@@ -34,18 +34,18 @@ Dim BlankWorkbookPath
 Dim ExampleWorkbookPath
 Dim SpecsWorkbookPath
 Dim AsyncSpecsWorkbookPath
-BlankWorkbookPath = "./Excel-REST - Blank.xlsm"
-ExampleWorkbookPath = "./examples/Excel-REST - Example.xlsm"
-SpecsWorkbookPath = "./specs/Excel-REST - Specs.xlsm"
-AsyncSpecsWorkbookPath = "./specs/Excel-REST - Specs - Async.xlsm"
+BlankWorkbookPath = "./VBA-WEb - Blank.xlsm"
+ExampleWorkbookPath = "./examples/VBA-Web - Example.xlsm"
+SpecsWorkbookPath = "./specs/VBA-Web - Specs.xlsm"
+AsyncSpecsWorkbookPath = "./specs/VBA-Web - Specs - Async.xlsm"
 
 Dim Src
 Src = Array( _
-  "RestHelpers.bas", _
-  "IAuthenticator.cls", _
-  "RestClient.cls", _
-  "RestRequest.cls", _
-  "RestResponse.cls" _
+  "WebHelpers.bas", _
+  "IWebAuthenticator.cls", _
+  "WebClient.cls", _
+  "WebRequest.cls", _
+  "WebResponse.cls" _
 )
 
 Dim Authenticators
@@ -61,20 +61,20 @@ Authenticators = Array( _
 
 Dim Async
 Async = Array( _
-  "RestAsyncWrapper.cls" _
+  "WebAsyncWrapper.cls" _
 )
 
 Dim Specs
 Specs = Array( _
-  "Specs_RestClient.bas", _
-  "Specs_RestRequest.bas", _
-  "Specs_RestResponse.bas", _
-  "Specs_RestHelpers.bas" _
+  "Specs_WebClient.bas", _
+  "Specs_WebRequest.bas", _
+  "Specs_WebResponse.bas", _
+  "Specs_WebHelpers.bas" _
 )
 
 Dim AuthSpecs
 AuthSpecs = Array( _
-  "Specs_IAuthenticator.bas", _
+  "Specs_IWebAuthenticator.bas", _
   "Specs_DigestAuthenticator.bas", _
   "Specs_GoogleAuthenticator.bas", _
   "Specs_OAuth1Authenticator.bas", _
@@ -83,7 +83,7 @@ AuthSpecs = Array( _
 
 Dim AsyncSpecs
 AsyncSpecs = Array( _
-  "Specs_RestAsyncWrapper.bas" _
+  "Specs_WebAsyncWrapper.bas" _
 )
 
 Main
@@ -91,7 +91,7 @@ Main
 Sub Main()
   On Error Resume Next
 
-  PrintLn "Excel-REST v4.0.0-beta.3 Development"
+  PrintLn "VBA-Web v4.0.0-beta.3 Development"
   
   ExcelWasOpen = OpenExcel(Excel)
 
@@ -190,7 +190,7 @@ Sub Execute(Name, ModulesDescription, WorkbookDescription)
     If Not Workbook Is Nothing Then
       If Not VBAIsTrusted(Workbook) Then
         PrintLn vbNewLine & _
-          "ERROR: In order to install Excel-REST," & vbNewLine & _
+          "ERROR: In order to install VBA-Web," & vbNewLine & _
           "access to the VBA project object model needs to be trusted in Excel." & vbNewLine & vbNewLine & _
           "To enable:" & vbNewLine & _
           "Options > Trust Center > Trust Center Settings > Macro Settings > " & vbnewLine & _

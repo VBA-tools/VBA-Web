@@ -10,12 +10,12 @@ Attribute VB_Exposed = False
 ''
 ' Base for setting up authenticator v2.0.6
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author:
 ' @license:
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 ' ============================================= '
@@ -37,11 +37,11 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add headers, cookies, etc to `Request` before it is executed
     ' (Leave blank to pass Request through unmodified)
 End Sub
@@ -49,11 +49,11 @@ End Sub
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' Handle 401 Unauthorized or other issues
 End Sub

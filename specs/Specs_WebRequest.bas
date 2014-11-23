@@ -1,9 +1,9 @@
-Attribute VB_Name = "Specs_RestRequest"
+Attribute VB_Name = "Specs_WebRequest"
 ''
-' Specs_RestRequest
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' Specs_WebRequest
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Specs for RestRequest
+' Specs for WebRequest
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -13,13 +13,13 @@ Attribute VB_Name = "Specs_RestRequest"
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     
-    Dim Request As RestRequest
+    Dim Request As WebRequest
     Dim Body As Object
-    Dim Cloned As RestRequest
+    Dim Cloned As WebRequest
     
-    RestHelpers.RegisterConverter "csv", "text/csv", "Specs_RestHelpers.SimpleConverter", "Specs_RestHelpers.SimpleParser"
+    WebHelpers.RegisterConverter "csv", "text/csv", "Specs_WebHelpers.SimpleConverter", "Specs_WebHelpers.SimpleParser"
     
-    Specs.Description = "RestRequest"
+    Specs.Description = "WebRequest"
     
     ' --------------------------------------------- '
     ' Properties
@@ -31,16 +31,16 @@ Public Function Specs() As SpecSuite
     ' Body
     ' --------------------------------------------- '
     With Specs.It("Body should Let directly to string")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.Body = "Howdy!"
-        Request.Format = WebFormat.plaintext
+        Request.Format = WebFormat.PlainText
         
         .Expect(Request.Body).ToEqual "Howdy!"
     End With
     
     With Specs.It("Body should allow Let as Array or Set as Collection")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.Body = Array("A", "B", "C")
         .Expect(Request.Body).ToEqual "[""A"",""B"",""C""]"
@@ -55,7 +55,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("Body should allow Set as Dictionary")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Set Body = New Dictionary
         Body.Add "A", 123
@@ -67,7 +67,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("Body should be formatted by ResponseFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddBodyParameter "A", 123
         Request.AddBodyParameter "B", "Howdy!"
@@ -75,15 +75,15 @@ Public Function Specs() As SpecSuite
         ' JSON by default
         .Expect(Request.Body).ToEqual "{""A"":123,""B"":""Howdy!""}"
         
-        Request.Format = WebFormat.json
+        Request.Format = WebFormat.Json
         .Expect(Request.Body).ToEqual "{""A"":123,""B"":""Howdy!""}"
         
-        Request.Format = WebFormat.formurlencoded
+        Request.Format = WebFormat.FormUrlEncoded
         .Expect(Request.Body).ToEqual "A=123&B=Howdy!"
     End With
     
     With Specs.It("Body should be formatted by CustomRequestFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddBodyParameter "message", "Howdy!"
         Request.CustomRequestFormat = "csv"
@@ -94,12 +94,12 @@ Public Function Specs() As SpecSuite
     ' Format
     ' --------------------------------------------- '
     With Specs.It("Format should set RequestFormat and ResponseFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
-        Request.Format = WebFormat.plaintext
+        Request.Format = WebFormat.PlainText
         
-        .Expect(Request.RequestFormat).ToEqual WebFormat.plaintext
-        .Expect(Request.ResponseFormat).ToEqual WebFormat.plaintext
+        .Expect(Request.RequestFormat).ToEqual WebFormat.PlainText
+        .Expect(Request.ResponseFormat).ToEqual WebFormat.PlainText
     End With
     
     ' RequestFormat
@@ -108,40 +108,40 @@ Public Function Specs() As SpecSuite
     ' CustomRequestFormat
     ' --------------------------------------------- '
     With Specs.It("CustomRequestFormat should set RequestFormat to Custom")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.CustomRequestFormat = "csv"
         
-        .Expect(Request.RequestFormat).ToEqual WebFormat.custom
+        .Expect(Request.RequestFormat).ToEqual WebFormat.Custom
     End With
     
     ' CustomResponseFormat
     ' --------------------------------------------- '
     With Specs.It("CustomResponseFormat should set ResponseFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.CustomResponseFormat = "csv"
         
-        .Expect(Request.ResponseFormat).ToEqual WebFormat.custom
+        .Expect(Request.ResponseFormat).ToEqual WebFormat.Custom
     End With
     
     ' ContentType
     ' --------------------------------------------- '
     With Specs.It("ContentType should be set from RequestFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         ' JSON by default
-        .Expect(Request.ContentType).ToEqual RestHelpers.FormatToMediaType(WebFormat.json)
+        .Expect(Request.ContentType).ToEqual WebHelpers.FormatToMediaType(WebFormat.Json)
         
-        Request.RequestFormat = WebFormat.json
-        .Expect(Request.ContentType).ToEqual RestHelpers.FormatToMediaType(WebFormat.json)
+        Request.RequestFormat = WebFormat.Json
+        .Expect(Request.ContentType).ToEqual WebHelpers.FormatToMediaType(WebFormat.Json)
         
-        Request.RequestFormat = WebFormat.formurlencoded
-        .Expect(Request.ContentType).ToEqual RestHelpers.FormatToMediaType(WebFormat.formurlencoded)
+        Request.RequestFormat = WebFormat.FormUrlEncoded
+        .Expect(Request.ContentType).ToEqual WebHelpers.FormatToMediaType(WebFormat.FormUrlEncoded)
     End With
     
     With Specs.It("ContentType should be set from CustomRequestFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.CustomRequestFormat = "csv"
         
@@ -149,9 +149,9 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("ContentType should allow override")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
-        Request.RequestFormat = WebFormat.plaintext
+        Request.RequestFormat = WebFormat.PlainText
         Request.ContentType = "x-custom/text"
         
         .Expect(Request.ContentType).ToEqual "x-custom/text"
@@ -160,20 +160,20 @@ Public Function Specs() As SpecSuite
     ' Accept
     ' --------------------------------------------- '
     With Specs.It("Accept should be set from ResponseFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         ' JSON by default
-        .Expect(Request.Accept).ToEqual RestHelpers.FormatToMediaType(WebFormat.json)
+        .Expect(Request.Accept).ToEqual WebHelpers.FormatToMediaType(WebFormat.Json)
         
-        Request.ResponseFormat = WebFormat.json
-        .Expect(Request.Accept).ToEqual RestHelpers.FormatToMediaType(WebFormat.json)
+        Request.ResponseFormat = WebFormat.Json
+        .Expect(Request.Accept).ToEqual WebHelpers.FormatToMediaType(WebFormat.Json)
         
-        Request.ResponseFormat = WebFormat.formurlencoded
-        .Expect(Request.Accept).ToEqual RestHelpers.FormatToMediaType(WebFormat.formurlencoded)
+        Request.ResponseFormat = WebFormat.FormUrlEncoded
+        .Expect(Request.Accept).ToEqual WebHelpers.FormatToMediaType(WebFormat.FormUrlEncoded)
     End With
     
     With Specs.It("Accept should be set from CustomResponseFormat")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.CustomResponseFormat = "csv"
         
@@ -181,9 +181,9 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("Accept should allow override")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
-        Request.ResponseFormat = WebFormat.plaintext
+        Request.ResponseFormat = WebFormat.PlainText
         Request.Accept = "x-custom/text"
         
         .Expect(Request.Accept).ToEqual "x-custom/text"
@@ -192,7 +192,7 @@ Public Function Specs() As SpecSuite
     ' ContentLength
     ' --------------------------------------------- '
     With Specs.It("ContentLength should be set from length of Body")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         .Expect(Request.ContentLength).ToEqual 0
         
@@ -202,7 +202,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("ContentLength should allow override")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.Body = "123456789"
         Request.ContentLength = 4
@@ -213,7 +213,7 @@ Public Function Specs() As SpecSuite
     ' FormattedResource
     ' --------------------------------------------- '
     With Specs.It("FormattedResource should replace Url Segments")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.Resource = "{a1}/{b2}/{c3}/{a1/b2/c3}"
         Request.AddUrlSegment "a1", "A"
@@ -225,7 +225,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("FormattedResource should include querystring parameters")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
     
         Request.Resource = "resource"
         Request.AddQuerystringParam "A", 123
@@ -236,7 +236,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("FormattedResource should have ? and add & between parameters for querystring")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
 
         Request.AddQuerystringParam "A", 123
         Request.AddQuerystringParam "B", "456"
@@ -246,7 +246,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("FormattedResource should not add ? if already in Resource")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.Resource = "?A=123"
         Request.AddQuerystringParam "B", "456"
@@ -255,7 +255,7 @@ Public Function Specs() As SpecSuite
     End With
 
     With Specs.It("FormattedResource should URL encode querystring")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
     
         Request.AddQuerystringParam "A B", "$&+,/:;=?@"
         
@@ -270,7 +270,7 @@ Public Function Specs() As SpecSuite
     ' Id
     ' --------------------------------------------- '
     With Specs.It("should have an Id")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         .Expect(Request.Id).ToNotBeUndefined
     End With
@@ -282,7 +282,7 @@ Public Function Specs() As SpecSuite
     ' AddBodyParameter
     ' --------------------------------------------- '
     With Specs.It("AddBodyParameter should add if Body is Empty")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddBodyParameter "A", 123
         Request.AddBodyParameter "B", 456
@@ -291,7 +291,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("AddBodyParameter should add to existing Body if Dictionary")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Set Body = New Dictionary
         Body.Add "A", 123
@@ -304,7 +304,7 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("AddBodyParameter should throw TODO if adding to existing Body this is not Dictionary")
         On Error Resume Next
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.Body = Array("A", "B", "C")
         Request.AddBodyParameter "D", 123
@@ -321,7 +321,7 @@ Public Function Specs() As SpecSuite
     ' AddCookie
     ' --------------------------------------------- '
     With Specs.It("should AddCookie")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddCookie "A", "cookie"
         Request.AddCookie "B", "cookie 2"
@@ -334,7 +334,7 @@ Public Function Specs() As SpecSuite
     ' AddHeader
     ' --------------------------------------------- '
     With Specs.It("should AddHeader")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddHeader "A", "header"
         Request.AddHeader "B", "header 2"
@@ -347,7 +347,7 @@ Public Function Specs() As SpecSuite
     ' AddQuerystringParam
     ' --------------------------------------------- '
     With Specs.It("should AddQuerystringParam")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddQuerystringParam "A", "querystring"
         Request.AddQuerystringParam "B", "querystring 2"
@@ -358,7 +358,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("AddQuerystringParam should allow Integer, Double, and Boolean types")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Dim A As Integer
         Dim B As Double
@@ -376,7 +376,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("AddQuerystringParam should allow duplicate keys")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddQuerystringParam "A", "querystring"
         Request.AddQuerystringParam "A", "querystring 2"
@@ -391,7 +391,7 @@ Public Function Specs() As SpecSuite
     ' AddUrlSegment
     ' --------------------------------------------- '
     With Specs.It("should AddUrlSegment")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.AddUrlSegment "A", "segment"
         Request.AddUrlSegment "B", "segment 2"
@@ -408,11 +408,11 @@ Public Function Specs() As SpecSuite
         Set Body = New Dictionary
         Body.Add "Key", "Value"
     
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "resource/"
-        Request.Method = WebMethod.httpPOST
-        Request.RequestFormat = WebFormat.json
-        Request.ResponseFormat = WebFormat.plaintext
+        Request.Method = WebMethod.HttpPost
+        Request.RequestFormat = WebFormat.Json
+        Request.ResponseFormat = WebFormat.PlainText
         Request.ContentType = "application/json"
         Request.Accept = "text/plain"
         Request.AddCookie "A", "cookie"
@@ -424,9 +424,9 @@ Public Function Specs() As SpecSuite
         Set Cloned = Request.Clone
         
         .Expect(Cloned.Resource).ToEqual "resource/"
-        .Expect(Cloned.Method).ToEqual WebMethod.httpPOST
-        .Expect(Cloned.RequestFormat).ToEqual WebFormat.json
-        .Expect(Cloned.ResponseFormat).ToEqual plaintext
+        .Expect(Cloned.Method).ToEqual WebMethod.HttpPost
+        .Expect(Cloned.RequestFormat).ToEqual WebFormat.Json
+        .Expect(Cloned.ResponseFormat).ToEqual PlainText
         .Expect(Cloned.ContentType).ToEqual "application/json"
         .Expect(Cloned.Accept).ToEqual "text/plain"
     End With
@@ -435,9 +435,9 @@ Public Function Specs() As SpecSuite
         Set Body = New Dictionary
         Body.Add "Key", "Value"
     
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "resource/"
-        Request.Method = WebMethod.httpPOST
+        Request.Method = WebMethod.HttpPost
         Request.AddCookie "A", "cookie"
         Request.AddHeader "B", "header"
         Request.AddQuerystringParam "C", "querystring"
@@ -447,17 +447,17 @@ Public Function Specs() As SpecSuite
         Set Cloned = Request.Clone
         
         Cloned.Resource = "updated/"
-        Cloned.Method = WebMethod.httpPUT
+        Cloned.Method = WebMethod.HttpPut
         Cloned.AddCookie "E", "cookie"
         Cloned.AddHeader "F", "header"
         Cloned.AddQuerystringParam "G", "querystring"
         Cloned.AddUrlSegment "H", "segment"
         
         .Expect(Request.Resource).ToEqual "resource/"
-        .Expect(Request.Method).ToEqual WebMethod.httpPOST
-        .Expect(RestHelpers.FindInKeyValues(Request.Cookies, "E")).ToBeUndefined
-        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "F")).ToBeUndefined
-        .Expect(RestHelpers.FindInKeyValues(Request.QuerystringParams, "G")).ToBeUndefined
+        .Expect(Request.Method).ToEqual WebMethod.HttpPost
+        .Expect(WebHelpers.FindInKeyValues(Request.Cookies, "E")).ToBeUndefined
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "F")).ToBeUndefined
+        .Expect(WebHelpers.FindInKeyValues(Request.QuerystringParams, "G")).ToBeUndefined
         .Expect(Request.UrlSegments.Exists("H")).ToEqual False
     End With
     
@@ -465,7 +465,7 @@ Public Function Specs() As SpecSuite
     ' @internal
     ' --------------------------------------------- '
     With Specs.It("Prepare should add ContentType, Accept, and ContentLength headers")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         
         Request.ContentType = "text/plain"
         Request.Accept = "text/csv"
@@ -476,9 +476,9 @@ Public Function Specs() As SpecSuite
         Request.Prepare
         
         .Expect(Request.Headers.Count).ToBeGTE 3
-        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
-        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "Accept")).ToEqual "text/csv"
-        .Expect(RestHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "100"
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Accept")).ToEqual "text/csv"
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "100"
     End With
     
     InlineRunner.RunSuite Specs

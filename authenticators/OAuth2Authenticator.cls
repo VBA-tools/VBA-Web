@@ -9,17 +9,17 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' OAuth2 Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Utilize OAuth2 authentication
 ' (Currently using client credentials flow only)
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 ' --------------------------------------------- '
@@ -74,11 +74,11 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     On Error GoTo ErrorHandling
     If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         ' Get new token
@@ -90,17 +90,17 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
         
         If Http.Status <> 200 Then
             ' Error getting OAuth2 token
-            RestHelpers.LogError "Token request failed: " & Http.Status & " - " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"
+            WebHelpers.LogError "Token request failed: " & Http.Status & " - " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"
             Err.Raise vbObjectError + Http.Status, _
                 Description:="Failed to retrieve OAuth2 Token - " & Http.Status & ": " & Http.ResponseText
         End If
         
         Dim Response As Dictionary
-        Set Response = RestHelpers.ParseJSON(Http.ResponseText)
+        Set Response = WebHelpers.ParseJSON(Http.ResponseText)
         If Not Response Is Nothing Then
             If Response.Exists(Me.TokenKey) Then
                 Me.Token = Response(Me.TokenKey)
-                RestHelpers.LogDebug "Received token: " & RestHelpers.Obfuscate(Me.Token), "OAuth2Authenticator.BeforeExecute"
+                WebHelpers.LogDebug "Received token: " & WebHelpers.Obfuscate(Me.Token), "OAuth2Authenticator.BeforeExecute"
             End If
             
             ' (Salesforce specific, but shouldn't affect any other OAuth2 clients)
@@ -108,7 +108,7 @@ Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Reque
                 Client.BaseUrl = Response("instance_url")
             End If
         Else
-            RestHelpers.LogError "Failed to read OAuth2 Token: " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"
+            WebHelpers.LogError "Failed to read OAuth2 Token: " & Http.ResponseText, "OAuth2Authenticator.BeforeExecute"
             Err.Raise vbObjectError + 2, _
                 Description:="Failed to read OAuth2 Token"
         End If
@@ -129,12 +129,12 @@ End Sub
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
 
 End Sub
 

@@ -2,14 +2,14 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RestRequest"
+Attribute VB_Name = "WebRequest"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestRequest v4.0.0-beta.3
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' WebRequest v4.0.0-beta.3
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Create a request for use with a rest client
 '
@@ -78,7 +78,7 @@ Public Property Let CustomRequestFormat(Value As String)
     pConvertedBody = ""
     
     If Value <> "" Then
-        pRequestFormat = WebFormat.custom
+        pRequestFormat = WebFormat.Custom
     End If
 End Property
 
@@ -90,7 +90,7 @@ Public Property Let CustomResponseFormat(Value As String)
     pConvertedBody = ""
     
     If Value <> "" Then
-        ResponseFormat = WebFormat.custom
+        ResponseFormat = WebFormat.Custom
     End If
 End Property
 
@@ -98,7 +98,7 @@ Public Property Get ContentType() As String
     If pContentType <> "" Then
         ContentType = pContentType
     Else
-        ContentType = RestHelpers.FormatToMediaType(Me.RequestFormat, Me.CustomRequestFormat)
+        ContentType = WebHelpers.FormatToMediaType(Me.RequestFormat, Me.CustomRequestFormat)
     End If
 End Property
 Public Property Let ContentType(Value As String)
@@ -109,7 +109,7 @@ Public Property Get Accept() As String
     If pAccept <> "" Then
         Accept = pAccept
     Else
-        Accept = RestHelpers.FormatToMediaType(Me.ResponseFormat, Me.CustomResponseFormat)
+        Accept = WebHelpers.FormatToMediaType(Me.ResponseFormat, Me.CustomResponseFormat)
     End If
 End Property
 Public Property Let Accept(Value As String)
@@ -132,7 +132,7 @@ Public Property Get Body() As Variant
         If VarType(pBody) = vbString Then
             Body = pBody
         ElseIf pConvertedBody = "" Then
-            Body = RestHelpers.ConvertToFormat(pBody, Me.RequestFormat, Me.CustomRequestFormat)
+            Body = WebHelpers.ConvertToFormat(pBody, Me.RequestFormat, Me.CustomRequestFormat)
             pConvertedBody = Body
         Else
             Body = pConvertedBody
@@ -169,12 +169,12 @@ Public Property Get FormattedResource() As String
             FormattedResource = FormattedResource & "&"
         End If
         
-        FormattedResource = FormattedResource & RestHelpers.ConvertToUrlEncoded(Me.QuerystringParams)
+        FormattedResource = FormattedResource & WebHelpers.ConvertToUrlEncoded(Me.QuerystringParams)
     End If
 End Property
 
 Public Property Get Id() As String
-    If pId = "" Then: pId = RestHelpers.CreateNonce
+    If pId = "" Then: pId = WebHelpers.CreateNonce
     Id = pId
 End Property
 
@@ -189,7 +189,7 @@ End Property
 ' @param {Variant} Value
 ' --------------------------------------------- '
 Public Sub AddHeader(Key As String, Value As Variant)
-    Me.Headers.Add RestHelpers.CreateKeyValue(Key, Value)
+    Me.Headers.Add WebHelpers.CreateKeyValue(Key, Value)
 End Sub
 
 ''
@@ -209,7 +209,7 @@ End Sub
 ' @param {Variant} Value
 ' --------------------------------------------- '
 Public Sub AddQuerystringParam(Key As String, Value As Variant)
-    Me.QuerystringParams.Add RestHelpers.CreateKeyValue(Key, Value)
+    Me.QuerystringParams.Add WebHelpers.CreateKeyValue(Key, Value)
 End Sub
 
 ''
@@ -219,7 +219,7 @@ End Sub
 ' @param {Variant} Value
 ' --------------------------------------------- '
 Public Sub AddCookie(Key As String, Value As Variant)
-    Me.Cookies.Add RestHelpers.CreateKeyValue(Key, Value)
+    Me.Cookies.Add WebHelpers.CreateKeyValue(Key, Value)
 End Sub
 
 ''
@@ -232,7 +232,7 @@ Public Sub AddBodyParameter(Key As String, Value As Variant)
     If IsEmpty(pBody) Then
         Set pBody = New Dictionary
     ElseIf Not TypeOf pBody Is Dictionary Then
-        Err.Raise vbObjectError + 1, "RestRequest", "The existing body is not a Dictionary. Adding body parameters can only be used with Dictionaries"
+        Err.Raise vbObjectError + 1, "WebRequest", "The existing body is not a Dictionary. Adding body parameters can only be used with Dictionaries"
     End If
     
     If VBA.IsObject(Value) Then
@@ -256,10 +256,10 @@ End Sub
 ''
 ' Clone request
 '
-' @return {RestRequest}
+' @return {WebRequest}
 ' --------------------------------------------- '
-Public Function Clone() As RestRequest
-    Set Clone = New RestRequest
+Public Function Clone() As WebRequest
+    Set Clone = New WebRequest
     
     Clone.Resource = Me.Resource
     Clone.Method = Me.Method
@@ -270,10 +270,10 @@ Public Function Clone() As RestRequest
     Clone.CustomRequestFormat = Me.CustomRequestFormat
     Clone.CustomResponseFormat = Me.CustomResponseFormat
     
-    Set Clone.Headers = RestHelpers.CloneCollection(Me.Headers)
-    Set Clone.QuerystringParams = RestHelpers.CloneCollection(Me.QuerystringParams)
-    Set Clone.UrlSegments = RestHelpers.CloneDictionary(Me.UrlSegments)
-    Set Clone.Cookies = RestHelpers.CloneCollection(Me.Cookies)
+    Set Clone.Headers = WebHelpers.CloneCollection(Me.Headers)
+    Set Clone.QuerystringParams = WebHelpers.CloneCollection(Me.QuerystringParams)
+    Set Clone.UrlSegments = WebHelpers.CloneDictionary(Me.UrlSegments)
+    Set Clone.Cookies = WebHelpers.CloneCollection(Me.Cookies)
     
     If VBA.IsObject(pBody) Then
         Set Clone.Body = pBody
@@ -314,8 +314,8 @@ End Sub
 
 Private Sub Class_Initialize()
     ' Set default values
-    Me.RequestFormat = WebFormat.json
-    Me.ResponseFormat = WebFormat.json
+    Me.RequestFormat = WebFormat.Json
+    Me.ResponseFormat = WebFormat.Json
     Set Me.Headers = New Collection
     Set Me.QuerystringParams = New Collection
     Set Me.UrlSegments = New Dictionary

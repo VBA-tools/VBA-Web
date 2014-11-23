@@ -2,14 +2,14 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "IAuthenticator"
+Attribute VB_Name = "IWebAuthenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' IAuthenticator v4.0.0-beta.3
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' IWebAuthenticator v4.0.0-beta.3
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Interface for creating authenticators for rest client
 '
@@ -26,22 +26,22 @@ Option Explicit
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Public Sub BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Public Sub BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add headers, cookies, etc
 End Sub
 
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Public Sub AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Public Sub AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' Handle 401 Unauthorized or other issues
 End Sub

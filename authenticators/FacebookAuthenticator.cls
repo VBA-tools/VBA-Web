@@ -9,16 +9,16 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' Facebook Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Custom IAuthenticator for Facebook OAuth
+' Custom IWebAuthenticator for Facebook OAuth
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 Private Const RedirectUri As String = "https://www.facebook.com/connect/login_success.html"
@@ -39,8 +39,8 @@ Public Property Get Token() As String
     On Error GoTo Cleanup
 
     If (pToken = "" Or Not CacheToken) And Code <> "" Then
-        Dim Client As New RestClient
-        Dim Response As RestResponse
+        Dim Client As New WebClient
+        Dim Response As WebResponse
         
         ' Request a new token
         Client.BaseUrl = "https://graph.facebook.com"
@@ -55,9 +55,9 @@ Public Property Get Token() As String
             EndIndex = InStr(StartIndex, Response.Content, "&expires=")
             
             pToken = Mid$(Response.Content, StartIndex, EndIndex - StartIndex)
-            RestHelpers.LogDebug "Received token: " & RestHelpers.Obfuscate(pToken), "FacebookAuthenticator.Token"
+            WebHelpers.LogDebug "Received token: " & WebHelpers.Obfuscate(pToken), "FacebookAuthenticator.Token"
         Else
-            RestHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "FacebookAuthenticator.Token"
+            WebHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "FacebookAuthenticator.Token"
             Err.Raise vbObjectError + Response.StatusCode, _
                 Description:="Failed to load Bearer Token: " & Response.StatusCode & " - " & Response.Content
         End If
@@ -142,7 +142,7 @@ Public Sub Login()
             Code = OAuthExtractCode(IE)
         Else
             ' Login failed
-            RestHelpers.LogError "Facebook login failed or was denied", "FacebookAuthenticator.Login"
+            WebHelpers.LogError "Facebook login failed or was denied", "FacebookAuthenticator.Login"
             Err.Raise vbObjectError + 1, "OAuthDialog", "Login failed or was denied"
         End If
     End With
@@ -153,16 +153,16 @@ Cleanup:
     Set IE = Nothing
     
     If Not Completed Then
-        RestHelpers.LogError "Facebook login did not complete", "FacebookAuthenticator.Login"
+        WebHelpers.LogError "Facebook login did not complete", "FacebookAuthenticator.Login"
         Err.Raise vbObjectError + 1, "OAuthDialog", "Login did not complete"
     ElseIf Err.Number <> 0 Then
         ' Rethrow error
         Err.Raise Err.Number, Err.Source, Err.Description
     ElseIf Left(Code, 5) = "Error" Then
-        RestHelpers.LogError "Facebook login returned error: " & Code, "FacebookAuthenticator.Login"
+        WebHelpers.LogError "Facebook login returned error: " & Code, "FacebookAuthenticator.Login"
         Err.Raise vbObjectError + 1, "OAuthDialog", Code
     Else
-        RestHelpers.LogDebug "Successfully logged in: " & Code, "FacebookAuthenticator.Login"
+        WebHelpers.LogDebug "Successfully logged in: " & Code, "FacebookAuthenticator.Login"
         ' Success!
         Me.Code = Code
         
@@ -187,30 +187,30 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     Request.AddQuerystringParam "access_token", Me.Token
 End Sub
 
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
 
 End Sub
 
-Private Function TokenRequest() As RestRequest
-    Set TokenRequest = New RestRequest
+Private Function TokenRequest() As WebRequest
+    Set TokenRequest = New WebRequest
     TokenRequest.Resource = "oauth/access_token"
-    TokenRequest.Method = httpGET
+    TokenRequest.Method = HttpGet
     
     TokenRequest.AddQuerystringParam "code", Me.Code
     TokenRequest.AddQuerystringParam "client_id", Me.ApplicationId
@@ -258,7 +258,7 @@ Private Function OAuthExtractCode(IE As Object) As String
     If StartIndex >= 0 And EndIndex > StartIndex Then
         OAuthExtractCode = Mid$(Url, StartIndex, EndIndex - StartIndex)
     Else
-        RestHelpers.LogError "Unrecognized token format: " & Url, "FacebookAuthenticator.OAuthExtractCode"
+        WebHelpers.LogError "Unrecognized token format: " & Url, "FacebookAuthenticator.OAuthExtractCode"
         OAuthExtractCode = "Error: Unrecognized token formatting"
     End If
 End Function

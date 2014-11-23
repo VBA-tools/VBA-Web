@@ -1,9 +1,9 @@
-Attribute VB_Name = "Specs_RestAsyncWrapper"
+Attribute VB_Name = "Specs_WebAsyncWrapper"
 ''
-' Specs_RestAsyncWrapper
+' Specs_WebAsyncWrapper
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
-' Specs for RestAsyncWrapper
+' Specs for WebAsyncWrapper
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -12,7 +12,7 @@ Attribute VB_Name = "Specs_RestAsyncWrapper"
 
 Private Declare Sub Sleep Lib "kernel32" (ByVal Milliseconds As Long)
 Private Declare Function GetTickCount Lib "kernel32" () As Long
-Dim AsyncResponse As RestResponse
+Dim AsyncResponse As WebResponse
 Dim AsyncArgs As Variant
 
 Public Property Get HttpbinBaseUrl() As String
@@ -21,18 +21,18 @@ End Property
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "RestAsyncWrapper"
-    Specs.BeforeEach "Specs_RestAsyncWrapper.Reset"
+    Specs.Description = "WebAsyncWrapper"
+    Specs.BeforeEach "Specs_WebAsyncWrapper.Reset"
     
     On Error Resume Next
     
-    Dim Client As RestClient
-    Dim Request As RestRequest
-    Dim AsyncWrapper As RestAsyncWrapper
-    Dim ClonedWrapper As RestAsyncWrapper
+    Dim Client As WebClient
+    Dim Request As WebRequest
+    Dim AsyncWrapper As WebAsyncWrapper
+    Dim ClonedWrapper As WebAsyncWrapper
     
-    Set Client = New RestClient
-    Set AsyncWrapper = New RestAsyncWrapper
+    Set Client = New WebClient
+    Set AsyncWrapper = New WebAsyncWrapper
     Client.BaseUrl = HttpbinBaseUrl
     Set AsyncWrapper.Client = Client
     
@@ -41,8 +41,8 @@ Public Function Specs() As SpecSuite
     
     Dim SimpleCallback As String
     Dim ComplexCallback As String
-    SimpleCallback = "Specs_RestAsyncWrapper.SimpleCallback"
-    ComplexCallback = "Specs_RestAsyncWrapper.ComplexCallback"
+    SimpleCallback = "Specs_WebAsyncWrapper.SimpleCallback"
+    ComplexCallback = "Specs_WebAsyncWrapper.ComplexCallback"
     
     ' --------------------------------------------- '
     ' Properties
@@ -61,7 +61,7 @@ Public Function Specs() As SpecSuite
     ' ExecuteAsync
     ' --------------------------------------------- '
     With Specs.It("ExecuteAsync should pass response to callback")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "get"
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
@@ -70,7 +70,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("ExecuteAsync should pass arguments to callback")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "get"
         
         AsyncWrapper.ExecuteAsync Request, ComplexCallback, Array("A", "B", "C")
@@ -100,7 +100,7 @@ Public Function Specs() As SpecSuite
     
     ' Note: Weird async issues can occur if timeout spec isn't last
     With Specs.It("should return 408 and close request on request timeout")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "delay/{seconds}"
         Request.AddUrlSegment "seconds", "2"
 
@@ -119,17 +119,17 @@ Public Function Specs() As SpecSuite
     InlineRunner.RunSuite Specs
 End Function
 
-Public Sub SimpleCallback(Response As RestResponse)
+Public Sub SimpleCallback(Response As WebResponse)
     Set AsyncResponse = Response
 End Sub
 
-Public Sub ComplexCallback(Response As RestResponse, Args As Variant)
+Public Sub ComplexCallback(Response As WebResponse, Args As Variant)
     Set AsyncResponse = Response
     AsyncArgs = Args
 End Sub
 
 Public Sub Reset()
-    Set AsyncResponse = New RestResponse
+    Set AsyncResponse = New WebResponse
     AsyncArgs = Array()
 End Sub
 

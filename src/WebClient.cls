@@ -2,14 +2,14 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RestClient"
+Attribute VB_Name = "WebClient"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestClient v4.0.0-beta.3
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' WebClient v4.0.0-beta.3
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Interact with REST web services from Excel
 '
@@ -26,7 +26,7 @@ Private Const DefaultTimeoutMS As Long = 5000
 ' --------------------------------------------- '
 
 Public BaseUrl As String
-Public Authenticator As IAuthenticator
+Public Authenticator As IWebAuthenticator
 Public TimeoutMS As Long
 Public Username As String
 Public Password As String
@@ -42,22 +42,22 @@ Public ProxyBypassList As String
 ''
 ' Execute the specified request
 '
-' @param {RestRequest} request The request to execute
-' @return {RestResponse} Wrapper of server response for request
+' @param {WebRequest} request The request to execute
+' @return {WebResponse} Wrapper of server response for request
 ' --------------------------------------------- '
 
-Public Function Execute(Request As RestRequest) As RestResponse
+Public Function Execute(Request As WebRequest) As WebResponse
     Dim Http As Object
-    Dim Response As New RestResponse
+    Dim Response As New WebResponse
     
     On Error GoTo ErrorHandling
 
 #If Mac Then
     Dim cURL As String
-    Dim Result As ShellResult
+    Dim Result As WebShellResult
     
     cURL = Me.PrepareCURLRequestRequest(Request)
-    Result = RestHelpers.ExecuteInShell(cURL)
+    Result = WebHelpers.ExecuteInShell(cURL)
     
     If Result.ExitCode > 0 Then
         Dim ErrorNumber As Long
@@ -77,7 +77,7 @@ Public Function Execute(Request As RestRequest) As RestResponse
             ' 1 = CURLE_UNSUPPORTED_PROTOCOL
             Err.Raise vbObjectError + 1, "The protocol used in the request is not supported (1: CURLE_UNSUPPORTED_PROTOCOL)" & vbNewLine & _
                 "URL: " & Client.GetFullRequestUrl(Request) & vbNewLine & _
-                "Protocol: " & RestHelpers.UrlParts(Client.GetFullRequestUrl(Request))("Protocol")
+                "Protocol: " & WebHelpers.UrlParts(Client.GetFullRequestUrl(Request))("Protocol")
         Case 3
             ' 3 = CURLE_URL_MALFORMAT
             Err.Raise vbObjectError + 1, "The URL was not properly formatted (3: CURLE_URL_MALFORMAT)" & _
@@ -102,7 +102,7 @@ Public Function Execute(Request As RestRequest) As RestResponse
     
 #End If
 
-    RestHelpers.LogResponse Me, Request, Response
+    WebHelpers.LogResponse Me, Request, Response
     
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.AfterExecute Me, Request, Response
@@ -120,12 +120,12 @@ ErrorHandling:
         Response.StatusCode = WebStatusCode.RequestTimeout
         Response.StatusDescription = "Request Timeout"
         
-        RestHelpers.LogResponse Me, Request, Response
+        WebHelpers.LogResponse Me, Request, Response
         Set Execute = Response
         Err.Clear
     Else
         ' Rethrow error
-        RestHelpers.LogError Err.Description, "RestClient.Execute", Err.Number
+        WebHelpers.LogError Err.Description, "WebClient.Execute", Err.Number
         Err.Raise Err.Number, Source:=Err.Source, Description:=Err.Description
     End If
 End Function
@@ -139,15 +139,15 @@ End Function
 ' - Cookies
 ' - QuerystringParams
 ' - UrlSegments
-' @return {RestResponse} Response
+' @return {WebResponse} Response
 ' --------------------------------------------- '
 
-Public Function GetJSON(Url As String, Optional Options As Dictionary) As RestResponse
-    Dim Request As New RestRequest
+Public Function GetJSON(Url As String, Optional Options As Dictionary) As WebResponse
+    Dim Request As New WebRequest
     Request.CreateFromOptions Options
     Request.Resource = Url
-    Request.Format = WebFormat.json
-    Request.Method = WebMethod.httpGET
+    Request.Format = WebFormat.Json
+    Request.Method = WebMethod.HttpGet
     
     Set GetJSON = Me.Execute(Request)
 End Function
@@ -162,15 +162,15 @@ End Function
 ' - Cookies
 ' - QuerystringParams
 ' - UrlSegments
-' @return {RestResponse} Response
+' @return {WebResponse} Response
 ' --------------------------------------------- '
 
-Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dictionary) As RestResponse
-    Dim Request As New RestRequest
+Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dictionary) As WebResponse
+    Dim Request As New WebRequest
     Request.CreateFromOptions Options
     Request.Resource = Url
-    Request.Format = WebFormat.json
-    Request.Method = WebMethod.httpPOST
+    Request.Format = WebFormat.Json
+    Request.Method = WebMethod.HttpPost
     If IsObject(Body) Then
         Set Request.Body = Body
     Else
@@ -199,13 +199,13 @@ Public Sub SetProxy(ProxyServer As String, _
 End Sub
 
 ''
-' Prepare Http request for given RestRequest
+' Prepare Http request for given WebRequest
 '
-' @param {RestRequest} Request
+' @param {WebRequest} Request
 ' @return {WinHttpRequest}
 ' --------------------------------------------- '
 
-Public Function PrepareHttpRequest(Request As RestRequest, Optional Async As Boolean = True) As Object
+Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Boolean = True) As Object
     Dim Http As Object
     Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
@@ -216,15 +216,15 @@ Public Function PrepareHttpRequest(Request As RestRequest, Optional Async As Boo
     BeforeExecute Request
     
     ' Open http request
-    Http.Open RestHelpers.MethodToName(Request.Method), Me.GetFullRequestUrl(Request), Async
+    Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullRequestUrl(Request), Async
     
     ' Setup proxy
     If Me.ProxyServer <> "" Then
-        LogDebug "SetProxy: " & Me.ProxyServer, "RestClient.PrepareHttpRequest"
+        LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
         Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
-            LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & RestHelpers.Obfuscate(Me.ProxyPassword), "RestClient.PrepareHttpRequest"
+            LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
             Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
         End If
     Else
@@ -236,7 +236,7 @@ Public Function PrepareHttpRequest(Request As RestRequest, Optional Async As Boo
     ' Setup Basic authentication
     If Me.Username <> "" Then
         Http.SetCredentials Me.Username, Me.Password, 0 ' 0 = Credentials for server
-        Request.AddHeader "Authorization", "Basic " & RestHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+        Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
     ' Set headers on http request (after open)
@@ -250,18 +250,18 @@ Public Function PrepareHttpRequest(Request As RestRequest, Optional Async As Boo
     Next KeyValue
     
     ' Log request and return
-    RestHelpers.LogRequest Me, Request
+    WebHelpers.LogRequest Me, Request
     Set PrepareHttpRequest = Http
 End Function
 
 ''
-' Prepare cURL request for given RestRequest
+' Prepare cURL request for given WebRequest
 '
-' @param {RestRequest} Request
+' @param {WebRequest} Request
 ' @return {String}
 ' --------------------------------------------- '
 
-Public Function PrepareCURLRequest(Request As RestRequest) As String
+Public Function PrepareCURLRequest(Request As WebRequest) As String
     Dim cURL As String
     cURL = "curl -i"
     
@@ -284,7 +284,7 @@ Public Function PrepareCURLRequest(Request As RestRequest) As String
     ' Setup Basic authentication
     If Me.Username <> "" Then
         cURL = cURL & " --user " & Me.Username & ":" & Me.Password
-        Request.AddHeader "Authorization", "Basic " & RestHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+        Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
     ' Setup authenticator
@@ -303,12 +303,12 @@ Public Function PrepareCURLRequest(Request As RestRequest) As String
     cURL = cURL & " --cookie '" & CookieString & "'"
     
     ' Add method, data, and url
-    cURL = cURL & " -X " & RestHelpers.MethodToName(Request.Method)
+    cURL = cURL & " -X " & WebHelpers.MethodToName(Request.Method)
     cURL = cURL & " -d '" & Request.Body & "'"
     cURL = cURL & " '" & Me.GetFullRequestUrl(Request) & "'"
     
     ' Log request and return
-    RestHelpers.LogRequest Me, Request
+    WebHelpers.LogRequest Me, Request
     PrepareCURLRequest = cURL
 End Function
 
@@ -320,16 +320,16 @@ End Function
 ' --------------------------------------------- '
 
 Public Function GetFullUrl(Path As String) As String
-    GetFullUrl = RestHelpers.JoinUrl(Me.BaseUrl, Path)
+    GetFullUrl = WebHelpers.JoinUrl(Me.BaseUrl, Path)
 End Function
 
 ''
-' Get full url for the given RestRequest
+' Get full url for the given WebRequest
 '
-' @param {RestRequest} Request
+' @param {WebRequest} Request
 ' @return {String}
 ' --------------------------------------------- '
-Public Function GetFullRequestUrl(Request As RestRequest) As String
+Public Function GetFullRequestUrl(Request As WebRequest) As String
     GetFullRequestUrl = GetFullUrl(Request.FormattedResource)
 End Function
 
@@ -337,7 +337,7 @@ End Function
 ' Private Methods
 ' ============================================= '
 
-Private Sub BeforeExecute(Request As RestRequest)
+Private Sub BeforeExecute(Request As WebRequest)
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.BeforeExecute Me, Request
     End If

@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_GoogleAuthenticator"
 ''
 ' Specs_GoogleAuthenticator
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Specs for GoogleAuthenticator
 '
@@ -44,9 +44,9 @@ Public Function Specs() As SpecSuite
         Auth.EnableScope "analytics"
         
         Dim Parts As Dictionary
-        Set Parts = RestHelpers.UrlParts(Auth.LoginUrl)
+        Set Parts = WebHelpers.UrlParts(Auth.LoginUrl)
         Dim Scope As String
-        Scope = RestHelpers.UrlDecode(Parts("Querystring"))
+        Scope = WebHelpers.UrlDecode(Parts("Querystring"))
         Scope = Mid$(Scope, InStr(1, Scope, "scope") + 6)
         .Expect(Scope).ToEqual "https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/userinfo.email http://new_scope"
     End With

@@ -2,14 +2,14 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RestResponse"
+Attribute VB_Name = "WebResponse"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' RestResponse v4.0.0-beta.3
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' WebResponse v4.0.0-beta.3
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Wrapper for http responses
 '
@@ -38,9 +38,9 @@ Public Cookies As Collection
 ' Update response with given response values
 ' (Useful with ByRef)
 '
-' @param {RestResponse} Updated
+' @param {WebResponse} Updated
 ' --------------------------------------------- '
-Public Sub Update(Updated As RestResponse)
+Public Sub Update(Updated As WebResponse)
     Me.StatusCode = Updated.StatusCode
     Me.StatusDescription = Updated.StatusDescription
     Me.Content = Updated.Content
@@ -53,20 +53,20 @@ End Sub
 ''
 ' Create response from http
 '
-' @param {RestClient} Client
-' @param {RestRequest} Request
+' @param {WebClient} Client
+' @param {WebRequest} Request
 ' @param {WinHttpRequest} Http
 ' --------------------------------------------- '
-Public Sub CreateFromHttp(Client As RestClient, Request As RestRequest, Http As Object)
+Public Sub CreateFromHttp(Client As WebClient, Request As WebRequest, Http As Object)
     Me.StatusCode = Http.Status
     Me.StatusDescription = Http.StatusText
     Me.Body = Http.ResponseBody
     Me.Content = Http.ResponseText
     
     ' Convert content to data by format
-    If Request.ResponseFormat <> WebFormat.plaintext Then
+    If Request.ResponseFormat <> WebFormat.PlainText Then
         Set Me.Data = _
-            RestHelpers.ParseByFormat(Me.Content, Request.ResponseFormat, Request.CustomResponseFormat, Me.Body)
+            WebHelpers.ParseByFormat(Me.Content, Request.ResponseFormat, Request.CustomResponseFormat, Me.Body)
     End If
     
     ' Extract headers
@@ -79,11 +79,11 @@ End Sub
 ''
 ' Create response from cURL
 '
-' @param {RestClient} Client
-' @param {RestRequest} Request
+' @param {WebClient} Client
+' @param {WebRequest} Request
 ' @param {String} Result
 ' --------------------------------------------- '
-Public Sub CreateFromCURL(Client As RestClient, Request As RestRequest, Result As String)
+Public Sub CreateFromCURL(Client As WebClient, Request As WebRequest, Result As String)
     Dim StatusCode As Long
     Dim StatusText As String
     Dim Headers As String
@@ -137,12 +137,12 @@ Public Sub CreateFromCURL(Client As RestClient, Request As RestRequest, Result A
     Me.Content = VBA.Join$(BodyLines, vbCrLf)
     
     ' TODO: This needs to support UTF-8 or Unicode (match WinHttpRequest)
-    ' Me.Body = RestHelpers.StringToUTF8Bytes(ResponseText)
+    ' Me.Body = WebHelpers.StringToUTF8Bytes(ResponseText)
     
     ' Convert content to data by format
-    If Request.ResponseFormat <> WebFormat.plaintext Then
+    If Request.ResponseFormat <> WebFormat.PlainText Then
         Set CreateResponseFromCURL.Data = _
-            RestHelpers.ParseByFormat(Me.Content, Request.ResponseFormat, Request.CustomResponseFormat, Me.Body)
+            WebHelpers.ParseByFormat(Me.Content, Request.ResponseFormat, Request.CustomResponseFormat, Me.Body)
     End If
     
     ' Extract headers

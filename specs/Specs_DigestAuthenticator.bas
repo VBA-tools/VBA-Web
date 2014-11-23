@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_DigestAuthenticator"
 ''
 ' Specs_DigestAuthenticator
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Specs for DigestAuthenticator
 '
@@ -22,13 +22,13 @@ Public Function Specs() As SpecSuite
     Auth.ClientNonce = "0a4f113b"
     Auth.Opaque = "5ccc069c403ebaf9f0171e9517f40e41"
     
-    Dim Client As New RestClient
+    Dim Client As New WebClient
     Client.BaseUrl = "https://www.example.com/dir/"
     
-    Dim Request As New RestRequest
+    Dim Request As New WebRequest
     Request.Resource = "index.html"
     
-    Dim Unauthorized As New RestResponse
+    Dim Unauthorized As New WebResponse
     Unauthorized.StatusCode = 401
     
     Dim Header As New Dictionary
@@ -46,7 +46,7 @@ Public Function Specs() As SpecSuite
     
     HA1 = "939e7578ed9e3c518a452acee763bce9"
     HA2 = "39aff3a2bab6126f332b942af96d3366"
-    DigestResponse = RestHelpers.MD5(HA1 & ":" & Auth.ServerNonce & ":" & Auth.FormattedRequestCount & ":" & Auth.ClientNonce & ":auth:" & HA2)
+    DigestResponse = WebHelpers.MD5(HA1 & ":" & Auth.ServerNonce & ":" & Auth.FormattedRequestCount & ":" & Auth.ClientNonce & ":auth:" & HA2)
     
     With Specs.It("should calculate HA1 from username, realm, and password")
         .Expect(Auth.CalculateHA1).ToEqual HA1

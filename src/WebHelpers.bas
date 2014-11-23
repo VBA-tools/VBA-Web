@@ -1,9 +1,9 @@
-Attribute VB_Name = "RestHelpers"
+Attribute VB_Name = "WebHelpers"
 ''
-' RestHelpers v4.0.0-beta.3
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' WebHelpers v4.0.0-beta.3
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Common helpers RestClient
+' Common helpers VBA-Web
 '
 ' @dependencies: Microsoft Scripting Runtime
 ' @author: tim.hall.engr@gmail.com
@@ -40,9 +40,9 @@ Private Declare Sub JSON_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (JSON_MemoryDestination As Any, JSON_MemorySource As Any, ByVal JSON_ByteLength As Long)
 #End If
 
-Public Const WebUserAgent As String = "Excel Client v4.0.0-beta.3 (https://github.com/timhall/Excel-REST)"
+Public Const WebUserAgent As String = "Excel Client v4.0.0-beta.3 (https://github.com/timhall/VBA-Web)"
 
-Public Type ShellResult
+Public Type WebShellResult
     Output As String
     ExitCode As Long
 End Type
@@ -73,18 +73,18 @@ Public Enum WebStatusCode
     GatewayTimeout = 504
 End Enum
 Public Enum WebMethod
-    httpGET = 0
-    httpPOST = 1
-    httpPUT = 2
-    httpDELETE = 3
-    httpPATCH = 4
+    HttpGet = 0
+    HttpPost = 1
+    HttpPut = 2
+    HttpDelete = 3
+    HttpPatch = 4
 End Enum
 Public Enum WebFormat
-    plaintext = 0
-    json = 1
-    formurlencoded = 2
-    xml = 3
-    custom = 9
+    PlainText = 0
+    Json = 1
+    FormUrlEncoded = 2
+    Xml = 3
+    Custom = 9
 End Enum
 
 Public EnableLogging As Boolean
@@ -102,7 +102,7 @@ Public EnableLogging As Boolean
 Public Sub LogDebug(Message As String, Optional From As String = "")
     If EnableLogging Then
         If From = "" Then
-            From = "Excel-REST"
+            From = "VBA-Web"
         End If
         
         Debug.Print From & ": " & Message
@@ -118,7 +118,7 @@ End Sub
 ' --------------------------------------------- '
 Public Sub LogError(Message As String, Optional From As String = "", Optional ErrNumber As Long = -1)
     If From = "" Then
-        From = "Excel-REST"
+        From = "VBA-Web"
     End If
     If ErrNumber >= 0 Then
         From = From & ": " & ErrNumber & ", "
@@ -132,9 +132,9 @@ End Sub
 ''
 ' Log request
 '
-' @param {RestRequest} Request
+' @param {WebRequest} Request
 ' --------------------------------------------- '
-Public Sub LogRequest(Client As RestClient, Request As RestRequest)
+Public Sub LogRequest(Client As WebClient, Request As WebRequest)
     If EnableLogging Then
         Debug.Print "--> Request - " & Format(Now, "Long Time")
         Debug.Print MethodToName(Request.Method) & " " & Client.GetFullRequestUrl(Request)
@@ -159,9 +159,9 @@ End Sub
 ''
 ' Log response
 '
-' @param {RestResponse} Response
+' @param {WebResponse} Response
 ' --------------------------------------------- '
-Public Sub LogResponse(Client As RestClient, Request As RestRequest, Response As RestResponse)
+Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As WebResponse)
     If EnableLogging Then
         Debug.Print "<-- Response - " & Format(Now, "Long Time")
         Debug.Print Response.StatusCode & " " & Response.StatusDescription
@@ -281,8 +281,8 @@ End Function
 ' --------------------------------------------- '
 Public Function ParseXML(Encoded As String) As Object
 #If Mac Then
-    LogError "ParseXML is not supported on Mac", "RestHelpers.ParseXML"
-    Err.Raise vbObjectError + 1, "RestHelpers.ParseXML", "ParseXML is not supported on Mac"
+    LogError "ParseXML is not supported on Mac", "WebHelpers.ParseXML"
+    Err.Raise vbObjectError + 1, "WebHelpers.ParseXML", "ParseXML is not supported on Mac"
 #Else
     Set ParseXML = CreateObject("MSXML2.DOMDocument")
     ParseXML.Async = False
@@ -299,7 +299,7 @@ End Function
 
 Public Function ConvertToXML(Obj As Variant) As String
     On Error Resume Next
-    ConvertToXML = Trim(Replace(Obj.xml, vbCrLf, ""))
+    ConvertToXML = Trim(Replace(Obj.Xml, vbCrLf, ""))
 End Function
 
 ''
@@ -318,13 +318,13 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
     End If
     
     Select Case Format
-    Case WebFormat.json
+    Case WebFormat.Json
         Set ParseByFormat = ParseJSON(Value)
-    Case WebFormat.formurlencoded
+    Case WebFormat.FormUrlEncoded
         Set ParseByFormat = ParseUrlEncoded(Value)
-    Case WebFormat.xml
+    Case WebFormat.Xml
         Set ParseByFormat = ParseXML(Value)
-    Case WebFormat.custom
+    Case WebFormat.Custom
         Dim Converter As Dictionary
         Dim Callback As String
         
@@ -359,13 +359,13 @@ End Function
 ' --------------------------------------------- '
 Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As String
     Select Case Format
-    Case WebFormat.json
+    Case WebFormat.Json
         ConvertToFormat = ConvertToJSON(Obj)
-    Case WebFormat.formurlencoded
+    Case WebFormat.FormUrlEncoded
         ConvertToFormat = ConvertToUrlEncoded(Obj)
-    Case WebFormat.xml
+    Case WebFormat.Xml
         ConvertToFormat = ConvertToXML(Obj)
-    Case WebFormat.custom
+    Case WebFormat.Custom
         Dim Converter As Dictionary
         Dim Callback As String
         
@@ -519,7 +519,7 @@ Private Function GetConverter(CustomFormat As String) As Dictionary
     If pConverters.Exists(CustomFormat) Then
         Set GetConverter = pConverters(CustomFormat)
     Else
-        Err.Raise 11001, "RestHelpers", "No matching converter was registered for custom format: " & CustomFormat
+        Err.Raise 11001, "WebHelpers", "No matching converter was registered for custom format: " & CustomFormat
     End If
 End Function
 
@@ -590,7 +590,7 @@ Public Function UrlParts(Url As String) As Dictionary
     End If
     
     Dim Command As String
-    Dim Result As ShellResult
+    Dim Result As WebShellResult
     Dim Results As Variant
     Dim ResultPart As Variant
     Dim EqualsIndex As Long
@@ -755,13 +755,13 @@ End Function
 ' --------------------------------------------- '
 Public Function FormatToMediaType(Format As WebFormat, Optional CustomFormat As String) As String
     Select Case Format
-    Case WebFormat.formurlencoded
+    Case WebFormat.FormUrlEncoded
         FormatToMediaType = "application/x-www-form-urlencoded;charset=UTF-8"
-    Case WebFormat.json
+    Case WebFormat.Json
         FormatToMediaType = "application/json"
-    Case WebFormat.xml
+    Case WebFormat.Xml
         FormatToMediaType = "application/xml"
-    Case WebFormat.custom
+    Case WebFormat.Custom
         FormatToMediaType = GetConverter(CustomFormat)("MediaType")
     Case Else
         FormatToMediaType = "text/plain"
@@ -776,15 +776,15 @@ End Function
 ' --------------------------------------------- '
 Public Function MethodToName(Method As WebMethod) As String
     Select Case Method
-    Case WebMethod.httpDELETE
+    Case WebMethod.HttpDelete
         MethodToName = "DELETE"
-    Case WebMethod.httpPUT
+    Case WebMethod.HttpPut
         MethodToName = "PUT"
-    Case WebMethod.httpPATCH
+    Case WebMethod.HttpPatch
         MethodToName = "PATCH"
-    Case WebMethod.httpPOST
+    Case WebMethod.HttpPost
         MethodToName = "POST"
-    Case WebMethod.httpGET
+    Case WebMethod.HttpGet
         MethodToName = "GET"
     End Select
 End Function
@@ -831,7 +831,7 @@ End Sub
 ''
 ' Start timeout timer for request
 '
-' @param {RestRequest} Request
+' @param {WebRequest} Request
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
 Public Sub StartTimeoutTimer(AsyncWrapper As Object, TimeoutMS As Long)
@@ -843,13 +843,13 @@ Public Sub StartTimeoutTimer(AsyncWrapper As Object, TimeoutMS As Long)
     End If
 
     AddAsyncRequest AsyncWrapper
-    Application.OnTime Now + TimeValue("00:00:" & TimeoutS), "'RestHelpers.TimeoutTimerExpired """ & AsyncWrapper.Request.Id & """'"
+    Application.OnTime Now + TimeValue("00:00:" & TimeoutS), "'WebHelpers.TimeoutTimerExpired """ & AsyncWrapper.Request.Id & """'"
 End Sub
 
 ''
 ' Stop timeout timer for request
 '
-' @param {RestRequest} Request
+' @param {WebRequest} Request
 ' --------------------------------------------- '
 Public Sub StopTimeoutTimer(AsyncWrapper As Object)
     If Not AsyncWrapper.Request Is Nothing Then
@@ -869,7 +869,7 @@ Public Sub TimeoutTimerExpired(RequestId As String)
     If Not AsyncWrapper Is Nothing Then
         StopTimeoutTimer AsyncWrapper
         
-        LogDebug "Async Timeout: " & AsyncWrapper.Request.FormattedResource, "RestHelpers.TimeoutTimerExpired"
+        LogDebug "Async Timeout: " & AsyncWrapper.Request.FormattedResource, "WebHelpers.TimeoutTimerExpired"
         AsyncWrapper.TimedOut
     End If
 End Sub
@@ -883,9 +883,9 @@ End Sub
 ' Execute the given command
 '
 ' @param {String} Command
-' @return {ShellResult}
+' @return {WebShellResult}
 ' --------------------------------------------- '
-Public Function ExecuteInShell(Command As String) As ShellResult
+Public Function ExecuteInShell(Command As String) As WebShellResult
     Dim File As Long
     Dim Chunk As String
     Dim Read As Long
@@ -1117,17 +1117,17 @@ Private Function StringToBase64(ByVal Text As String) As String
 #Else
     ' Use XML to convert to Base64
     ' but XML requires bytes, so convert to bytes first
-    Dim xml As Object
+    Dim XmlObj As Object
     Dim Node As Object
-    Set xml = CreateObject("MSXML2.DOMDocument")
+    Set XmlObj = CreateObject("MSXML2.DOMDocument")
     
-    Set Node = xml.createElement("b64")
+    Set Node = XmlObj.createElement("b64")
     Node.DataType = "bin.base64"
     Node.nodeTypedValue = StringToANSIBytes(Text)
     StringToBase64 = Node.Text
 
     Set Node = Nothing
-    Set xml = Nothing
+    Set XmlObj = Nothing
 #End If
 End Function
 

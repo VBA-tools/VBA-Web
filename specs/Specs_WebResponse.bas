@@ -1,9 +1,9 @@
-Attribute VB_Name = "Specs_RestResponse"
+Attribute VB_Name = "Specs_WebResponse"
 ''
-' Specs_RestResponse
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' Specs_WebResponse
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Specs for RestResponse
+' Specs for WebResponse
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -12,12 +12,12 @@ Attribute VB_Name = "Specs_RestResponse"
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
-    Specs.Description = "RestResponse"
+    Specs.Description = "WebResponse"
     
-    Dim Client As New RestClient
-    Dim Request As RestRequest
-    Dim Response As RestResponse
-    Dim UpdatedResponse As RestResponse
+    Dim Client As New WebClient
+    Dim Request As WebRequest
+    Dim Response As WebResponse
+    Dim UpdatedResponse As WebResponse
     Dim ResponseHeaders As String
     Dim Headers As Collection
     Dim Cookies As Collection
@@ -32,7 +32,7 @@ Public Function Specs() As SpecSuite
     ' StatusCode
     ' --------------------------------------------- '
     With Specs.It("should extract status code from response")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "status/{code}"
         
         Request.AddUrlSegment "code", 204
@@ -51,7 +51,7 @@ Public Function Specs() As SpecSuite
     ' StatusDescription
     ' --------------------------------------------- '
     With Specs.It("should extract status description from response")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "status/{code}"
         
         Request.AddUrlSegment "code", 204
@@ -70,7 +70,7 @@ Public Function Specs() As SpecSuite
     ' Content
     ' --------------------------------------------- '
     With Specs.It("should extract unconverted content string from response")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "user-agent"
         
         Set Response = Client.Execute(Request)
@@ -80,9 +80,9 @@ Public Function Specs() As SpecSuite
     ' Data
     ' --------------------------------------------- '
     With Specs.It("Data should use ResponseFormat to convert Content")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "get?message=Howdy!"
-        Request.ResponseFormat = WebFormat.json
+        Request.ResponseFormat = WebFormat.Json
         
         Set Response = Client.Execute(Request)
         
@@ -92,9 +92,9 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("Data should be nothing for PlainText")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "get?message=Howdy!"
-        Request.ResponseFormat = WebFormat.plaintext
+        Request.ResponseFormat = WebFormat.PlainText
         
         Set Response = Client.Execute(Request)
         
@@ -104,9 +104,9 @@ Public Function Specs() As SpecSuite
     ' Body
     ' --------------------------------------------- '
     With Specs.It("should extract raw binary bytes from response")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "bytes/128"
-        Request.ResponseFormat = WebFormat.plaintext
+        Request.ResponseFormat = WebFormat.PlainText
         
         Set Response = Client.Execute(Request)
         
@@ -117,27 +117,27 @@ Public Function Specs() As SpecSuite
     ' Headers
     ' --------------------------------------------- '
     With Specs.It("should extract headers from response")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "response-headers"
         Request.AddQuerystringParam "X-Custom", "Howdy!"
         
         Set Response = Client.Execute(Request)
         
         .Expect(Response.Headers.Count).ToBeGTE 1
-        .Expect(RestHelpers.FindInKeyValues(Response.Headers, "X-Custom")).ToEqual "Howdy!"
+        .Expect(WebHelpers.FindInKeyValues(Response.Headers, "X-Custom")).ToEqual "Howdy!"
     End With
     
     ' Cookies
     ' --------------------------------------------- '
     With Specs.It("should extract cookies from response")
-        Set Request = New RestRequest
+        Set Request = New WebRequest
         Request.Resource = "response-headers"
         Request.AddQuerystringParam "Set-Cookie", "message=Howdy!"
         
         Set Response = Client.Execute(Request)
         
         .Expect(Response.Cookies.Count).ToBeGT 0
-        .Expect(RestHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy!"
+        .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy!"
     End With
     
     ' ============================================= '
@@ -147,8 +147,8 @@ Public Function Specs() As SpecSuite
     ' Update
     ' --------------------------------------------- '
     With Specs.It("should update response")
-        Set Response = New RestResponse
-        Set UpdatedResponse = New RestResponse
+        Set Response = New WebResponse
+        Set UpdatedResponse = New WebResponse
 
         Response.StatusCode = 401
         Response.Body = Array("Unauthorized")
@@ -169,7 +169,7 @@ Public Function Specs() As SpecSuite
     ' ExtractHeaders
     ' --------------------------------------------- '
     With Specs.It("ExtractHeaders should extract headers from response headers")
-        Set Response = New RestResponse
+        Set Response = New WebResponse
         ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
             "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
             "Content-Length: 2" & vbCrLf & _
@@ -178,13 +178,13 @@ Public Function Specs() As SpecSuite
 
         Set Headers = Response.ExtractHeaders(ResponseHeaders)
         .Expect(Headers.Count).ToEqual 5
-        .Expect(RestHelpers.FindInKeyValues(Headers, "Content-Length")).ToEqual "2"
+        .Expect(WebHelpers.FindInKeyValues(Headers, "Content-Length")).ToEqual "2"
         .Expect(Headers(5)("Key")).ToEqual "Set-Cookie"
         .Expect(Headers(5)("Value")).ToEqual "cookie=simple-cookie; Path=/"
     End With
     
     With Specs.It("ExtractHeaders should extract multi-line headers from response headers")
-        Set Response = New RestResponse
+        Set Response = New WebResponse
         ResponseHeaders = "Connection: keep-alive" & vbCrLf & _
             "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
             "WWW-Authenticate: Digest realm=""abc@host.com""" & vbCrLf & _
@@ -205,7 +205,7 @@ Public Function Specs() As SpecSuite
     ' ExtractCookies
     ' --------------------------------------------- '
     With Specs.It("should extract cookies from response headers")
-        Set Response = New RestResponse
+        Set Response = New WebResponse
         ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
             "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
             "Content-Length: 2" & vbCrLf & _
@@ -219,7 +219,7 @@ Public Function Specs() As SpecSuite
         Set Headers = Response.ExtractHeaders(ResponseHeaders)
         Set Cookies = Response.ExtractCookies(Headers)
         .Expect(Cookies.Count).ToEqual 4
-        .Expect(RestHelpers.FindInKeyValues(Cookies, "unsigned-cookie")).ToEqual "simple-cookie"
+        .Expect(WebHelpers.FindInKeyValues(Cookies, "unsigned-cookie")).ToEqual "simple-cookie"
     End With
     
     InlineRunner.RunSuite Specs
