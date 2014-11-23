@@ -3,7 +3,7 @@ Methods:
   - name: BeforeExecute
     code: "BeforeExecute(Client, Request)"
     details:
-      Client: "{WebClient}"
+      Client: "`{WebClient}`"
       Request: "`ByRef {WebRequest}`"
     description: |
       Hook for taking action before a request is executed.
@@ -15,7 +15,7 @@ Methods:
     details:
       Client: "`{WebClient}`"
       Request: "`{WebRequest}`"
-      Response: "`ByRef {WebResponse}"
+      Response: "`ByRef {WebResponse}`"
     description: |
       Hook for taking action after a request has been executed.
       Useful for handling `401 Unauthorized` or other issues

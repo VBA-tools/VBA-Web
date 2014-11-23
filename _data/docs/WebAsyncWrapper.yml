@@ -32,7 +32,7 @@ Methods:
     details:
       Request: "`{WebRequest}`"
       Callback: "`{String}`"
-      CallbackArgs: "`{Variant} _Optional_`"
+      CallbackArgs: "`{Variant}` _Optional_"
     description: |
       Execute the `Request` asynchronously,
       passing the response (and `CallbackArgs`) to the `Callback`.
@@ -69,20 +69,20 @@ Methods:
 
   # Clone
   - name: Clone
-    code: "Clone"
+    code: "Clone() {WebAsyncWrapper}"
     internal: true
 
   # PrepareAndExecuteRequest
   - name: PrepareAndExecuteRequest
-    code: "PrepareAndExecuteRequest"
+    code: "PrepareAndExecuteRequest(Request, Callback, [CallbackArgs])"
     internal: true
 
   # TimedOut
   - name: TimedOut
-    code: "TimedOut"
+    code: "TimedOut()"
     internal: true
 
   # RunCallback
   - name: RunCallback
-    code: "RunCallback"
+    code: "RunCallback(Response)"
     internal: true

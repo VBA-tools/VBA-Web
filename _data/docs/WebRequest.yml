@@ -188,12 +188,6 @@ Properties:
 
       ' -> Content-Length: 200
 
-  # Id
-  - name: Id
-    code: "Get {String}"
-    description: |
-      Unique Id of the `WebRequest`.
-
   # FormattedResource
   - name: FormattedResource
     code: "Get {String}"
@@ -260,6 +254,11 @@ Properties:
       Request.AddUrlSegment "Id", Id
 
       Request.FormattedResource ' = "Tim/messages/123"
+
+  # Id
+  - name: Id
+    code: "Get {String}"
+    internal: true
 
 Methods:
   # AddBodyParameter
@@ -361,4 +360,9 @@ Methods:
   # Clone
   - name: Clone 
     code: "Clone()"
+    internal: true
+
+  # Prepare
+  - name: Prepare
+    code: "Prepare()"
     internal: true
