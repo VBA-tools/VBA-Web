@@ -56,7 +56,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
     Dim cURL As String
     Dim Result As WebShellResult
     
-    cURL = Me.PrepareCURLRequestRequest(Request)
+    cURL = Me.PrepareCURLRequest(Request)
     Result = WebHelpers.ExecuteInShell(cURL)
     
     If Result.ExitCode > 0 Then
@@ -72,16 +72,16 @@ Public Function Execute(Request As WebRequest) As WebResponse
             ' 12 = CURLE_FTP_ACCEPT_TIMEOUT
             ' 28 = CURLE_OPERATION_TIMEDOUT
             
-            Err.Raise vbObjectError + 1, "The operation timed out"
+            Err.Raise 1 Or vbObjectError, "WebClient.Execute", "The operation timed out"
         Case 1
             ' 1 = CURLE_UNSUPPORTED_PROTOCOL
             Err.Raise vbObjectError + 1, "The protocol used in the request is not supported (1: CURLE_UNSUPPORTED_PROTOCOL)" & vbNewLine & _
-                "URL: " & Client.GetFullRequestUrl(Request) & vbNewLine & _
-                "Protocol: " & WebHelpers.UrlParts(Client.GetFullRequestUrl(Request))("Protocol")
+                "URL: " & Me.GetFullRequestUrl(Request) & vbNewLine & _
+                "Protocol: " & WebHelpers.UrlParts(Me.GetFullRequestUrl(Request))("Protocol")
         Case 3
             ' 3 = CURLE_URL_MALFORMAT
             Err.Raise vbObjectError + 1, "The URL was not properly formatted (3: CURLE_URL_MALFORMAT)" & _
-                "URL: " & Client.GetFullRequestUrl(Request)
+                "URL: " & Me.GetFullRequestUrl(Request)
         Case Else
             Err.Raise vbObjectError + 1, "cURL Error #" & ErrorNumber & vbNewLine & _
                 "Details: http://curl.haxx.se/libcurl/c/libcurl-errors.html"

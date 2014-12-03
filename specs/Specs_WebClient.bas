@@ -92,9 +92,10 @@ Public Function Specs() As SpecSuite
     ' -> Handled last due to side effects from timeout
 
 #If Mac Then
-    With Specs.It("Execute should handle cURL errors")
-        ' -> Similar errors are thrown with WinHttp, match those error numbers
-    End With
+    ' TODO
+    'With Specs.It("Execute should handle cURL errors")
+    '    ' -> Similar errors are thrown with WinHttp, match those error numbers
+    'End With
 #End If
     
     ' GetJSON
@@ -277,119 +278,6 @@ Public Function Specs() As SpecSuite
         .Expect(Response.StatusCode).ToEqual 408
         .Expect(Response.StatusDescription).ToEqual "Request Timeout"
     End With
-    
-    ' Move to WebResponse
-'    With Specs.It("should return status code and status description from request")
-'        Set Request = New WebRequest
-'        Request.Resource = "status/{code}"
-'        Request.ResponseFormat = WebFormat.plaintext
-'
-'        Request.AddUrlSegment "code", 200
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.StatusCode).ToEqual 200
-'        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "OK"
-'
-'        Request.AddUrlSegment "code", 304
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.StatusCode).ToEqual 304
-'        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "NOT MODIFIED"
-'
-'        Request.AddUrlSegment "code", 404
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.StatusCode).ToEqual 404
-'        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "NOT FOUND"
-'
-'        Request.AddUrlSegment "code", 500
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.StatusCode).ToEqual 500
-'        .Expect(VBA.UCase$(Response.StatusDescription)).ToEqual "INTERNAL SERVER ERROR"
-'    End With
-'
-'    With Specs.It("should parse request response")
-'        Set Request = New WebRequest
-'        Request.Resource = "post"
-'        Request.Method = httpPOST
-'        Request.AddBodyParameter "a", "1"
-'        Request.AddBodyParameter "b", 2
-'        Request.AddBodyParameter "c", 3.14
-'        Request.AddBodyParameter "d", False
-'        Request.AddBodyParameter "e", Array(1)
-'
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.Data).ToNotBeUndefined
-'        .Expect(Response.Data("json")("a")).ToEqual "1"
-'        .Expect(Response.Data("json")("b")).ToEqual 2
-'        .Expect(Response.Data("json")("c")).ToEqual 3.14
-'        .Expect(Response.Data("json")("d")).ToEqual False
-'        .Expect(Response.Data("json")("e")(1)).ToEqual 1
-'    End With
-'
-'    With Specs.It("should include binary body in response")
-'        Set Request = New WebRequest
-'        Request.Resource = "robots.txt"
-'        Request.ResponseFormat = WebFormat.plaintext
-'
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.Body).ToNotBeUndefined
-'
-'        If Not IsEmpty(Response.Body) Then
-'            For i = LBound(Response.Body) To UBound(Response.Body)
-'                BodyToString = BodyToString & Chr(Response.Body(i))
-'            Next i
-'        End If
-'
-'        .Expect(BodyToString).ToEqual "User-agent: *" & vbLf & "Disallow: /deny" & vbLf
-'    End With
-'
-'    With Specs.It("should include headers in response")
-'        Set Request = New WebRequest
-'        Request.Resource = "response-headers"
-'        Request.AddQuerystringParam "X-Custom", "Howdy!"
-'
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.Headers.Count).ToBeGTE 1
-'
-'        Dim Header As Dictionary
-'        Dim CustomValue As String
-'        For Each Header In Response.Headers
-'            If Header("Key") = "X-Custom" Then
-'                CustomValue = Header("Value")
-'            End If
-'        Next Header
-'
-'        .Expect(CustomValue).ToEqual "Howdy!"
-'    End With
-'
-'    With Specs.It("should include cookies in response")
-'        Set Request = New WebRequest
-'        Request.Resource = "response-headers"
-'        Request.AddQuerystringParam "Set-Cookie", "a=abc"
-'
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.Cookies.Count).ToEqual 1
-'        .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "a")).ToEqual "abc"
-'    End With
-'
-'#If Mac Then
-'#Else
-'    With Specs.It("should convert and parse XML")
-'        Set Request = New WebRequest
-'        Request.Resource = "Xml"
-'        Request.Format = WebFormat.Xml
-'        Request.Method = httpGET
-'
-'        Set Response = Client.Execute(Request)
-'        .Expect(Response.Content).ToMatch "<slideshow"
-'        .Expect(Response.Data).ToNotBeUndefined
-'        .Expect(Response.Data.ChildNodes(2).ChildNodes(1).ChildNodes(0).Text).ToEqual "Wake up to WonderWidgets!"
-'
-'        Set XMLBody = CreateObject("MSXML2.DOMDocument")
-'        XMLBody.Async = False
-'        XMLBody.LoadXML "<Point><X>1.23</X><Y>4.56</Y></Point>"
-'        Set Request.Body = XMLBody
-'        .Expect(Request.Body).ToEqual "<Point><X>1.23</X><Y>4.56</Y></Point>"
-'    End With
-'#End If
     
     Set Client = Nothing
     

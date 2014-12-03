@@ -313,7 +313,7 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
     Optional CustomFormat As String = "", Optional Bytes As Variant) As Object
     
     ' Don't attempt to parse blank values
-    If Value = "" And VBA.IsEmpty(Bytes) Then
+    If Value = "" And CustomFormat = "" Then
         Exit Function
     End If
     
@@ -1044,7 +1044,7 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     CreateNonce = Result
 End Function
 
-Private Function StringToANSIBytes(Text As String) As Byte()
+Public Function StringToANSIBytes(Text As String) As Byte()
     Dim Bytes() As Byte
     Dim ANSIBytes() As Byte
     Dim ByteIndex As Long

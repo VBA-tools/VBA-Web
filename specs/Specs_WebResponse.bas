@@ -105,13 +105,13 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("should extract raw binary bytes from response")
         Set Request = New WebRequest
-        Request.Resource = "bytes/128"
+        Request.Resource = "bytes/10"
         Request.ResponseFormat = WebFormat.PlainText
         
         Set Response = Client.Execute(Request)
         
         .Expect(Response.Body).ToNotBeUndefined
-        .Expect(UBound(Response.Body)).ToEqual 127
+        .Expect(UBound(Response.Body)).ToEqual 9
     End With
     
     ' Headers

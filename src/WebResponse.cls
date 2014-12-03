@@ -137,11 +137,11 @@ Public Sub CreateFromCURL(Client As WebClient, Request As WebRequest, Result As 
     Me.Content = VBA.Join$(BodyLines, vbCrLf)
     
     ' TODO: This needs to support UTF-8 or Unicode (match WinHttpRequest)
-    ' Me.Body = WebHelpers.StringToUTF8Bytes(ResponseText)
+    Me.Body = WebHelpers.StringToANSIBytes(Me.Content)
     
     ' Convert content to data by format
     If Request.ResponseFormat <> WebFormat.PlainText Then
-        Set CreateResponseFromCURL.Data = _
+        Set Me.Data = _
             WebHelpers.ParseByFormat(Me.Content, Request.ResponseFormat, Request.CustomResponseFormat, Me.Body)
     End If
     
@@ -231,7 +231,6 @@ Public Function ExtractCookies(Headers As Collection) As Collection
 End Function
 
 Private Sub Class_Initialize()
-    Body = Array()
     Set Headers = New Collection
     Set Cookies = New Collection
 End Sub
