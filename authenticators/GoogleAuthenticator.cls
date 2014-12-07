@@ -126,7 +126,7 @@ Public Property Get Token() As String
         ' Store token if successful, otherwise throw error
         If Response.StatusCode = Ok Then
             Dim Data As Object
-            Set Data = WebHelpers.ParseJSON(Response.Content)
+            Set Data = WebHelpers.ParseJson(Response.Content)
             pToken = Data("access_token")
             WebHelpers.LogDebug "Received Token: " & pToken, "GoogleAuthenticator.Token"
         Else

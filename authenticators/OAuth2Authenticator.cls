@@ -96,7 +96,7 @@ Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Req
         End If
         
         Dim Response As Dictionary
-        Set Response = WebHelpers.ParseJSON(Http.ResponseText)
+        Set Response = WebHelpers.ParseJson(Http.ResponseText)
         If Not Response Is Nothing Then
             If Response.Exists(Me.TokenKey) Then
                 Me.Token = Response(Me.TokenKey)

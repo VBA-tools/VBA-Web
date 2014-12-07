@@ -68,7 +68,7 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("should parse JSON")
         JSONString = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
-        Set Parsed = WebHelpers.ParseJSON(JSONString)
+        Set Parsed = WebHelpers.ParseJson(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -80,7 +80,7 @@ Public Function Specs() As SpecSuite
         End If
         
         JSONString = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
-        Set Parsed = WebHelpers.ParseJSON(JSONString)
+        Set Parsed = WebHelpers.ParseJson(JSONString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -105,7 +105,7 @@ Public Function Specs() As SpecSuite
         Obj.Add "f", Empty
         Obj.Add "g", Null
         
-        JSONString = WebHelpers.ConvertToJSON(Obj)
+        JSONString = WebHelpers.ConvertToJson(Obj)
         .Expect(JSONString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
         
         Set Obj = New Dictionary
@@ -121,7 +121,7 @@ Public Function Specs() As SpecSuite
         Coll.Add Empty
         Coll.Add Null
         
-        JSONString = WebHelpers.ConvertToJSON(Coll)
+        JSONString = WebHelpers.ConvertToJson(Coll)
         .Expect(JSONString).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
     End With
     
@@ -442,10 +442,10 @@ End Function
 
 Function SimpleConverter(Body As Variant) As String
     Body.Add "response", "Goodbye!"
-    SimpleConverter = WebHelpers.ConvertToJSON(Body)
+    SimpleConverter = WebHelpers.ConvertToJson(Body)
 End Function
 Function SimpleParser(Content As String) As Object
-    Set SimpleParser = WebHelpers.ParseJSON(Content)
+    Set SimpleParser = WebHelpers.ParseJson(Content)
     SimpleParser.Add "response", "Goodbye!"
 End Function
 Function ComplexParser(Body As Variant) As Object
@@ -456,6 +456,6 @@ Function ComplexParser(Body As Variant) As Object
         Content = Content & Chr(Body(i))
     Next i
     
-    Set ComplexParser = WebHelpers.ParseJSON("{""message"":""" & Content & """}")
+    Set ComplexParser = WebHelpers.ParseJson("{""message"":""" & Content & """}")
     ComplexParser.Add "response", "Goodbye!"
 End Function
