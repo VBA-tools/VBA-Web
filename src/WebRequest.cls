@@ -156,10 +156,10 @@ Public Property Get FormattedResource() As String
     FormattedResource = Me.Resource
     
     ' Replace url segments
-    Dim Segment As Variant
-    For Each Segment In Me.UrlSegments.Keys
-        FormattedResource = Replace(FormattedResource, "{" & Segment & "}", Me.UrlSegments(Segment))
-    Next Segment
+    Dim web_Segment As Variant
+    For Each web_Segment In Me.UrlSegments.Keys
+        FormattedResource = Replace(FormattedResource, "{" & web_Segment & "}", Me.UrlSegments(web_Segment))
+    Next web_Segment
     
     ' Add querystring
     If Me.QuerystringParams.Count > 0 Then

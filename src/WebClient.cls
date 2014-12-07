@@ -47,24 +47,24 @@ Public ProxyBypassList As String
 ' --------------------------------------------- '
 
 Public Function Execute(Request As WebRequest) As WebResponse
-    Dim Http As Object
-    Dim Response As New WebResponse
+    Dim web_Http As Object
+    Dim web_Response As New WebResponse
     
     On Error GoTo ErrorHandling
 
 #If Mac Then
-    Dim cURL As String
-    Dim Result As WebShellResult
+    Dim web_Curl As String
+    Dim web_Result As WebShellResult
     
-    cURL = Me.PrepareCURLRequest(Request)
-    Result = WebHelpers.ExecuteInShell(cURL)
+    web_Curl = Me.PrepareCURLRequest(Request)
+    web_Result = WebHelpers.ExecuteInShell(web_Curl)
     
-    If Result.ExitCode > 0 Then
-        Dim ErrorNumber As Long
-        Dim ErrorMessage As String
-        ErrorNumber = Result.ExitCode / 256
+    If web_Result.web_ExitCode > 0 Then
+        Dim web_ErrorNumber As Long
+        Dim web_ErrorMessage As String
+        web_ErrorNumber = web_Result.web_ExitCode / 256
         
-        Select Case ErrorNumber
+        Select Case web_ErrorNumber
         Case 5, 6, 7, 12, 28
             ' 5 = CURLE_COULDNT_RESOLVE_PROXY
             ' 6 = CURLE_COULDNT_RESOLVE_HOST
@@ -83,45 +83,45 @@ Public Function Execute(Request As WebRequest) As WebResponse
             Err.Raise vbObjectError + 1, "The URL was not properly formatted (3: CURLE_URL_MALFORMAT)" & _
                 "URL: " & Me.GetFullRequestUrl(Request)
         Case Else
-            Err.Raise vbObjectError + 1, "cURL Error #" & ErrorNumber & vbNewLine & _
+            Err.Raise vbObjectError + 1, "web_Curl Error #" & web_ErrorNumber & vbNewLine & _
                 "Details: http://curl.haxx.se/libcurl/c/libcurl-errors.html"
         End Select
     End If
     
-    Response.CreateFromCURL Me, Request, Result.Output
+    web_Response.CreateFromCURL Me, Request, web_Result.web_Output
 
 #Else
-    Set Http = Me.PrepareHttpRequest(Request)
+    Set web_Http = Me.PrepareHttpRequest(Request)
     
-    Http.Send Request.Body
-    Do While Not Http.WaitForResponse(25)
+    web_Http.Send Request.Body
+    Do While Not web_Http.WaitForResponse(25)
         DoEvents
     Loop
     
-    Response.CreateFromHttp Me, Request, Http
+    web_Response.CreateFromHttp Me, Request, web_Http
     
 #End If
 
-    WebHelpers.LogResponse Me, Request, Response
+    WebHelpers.LogResponse Me, Request, web_Response
     
     If Not Me.Authenticator Is Nothing Then
-        Me.Authenticator.AfterExecute Me, Request, Response
+        Me.Authenticator.AfterExecute Me, Request, web_Response
     End If
     
-    Set Http = Nothing
-    Set Execute = Response
+    Set web_Http = Nothing
+    Set Execute = web_Response
     Exit Function
     
 ErrorHandling:
 
-    Set Http = Nothing
+    Set web_Http = Nothing
     If InStr(Err.Description, "The operation timed out") > 0 Or InStr(Err.Description, "A connection with the server could not be established") > 0 Then
         ' Return 408
-        Response.StatusCode = WebStatusCode.RequestTimeout
-        Response.StatusDescription = "Request Timeout"
+        web_Response.StatusCode = WebStatusCode.RequestTimeout
+        web_Response.StatusDescription = "Request Timeout"
         
-        WebHelpers.LogResponse Me, Request, Response
-        Set Execute = Response
+        WebHelpers.LogResponse Me, Request, web_Response
+        Set Execute = web_Response
         Err.Clear
     Else
         ' Rethrow error
@@ -143,13 +143,13 @@ End Function
 ' --------------------------------------------- '
 
 Public Function GetJSON(Url As String, Optional Options As Dictionary) As WebResponse
-    Dim Request As New WebRequest
-    Request.CreateFromOptions Options
-    Request.Resource = Url
-    Request.Format = WebFormat.Json
-    Request.Method = WebMethod.HttpGet
+    Dim web_Request As New WebRequest
+    web_Request.CreateFromOptions Options
+    web_Request.Resource = Url
+    web_Request.Format = WebFormat.Json
+    web_Request.Method = WebMethod.HttpGet
     
-    Set GetJSON = Me.Execute(Request)
+    Set GetJSON = Me.Execute(web_Request)
 End Function
 
 ''
@@ -166,18 +166,18 @@ End Function
 ' --------------------------------------------- '
 
 Public Function PostJSON(Url As String, Body As Variant, Optional Options As Dictionary) As WebResponse
-    Dim Request As New WebRequest
-    Request.CreateFromOptions Options
-    Request.Resource = Url
-    Request.Format = WebFormat.Json
-    Request.Method = WebMethod.HttpPost
+    Dim web_Request As New WebRequest
+    web_Request.CreateFromOptions Options
+    web_Request.Resource = Url
+    web_Request.Format = WebFormat.Json
+    web_Request.Method = WebMethod.HttpPost
     If IsObject(Body) Then
-        Set Request.Body = Body
+        Set web_Request.Body = Body
     Else
-        Request.Body = Body
+        web_Request.Body = Body
     End If
     
-    Set PostJSON = Me.Execute(Request)
+    Set PostJSON = Me.Execute(web_Request)
 End Function
 
 ''
@@ -206,52 +206,52 @@ End Sub
 ' --------------------------------------------- '
 
 Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Boolean = True) As Object
-    Dim Http As Object
-    Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+    Dim web_Http As Object
+    Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
     ' Set timeouts
-    Http.SetTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
+    web_Http.SetTimeouts Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS, Me.TimeoutMS
     
     ' Setup authenticator
     BeforeExecute Request
     
     ' Open http request
-    Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullRequestUrl(Request), Async
+    web_Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullRequestUrl(Request), Async
     
     ' Setup proxy
     If Me.ProxyServer <> "" Then
         LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
-        Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
+        web_Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
             LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
-            Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
+            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
         End If
     Else
         ' Attempt to get proxy setup with Proxycfg.exe, otherwise direct
         ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-        Http.SetProxy 1 ' 1 = HTTPREQUEST_PROXYSETTING_PRECONFIG
+        web_Http.SetProxy 1 ' 1 = HTTPREQUEST_PROXYSETTING_PRECONFIG
     End If
     
     ' Setup Basic authentication
     If Me.Username <> "" Then
-        Http.SetCredentials Me.Username, Me.Password, 0 ' 0 = Credentials for server
+        web_Http.SetCredentials Me.Username, Me.Password, 0 ' 0 = Credentials for server
         Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
     ' Set headers on http request (after open)
-    Dim KeyValue As Dictionary
-    For Each KeyValue In Request.Headers
-        Http.setRequestHeader KeyValue("Key"), KeyValue("Value")
-    Next KeyValue
+    Dim web_KeyValue As Dictionary
+    For Each web_KeyValue In Request.Headers
+        web_Http.setRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
+    Next web_KeyValue
     
-    For Each KeyValue In Request.Cookies
-        Http.setRequestHeader "Cookie", KeyValue("Key") & "=" & KeyValue("Value")
-    Next KeyValue
+    For Each web_KeyValue In Request.Cookies
+        web_Http.setRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
+    Next web_KeyValue
     
     ' Log request and return
     WebHelpers.LogRequest Me, Request
-    Set PrepareHttpRequest = Http
+    Set PrepareHttpRequest = web_Http
 End Function
 
 ''
@@ -262,28 +262,28 @@ End Function
 ' --------------------------------------------- '
 
 Public Function PrepareCURLRequest(Request As WebRequest) As String
-    Dim cURL As String
-    cURL = "curl -i"
+    Dim web_Curl As String
+    web_Curl = "curl -i"
     
     ' Set timeouts
-    cURL = cURL & " --connect-timeout " & Me.TimeoutMS / 1000
-    cURL = cURL & " --max-time " & 3 * Me.TimeoutMS / 1000
+    web_Curl = web_Curl & " --connect-timeout " & Me.TimeoutMS / 1000
+    web_Curl = web_Curl & " --max-time " & 3 * Me.TimeoutMS / 1000
     
     ' Setup proxy
     If Me.ProxyServer <> "" Then
-        cURL = cURL & " --proxy " & Me.ProxyServer
+        web_Curl = web_Curl & " --proxy " & Me.ProxyServer
         
         If Me.ProxyBypassList <> "" Then
-            cURL = cURL & " --noproxy " & Me.ProxyBypassList
+            web_Curl = web_Curl & " --noproxy " & Me.ProxyBypassList
         End If
         If Me.ProxyUsername <> "" Then
-            cURL = cURL & " --proxy-user " & Me.ProxyUsername & ":" & Me.ProxyPassword
+            web_Curl = web_Curl & " --proxy-user " & Me.ProxyUsername & ":" & Me.ProxyPassword
         End If
     End If
     
     ' Setup Basic authentication
     If Me.Username <> "" Then
-        cURL = cURL & " --user " & Me.Username & ":" & Me.Password
+        web_Curl = web_Curl & " --user " & Me.Username & ":" & Me.Password
         Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
@@ -291,25 +291,25 @@ Public Function PrepareCURLRequest(Request As WebRequest) As String
     BeforeExecute Request
     
     ' Set headers and cookies
-    Dim KeyValue As Dictionary
-    For Each KeyValue In Request.Headers
-        cURL = cURL & " -H '" & KeyValue("Key") & ": " & KeyValue("Value") & "'"
-    Next KeyValue
+    Dim web_KeyValue As Dictionary
+    For Each web_KeyValue In Request.Headers
+        web_Curl = web_Curl & " -H '" & web_KeyValue("Key") & ": " & web_KeyValue("Value") & "'"
+    Next web_KeyValue
     
     Dim CookieString As String
-    For Each KeyValue In Request.Cookies
-        CookieString = CookieString & KeyValue("Key") & "=" & KeyValue("Value") & ";"
-    Next KeyValue
-    cURL = cURL & " --cookie '" & CookieString & "'"
+    For Each web_KeyValue In Request.Cookies
+        CookieString = CookieString & web_KeyValue("Key") & "=" & web_KeyValue("Value") & ";"
+    Next web_KeyValue
+    web_Curl = web_Curl & " --cookie '" & CookieString & "'"
     
     ' Add method, data, and url
-    cURL = cURL & " -X " & WebHelpers.MethodToName(Request.Method)
-    cURL = cURL & " -d '" & Request.Body & "'"
-    cURL = cURL & " '" & Me.GetFullRequestUrl(Request) & "'"
+    web_Curl = web_Curl & " -X " & WebHelpers.MethodToName(Request.Method)
+    web_Curl = web_Curl & " -d '" & Request.Body & "'"
+    web_Curl = web_Curl & " '" & Me.GetFullRequestUrl(Request) & "'"
     
     ' Log request and return
     WebHelpers.LogRequest Me, Request
-    PrepareCURLRequest = cURL
+    PrepareCURLRequest = web_Curl
 End Function
 
 ''

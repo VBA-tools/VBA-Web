@@ -84,59 +84,57 @@ End Sub
 ' @param {String} Result
 ' --------------------------------------------- '
 Public Sub CreateFromCURL(Client As WebClient, Request As WebRequest, Result As String)
-    Dim StatusCode As Long
-    Dim StatusText As String
-    Dim Headers As String
-    Dim Body As Variant
-    Dim ResponseText As String
+    Dim web_StatusCode As Long
+    Dim web_StatusText As String
+    Dim web_Headers As String
+    Dim web_Body As Variant
+    Dim web_ResponseText As String
     
-    Dim Lines() As String
-    Lines = Split(Result, vbCrLf)
+    Dim web_Lines() As String
+    web_Lines = Split(Result, vbCrLf)
     
     ' Extract status code and text from status line
-    Dim StatusLine As String
-    Dim StatusLineParts() As String
-    StatusLine = Lines(0)
-    StatusLineParts = Split(StatusLine)
+    Dim web_StatusLine As String
+    Dim web_StatusLineParts() As String
+    web_StatusLine = web_Lines(0)
+    web_StatusLineParts = Split(web_StatusLine)
     
-    Me.StatusCode = CLng(StatusLineParts(1))
-    Me.StatusDescription = Mid$(StatusLine, InStr(1, StatusLine, StatusCode) + 4)
+    Me.StatusCode = CLng(web_StatusLineParts(1))
+    Me.StatusDescription = Mid$(web_StatusLine, InStr(1, web_StatusLine, web_StatusCode) + 4)
     
     ' Find blank line before body
-    Dim Line As Variant
-    Dim BlankLineIndex
-    BlankLineIndex = 0
-    For Each Line In Lines
-        If Trim(Line) = "" Then
+    Dim web_Line As Variant
+    Dim web_BlankLineIndex As Long
+    web_BlankLineIndex = 0
+    For Each web_Line In web_Lines
+        If Trim(web_Line) = "" Then
             Exit For
         End If
-        BlankLineIndex = BlankLineIndex + 1
-    Next Line
+        web_BlankLineIndex = web_BlankLineIndex + 1
+    Next web_Line
     
     ' Extract body and headers strings
-    Dim HeaderLines() As String
-    Dim BodyLines() As String
-    Dim ReadIndex As Long
-    Dim WriteIndex As Long
+    Dim web_HeaderLines() As String
+    Dim web_BodyLines() As String
+    Dim web_ReadIndex As Long
+    Dim web_WriteIndex As Long
     
-    ReDim HeaderLines(0 To BlankLineIndex - 2)
-    ReDim BodyLines(0 To UBound(Lines) - BlankLineIndex - 1)
+    ReDim web_HeaderLines(0 To web_BlankLineIndex - 2)
+    ReDim web_BodyLines(0 To UBound(web_Lines) - web_BlankLineIndex - 1)
     
-    WriteIndex = 0
-    For ReadIndex = 1 To BlankLineIndex - 1
-        HeaderLines(WriteIndex) = Lines(ReadIndex)
-        WriteIndex = WriteIndex + 1
-    Next ReadIndex
+    web_WriteIndex = 0
+    For web_ReadIndex = 1 To web_BlankLineIndex - 1
+        web_HeaderLines(web_WriteIndex) = web_Lines(web_ReadIndex)
+        web_WriteIndex = web_WriteIndex + 1
+    Next web_ReadIndex
     
-    WriteIndex = 0
-    For ReadIndex = BlankLineIndex + 1 To UBound(Lines)
-        BodyLines(WriteIndex) = Lines(ReadIndex)
-        WriteIndex = WriteIndex + 1
-    Next ReadIndex
+    web_WriteIndex = 0
+    For web_ReadIndex = web_BlankLineIndex + 1 To UBound(web_Lines)
+        web_BodyLines(web_WriteIndex) = web_Lines(web_ReadIndex)
+        web_WriteIndex = web_WriteIndex + 1
+    Next web_ReadIndex
     
-    Me.Content = VBA.Join$(BodyLines, vbCrLf)
-    
-    ' TODO: This needs to support UTF-8 or Unicode (match WinHttpRequest)
+    Me.Content = VBA.Join$(web_BodyLines, vbCrLf)
     Me.Body = WebHelpers.StringToANSIBytes(Me.Content)
     
     ' Convert content to data by format
@@ -146,7 +144,7 @@ Public Sub CreateFromCURL(Client As WebClient, Request As WebRequest, Result As 
     End If
     
     ' Extract headers
-    Set Me.Headers = ExtractHeaders(VBA.Join$(HeaderLines, vbCrLf))
+    Set Me.Headers = ExtractHeaders(VBA.Join$(web_HeaderLines, vbCrLf))
     
     ' Extract cookies
     Set Me.Cookies = ExtractCookies(Me.Headers)
@@ -160,43 +158,43 @@ End Sub
 ' @internal
 ' --------------------------------------------- '
 Public Function ExtractHeaders(ResponseHeaders As String) As Collection
-    Dim Headers As New Collection
-    Dim Header As Dictionary
-    Dim Multiline As Boolean
-    Dim Key As String
-    Dim Value As String
+    Dim web_Headers As New Collection
+    Dim web_Header As Dictionary
+    Dim web_Multiline As Boolean
+    Dim web_Key As String
+    Dim web_Value As String
     
-    Dim Lines As Variant
-    Lines = Split(ResponseHeaders, vbCrLf)
+    Dim web_Lines As Variant
+    web_Lines = Split(ResponseHeaders, vbCrLf)
     
-    Dim i As Integer
-    For i = LBound(Lines) To (UBound(Lines) + 1)
-        If i > UBound(Lines) Then
-            Headers.Add Header
-        ElseIf Lines(i) <> "" Then
-            If InStr(1, Lines(i), ":") = 0 And Not Header Is Nothing Then
+    Dim web_i As Integer
+    For web_i = LBound(web_Lines) To (UBound(web_Lines) + 1)
+        If web_i > UBound(web_Lines) Then
+            web_Headers.Add web_Header
+        ElseIf web_Lines(web_i) <> "" Then
+            If InStr(1, web_Lines(web_i), ":") = 0 And Not web_Header Is Nothing Then
                 ' Assume part of multi-line header
-                Multiline = True
-            ElseIf Multiline Then
+                web_Multiline = True
+            ElseIf web_Multiline Then
                 ' Close out multi-line string
-                Multiline = False
-                Headers.Add Header
-            ElseIf Not Header Is Nothing Then
-                Headers.Add Header
+                web_Multiline = False
+                web_Headers.Add web_Header
+            ElseIf Not web_Header Is Nothing Then
+                web_Headers.Add web_Header
             End If
             
-            If Not Multiline Then
-                Set Header = CreateKeyValue( _
-                    Key:=Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), ":") - 1)), _
-                    Value:=Trim(Mid$(Lines(i), InStr(1, Lines(i), ":") + 1, Len(Lines(i)))) _
+            If Not web_Multiline Then
+                Set web_Header = CreateKeyValue( _
+                    Key:=Trim(Mid$(web_Lines(web_i), 1, InStr(1, web_Lines(web_i), ":") - 1)), _
+                    Value:=Trim(Mid$(web_Lines(web_i), InStr(1, web_Lines(web_i), ":") + 1, Len(web_Lines(web_i)))) _
                 )
             Else
-                Header("Value") = Header("Value") & vbCrLf & Lines(i)
+                web_Header("Value") = web_Header("Value") & vbCrLf & web_Lines(web_i)
             End If
         End If
-    Next i
+    Next web_i
     
-    Set ExtractHeaders = Headers
+    Set ExtractHeaders = web_Headers
 End Function
 
 ''
@@ -207,27 +205,27 @@ End Function
 ' @internal
 ' --------------------------------------------- '
 Public Function ExtractCookies(Headers As Collection) As Collection
-    Dim Cookies As New Collection
-    Dim Cookie As String
-    Dim Key As String
-    Dim Value As String
-    Dim Header As Dictionary
+    Dim web_Cookies As New Collection
+    Dim web_Cookie As String
+    Dim web_Key As String
+    Dim web_Value As String
+    Dim web_Header As Dictionary
     
-    For Each Header In Headers
-        If Header("Key") = "Set-Cookie" Then
-            Cookie = Header("Value")
-            Key = Mid$(Cookie, 1, InStr(1, Cookie, "=") - 1)
-            Value = Mid$(Cookie, InStr(1, Cookie, "=") + 1, Len(Cookie))
+    For Each web_Header In Headers
+        If web_Header("Key") = "Set-Cookie" Then
+            web_Cookie = web_Header("Value")
+            web_Key = Mid$(web_Cookie, 1, InStr(1, web_Cookie, "=") - 1)
+            web_Value = Mid$(web_Cookie, InStr(1, web_Cookie, "=") + 1, Len(web_Cookie))
             
-            If InStr(1, Value, ";") Then
-                Value = Mid$(Value, 1, InStr(1, Value, ";") - 1)
+            If InStr(1, web_Value, ";") > 0 Then
+                web_Value = Mid$(web_Value, 1, InStr(1, web_Value, ";") - 1)
             End If
             
-            Cookies.Add CreateKeyValue(Key, UrlDecode(Value))
+            web_Cookies.Add CreateKeyValue(web_Key, UrlDecode(web_Value))
         End If
-    Next Header
+    Next web_Header
     
-    Set ExtractCookies = Cookies
+    Set ExtractCookies = web_Cookies
 End Function
 
 Private Sub Class_Initialize()
