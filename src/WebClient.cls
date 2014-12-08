@@ -54,7 +54,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
 
 #If Mac Then
     Dim web_Curl As String
-    Dim web_Result As WebShellResult
+    Dim web_Result As web_ShellResult
     
     web_Curl = Me.PrepareCURLRequest(Request)
     web_Result = WebHelpers.ExecuteInShell(web_Curl)

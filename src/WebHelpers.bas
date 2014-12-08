@@ -933,22 +933,22 @@ End Sub
 ' @param {String} Command
 ' @return {WebShellResult}
 ' --------------------------------------------- '
-Public Function ExecuteInShell(Command As String) As WebShellResult
+Public Function ExecuteInShell(Command As String) As web_ShellResult
     Dim web_File As Long
     Dim web_Chunk As String
     Dim web_Read As Long
     
     On Error GoTo ErrorHandling
-    web_File = popen(Command, "r")
+    web_File = web_popen(Command, "r")
     
     If web_File = 0 Then
         ' TODO
         Exit Function
     End If
     
-    Do While feof(web_File) = 0
+    Do While web_feof(web_File) = 0
         web_Chunk = VBA.Space$(50)
-        web_Read = fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File)
+        web_Read = web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File)
         If web_Read > 0 Then
             web_Chunk = VBA.Left$(web_Chunk, web_Read)
             ExecuteInShell.web_Output = ExecuteInShell.web_Output & web_Chunk
@@ -956,7 +956,7 @@ Public Function ExecuteInShell(Command As String) As WebShellResult
     Loop
 
 ErrorHandling:
-    ExecuteInShell.web_ExitCode = pclose(web_File)
+    ExecuteInShell.web_ExitCode = web_pclose(web_File)
 End Function
 
 ''

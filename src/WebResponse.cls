@@ -84,23 +84,24 @@ End Sub
 ' @param {String} Result
 ' --------------------------------------------- '
 Public Sub CreateFromCURL(Client As WebClient, Request As WebRequest, Result As String)
-    Dim web_StatusCode As Long
-    Dim web_StatusText As String
-    Dim web_Headers As String
-    Dim web_Body As Variant
-    Dim web_ResponseText As String
-    
     Dim web_Lines() As String
     web_Lines = Split(Result, vbCrLf)
     
     ' Extract status code and text from status line
     Dim web_StatusLine As String
     Dim web_StatusLineParts() As String
+    Dim web_i As Long
     web_StatusLine = web_Lines(0)
     web_StatusLineParts = Split(web_StatusLine)
     
     Me.StatusCode = CLng(web_StatusLineParts(1))
-    Me.StatusDescription = Mid$(web_StatusLine, InStr(1, web_StatusLine, web_StatusCode) + 4)
+    For web_i = 2 To UBound(web_StatusLineParts)
+        If web_i > 2 Then
+            Me.StatusDescription = Me.StatusDescription & " "
+        End If
+        
+        Me.StatusDescription = Me.StatusDescription & web_StatusLineParts(web_i)
+    Next web_i
     
     ' Find blank line before body
     Dim web_Line As Variant
