@@ -34,7 +34,7 @@ Dim BlankWorkbookPath
 Dim ExampleWorkbookPath
 Dim SpecsWorkbookPath
 Dim AsyncSpecsWorkbookPath
-BlankWorkbookPath = "./VBA-WEb - Blank.xlsm"
+BlankWorkbookPath = "./VBA-Web - Blank.xlsm"
 ExampleWorkbookPath = "./examples/VBA-Web - Example.xlsm"
 SpecsWorkbookPath = "./specs/VBA-Web - Specs.xlsm"
 AsyncSpecsWorkbookPath = "./specs/VBA-Web - Specs - Async.xlsm"
@@ -91,7 +91,7 @@ Main
 Sub Main()
   On Error Resume Next
 
-  PrintLn "VBA-Web v4.0.0-beta.3 Development"
+  PrintLn "VBA-Web v4.0.0-beta.5 Development"
   
   ExcelWasOpen = OpenExcel(Excel)
 
@@ -135,7 +135,6 @@ Sub Development
     Execute "import", "specs", "specs"
     Execute "import", "auth-specs", "specs"
     Execute "import", "async", "async-specs"
-    Execute "import", "specs", "async-specs"
     Execute "import", "async-specs", "async-specs"
   ElseIf UBound(Parts) < 3 Or (UCase(Parts(0)) <> "IMPORT" And UCase(Parts(0)) <> "EXPORT") Then
     PrintLn vbNewLine & "Error: Unrecognized action"

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebRequest v4.0.0-beta.3
+' WebRequest v4.0.0-beta.5
 ' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Create a request for use with a rest client

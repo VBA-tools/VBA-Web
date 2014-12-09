@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebResponse v4.0.0-beta.3
+' WebResponse v4.0.0-beta.5
 ' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
 ' Wrapper for http responses
