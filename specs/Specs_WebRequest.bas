@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_WebRequest"
 ''
 ' Specs_WebRequest
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for WebRequest
 '
@@ -481,6 +481,20 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Accept")).ToEqual "text/csv"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "100"
+    End With
+    
+    ' ============================================= '
+    ' Errors
+    ' ============================================= '
+    On Error Resume Next
+    
+    With Specs.It("AddBodyParameter should throw error if existing body isn't Dictionary")
+        Set Request = New WebRequest
+        
+        Request.Body = "Howdy"
+        Request.AddBodyParameter "Message", "Goodby"
+        
+        .Expect(Err.Number).ToEqual 11020 + vbObjectError
     End With
     
     InlineRunner.RunSuite Specs

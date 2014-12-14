@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' OAuth2 Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Utilize OAuth2 authentication
 ' (Currently using client credentials flow only)
@@ -79,7 +79,7 @@ End Sub
 ' --------------------------------------------- '
 
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    On Error GoTo ErrorHandling
+    On Error GoTo web_ErrorHandling
     If (Me.Token = "" Or Not Me.CacheToken) And (Me.TokenUrl <> "" And Me.TokenKey <> "") Then
         ' Get new token
         Dim Http As Object
@@ -115,7 +115,7 @@ Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Req
     End If
     Call Request.AddHeader("Authorization", CreateHeader())
     
-ErrorHandling:
+web_ErrorHandling:
     
     If Not Http Is Nothing Then Set Http = Nothing
     If Not Response Is Nothing Then Set Response = Nothing

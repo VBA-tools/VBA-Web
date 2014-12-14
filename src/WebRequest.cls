@@ -9,13 +9,15 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' WebRequest v4.0.0-beta.5
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Create a request for use with a rest client
+' Create a request for use with a WebClient
 '
-' @dependencies: Microsoft Scripting Runtime
+' Errors:
+' 11020 / 80042b0c - Cannot add body parameter to non-Dictionary
+'
 ' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
@@ -24,16 +26,16 @@ Option Explicit
 ' Constants and Private Variables
 ' --------------------------------------------- '
 
-Private pRequestFormat As WebFormat
-Private pResponseFormat As WebFormat
-Private pCustomRequestFormat As String
-Private pCustomResponseFormat As String
-Private pBody As Variant
-Private pConvertedBody As String
-Private pContentType As String
-Private pAccept As String
-Private pContentLength As Long
-Private pId As String
+Private web_pRequestFormat As WebFormat
+Private web_pResponseFormat As WebFormat
+Private web_pCustomRequestFormat As String
+Private web_pCustomResponseFormat As String
+Private web_pBody As Variant
+Private web_pConvertedBody As String
+Private web_pContentType As String
+Private web_pAccept As String
+Private web_pContentLength As Long
+Private web_pId As String
 
 ' --------------------------------------------- '
 ' Properties
@@ -55,39 +57,39 @@ Public Property Let Format(Value As WebFormat)
 End Property
 
 Public Property Get RequestFormat() As WebFormat
-    RequestFormat = pRequestFormat
+    RequestFormat = web_pRequestFormat
 End Property
 Public Property Let RequestFormat(Value As WebFormat)
-    pRequestFormat = Value
-    pConvertedBody = ""
+    web_pRequestFormat = Value
+    web_pConvertedBody = ""
 End Property
 
 Public Property Get ResponseFormat() As WebFormat
-    ResponseFormat = pResponseFormat
+    ResponseFormat = web_pResponseFormat
 End Property
 Public Property Let ResponseFormat(Value As WebFormat)
-    pResponseFormat = Value
-    pConvertedBody = ""
+    web_pResponseFormat = Value
+    web_pConvertedBody = ""
 End Property
 
 Public Property Get CustomRequestFormat() As String
-    CustomRequestFormat = pCustomRequestFormat
+    CustomRequestFormat = web_pCustomRequestFormat
 End Property
 Public Property Let CustomRequestFormat(Value As String)
-    pCustomRequestFormat = Value
-    pConvertedBody = ""
+    web_pCustomRequestFormat = Value
+    web_pConvertedBody = ""
     
     If Value <> "" Then
-        pRequestFormat = WebFormat.Custom
+        web_pRequestFormat = WebFormat.Custom
     End If
 End Property
 
 Public Property Get CustomResponseFormat() As String
-    CustomResponseFormat = pCustomResponseFormat
+    CustomResponseFormat = web_pCustomResponseFormat
 End Property
 Public Property Let CustomResponseFormat(Value As String)
-    pCustomResponseFormat = Value
-    pConvertedBody = ""
+    web_pCustomResponseFormat = Value
+    web_pConvertedBody = ""
     
     If Value <> "" Then
         ResponseFormat = WebFormat.Custom
@@ -95,61 +97,58 @@ Public Property Let CustomResponseFormat(Value As String)
 End Property
 
 Public Property Get ContentType() As String
-    If pContentType <> "" Then
-        ContentType = pContentType
+    If web_pContentType <> "" Then
+        ContentType = web_pContentType
     Else
         ContentType = WebHelpers.FormatToMediaType(Me.RequestFormat, Me.CustomRequestFormat)
     End If
 End Property
 Public Property Let ContentType(Value As String)
-    pContentType = Value
+    web_pContentType = Value
 End Property
 
 Public Property Get Accept() As String
-    If pAccept <> "" Then
-        Accept = pAccept
+    If web_pAccept <> "" Then
+        Accept = web_pAccept
     Else
         Accept = WebHelpers.FormatToMediaType(Me.ResponseFormat, Me.CustomResponseFormat)
     End If
 End Property
 Public Property Let Accept(Value As String)
-    pAccept = Value
+    web_pAccept = Value
 End Property
 
 Public Property Get ContentLength() As Long
-    If pContentLength >= 0 Then
-        ContentLength = pContentLength
+    If web_pContentLength >= 0 Then
+        ContentLength = web_pContentLength
     Else
         ContentLength = Len(Me.Body)
     End If
 End Property
 Public Property Let ContentLength(Value As Long)
-    pContentLength = Value
+    web_pContentLength = Value
 End Property
 
 Public Property Get Body() As Variant
-    If Not IsEmpty(pBody) Then
-        If VarType(pBody) = vbString Then
-            Body = pBody
-        ElseIf pConvertedBody = "" Then
-            Body = WebHelpers.ConvertToFormat(pBody, Me.RequestFormat, Me.CustomRequestFormat)
-            pConvertedBody = Body
+    If Not IsEmpty(web_pBody) Then
+        If VarType(web_pBody) = vbString Then
+            Body = web_pBody
+        ElseIf web_pConvertedBody = "" Then
+            ' Convert body and cache
+            Body = WebHelpers.ConvertToFormat(web_pBody, Me.RequestFormat, Me.CustomRequestFormat)
+            web_pConvertedBody = Body
         Else
-            Body = pConvertedBody
+            Body = web_pConvertedBody
         End If
     End If
 End Property
 Public Property Let Body(Value As Variant)
-    ' Clear existing converted body
-    pConvertedBody = ""
-    
-    pBody = Value
+    web_pConvertedBody = ""
+    web_pBody = Value
 End Property
 Public Property Set Body(Value As Variant)
-    ' Clear existing converted body
-    pConvertedBody = ""
-    
-    Set pBody = Value
+    web_pConvertedBody = ""
+    Set web_pBody = Value
 End Property
 
 Public Property Get FormattedResource() As String
@@ -158,7 +157,7 @@ Public Property Get FormattedResource() As String
     ' Replace url segments
     Dim web_Segment As Variant
     For Each web_Segment In Me.UrlSegments.Keys
-        FormattedResource = Replace(FormattedResource, "{" & web_Segment & "}", Me.UrlSegments(web_Segment))
+        FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", Me.UrlSegments(web_Segment))
     Next web_Segment
     
     ' Add querystring
@@ -174,8 +173,8 @@ Public Property Get FormattedResource() As String
 End Property
 
 Public Property Get Id() As String
-    If pId = "" Then: pId = WebHelpers.CreateNonce
-    Id = pId
+    If web_pId = "" Then: web_pId = WebHelpers.CreateNonce
+    Id = web_pId
 End Property
 
 ' ============================================= '
@@ -229,16 +228,19 @@ End Sub
 ' @param {Variant} Value
 ' --------------------------------------------- '
 Public Sub AddBodyParameter(Key As String, Value As Variant)
-    If IsEmpty(pBody) Then
-        Set pBody = New Dictionary
-    ElseIf Not TypeOf pBody Is Dictionary Then
-        Err.Raise vbObjectError + 1, "WebRequest", "The existing body is not a Dictionary. Adding body parameters can only be used with Dictionaries"
+    If VBA.IsEmpty(web_pBody) Then
+        Set web_pBody = New Dictionary
+    ElseIf Not TypeOf web_pBody Is Dictionary Then
+        WebHelpers.LogError "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)", _
+            "WebRequest.AddBodyParameter", 11020 + vbObjectError
+        Err.Raise 11020 + vbObjectError, "WebRequest.AddBodyParameter", _
+            "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)"
     End If
     
     If VBA.IsObject(Value) Then
-        Set pBody(Key) = Value
+        Set web_pBody(Key) = Value
     Else
-        pBody(Key) = Value
+        web_pBody(Key) = Value
     End If
 End Sub
 
@@ -250,7 +252,7 @@ Public Sub Prepare()
     Me.AddHeader "User-Agent", WebUserAgent
     Me.AddHeader "Content-Type", Me.ContentType
     Me.AddHeader "Accept", Me.Accept
-    Me.AddHeader "Content-Length", CStr(Me.ContentLength)
+    Me.AddHeader "Content-Length", VBA.CStr(Me.ContentLength)
 End Sub
 
 ''
@@ -275,10 +277,10 @@ Public Function Clone() As WebRequest
     Set Clone.UrlSegments = WebHelpers.CloneDictionary(Me.UrlSegments)
     Set Clone.Cookies = WebHelpers.CloneCollection(Me.Cookies)
     
-    If VBA.IsObject(pBody) Then
-        Set Clone.Body = pBody
+    If VBA.IsObject(web_pBody) Then
+        Set Clone.Body = web_pBody
     Else
-        Clone.Body = pBody
+        Clone.Body = web_pBody
     End If
 End Function
 

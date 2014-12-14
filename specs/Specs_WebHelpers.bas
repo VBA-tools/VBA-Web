@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_WebHelpers"
 ''
 ' Specs_WebHelpers
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for WebHelpers
 '
@@ -23,6 +23,7 @@ Public Function Specs() As SpecSuite
     ' 6. Timing
     ' 7. Mac
     ' 8. Cryptography
+    ' Errors
     ' --------------------------------------------- '
     
     Dim JSONString As String
@@ -150,20 +151,23 @@ Public Function Specs() As SpecSuite
         .Expect(Encoded).ToEqual "a=1&b=3.14&c=Howdy!&d+%26+e=A+%2B+B"
     End With
    
-#If Mac Then
-#Else
     ' ParseXml
     ' --------------------------------------------- '
-    With Specs.It("should parse XML")
+    With Specs.It("[Windows-only] should parse XML")
+#If Win32 Or Win64 Then
         Set Parsed = WebHelpers.ParseXML("<Point><X>1.23</X><Y>4.56</Y></Point>")
         
         .Expect(Parsed.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
         .Expect(Parsed.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
+#Else
+        .Expect(True).ToEqual True
+#End If
     End With
     
     ' ConvertToXml
     ' --------------------------------------------- '
-    With Specs.It("should convert to XML")
+    With Specs.It("[Windows-only] should convert to XML")
+#If Win32 Or Win64 Then
         XMLString = "<Point><X>1.23</X><Y>4.56</Y></Point>"
         Set Obj = CreateObject("MSXML2.DOMDocument")
         Obj.Async = False
@@ -171,8 +175,10 @@ Public Function Specs() As SpecSuite
 
         Encoded = WebHelpers.ConvertToXML(Obj)
         .Expect(Encoded).ToEqual XMLString
-    End With
+#Else
+        .Expect(True).ToEqual True
 #End If
+    End With
     
     ' ParseByFormat
     ' --------------------------------------------- '
@@ -436,6 +442,11 @@ Public Function Specs() As SpecSuite
         .Expect(Len(WebHelpers.CreateNonce)).ToEqual 32
         .Expect(Len(WebHelpers.CreateNonce(20))).ToEqual 20
     End With
+    
+    ' ============================================= '
+    ' Errors
+    ' ============================================= '
+    On Error Resume Next
     
     InlineRunner.RunSuite Specs
 End Function

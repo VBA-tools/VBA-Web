@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_WebResponse"
 ''
 ' Specs_WebResponse
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for WebResponse
 '
@@ -23,7 +23,7 @@ Public Function Specs() As SpecSuite
     Dim Cookies As Collection
     
     Client.BaseUrl = HttpbinBaseUrl
-    Client.TimeoutMS = 5000
+    Client.TimeoutMs = 5000
     
     ' --------------------------------------------- '
     ' Properties
@@ -221,6 +221,11 @@ Public Function Specs() As SpecSuite
         .Expect(Cookies.Count).ToEqual 4
         .Expect(WebHelpers.FindInKeyValues(Cookies, "unsigned-cookie")).ToEqual "simple-cookie"
     End With
+    
+    ' ============================================= '
+    ' Errors
+    ' ============================================= '
+    On Error Resume Next
     
     InlineRunner.RunSuite Specs
 End Function

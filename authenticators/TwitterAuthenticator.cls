@@ -9,12 +9,12 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
 ' Twitter Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for application-only authentication in Twitter's V1.1 REST API
 '
 ' - https://dev.twitter.com/docs/auth/application-only-auth
-' - https://github.com/timhall/VBA-Web/wiki/Implementing-your-own-IWebAuthenticator
+' - https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IWebAuthenticator
 '
 ' @implements: IWebAuthenticator v3.*
 ' @author tim.hall.engr@gmail.com

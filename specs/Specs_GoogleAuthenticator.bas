@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_GoogleAuthenticator"
 ''
 ' Specs_GoogleAuthenticator
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for GoogleAuthenticator
 '

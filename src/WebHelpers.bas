@@ -1,11 +1,17 @@
 Attribute VB_Name = "WebHelpers"
 ''
 ' WebHelpers v4.0.0-beta.5
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Common helpers VBA-Web
 '
-' @dependencies: Microsoft Scripting Runtime
+' Errors:
+' 11000 - Error during parsing
+' 11001 - Error during conversion
+' 11002 - No matching converter has been registered
+' 11003 - Error while getting url parts
+' 11099 - (Temp) XML format is not currently supported on Mac
+'
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -24,6 +30,7 @@ Attribute VB_Name = "WebHelpers"
 ' 9. Converters
 ' --------------------------------------------- '
 
+' === VBA-UTC Headers
 #If Mac Then
 
 Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" (ByVal utc_command As String, ByVal utc_mode As String) As Long
@@ -70,7 +77,9 @@ Private Type utc_TIME_ZONE_INFORMATION
 End Type
 
 #End If
+' ===
 
+' === VBA-JSON Headers
 #If Mac Then
 #ElseIf Win64 Then
 Private Declare PtrSafe Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
@@ -79,6 +88,7 @@ Private Declare PtrSafe Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory"
 Private Declare Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (json_MemoryDestination As Any, json_MemorySource As Any, ByVal json_ByteLength As Long)
 #End If
+' ===
 
 #If Mac Then
 Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal Command As String, ByVal mode As String) As Long
@@ -87,7 +97,7 @@ Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal outStr 
 Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal File As Long) As Long
 #End If
 
-Public Const WebUserAgent As String = "Excel Client v4.0.0-beta.5 (https://github.com/timhall/VBA-Web)"
+Public Const WebUserAgent As String = "VBA-Web v4.0.0-beta.5 (https://github.com/VBA-tools/VBA-Web)"
 
 ' @internal
 Public Type web_ShellResult
@@ -164,12 +174,16 @@ End Sub
 ' @param {String} [From]
 ' @param {Long} [ErrNumber]
 ' --------------------------------------------- '
-Public Sub LogError(Message As String, Optional From As String = "", Optional ErrNumber As Long = -1)
+Public Sub LogError(Message As String, Optional From As String = "", Optional ErrNumber As Long = 0)
     If From = "" Then
         From = "VBA-Web"
     End If
-    If ErrNumber >= 0 Then
-        From = From & ": " & ErrNumber & ", "
+    If ErrNumber <> 0 Then
+        If ErrNumber < 0 Then
+            From = From & ": " & ErrNumber & " (" & VBA.LCase$(VBA.Hex$(ErrNumber)) & "), "
+        Else
+            From = From & ": " & ErrNumber & ", "
+        End If
     Else
         From = From & ": "
     End If
@@ -185,7 +199,7 @@ End Sub
 Public Sub LogRequest(Client As WebClient, Request As WebRequest)
     If EnableLogging Then
         Debug.Print "--> Request - " & Format(Now, "Long Time")
-        Debug.Print MethodToName(Request.Method) & " " & Client.GetFullRequestUrl(Request)
+        Debug.Print MethodToName(Request.Method) & " " & Client.GetFullUrl(Request)
         
         Dim web_KeyValue As Dictionary
         For Each web_KeyValue In Request.Headers
@@ -237,7 +251,7 @@ End Sub
 ' @return {String}
 ' --------------------------------------------- '
 Public Function Obfuscate(Secure As String, Optional Character As String = "*") As String
-    Obfuscate = String(Len(Secure), Character)
+    Obfuscate = VBA.String$(VBA.Len(Secure), Character)
 End Function
 
 ' ============================================= '
@@ -250,7 +264,7 @@ End Function
 ' @param {String} JSON
 ' @return {Object}
 ' --------------------------------------------- '
-' ParseJSON - Implemented in VBA-JSONConverter embedded below
+' ParseJSON - Implemented in VBA-JSON embedded below
 
 ''
 ' Convert object to JSON string
@@ -258,11 +272,10 @@ End Function
 ' @param {Variant} Obj
 ' @return {String}
 ' --------------------------------------------- '
-' ConvertToJSON - Implemented in VBA-JSONConverter embedded below
+' ConvertToJSON - Implemented in VBA-JSON embedded below
 
 ''
 ' Parse url-encoded string to Dictionary
-' TODO: Handle arrays and collections
 '
 ' @param {String} UrlEncoded
 ' @return {Dictionary} Parsed
@@ -271,24 +284,20 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
     Dim web_Items As Variant
     Dim web_i As Integer
     Dim web_Parts As Variant
-    Dim web_Parsed As New Dictionary
     Dim web_Key As String
     Dim web_Value As Variant
+    Dim web_Parsed As New Dictionary
     
-    web_Items = Split(Encoded, "&")
+    web_Items = VBA.Split(Encoded, "&")
     For web_i = LBound(web_Items) To UBound(web_Items)
-        web_Parts = Split(web_Items(web_i), "=")
+        web_Parts = VBA.Split(web_Items(web_i), "=")
         
         If UBound(web_Parts) - LBound(web_Parts) >= 1 Then
             ' TODO: Handle numbers, arrays, and object better here
-            web_Key = UrlDecode(CStr(web_Parts(LBound(web_Parts))))
-            web_Value = UrlDecode(CStr(web_Parts(LBound(web_Parts) + 1)))
+            web_Key = UrlDecode(VBA.CStr(web_Parts(LBound(web_Parts))))
+            web_Value = UrlDecode(VBA.CStr(web_Parts(LBound(web_Parts) + 1)))
             
-            If web_Parsed.Exists(web_Key) Then
-                web_Parsed(web_Key) = web_Value
-            Else
-                web_Parsed.Add web_Key, web_Value
-            End If
+            web_Parsed(web_Key) = web_Value
         End If
     Next web_i
     
@@ -296,7 +305,7 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
 End Function
 
 ''
-' Convert dictionary/collection of key-value to url encoded string
+' Convert Dictionary/Collection of key-value to url encoded string
 '
 ' @param {Variant} Obj
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
@@ -305,17 +314,17 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
     Dim web_Encoded As String
 
     If TypeOf Obj Is Collection Then
-        Dim KeyValue As Dictionary
-        For Each KeyValue In Obj
-            If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & GetUrlEncodedKeyValue(KeyValue("Key"), KeyValue("Value"))
-        Next KeyValue
+        Dim web_KeyValue As Dictionary
+        For Each web_KeyValue In Obj
+            If VBA.Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_KeyValue("Key"), web_KeyValue("Value"))
+        Next web_KeyValue
     Else
-        Dim Key As Variant
-        For Each Key In Obj.Keys()
+        Dim web_Key As Variant
+        For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & GetUrlEncodedKeyValue(Key, Obj(Key))
-        Next Key
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
+        Next web_Key
     End If
     
     ConvertToUrlEncoded = web_Encoded
@@ -329,8 +338,8 @@ End Function
 ' --------------------------------------------- '
 Public Function ParseXML(Encoded As String) As Object
 #If Mac Then
-    LogError "ParseXML is not supported on Mac", "WebHelpers.ParseXML"
-    Err.Raise vbObjectError + 1, "WebHelpers.ParseXML", "ParseXML is not supported on Mac"
+    LogError "XML format is not currently supported on Mac", "WebHelpers.ParseXML", 11050 + vbObjectError
+    Err.Raise 11099, "WebHelpers.ParseXML", "XML format is not currently supported on Mac"
 #Else
     Set ParseXML = CreateObject("MSXML2.DOMDocument")
     ParseXML.Async = False
@@ -346,8 +355,13 @@ End Function
 ' --------------------------------------------- '
 
 Public Function ConvertToXML(Obj As Variant) As String
+#If Mac Then
+    LogError "XML format is not currently supported on Mac", "WebHelpers.ConvertToXML", 11050 + vbObjectError
+    Err.Raise 11099 + vbObjectError, "WebHelpers.ConvertToXML", "XML format is not currently supported on Mac"
+#Else
     On Error Resume Next
     ConvertToXML = Trim(Replace(Obj.Xml, vbCrLf, ""))
+#End If
 End Function
 
 ''
@@ -355,10 +369,14 @@ End Function
 '
 ' @param {String} Value
 ' @param {WebFormat} Format
-' @return {Object}
+' @param {String} [CustomFormat] Name of custom formatter to use
+' @param {Variant} [Bytes] Raw response bytes to use with formatter (if specified)
+' @return {Object|Dictionary|Collection}
 ' --------------------------------------------- '
 Public Function ParseByFormat(Value As String, Format As WebFormat, _
     Optional CustomFormat As String = "", Optional Bytes As Variant) As Object
+    
+    On Error GoTo web_ErrorHandling
     
     ' Don't attempt to parse blank values
     If Value = "" And CustomFormat = "" Then
@@ -384,9 +402,9 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
             Set web_Instance = web_Converter("Instance")
             
             If web_Converter("ParseType") = "Binary" Then
-                Set ParseByFormat = CallByName(web_Instance, web_Callback, vbMethod, Bytes)
+                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Bytes)
             Else
-                Set ParseByFormat = CallByName(web_Instance, web_Callback, vbMethod, Value)
+                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Value)
             End If
         Else
             If web_Converter("ParseType") = "Binary" Then
@@ -396,16 +414,29 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
             End If
         End If
     End Select
+    Exit Function
+    
+web_ErrorHandling:
+    
+    Dim web_ErrorDescription As String
+    web_ErrorDescription = "An error occurred during parsing" & vbNewLine & _
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
+        
+    LogError web_ErrorDescription, "WebHelpers.ParseByFormat", 11000 + vbObjectError
+    Err.Raise 11000, "WebHelpers.ParseByFormat", web_ErrorDescription
 End Function
 
 ''
 ' Convert object to given format
 '
-' @param {Variant} Obj
+' @param {Variant|Dictionary|Collection} Obj
 ' @param {WebFormat} Format
+' @param {String} [CustomFormat] Name of custom formatter to use
 ' @return {String}
 ' --------------------------------------------- '
 Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As String
+    On Error GoTo web_ErrorHandling
+
     Select Case Format
     Case WebFormat.Json
         ConvertToFormat = ConvertToJson(Obj)
@@ -423,14 +454,26 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         If web_Converter.Exists("web_Instance") Then
             Dim web_Instance As Object
             Set web_Instance = web_Converter("web_Instance")
-            ConvertToFormat = CallByName(web_Instance, web_Callback, vbMethod, Obj)
+            ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Obj)
         Else
             ConvertToFormat = Application.Run(web_Callback, Obj)
         End If
     Case Else
-        ' Plain text
-        ConvertToFormat = Obj
+        If VBA.VarType(Obj) = vbString Then
+            ' Plain text
+            ConvertToFormat = Obj
+        End If
     End Select
+    Exit Function
+    
+web_ErrorHandling:
+
+    Dim web_ErrorDescription As String
+    web_ErrorDescription = "An error occurred during conversion" & vbNewLine & _
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
+        
+    LogError web_ErrorDescription, "WebHelpers.ConvertToFormat", 11001 + vbObjectError
+    Err.Raise 11001, "WebHelpers.ConvertToFormat", web_ErrorDescription
 End Function
 
 ''
@@ -446,8 +489,8 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
     Dim web_UrlVal As String
     Dim web_StringLen As Long
     
-    web_UrlVal = CStr(Text)
-    web_StringLen = Len(web_UrlVal)
+    web_UrlVal = VBA.CStr(Text)
+    web_StringLen = VBA.Len(web_UrlVal)
     
     If web_StringLen > 0 Then
         Dim web_Result() As String
@@ -467,27 +510,27 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
         ' Loop through string characters
         For web_i = 1 To web_StringLen
             ' Get character and ascii code
-            web_Char = Mid$(web_UrlVal, web_i, 1)
-            web_CharCode = Asc(web_Char)
+            web_Char = VBA.Mid$(web_UrlVal, web_i, 1)
+            web_CharCode = VBA.Asc(web_Char)
             
             Select Case web_CharCode
                 Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
                     ' Reserved characters
-                    web_Result(web_i) = "%" & Hex(web_CharCode)
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                 Case 32, 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
                     ' Unsafe characters
                     If EncodeUnsafe Then
                         If web_CharCode = 32 Then
                             web_Result(web_i) = web_Space
                         Else
-                            web_Result(web_i) = "%" & Hex(web_CharCode)
+                            web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                         End If
                     End If
                 Case Else
                     web_Result(web_i) = web_Char
             End Select
         Next web_i
-        UrlEncode = Join(web_Result, "")
+        UrlEncode = VBA.Join$(web_Result, "")
     End If
 End Function
 
@@ -499,7 +542,7 @@ End Function
 ' --------------------------------------------- '
 Public Function UrlDecode(Encoded As String) As String
     Dim web_StringLen As Long
-    web_StringLen = Len(Encoded)
+    web_StringLen = VBA.Len(Encoded)
     
     If web_StringLen > 0 Then
         Dim web_i As Long
@@ -507,13 +550,13 @@ Public Function UrlDecode(Encoded As String) As String
         Dim web_Temp As String
         
         For web_i = 1 To web_StringLen
-            web_Temp = Mid$(Encoded, web_i, 1)
+            web_Temp = VBA.Mid$(Encoded, web_i, 1)
             
             If web_Temp = "+" Then
                 web_Temp = " "
             ElseIf web_Temp = "%" And web_StringLen >= web_i + 2 Then
-                web_Temp = Mid$(Encoded, web_i + 1, 2)
-                web_Temp = Chr(CInt("&H" & web_Temp))
+                web_Temp = VBA.Mid$(Encoded, web_i + 1, 2)
+                web_Temp = VBA.Chr(VBA.CInt("&H" & web_Temp))
                 
                 web_i = web_i + 2
             End If
@@ -532,7 +575,7 @@ End Function
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 Public Function Base64Encode(Text As String) As String
-    Base64Encode = Replace(StringToBase64(Text), vbLf, "")
+    Base64Encode = VBA.Replace$(web_StringToBase64(Text), vbLf, "")
 End Function
 
 ''
@@ -555,7 +598,7 @@ Public Sub RegisterConverter( _
     web_Converter("ParseCallback") = ParseCallback
     web_Converter("ParseType") = ParseType
     
-    If Not IsEmpty(Instance) And Not Instance Is Nothing Then
+    If Not Instance Is Nothing Then
         Set web_Converter("Instance") = Instance
     End If
     
@@ -568,7 +611,10 @@ Private Function GetConverter(CustomFormat As String) As Dictionary
     If web_pConverters.Exists(CustomFormat) Then
         Set GetConverter = web_pConverters(CustomFormat)
     Else
-        Err.Raise 11001, "WebHelpers", "No matching converter was registered for custom format: " & CustomFormat
+        LogError "No matching converter has been registered for custom format: " & CustomFormat, _
+            "WebHelpers.GetConverter", 11002
+        Err.Raise 11002, "WebHelpers.GetConverter", _
+            "No matching converter has been registered for custom format: " & CustomFormat
     End If
 End Function
 
@@ -625,10 +671,20 @@ End Function
 Public Function UrlParts(Url As String) As Dictionary
     Dim web_Parts As New Dictionary
     
+    On Error GoTo web_ErrorHandling
+    
 #If Mac Then
     ' Run perl script to parse url
-    ' Add Protocol if missing
+    
     Dim web_AddedProtocol As Boolean
+    Dim web_Command As String
+    Dim web_Results As Variant
+    Dim web_ResultPart As Variant
+    Dim web_EqualsIndex As Long
+    Dim web_Key As String
+    Dim web_Value As String
+    
+    ' Add Protocol if missing
     If InStr(1, Url, "://") <= 0 Then
         web_AddedProtocol = True
         If InStr(1, Url, "//") = 1 Then
@@ -638,12 +694,6 @@ Public Function UrlParts(Url As String) As Dictionary
         End If
     End If
     
-    Dim web_Command As String
-    Dim web_Results As Variant
-    Dim web_ResultPart As Variant
-    Dim web_EqualsIndex As Long
-    Dim web_Key As String
-    Dim web_Value As String
     web_Command = "perl -e '{use URI::URL;" & vbNewLine & _
         "$url = new URI::URL """ & Url & """;" & vbNewLine & _
         "print ""Protocol="" . $url->scheme;" & vbNewLine & _
@@ -711,6 +761,16 @@ Public Function UrlParts(Url As String) As Dictionary
     End If
 
     Set UrlParts = web_Parts
+    Exit Function
+    
+web_ErrorHandling:
+    
+    Dim web_ErrorDescription As String
+    web_ErrorDescription = "An error occurred while getting url parts" & vbNewLine & _
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
+    
+    LogError web_ErrorDescription, "WebHelpers.UrlParts", 11003
+    Err.Raise 11003, "WebHelpers.UrlParts", web_ErrorDescription
 End Function
 
 ' ============================================= '
@@ -737,10 +797,11 @@ End Function
 ' @return {Dictionary}
 ' --------------------------------------------- '
 Public Function CloneDictionary(Dict As Dictionary) As Dictionary
-    Set CloneDictionary = New Dictionary
     Dim web_Key As Variant
+    
+    Set CloneDictionary = New Dictionary
     For Each web_Key In Dict.Keys
-        CloneDictionary.Add CStr(web_Key), Dict(web_Key)
+        CloneDictionary.Add VBA.CStr(web_Key), Dict(web_Key)
     Next web_Key
 End Function
 
@@ -753,8 +814,9 @@ End Function
 ' @return {Collection}
 ' --------------------------------------------- '
 Public Function CloneCollection(Coll As Collection) As Collection
-    Set CloneCollection = New Collection
     Dim web_Item As Variant
+    
+    Set CloneCollection = New Collection
     For Each web_Item In Coll
         CloneCollection.Add web_Item
     Next web_Item
@@ -769,6 +831,7 @@ End Function
 ' --------------------------------------------- '
 Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
     Dim web_KeyValue As New Dictionary
+    
     web_KeyValue("Key") = Key
     web_KeyValue("Value") = Value
     Set CreateKeyValue = web_KeyValue
@@ -783,6 +846,7 @@ End Function
 ' --------------------------------------------- '
 Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Variant
     Dim web_KeyValue As Dictionary
+    
     For Each web_KeyValue In KeyValues
         If web_KeyValue("Key") = Key Then
             FindInKeyValues = web_KeyValue("Value")
@@ -840,6 +904,7 @@ End Function
 ''
 ' Add request to watched requests
 '
+' @internal
 ' @param {RestAsyncWrapper} AsyncWrapper
 ' --------------------------------------------- '
 Public Sub AddAsyncRequest(AsyncWrapper As Object)
@@ -852,6 +917,7 @@ End Sub
 ''
 ' Get watched request
 '
+' @internal
 ' @param {String} RequestId
 ' @return {RestAsyncWrapper}
 ' --------------------------------------------- '
@@ -864,6 +930,7 @@ End Function
 ''
 ' Remove request from watched requests
 '
+' @internal
 ' @param {String} RequestId
 ' --------------------------------------------- '
 Public Sub RemoveAsyncRequest(RequestId As String)
@@ -879,14 +946,15 @@ End Sub
 ''
 ' Start timeout timer for request
 '
+' @internal
 ' @param {WebRequest} Request
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
-Public Sub StartTimeoutTimer(AsyncWrapper As Object, TimeoutMS As Long)
+Public Sub StartTimeoutTimer(AsyncWrapper As Object, TimeoutMs As Long)
     ' Round ms to seconds with minimum of 1 second if ms > 0
     Dim web_TimeoutS As Long
-    web_TimeoutS = Round(TimeoutMS / 1000, 0)
-    If TimeoutMS > 0 And web_TimeoutS = 0 Then
+    web_TimeoutS = Round(TimeoutMs / 1000, 0)
+    If TimeoutMs > 0 And web_TimeoutS = 0 Then
         web_TimeoutS = 1
     End If
 
@@ -897,6 +965,7 @@ End Sub
 ''
 ' Stop timeout timer for request
 '
+' @internal
 ' @param {WebRequest} Request
 ' --------------------------------------------- '
 Public Sub StopTimeoutTimer(AsyncWrapper As Object)
@@ -908,6 +977,7 @@ End Sub
 ''
 ' Handle timeout timers expiring
 '
+' @internal
 ' @param {String} RequestId
 ' --------------------------------------------- '
 Public Sub TimeoutTimerExpired(RequestId As String)
@@ -930,6 +1000,7 @@ End Sub
 ''
 ' Execute the given command
 '
+' @internal
 ' @param {String} Command
 ' @return {WebShellResult}
 ' --------------------------------------------- '
@@ -938,11 +1009,12 @@ Public Function ExecuteInShell(Command As String) As web_ShellResult
     Dim web_Chunk As String
     Dim web_Read As Long
     
-    On Error GoTo ErrorHandling
+    On Error GoTo web_Cleanup
+    
     web_File = web_popen(Command, "r")
     
     If web_File = 0 Then
-        ' TODO
+        ' TODO Investigate why this could happen and what should be done if it happens
         Exit Function
     End If
     
@@ -955,7 +1027,8 @@ Public Function ExecuteInShell(Command As String) As web_ShellResult
         End If
     Loop
 
-ErrorHandling:
+web_Cleanup:
+
     ExecuteInShell.web_ExitCode = web_pclose(web_File)
 End Function
 
@@ -963,18 +1036,19 @@ End Function
 ' Prepare text for shell
 ' Wrap in "..." and replace ! with '!' (reserved in bash)
 '
+' @internal
 ' @param {String} Text
 ' @return {String}
 ' --------------------------------------------- '
 Public Function PrepareTextForShell(ByVal Text As String) As String
-    Text = Replace("""" & Text & """", "!", """'!'""")
+    Text = VBA.Replace("""" & Text & """", "!", """'!'""")
     
-    ' Guard for ! at beginning or end ("'!'"..." or "..."'!'")
-    If Left(Text, 3) = """""'" Then
-        Text = Right(Text, Len(Text) - 2)
+    ' Guard for ! at beginning or end ("'!'"..." or "..."'!'" -> '!'"..." or "..."'!')
+    If VBA.Left$(Text, 3) = """""'" Then
+        Text = VBA.Right$(Text, VBA.Len(Text) - 2)
     End If
-    If Right(Text, 3) = "'""""" Then
-        Text = Left(Text, Len(Text) - 2)
+    If VBA.Right$(Text, 3) = "'""""" Then
+        Text = VBA.Left$(Text, VBA.Len(Text) - 2)
     End If
     
     PrepareTextForShell = Text
@@ -999,7 +1073,7 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA1 = Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
+    HMACSHA1 = VBA.Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_Bytes() As Byte
@@ -1007,11 +1081,11 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
     web_Crypto.Key = StringToANSIBytes(Secret)
     web_Bytes = web_Crypto.ComputeHash_2(StringToANSIBytes(Text))
-    HMACSHA1 = ANSIBytesToHex(web_Bytes)
+    HMACSHA1 = web_ANSIBytesToHex(web_Bytes)
 #End If
 
     If Format = "Base64" Then
-        HMACSHA1 = HexToBase64(HMACSHA1)
+        HMACSHA1 = web_HexToBase64(HMACSHA1)
     End If
 End Function
 
@@ -1027,7 +1101,7 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA256 = Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
+    HMACSHA256 = VBA.Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_Bytes() As Byte
@@ -1035,11 +1109,11 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
     web_Crypto.Key = StringToANSIBytes(Secret)
     web_Bytes = web_Crypto.ComputeHash_2(StringToANSIBytes(Text))
-    HMACSHA256 = ANSIBytesToHex(web_Bytes)
+    HMACSHA256 = web_ANSIBytesToHex(web_Bytes)
 #End If
 
     If Format = "Base64" Then
-        HMACSHA256 = HexToBase64(HMACSHA256)
+        HMACSHA256 = web_HexToBase64(HMACSHA256)
     End If
 End Function
 
@@ -1055,18 +1129,18 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
-    MD5 = Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
+    MD5 = VBA.Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_Bytes() As Byte
     
     Set web_Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
     web_Bytes = web_Crypto.ComputeHash_2(StringToANSIBytes(Text))
-    MD5 = ANSIBytesToHex(web_Bytes)
+    MD5 = web_ANSIBytesToHex(web_Bytes)
 #End If
 
     If Format = "Base64" Then
-        MD5 = HexToBase64(MD5)
+        MD5 = web_HexToBase64(MD5)
     End If
 End Function
 
@@ -1086,8 +1160,8 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     web_Result = ""
     
     For web_Count = 1 To NonceLength
-        web_Random = Int(((Len(web_Str) - 1) * Rnd) + 1)
-        web_Result = web_Result + Mid$(web_Str, web_Random, 1)
+        web_Random = VBA.Int(((VBA.Len(web_Str) - 1) * VBA.Rnd) + 1)
+        web_Result = web_Result + VBA.Mid$(web_Str, web_Random, 1)
     Next
     CreateNonce = web_Result
 End Function
@@ -1098,10 +1172,11 @@ Public Function StringToANSIBytes(Text As String) As Byte()
     Dim web_ByteIndex As Long
     Dim web_ANSIIndex As Long
     
-    If Len(Text) > 0 Then
+    If VBA.Len(Text) > 0 Then
         ' Take first byte from unicode bytes
+        ' VBA.Int is used for floor instead of round
         web_Bytes = Text
-        ReDim web_ANSIBytes(Int(UBound(web_Bytes) / 2))
+        ReDim web_ANSIBytes(VBA.Int(UBound(web_Bytes) / 2))
         
         web_ANSIIndex = LBound(web_Bytes)
         For web_ByteIndex = LBound(web_Bytes) To UBound(web_Bytes) Step 2
@@ -1113,55 +1188,55 @@ Public Function StringToANSIBytes(Text As String) As Byte()
     StringToANSIBytes = web_ANSIBytes
 End Function
 
-Private Function ANSIBytesToString(Bytes() As Byte) As String
+Private Function web_ANSIBytesToString(web_Bytes() As Byte) As String
     Dim web_i As Long
-    For web_i = LBound(Bytes) To UBound(Bytes)
-        ANSIBytesToString = ANSIBytesToString & VBA.Chr$(Bytes(web_i))
+    For web_i = LBound(web_Bytes) To UBound(web_Bytes)
+        web_ANSIBytesToString = web_ANSIBytesToString & VBA.Chr$(web_Bytes(web_i))
     Next web_i
 End Function
 
-Private Function HexToANSIBytes(Hex As String) As Byte()
+Private Function web_HexToANSIBytes(web_Hex As String) As Byte()
     Dim web_Bytes() As Byte
     Dim web_HexIndex As Integer
     Dim web_ByteIndex As Integer
 
     ' Remove linefeeds
-    Hex = VBA.Replace(Hex, vbLf, "")
+    web_Hex = VBA.Replace(web_Hex, vbLf, "")
 
-    ReDim web_Bytes(VBA.Len(Hex) / 2 - 1)
+    ReDim web_Bytes(VBA.Len(web_Hex) / 2 - 1)
     web_ByteIndex = 0
-    For web_HexIndex = 1 To Len(Hex) Step 2
-        web_Bytes(web_ByteIndex) = VBA.CLng("&H" & VBA.Mid$(Hex, web_HexIndex, 2))
+    For web_HexIndex = 1 To Len(web_Hex) Step 2
+        web_Bytes(web_ByteIndex) = VBA.CLng("&H" & VBA.Mid$(web_Hex, web_HexIndex, 2))
         web_ByteIndex = web_ByteIndex + 1
     Next web_HexIndex
     
-    HexToANSIBytes = web_Bytes
+    web_HexToANSIBytes = web_Bytes
 End Function
 
-Private Function ANSIBytesToHex(Bytes() As Byte)
+Private Function web_ANSIBytesToHex(web_Bytes() As Byte)
     Dim web_i As Long
-    For web_i = LBound(Bytes) To UBound(Bytes)
-        ANSIBytesToHex = ANSIBytesToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(Bytes(web_i)), 2))
+    For web_i = LBound(web_Bytes) To UBound(web_Bytes)
+        web_ANSIBytesToHex = web_ANSIBytesToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(web_Bytes(web_i)), 2))
     Next web_i
 End Function
 
-Private Function StringToHex(ByVal Text As String) As String
+Private Function web_StringToHex(web_Text As String) As String
     ' Convert single-byte character to hex
     ' (May need better international handling in the future)
     Dim web_Bytes() As Byte
     Dim web_i As Integer
     
-    web_Bytes = StringToANSIBytes(Text)
+    web_Bytes = StringToANSIBytes(web_Text)
     For web_i = LBound(web_Bytes) To UBound(web_Bytes)
-        StringToHex = StringToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(web_Bytes(web_i)), 2))
+        web_StringToHex = web_StringToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(web_Bytes(web_i)), 2))
     Next web_i
 End Function
 
-Private Function StringToBase64(ByVal Text As String) As String
+Private Function web_StringToBase64(ByVal web_Text As String) As String
 #If Mac Then
     Dim web_Command As String
-    web_Command = "printf " & PrepareTextForShell(Text) & " | openssl base64"
-    StringToBase64 = ExecuteInShell(web_Command).web_Output
+    web_Command = "printf " & PrepareTextForShell(web_Text) & " | openssl base64"
+    web_StringToBase64 = ExecuteInShell(web_Command).web_Output
 #Else
     ' Use XML to convert to Base64
     ' but XML requires bytes, so convert to bytes first
@@ -1171,16 +1246,16 @@ Private Function StringToBase64(ByVal Text As String) As String
     
     Set web_Node = web_XmlObj.createElement("b64")
     web_Node.DataType = "bin.base64"
-    web_Node.nodeTypedValue = StringToANSIBytes(Text)
-    StringToBase64 = web_Node.Text
+    web_Node.nodeTypedValue = StringToANSIBytes(web_Text)
+    web_StringToBase64 = web_Node.Text
 
     Set web_Node = Nothing
     Set web_XmlObj = Nothing
 #End If
 End Function
 
-Private Function HexToBase64(ByVal Hex As String) As String
-    HexToBase64 = StringToBase64(ANSIBytesToString(HexToANSIBytes(Hex)))
+Private Function web_HexToBase64(ByVal web_Hex As String) As String
+    web_HexToBase64 = web_StringToBase64(web_ANSIBytesToString(web_HexToANSIBytes(web_Hex)))
 End Function
 
 ' ============================================= '
@@ -1194,9 +1269,9 @@ End Function
 ' @param {Variant} Value
 ' @return {String}
 ' --------------------------------------------- '
-Private Function GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
+Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
     ' Convert boolean to lowercase
-    If VarType(Value) = VBA.vbBoolean Then
+    If VBA.VarType(Value) = VBA.vbBoolean Then
         If Value Then
             Value = "true"
         Else
@@ -1205,7 +1280,7 @@ Private Function GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As Stri
     End If
     
     ' Url encode key and value (using + for spaces)
-    GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
+    web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
 End Function
 
 ''
@@ -1219,7 +1294,7 @@ End Function
 ' 10002 - ISO 8601 date conversion error
 '
 ' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 '
@@ -1845,7 +1920,7 @@ End Function
 ' 10014 - ISO 8601 conversion error
 '
 ' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
 ' (Declarations moved to top)
@@ -1861,7 +1936,7 @@ End Function
 ' @return {Date} Local date
 ' -------------------------------------- '
 Public Function ParseUtc(utc_UtcDate As Date) As Date
-    On Error GoTo ErrorHandling
+    On Error GoTo web_ErrorHandling
     
 #If Mac Then
     ParseUtc = utc_ConvertDate(utc_UtcDate)
@@ -1877,7 +1952,7 @@ Public Function ParseUtc(utc_UtcDate As Date) As Date
 
     Exit Function
 
-ErrorHandling:
+web_ErrorHandling:
     Err.Raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.Description
 End Function
 
@@ -1888,7 +1963,7 @@ End Function
 ' @return {Date} UTC date
 ' -------------------------------------- '
 Public Function ConvertToUtc(utc_LocalDate As Date) As Date
-    On Error GoTo ErrorHandling
+    On Error GoTo web_ErrorHandling
     
 #If Mac Then
     ConvertToUtc = utc_ConvertDate(utc_LocalDate, utc_ConvertToUtc:=True)
@@ -1904,7 +1979,7 @@ Public Function ConvertToUtc(utc_LocalDate As Date) As Date
     
     Exit Function
     
-ErrorHandling:
+web_ErrorHandling:
     Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
@@ -1915,7 +1990,7 @@ End Function
 ' @return {Date} Local date
 ' -------------------------------------- '
 Public Function ParseIso(utc_IsoString As String) As Date
-    On Error GoTo ErrorHandling
+    On Error GoTo web_ErrorHandling
     
     Dim utc_Parts() As String
     Dim utc_DateParts() As String
@@ -1978,7 +2053,7 @@ Public Function ParseIso(utc_IsoString As String) As Date
     
     Exit Function
     
-ErrorHandling:
+web_ErrorHandling:
     Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
 End Function
 
@@ -1989,13 +2064,13 @@ End Function
 ' @return {Date} ISO 8601 string
 ' -------------------------------------- '
 Public Function ConvertToIso(utc_LocalDate As Date) As String
-    On Error GoTo ErrorHandling
+    On Error GoTo web_ErrorHandling
     
     ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
     
     Exit Function
     
-ErrorHandling:
+web_ErrorHandling:
     Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
@@ -2039,7 +2114,7 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
     Dim utc_Chunk As String
     Dim utc_Read As Long
     
-    On Error GoTo ErrorHandling
+    On Error GoTo web_ErrorHandling
     utc_file = utc_popen(utc_ShellCommand, "r")
     
     If utc_file = 0 Then: Exit Function
@@ -2053,7 +2128,7 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
         End If
     Loop
 
-ErrorHandling:
+web_ErrorHandling:
     utc_ExecuteInShell.utc_ExitCode = utc_pclose(File)
 End Function
 #Else

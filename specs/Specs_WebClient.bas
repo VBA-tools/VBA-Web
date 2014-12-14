@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_WebClient"
 ''
 ' Specs_WebClient
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for WebClient
 '
@@ -23,9 +23,8 @@ Public Function Specs() As SpecSuite
     Dim Options As Dictionary
     Dim XMLBody As Object
     
-    On Error Resume Next
     Client.BaseUrl = HttpbinBaseUrl
-    Client.TimeoutMS = 5000
+    Client.TimeoutMs = 5000
     
     ' --------------------------------------------- '
     ' Properties
@@ -88,20 +87,10 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("authenticated")).ToEqual True
     End With
     
-    ' "Execute should handle timeout errors"
-    ' -> Handled last due to side effects from timeout
-
-#If Mac Then
-    ' TODO
-    'With Specs.It("Execute should handle cURL errors")
-    '    ' -> Similar errors are thrown with WinHttp, match those error numbers
-    'End With
-#End If
-    
     ' GetJSON
     ' --------------------------------------------- '
     With Specs.It("should GetJSON")
-        Set Response = Client.GetJSON("/get")
+        Set Response = Client.GetJson("/get")
 
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data).ToNotBeUndefined
@@ -119,7 +108,7 @@ Public Function Specs() As SpecSuite
         Options.Add "UrlSegments", New Dictionary
         Options("UrlSegments").Add "resource", "get"
         
-        Set Response = Client.GetJSON("/{resource}", Options)
+        Set Response = Client.GetJson("/{resource}", Options)
     
         .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
         .Expect(Response.Data).ToNotBeUndefined
@@ -135,7 +124,7 @@ Public Function Specs() As SpecSuite
         Body.Add "a", 3.14
         Body.Add "b", "Howdy!"
         Body.Add "c", True
-        Set Response = Client.PostJSON("/post", Body)
+        Set Response = Client.PostJson("/post", Body)
 
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data).ToNotBeUndefined
@@ -143,7 +132,7 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("json")("b")).ToEqual "Howdy!"
         .Expect(Response.Data("json")("c")).ToEqual True
 
-        Set Response = Client.PostJSON("/post", Array(3, 2, 1))
+        Set Response = Client.PostJson("/post", Array(3, 2, 1))
 
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data).ToNotBeUndefined
@@ -168,7 +157,7 @@ Public Function Specs() As SpecSuite
         Options.Add "UrlSegments", New Dictionary
         Options("UrlSegments").Add "resource", "post"
         
-        Set Response = Client.PostJSON("/{resource}", Body, Options)
+        Set Response = Client.PostJson("/{resource}", Body, Options)
     
         .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
         .Expect(Response.Data).ToNotBeUndefined
@@ -184,42 +173,24 @@ Public Function Specs() As SpecSuite
     
     ' GetFullUrl
     ' --------------------------------------------- '
-    With Specs.It("should GetFullUrl of path")
-        Client.BaseUrl = "https://facebook.com/api"
-        .Expect(Client.GetFullUrl("status")).ToEqual "https://facebook.com/api/status"
-        
-        Client.BaseUrl = "https://facebook.com/api"
-        .Expect(Client.GetFullUrl("/status")).ToEqual "https://facebook.com/api/status"
-        
-        Client.BaseUrl = "https://facebook.com/api/"
-        .Expect(Client.GetFullUrl("status")).ToEqual "https://facebook.com/api/status"
-        
-        Client.BaseUrl = "https://facebook.com/api/"
-        .Expect(Client.GetFullUrl("/status")).ToEqual "https://facebook.com/api/status"
-        
-        Client.BaseUrl = HttpbinBaseUrl
-    End With
-    
-    ' GetFullRequestUrl
-    ' --------------------------------------------- '
-    With Specs.It("should GetFullRequestUrl of Request")
+    With Specs.It("should GetFullUrl of Request")
         Set Request = New WebRequest
         
         Client.BaseUrl = "https://facebook.com/api"
         Request.Resource = "status"
-        .Expect(Client.GetFullRequestUrl(Request)).ToEqual "https://facebook.com/api/status"
+        .Expect(Client.GetFullUrl(Request)).ToEqual "https://facebook.com/api/status"
         
         Client.BaseUrl = "https://facebook.com/api"
         Request.Resource = "/status"
-        .Expect(Client.GetFullRequestUrl(Request)).ToEqual "https://facebook.com/api/status"
+        .Expect(Client.GetFullUrl(Request)).ToEqual "https://facebook.com/api/status"
         
         Client.BaseUrl = "https://facebook.com/api/"
         Request.Resource = "status"
-        .Expect(Client.GetFullRequestUrl(Request)).ToEqual "https://facebook.com/api/status"
+        .Expect(Client.GetFullUrl(Request)).ToEqual "https://facebook.com/api/status"
         
         Client.BaseUrl = "https://facebook.com/api/"
         Request.Resource = "/status"
-        .Expect(Client.GetFullRequestUrl(Request)).ToEqual "https://facebook.com/api/status"
+        .Expect(Client.GetFullUrl(Request)).ToEqual "https://facebook.com/api/status"
         
         Client.BaseUrl = HttpbinBaseUrl
     End With
@@ -229,8 +200,8 @@ Public Function Specs() As SpecSuite
     ' PrepareCURL
     ' @internal
     ' --------------------------------------------- '
+    With Specs.It("[Mac-only] should PrepareCURLRequest")
 #If Mac Then
-    With Specs.It("should PrepareCURLRequest")
         Set Client = New WebClient
         Client.BaseUrl = "http://localhost:3000/"
         Client.Username = "user"
@@ -252,7 +223,7 @@ Public Function Specs() As SpecSuite
         
         Dim cURL As String
         
-        cURL = Client.PrepareCURLRequest(Request)
+        cURL = Client.PrepareCurlRequest(Request)
         .Expect(cURL).ToMatch "http://localhost:3000/text?type=message"
         .Expect(cURL).ToMatch "-X POST"
         .Expect(cURL).ToMatch "--user user:password"
@@ -264,11 +235,14 @@ Public Function Specs() As SpecSuite
         .Expect(cURL).ToMatch "-H 'custom: Howdy!'"
         .Expect(cURL).ToMatch "--cookie 'test-cookie=howdy;'"
         .Expect(cURL).ToMatch "-d 'Howdy!'"
-    End With
+#Else
+        ' (Mac-only)
+        .Expect(True).ToEqual True
 #End If
+    End With
     
-    With Specs.It("Execute should handle timeout errors")
-        Client.TimeoutMS = 500
+    With Specs.It("should handle timeout errors")
+        Client.TimeoutMs = 500
         
         Set Request = New WebRequest
         Request.Resource = "delay/{seconds}"
@@ -277,6 +251,48 @@ Public Function Specs() As SpecSuite
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 408
         .Expect(Response.StatusDescription).ToEqual "Request Timeout"
+    End With
+    
+    ' ============================================= '
+    ' Errors
+    ' ============================================= '
+    On Error Resume Next
+    
+    With Specs.It("should throw 11011 on general error")
+        ' Unsupported protocol
+        Client.BaseUrl = "unknown://"
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Err.Number).ToEqual 11011 + vbObjectError
+        Err.Clear
+        
+        ' Invalid URL
+        Client.BaseUrl = "http:////////google.com///////////"
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Err.Number).ToEqual 11011 + vbObjectError
+        Err.Clear
+    End With
+    
+    With Specs.It("[Mac-only] should match common cURL errors to WinHttpRequest errors")
+#If Mac Then
+        ' Unsupported protocol
+        Client.BaseUrl = "unknown://"
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Err.Description).ToMatch "80072ee6"
+        Err.Clear
+        
+        ' Invalid URL
+        Client.BaseUrl = "http:////////google.com///////////"
+        Set Response = Client.Execute(Request)
+        
+        .Expect(Err.Description).ToMatch "80072ee5"
+        Err.Clear
+#Else
+        ' (Mac-only)
+        .Expect(True).ToEqual True
+#End If
     End With
     
     Set Client = Nothing

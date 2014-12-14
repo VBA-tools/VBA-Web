@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_IWebAuthenticator"
 ''
 ' Specs_IWebAuthenticator
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for IWebAuthenticator
 '

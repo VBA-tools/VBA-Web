@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
 ' Digest Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for Digest Authentication
 ' http://en.wikipedia.org/wiki/Digest_access_authentication
@@ -95,7 +95,7 @@ End Sub
 
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     If Response.StatusCode = 401 And Not Me.IsAuthenticated Then
-        WebHelpers.LogDebug "Extract Authenticate and retry 401 request " & Client.GetFullRequestUrl(Request), "Digest.AfterExecute"
+        WebHelpers.LogDebug "Extract Authenticate and retry 401 request " & Client.GetFullUrl(Request), "Digest.AfterExecute"
         ExtractAuthenticateInformation Response
         
         Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -105,7 +105,7 @@ End Sub
 
 Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
     Dim Uri As String
-    Uri = WebHelpers.UrlParts(Client.GetFullRequestUrl(Request))("Path")
+    Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
 
     CreateHeader = "Digest" & _
         " username=""" & Me.Username & """" & _
@@ -125,7 +125,7 @@ Public Function CalculateResponse(Client As WebClient, Request As WebRequest) As
     Dim HA1 As String
     Dim HA2 As String
     Dim Uri As String
-    Uri = WebHelpers.UrlParts(Client.GetFullRequestUrl(Request))("Path")
+    Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
     
     HA1 = CalculateHA1
     HA2 = CalculateHA2(WebHelpers.MethodToName(Request.Method), Uri)

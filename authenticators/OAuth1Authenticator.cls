@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' OAuth1 Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/VBA-Web
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Utilize OAuth1 authentication
 '
@@ -204,7 +204,7 @@ Public Function RequestUrl(Client As WebClient, Request As WebRequest) As String
 ' Unless specified, URL scheme and authority MUST be lowercase and include the port number; http default port 80 and https default port 443 MUST be excluded.
 
     Dim Parts As Dictionary
-    Set Parts = WebHelpers.UrlParts(Client.GetFullRequestUrl(Request))
+    Set Parts = WebHelpers.UrlParts(Client.GetFullUrl(Request))
     
     ' Url scheme and authority MUST be lowercase
     RequestUrl = LCase(Parts("Protocol") & "://" & Parts("Host"))
@@ -224,7 +224,7 @@ Public Function RequestParameters(Client As WebClient, Request As WebRequest) As
 ' TODO Sort parameters by key then value
     
     Dim Parts As Dictionary
-    Set Parts = WebHelpers.UrlParts(Client.GetFullRequestUrl(Request))
+    Set Parts = WebHelpers.UrlParts(Client.GetFullUrl(Request))
     
     ' Remove leading ?
     RequestParameters = Parts("Querystring")

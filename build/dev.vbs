@@ -111,7 +111,8 @@ Sub Development
     "Options:" & vbNewLine & _
     "- import [src/auth/async/specs/auth-specs/async-specs] to [blank/specs/async-specs/example/all/path...]" & vbNewLine & _
     "- export [src/auth/async/specs/auth-specs/async-specs] from [blank/specs/async-specs/example/all/path...]" & vbNewLine & _
-    "- release"
+    "- release" & vbNewLine & _
+    "- dev [specs/async-specs/example]"
 
   Dim Action
   Action = Input(vbNewLine & "What would you like to do? <")
@@ -136,6 +137,22 @@ Sub Development
     Execute "import", "auth-specs", "specs"
     Execute "import", "async", "async-specs"
     Execute "import", "async-specs", "async-specs"
+  ElseIf UCase(Parts(0)) = "DEV" Then
+    If UCase(Parts(1)) = "SPECS" Then
+      Execute "export", "src", "specs"
+      Execute "export", "specs", "specs"
+      Execute "export", "auth", "specs"
+      Execute "export", "auth-specs", "specs"
+    ElseIf UCase(Parts(1)) = "ASYNC-SPECS" Then
+      Execute "export", "src", "async-specs"
+      Execute "export", "async", "async-specs"
+      Execute "export", "async-specs", "async-specs"
+    ElseIf UCase(Parts(1)) = "EXAMPLE" Then
+      Execute "export", "src", "example"
+      Execute "export", "auth", "example"
+    Else
+      PrintLn vbNewLine & "Error: Unrecognized target for dev action"  
+    End If
   ElseIf UBound(Parts) < 3 Or (UCase(Parts(0)) <> "IMPORT" And UCase(Parts(0)) <> "EXPORT") Then
     PrintLn vbNewLine & "Error: Unrecognized action"
   Else
