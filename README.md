@@ -1,16 +1,16 @@
-Excel-REST: Excel REST Client
-=============================
+VBA-Web: Web Client for VBA (Windows and Mac)
+=============================================
 
-Excel-REST makes working with complex webservices and APIs easy with Excel. It includes support for authentication, making async requests, automatically converting and parsing JSON, working with cookies and headers, and much more.
+VBA-Web makes working with complex webservices and APIs easy with VBA. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
 
 Getting started
 ---------------
 
-- Download the [latest release (v4.0.0-rc.1)](https://github.com/timhall/Excel-REST/releases)
-- To install/upgrade in an existing file, run `install.bat` to walk through installation. 
-- To start from scratch, `Excel-REST - Blank.xlsm` has everything setup and ready to go.
+- Download the [latest release (v4.0.0-rc.1)](https://github.com/VBA-tools/VBA-Web/releases)
+- To install/upgrade in an existing file, use `VBA-Web - Install.xlsm`
+- To start from scratch on Excel, `VBA-Web - Blank.xlsm` has everything setup and ready to go
 
-For more details see the [Wiki](https://github.com/timhall/Excel-REST/wiki)
+For more details see the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki)
 
 Examples
 -------
@@ -111,34 +111,11 @@ The above example demonstrates some of the powerful feature available with `Rest
 - Cookies
 - Headers
 
-For more details, see the `RestRequest` page in with [Wiki](https://github.com/timhall/Excel-REST/wiki/RestRequest)
-
-### Async Example
-
-The above examples execute synchronously, but Excel-REST can run them asynchronously with ease so that your program can keep working and handle the response later once the request completes.
-
-```VB.net
-Function GetDirections(Origin As String, Destination As String) As String
-    Dim MapsClient As New RestClient
-    Dim DirectionsRequest As New RestRequest
-    ' ... Create client and request using RestRequest Example
-    
-    ' Execute the request asynchronously
-    ' Pass in name of Public Sub as callback to be called asynchronously once request completes
-    MapsClient.ExecuteAsync DirectionsRequest, "ProcessDirections"
-    
-    ' Keep working, handling response later
-End Function
-
-Public Sub ProcessDirections(Response As RestResponse)
-    ' (Called asynchronously!)
-    ' ... Same as previous examples
-End Sub
-```
+For more details, see the `RestRequest` page in with [Wiki](https://github.com/VBA-tools/VBA-Web/wiki/RestRequest)
 
 ### Authentication Example
 
-The following example demonstrates using an authenticator with Excel-REST to query Twitter. The `TwitterAuthenticator` (found in the `authenticators/` [folder](https://github.com/timhall/Excel-REST/tree/master/authenticators)) uses Twitter's OAuth 1.0a authentication and details of how it was created can be found in the [Wiki](https://github.com/timhall/Excel-REST/wiki/Implementing-your-own-IAuthenticator).
+The following example demonstrates using an authenticator with Excel-REST to query Twitter. The `TwitterAuthenticator` (found in the `authenticators/` [folder](https://github.com/VBA-tools/VBA-Web/tree/master/authenticators)) uses Twitter's OAuth 1.0a authentication and details of how it was created can be found in the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IAuthenticator).
 
 ```VB.net
 Function QueryTwitter(query As String) As RestResponse
@@ -168,9 +145,16 @@ Function QueryTwitter(query As String) As RestResponse
 End Function
 ```
 
-For more details, check out the [Wiki](https://github.com/timhall/Excel-REST/wiki) and [Examples](https://github.com/timhall/Excel-REST/tree/master/examples)
+For more details, check out the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki) and [Examples](https://github.com/VBA-tools/VBA-Web/tree/master/examples)
 
 ### Release Notes
+
+#### 4.0.0
+
+- Mac support!
+- Custom converters
+- Switch to `WinHttpRequest`
+- Switch to [VBA-tools/VBA-JSON](https://github.com/VBA-tools/VBA-JSON)
 
 #### 3.1.0
 
