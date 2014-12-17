@@ -8,13 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebRequest v4.0.0-beta.5
+' WebRequest v4.0.0-rc.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Create a request for use with a WebClient
 '
 ' Errors:
-' 11020 / 80042b0c - Cannot add body parameter to non-Dictionary
+' 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)

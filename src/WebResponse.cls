@@ -8,15 +8,15 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebResponse v4.0.0-beta.5
+' WebResponse v4.0.0-rc.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Wrapper for http/cURL responses
 '
 ' Errors:
-' 11030 / 80042b16 - Error creating from http
-' 11031 / 80042b17 - Error creating from cURL
-' 11032 / 80042b18 - Error extracting headers
+' 11030 / 80042b16 / -2147210474 - Error creating from http
+' 11031 / 80042b17 / -2147210473 - Error creating from cURL
+' 11032 / 80042b18 / -2147210472 - Error extracting headers
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)

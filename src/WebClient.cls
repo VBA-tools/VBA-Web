@@ -8,16 +8,16 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebClient v4.0.0-beta.5
+' WebClient v4.0.0-rc.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Interact with REST web services from Excel
 '
 ' Errors:
-' 11010 / 80042b02 - cURL error in Execute
-' 11011 / 80042b03 - Error in Execute
-' 11012 / 80042b04 - Error preparing http request
-' 11013 / 80042b05 - Error preparing cURL request
+' 11010 / 80042b02 / -2147210494 - cURL error in Execute
+' 11011 / 80042b03 / -2147210493 - Error in Execute
+' 11012 / 80042b04 / -2147210492 - Error preparing http request
+' 11013 / 80042b05 / -2147210491 - Error preparing cURL request
 '
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
