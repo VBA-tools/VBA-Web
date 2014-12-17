@@ -1,7 +1,7 @@
-VBA-Web: Web Client for VBA (Windows and Mac)
-=============================================
+VBA-Web
+=======
 
-VBA-Web makes working with complex webservices and APIs easy with VBA. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
+VBA-Web makes working with complex webservices and APIs easy with VBA on Windows and Mac. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
 
 Getting started
 ---------------
