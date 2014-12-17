@@ -1,8 +1,8 @@
 ''
 ' Dev
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/timhall/VBA-Web
 '
-' Development steps for Excel-REST
+' Development steps for VBA-Web
 ' Run: cscript dev.vbs
 '
 ' @author: tim.hall.engr@gmail.com
@@ -33,23 +33,24 @@ SpecsFolder = ".\specs\"
 Dim BlankWorkbookPath
 Dim ExampleWorkbookPath
 Dim SpecsWorkbookPath
-BlankWorkbookPath = "./Excel-REST - Blank.xlsm"
-ExampleWorkbookPath = "./examples/Excel-REST - Example.xlsm"
-SpecsWorkbookPath = "./specs/Excel-REST - Specs.xlsm"
+Dim AsyncSpecsWorkbookPath
+BlankWorkbookPath = "./VBA-Web - Blank.xlsm"
+ExampleWorkbookPath = "./examples/VBA-Web - Example.xlsm"
+SpecsWorkbookPath = "./specs/VBA-Web - Specs.xlsm"
+AsyncSpecsWorkbookPath = "./specs/VBA-Web - Specs - Async.xlsm"
 
 Dim Src
 Src = Array( _
-  "RestHelpers.bas", _
-  "IAuthenticator.cls", _
-  "RestClient.cls", _
-  "RestRequest.cls", _
-  "RestResponse.cls" _
+  "WebHelpers.bas", _
+  "IWebAuthenticator.cls", _
+  "WebClient.cls", _
+  "WebRequest.cls", _
+  "WebResponse.cls" _
 )
 
 Dim Authenticators
 Authenticators = Array( _
   "EmptyAuthenticator.cls", _
-  "HttpBasicAuthenticator.cls", _
   "OAuth1Authenticator.cls", _
   "OAuth2Authenticator.cls", _
   "GoogleAuthenticator.cls", _
@@ -58,25 +59,39 @@ Authenticators = Array( _
   "DigestAuthenticator.cls" _
 )
 
+Dim Async
+Async = Array( _
+  "WebAsyncWrapper.cls" _
+)
+
 Dim Specs
 Specs = Array( _
-  "RestClientSpecs.bas", _
-  "RestClientAsyncSpecs.bas", _
-  "RestRequestSpecs.bas", _
-  "RestHelpersSpecs.bas", _
-  "AuthenticatorSpecs.bas", _
-  "DigestAuthenticatorSpecs.bas", _
-  "GoogleAuthenticatorSpecs.bas", _
-  "OAuth1AuthenticatorSpecs.bas", _
+  "Specs_WebClient.bas", _
+  "Specs_WebRequest.bas", _
+  "Specs_WebResponse.bas", _
+  "Specs_WebHelpers.bas" _
+)
+
+Dim AuthSpecs
+AuthSpecs = Array( _
+  "Specs_IWebAuthenticator.bas", _
+  "Specs_DigestAuthenticator.bas", _
+  "Specs_GoogleAuthenticator.bas", _
+  "Specs_OAuth1Authenticator.bas", _
   "SpecAuthenticator.cls" _
+)
+
+Dim AsyncSpecs
+AsyncSpecs = Array( _
+  "Specs_WebAsyncWrapper.bas" _
 )
 
 Main
 
 Sub Main()
-  ' On Error Resume Next
+  On Error Resume Next
 
-  PrintLn "Excel-REST v3.1.4 Development"
+  PrintLn "VBA-Web v4.0.0-rc.1 Development"
   
   ExcelWasOpen = OpenExcel(Excel)
 
@@ -94,9 +109,10 @@ End Sub
 Sub Development
   PrintLn vbNewLine & _
     "Options:" & vbNewLine & _
-    "- import [src/auth/specs/all] to [blank/specs/example/all/path...]" & vbNewLine & _
-    "- export [src/auth/specs/all] from [blank/specs/example/all/path...]" & vbNewLine & _
-    "- release"
+    "- import [src/auth/async/specs/auth-specs/async-specs] to [blank/specs/async-specs/example/all/path...]" & vbNewLine & _
+    "- export [src/auth/async/specs/auth-specs/async-specs] from [blank/specs/async-specs/example/all/path...]" & vbNewLine & _
+    "- release" & vbNewLine & _
+    "- dev [specs/async-specs/example]"
 
   Dim Action
   Action = Input(vbNewLine & "What would you like to do? <")
@@ -118,6 +134,25 @@ Sub Development
     Execute "import", "auth", "example"
     Execute "import", "auth", "specs"
     Execute "import", "specs", "specs"
+    Execute "import", "auth-specs", "specs"
+    Execute "import", "async", "async-specs"
+    Execute "import", "async-specs", "async-specs"
+  ElseIf UCase(Parts(0)) = "DEV" Then
+    If UCase(Parts(1)) = "SPECS" Then
+      Execute "export", "src", "specs"
+      Execute "export", "specs", "specs"
+      Execute "export", "auth", "specs"
+      Execute "export", "auth-specs", "specs"
+    ElseIf UCase(Parts(1)) = "ASYNC-SPECS" Then
+      Execute "export", "src", "async-specs"
+      Execute "export", "async", "async-specs"
+      Execute "export", "async-specs", "async-specs"
+    ElseIf UCase(Parts(1)) = "EXAMPLE" Then
+      Execute "export", "src", "example"
+      Execute "export", "auth", "example"
+    Else
+      PrintLn vbNewLine & "Error: Unrecognized target for dev action"  
+    End If
   ElseIf UBound(Parts) < 3 Or (UCase(Parts(0)) <> "IMPORT" And UCase(Parts(0)) <> "EXPORT") Then
     PrintLn vbNewLine & "Error: Unrecognized action"
   Else
@@ -140,9 +175,8 @@ Sub Development
     End If
   End If
 
-  If UCase(Left(Input(vbNewLine & "Would you like to do anything else? [yes/no] <"), 1)) = "Y" Then
-    Development
-  End If
+  PrintLn ""
+  Development
 End Sub
 
 Sub Execute(Name, ModulesDescription, WorkbookDescription)
@@ -154,10 +188,12 @@ Sub Execute(Name, ModulesDescription, WorkbookDescription)
     Paths = Array(BlankWorkbookPath)
   Case "SPECS"
     Paths = Array(SpecsWorkbookPath)
+  Case "ASYNC-SPECS"
+    Paths = Array(AsyncSpecsWorkbookPath)
   Case "EXAMPLE"
     Paths = Array(ExampleWorkbookPath)
   Case "ALL"
-    Paths = Array(BlankWorkbookPath, SpecsWorkbookPath, ExampleWorkbookPath)
+    Paths = Array(BlankWorkbookPath, SpecsWorkbookPath, AsyncSpecsWorkbookPath, ExampleWorkbookPath)
   Case Else
     Paths = Array(WorkbookDescription)
   End Select
@@ -170,7 +206,7 @@ Sub Execute(Name, ModulesDescription, WorkbookDescription)
     If Not Workbook Is Nothing Then
       If Not VBAIsTrusted(Workbook) Then
         PrintLn vbNewLine & _
-          "ERROR: In order to install Excel-REST," & vbNewLine & _
+          "ERROR: In order to install VBA-Web," & vbNewLine & _
           "access to the VBA project object model needs to be trusted in Excel." & vbNewLine & vbNewLine & _
           "To enable:" & vbNewLine & _
           "Options > Trust Center > Trust Center Settings > Macro Settings > " & vbnewLine & _
@@ -194,7 +230,7 @@ End SUb
 Sub Import(ModulesDescription, Workbook)
   Dim Modules
   Dim Folder
-
+  
   Select Case UCase(ModulesDescription)
   Case "SRC"
     Modules = Src
@@ -202,14 +238,18 @@ Sub Import(ModulesDescription, Workbook)
   Case "AUTH"
     Modules = Authenticators
     Folder = AuthenticatorsFolder
+  Case "ASYNC"
+    Modules = Async
+    Folder = SrcFolder
   Case "SPECS"
     Modules = Specs
     Folder = SpecsFolder
-  Case "ALL"
-    Import "src", Workbook
-    Import "auth", Workbook
-    Import "specs", Workbook
-    Exit Sub
+  Case "AUTH-SPECS"
+    Modules = AuthSpecs
+    Folder = SpecsFolder
+  Case "ASYNC-SPECS"
+    Modules = AsyncSpecs
+    Folder = SpecsFolder
   Case Else
     PrintLn "ERROR: Unknown modules description, " & ModulesDescription
     Exit Sub
@@ -237,14 +277,18 @@ Sub Export(ModulesDescription, Workbook)
   Case "AUTH"
     Modules = Authenticators
     Folder = AuthenticatorsFolder
+  Case "ASYNC"
+    Modules = Async
+    Folder = SrcFolder
   Case "SPECS"
     Modules = Specs
     Folder = SpecsFolder
-  Case "ALL"
-    Export "src", Workbook
-    Export "auth", Workbook
-    Export "specs", Workbook
-    Exit Sub
+  Case "AUTH-SPECS"
+    Modules = AuthSpecs
+    Folder = SpecsFolder
+  Case "ASYNC-SPECS"
+    Modules = AsyncSpecs
+    Folder = SpecsFolder
   Case Else
     PrintLn "ERROR: Unknown modules description, " & ModulesDescription
     Exit Sub

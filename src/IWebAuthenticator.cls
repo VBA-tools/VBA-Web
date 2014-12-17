@@ -2,36 +2,25 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "EmptyAuthenticator"
+Attribute VB_Name = "IWebAuthenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 ''
-' Base for setting up authenticator v2.0.6
+' IWebAuthenticator v4.0.0-rc.1
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' @implements: IWebAuthenticator v3.*
-' @author:
-' @license:
+' Interface for creating authenticators for rest client
+'
+' @author: tim.hall.engr@gmail.com
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IWebAuthenticator
 Option Explicit
 
 ' ============================================= '
 ' Public Methods
-' ============================================= '
-
-''
-' Setup authenticator
-' --------------------------------------------- '
-
-Public Sub Setup()
-    ' Define any user-specific variables needed for authentication
-End Sub
-
-' ============================================= '
-' Private Methods
 ' ============================================= '
 
 ''
@@ -41,9 +30,8 @@ End Sub
 ' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    ' Add headers, cookies, etc to `Request` before it is executed
-    ' (Leave blank to pass Request through unmodified)
+Public Sub BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
+    ' Add headers, cookies, etc
 End Sub
 
 ''
@@ -54,6 +42,6 @@ End Sub
 ' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
+Public Sub AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' Handle 401 Unauthorized or other issues
 End Sub

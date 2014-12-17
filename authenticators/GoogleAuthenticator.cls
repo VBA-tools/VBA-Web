@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' Google Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Custom IAuthenticator for "installed application" authentication for Google APIs
+' Custom IWebAuthenticator for "installed application" authentication for Google APIs
 '
 ' Details:
 ' - https://developers.google.com/accounts/docs/OAuth2#installed
@@ -41,12 +41,12 @@ Attribute VB_Exposed = True
 ' ' Add authenticator to client
 ' Set Client.Authenticator = Auth
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 Private Const AuthorizationUrl As String = "https://accounts.google.com/o/oauth2/auth"
@@ -77,7 +77,7 @@ End Property
 
 Public Property Get LoginUrl() As String
     ' Use Request for Url helpers
-    Dim Request As New RestRequest
+    Dim Request As New WebRequest
     Request.Resource = AuthorizationUrl
     
     Request.AddQuerystringParam "redirect_uri", RedirectUri
@@ -92,7 +92,7 @@ Public Property Get LoginUrl() As String
         Dim UrlParts As Dictionary
         For Each Scope In Me.Scopes.Keys()
             If Me.Scopes(Scope) Then
-                Set UrlParts = RestHelpers.UrlParts(CStr(Scope))
+                Set UrlParts = WebHelpers.UrlParts(CStr(Scope))
                 If UrlParts("Protocol") = "" Then
                     Scope = "https://www.googleapis.com/auth/" & Scope
                 End If
@@ -113,11 +113,11 @@ Public Property Get LoginUrl() As String
 End Property
 
 Public Property Get Token() As String
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
     
     If pToken = "" And Me.APIKey = "" Then
-        Dim Client As New RestClient
-        Dim Response As RestResponse
+        Dim Client As New WebClient
+        Dim Response As WebResponse
         
         ' Request a new token
         Client.BaseUrl = "https://accounts.google.com/"
@@ -126,11 +126,11 @@ Public Property Get Token() As String
         ' Store token if successful, otherwise throw error
         If Response.StatusCode = Ok Then
             Dim Data As Object
-            Set Data = RestHelpers.ParseJSON(Response.Content)
+            Set Data = WebHelpers.ParseJson(Response.Content)
             pToken = Data("access_token")
-            RestHelpers.LogDebug "Received Token: " & pToken, "GoogleAuthenticator.Token"
+            WebHelpers.LogDebug "Received Token: " & pToken, "GoogleAuthenticator.Token"
         Else
-            RestHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "GoogleAuthenticator.Token"
+            WebHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "GoogleAuthenticator.Token"
             Err.Raise vbObjectError + Response.StatusCode, _
                 Description:="Failed to load Bearer Token: " & Response.StatusCode & " - " & Response.Content
         End If
@@ -139,7 +139,7 @@ Public Property Get Token() As String
     ' Return token
     Token = pToken
     
-CleanUp:
+Cleanup:
     
     If Not Client Is Nothing Then Set Client = Nothing
     If Not Response Is Nothing Then Set Response = Nothing
@@ -170,7 +170,7 @@ End Sub
 ' --------------------------------------------- '
 
 Public Sub Login(Optional APIKey As String = "")
-    On Error GoTo CleanUp
+    On Error GoTo Cleanup
     
     Dim IE As Object
     Dim Completed As Boolean
@@ -198,17 +198,17 @@ Public Sub Login(Optional APIKey As String = "")
             Completed = True
             If OAuthIsDenied(IE) Then
                 ' Login failed
-                RestHelpers.LogError "Login failed or was denied", "GoogleAuthenticator.Login"
+                WebHelpers.LogError "Login failed or was denied", "GoogleAuthenticator.Login"
                 Err.Raise vbObjectError + 1, "OAuthDialog", "Login failed or was denied"
             Else
                 Code = OAuthExtractCode(IE)
                 If Left(Code, 5) = "Error" Then
-                    RestHelpers.LogError "Login error: " & Code, "GoogleAuthenticator.Login"
+                    WebHelpers.LogError "Login error: " & Code, "GoogleAuthenticator.Login"
                     Err.Raise vbObjectError + 1, "OAuthDialog", Code
                 Else
                     ' Success!
                     Me.AuthorizationCode = Code
-                    RestHelpers.LogDebug "Login success: " & Code, "GoogleAuthenticator.Login"
+                    WebHelpers.LogDebug "Login success: " & Code, "GoogleAuthenticator.Login"
                     
                     ' Temporarily assign token to force request
                     Dim Token As String
@@ -218,13 +218,13 @@ Public Sub Login(Optional APIKey As String = "")
         End With
     End If
     
-CleanUp:
+Cleanup:
 
     If Not IE Is Nothing Then: IE.Quit
     Set IE = Nothing
     
     If Not Completed Then
-        RestHelpers.LogError "Login did not complete", "GoogleAuthenticator.Login"
+        WebHelpers.LogError "Login did not complete", "GoogleAuthenticator.Login"
         Err.Raise vbObjectError + 1, "OAuthDialog", "Login did not complete"
     ElseIf Err.Number <> 0 Then
         ' Rethrow error
@@ -303,58 +303,45 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.APIKey <> "" Then
         Request.AddQuerystringParam "key", Me.APIKey
-        RestHelpers.LogDebug "Login with key: " & RestHelpers.Obfuscate(Me.APIKey), "GoogleAuthenticator.BeforeExecute"
+        WebHelpers.LogDebug "Login with key: " & WebHelpers.Obfuscate(Me.APIKey), "GoogleAuthenticator.BeforeExecute"
     Else
         Request.AddHeader "Authorization", "Bearer " & Me.Token
-        RestHelpers.LogDebug "Login with token: " & RestHelpers.Obfuscate(Me.Token), "GoogleAuthenticator.BeforeExecute"
+        WebHelpers.LogDebug "Login with token: " & WebHelpers.Obfuscate(Me.Token), "GoogleAuthenticator.BeforeExecute"
     End If
 End Sub
 
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
 
 End Sub
 
-''
-' Hook for overriding standard http open (used for HTTP Basic)
-'
-' @param {MSXML2.IXMLHTTPRequest} http
-' @parma {RestClient} Client The client that is about to open request
-' @param {RestRequest} Request The request about to be opened
-' @param {String} BaseUrl
-' @param {Boolean} [useAsync=False]
-' --------------------------------------------- '
-
-Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Perform standard http open
-    Http.Open Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync
-End Sub
-
-Private Function TokenRequest() As RestRequest
-    Set TokenRequest = New RestRequest
+Private Function TokenRequest() As WebRequest
+    Set TokenRequest = New WebRequest
     TokenRequest.Resource = "o/oauth2/token"
-    TokenRequest.Method = AvailableMethods.httpPOST
-    TokenRequest.Format = AvailableFormats.formurlencoded
+    TokenRequest.Method = WebMethod.HttpPost
+    TokenRequest.Format = WebFormat.FormUrlEncoded
     
-    TokenRequest.AddParameter "code", Me.AuthorizationCode
-    TokenRequest.AddParameter "client_id", Me.ClientId
-    TokenRequest.AddParameter "client_secret", Me.ClientSecret
-    TokenRequest.AddParameter "redirect_uri", RedirectUri
-    TokenRequest.AddParameter "grant_type", "authorization_code"
+    Dim Body As New Dictionary
+    Body.Add "code", Me.AuthorizationCode
+    Body.Add "client_id", Me.ClientId
+    Body.Add "client_secret", Me.ClientSecret
+    Body.Add "redirect_uri", RedirectUri
+    Body.Add "grant_type", "authorization_code"
+    Set TokenRequest.Body = Body
 End Function
 
 Private Function OAuthIsComplete(IE As Object) As Boolean
@@ -365,14 +352,14 @@ End Function
 
 Private Function OAuthIsApproval(IE As Object) As Boolean
     Dim UrlParts As Dictionary
-    Set UrlParts = RestHelpers.UrlParts(IE.LocationURL)
+    Set UrlParts = WebHelpers.UrlParts(IE.LocationURL)
     
     OAuthIsApproval = UrlParts("Uri") = "/o/oauth2/approval"
 End Function
 
 Private Function OAuthIsDenied(IE As Object) As Boolean
     Dim UrlParts As Dictionary
-    Set UrlParts = RestHelpers.UrlParts(IE.LocationURL)
+    Set UrlParts = WebHelpers.UrlParts(IE.LocationURL)
     
     If OAuthIsApproval(IE) Then
         Dim Document As Object
@@ -380,7 +367,7 @@ Private Function OAuthIsDenied(IE As Object) As Boolean
         
         Dim Element As Object
         For Each Element In Document.Body.all
-            If Element.nodeName = "P" And Element.ID = "access_denied" Then
+            If Element.nodeName = "P" And Element.Id = "access_denied" Then
                 OAuthIsDenied = True
                 Exit Function
             End If
@@ -421,9 +408,9 @@ Private Function OAuthExtractError(IE As Object) As String
     
     Set Document = IE.Document
     For Each Element In Document.Body.all
-        If Element.ID = "errorCode" Then
+        If Element.Id = "errorCode" Then
             OAuthExtractError = Element.innerHTML
-        ElseIf Element.ID = "errorDescription" Then
+        ElseIf Element.Id = "errorDescription" Then
             OAuthExtractError = OAuthExtractError & ", " & Element.innerHTML
             Exit Function
         End If

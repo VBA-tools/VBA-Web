@@ -1,7 +1,0 @@
-{
-  "name": "Excel-REST-docs",
-  "version": "0.0.0",
-  "dependencies": {
-    "bootstrap": "~3.2.0"
-  }
-}

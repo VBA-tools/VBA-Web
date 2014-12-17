@@ -9,16 +9,16 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' OAuth1 Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Utilize OAuth1 authentication
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 ' Declarations
@@ -102,11 +102,11 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add authorization header to request
     Request.AddHeader "Authorization", CreateHeader(Client, Request)
 End Sub
@@ -114,31 +114,16 @@ End Sub
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
 
 End Sub
 
-''
-' Hook for overriding standard http open (used for HTTP Basic)
-'
-' @param {MSXML2.IXMLHTTPRequest} http
-' @parma {RestClient} Client The client that is about to open request
-' @param {RestRequest} Request The request about to be opened
-' @param {String} BaseUrl
-' @param {Boolean} [useAsync=False]
-' --------------------------------------------- '
-
-Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Perform standard http open
-    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-End Sub
-
-Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
+Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
     Dim Header As String
     Dim Nonce As String
     Dim Timestamp As String
@@ -150,7 +135,7 @@ Public Function CreateHeader(Client As RestClient, Request As RestRequest) As St
     If Me.Nonce <> "" Then
         Nonce = Me.Nonce
     Else
-        Nonce = RestHelpers.CreateNonce()
+        Nonce = WebHelpers.CreateNonce()
     End If
     If Me.Timestamp <> "" Then
         Timestamp = Me.Timestamp
@@ -174,17 +159,17 @@ Public Function CreateHeader(Client As RestClient, Request As RestRequest) As St
     ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
     Header = Header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34) & ", "
     Header = Header & "oauth_nonce=" & Chr(34) & Nonce & Chr(34) & ", "
-    Header = Header & "oauth_signature=" & Chr(34) & RestHelpers.UrlEncode(signature) & Chr(34) & ", "
+    Header = Header & "oauth_signature=" & Chr(34) & WebHelpers.UrlEncode(signature) & Chr(34) & ", "
     Header = Header & "oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34) & ", "
     Header = Header & "oauth_timestamp=" & Chr(34) & Timestamp & Chr(34) & ", "
     Header = Header & "oauth_token=" & Chr(34) & Me.Token & Chr(34) & ", "
     Header = Header & "oauth_version=" & Chr(34) & "1.0" & Chr(34)
     CreateHeader = Header
     
-    RestHelpers.LogDebug CreateHeader, "OAuth1Authenticator.CreateHeader"
+    WebHelpers.LogDebug CreateHeader, "OAuth1Authenticator.CreateHeader"
 End Function
 
-Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As RestClient, Request As RestRequest) As String
+Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As WebClient, Request As WebRequest) As String
     Dim base As String
     
     ' Check for parameters and add to base if present
@@ -201,10 +186,10 @@ Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As
     base = base & "&" & "oauth_token" & "=" & Me.Token
     base = base & "&" & "oauth_version=1.0"
     
-    CreateBaseString = Request.MethodName() & "&" & RestHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & RestHelpers.UrlEncode(base)
+    CreateBaseString = WebHelpers.MethodToName(Request.Method) & "&" & WebHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & WebHelpers.UrlEncode(base)
 End Function
 
-Public Function RequestUrl(Client As RestClient, Request As RestRequest) As String
+Public Function RequestUrl(Client As WebClient, Request As WebRequest) As String
 ' From OAuth 1.0 Docs
 ' http://oauth.net/core/1.0/#anchor14
 '
@@ -219,10 +204,10 @@ Public Function RequestUrl(Client As RestClient, Request As RestRequest) As Stri
 ' Unless specified, URL scheme and authority MUST be lowercase and include the port number; http default port 80 and https default port 443 MUST be excluded.
 
     Dim Parts As Dictionary
-    Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
+    Set Parts = WebHelpers.UrlParts(Client.GetFullUrl(Request))
     
     ' Url scheme and authority MUST be lowercase
-    RequestUrl = LCase(Parts("Protocol") & "//" & Parts("Hostname"))
+    RequestUrl = LCase(Parts("Protocol") & "://" & Parts("Host"))
     
     ' Include port (80 and 443 MUST be excluded)
     If Parts("Port") <> 80 And Parts("Port") <> 443 Then
@@ -230,19 +215,19 @@ Public Function RequestUrl(Client As RestClient, Request As RestRequest) As Stri
     End If
     
     ' Include path
-    RequestUrl = RequestUrl + Parts("Uri")
+    RequestUrl = RequestUrl + Parts("Path")
     
     ' MUST exclude query and fragment
 End Function
 
-Public Function RequestParameters(Client As RestClient, Request As RestRequest) As String
+Public Function RequestParameters(Client As WebClient, Request As WebRequest) As String
 ' TODO Sort parameters by key then value
     
     Dim Parts As Dictionary
-    Set Parts = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))
+    Set Parts = WebHelpers.UrlParts(Client.GetFullUrl(Request))
     
     ' Remove leading ?
-    RequestParameters = Replace(Parts("Querystring"), "?", "")
+    RequestParameters = Parts("Querystring")
     
     ' Replace + for spaces with %20
     RequestParameters = Replace(RequestParameters, "+", "%20")
@@ -253,7 +238,7 @@ Public Function CreateSigningKey() As String
 End Function
 
 Public Function CreateSignature(base As String, signingKey As String) As String
-    CreateSignature = RestHelpers.HMACSHA1(base, signingKey, "Base64")
+    CreateSignature = WebHelpers.HMACSHA1(base, signingKey, "Base64")
 End Function
 
 Public Function CreateTimestamp() As String

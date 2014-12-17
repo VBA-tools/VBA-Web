@@ -1,5 +1,0 @@
-(function(global, $) {
-
-  
-  
-})(this, jQuery);

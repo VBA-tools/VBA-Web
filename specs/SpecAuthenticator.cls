@@ -10,12 +10,12 @@ Attribute VB_Exposed = False
 ''
 ' Spec Authenticator
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author: Tim Hall
 ' @license: MIT
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 ' ============================================= '
@@ -37,51 +37,31 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' It should:
     ' Add parameter, header, cookie, content-type
-    Request.AddParameter "auth_parameter", "auth"
+    Request.AddBodyParameter "auth_parameter", "auth"
     Request.AddQuerystringParam "auth_query", "auth"
-    Request.AddHeader "custom-a", "auth"
-    Request.AddCookie "auth_cookie", "auth"
     Request.ContentType = "text/plain"
+    Request.AddHeader "X-Custom-A", "auth"
+    Request.AddCookie "auth_cookie", "auth"
 End Sub
 
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' It should:
     ' Update response
-    Dim Updated As New RestResponse
-    Updated.StatusCode = 200
-    RestHelpers.UpdateResponse Response, Updated
-End Sub
-
-''
-' Hook for overriding standard http open (used for HTTP Basic)
-'
-' @param {MSXML2.IXMLHTTPRequest} http
-' @parma {RestClient} Client The client that is about to open request
-' @param {RestRequest} Request The request about to be opened
-' @param {String} BaseUrl
-' @param {Boolean} [useAsync=False]
-' --------------------------------------------- '
-
-Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Use modified http open (if necessary)
-
-    ' Perform standard http open
-    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-    RestHelpers.LogDebug Request.MethodName() & Request.FullUrl(BaseUrl), "Authenticator.HttpOpen"
+    Response.StatusCode = 204
 End Sub
 

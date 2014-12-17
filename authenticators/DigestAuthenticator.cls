@@ -9,17 +9,17 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
 ' Digest Authenticator v2.0.6
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Custom IAuthenticator for Digest Authentication
+' Custom IWebAuthenticator for Digest Authentication
 ' http://en.wikipedia.org/wiki/Digest_access_authentication
 '
-' @implements: IAuthenticator v3.*
+' @implements: IWebAuthenticator v3.*
 ' @author: tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-Implements IAuthenticator
+Implements IWebAuthenticator
 Option Explicit
 
 Private Const qop As String = "auth"
@@ -38,7 +38,7 @@ Public Opaque As String
 
 Public Property Get ClientNonce() As String
     If pClientNonce = "" Then
-        pClientNonce = RestHelpers.CreateNonce
+        pClientNonce = WebHelpers.CreateNonce
     End If
     ClientNonce = pClientNonce
 End Property
@@ -72,11 +72,11 @@ End Sub
 ''
 ' Hook for taking action before a request is executed
 '
-' @param {RestClient} Client The client that is about to execute the request
-' @param {RestRequest} Request The request about to be executed
+' @param {WebClient} Client The client that is about to execute the request
+' @param {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_BeforeExecute(ByVal Client As RestClient, ByRef Request As RestRequest)
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add headers, cookies, etc to `Request` before it is executed
     ' (Leave blank to pass Request through unmodified)
     If Me.IsAuthenticated Then
@@ -88,39 +88,24 @@ End Sub
 ''
 ' Hook for taking action after request has been executed
 '
-' @param {RestClient} Client The client that executed request
-' @param {RestRequest} Request The request that was just executed
-' @param {RestResponse} Response to request
+' @param {WebClient} Client The client that executed request
+' @param {WebRequest} Request The request that was just executed
+' @param {WebResponse} Response to request
 ' --------------------------------------------- '
 
-Private Sub IAuthenticator_AfterExecute(ByVal Client As RestClient, ByVal Request As RestRequest, ByRef Response As RestResponse)
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     If Response.StatusCode = 401 And Not Me.IsAuthenticated Then
-        RestHelpers.LogDebug "Extract Authenticate and retry 401 request " & Request.FullUrl(Client.BaseUrl), "Digest.AfterExecute"
+        WebHelpers.LogDebug "Extract Authenticate and retry 401 request " & Client.GetFullUrl(Request), "Digest.AfterExecute"
         ExtractAuthenticateInformation Response
         
         Request.AddHeader "Authorization", CreateHeader(Client, Request)
-        RestHelpers.UpdateResponse Response, Client.Execute(Request)
+        Response.Update Client.Execute(Request)
     End If
 End Sub
 
-''
-' Hook for overriding standard http open (used for HTTP Basic)
-'
-' @param {MSXML2.IXMLHTTPRequest} http
-' @parma {RestClient} Client The client that is about to open request
-' @param {RestRequest} Request The request about to be opened
-' @param {String} BaseUrl
-' @param {Boolean} [useAsync=False]
-' --------------------------------------------- '
-
-Private Sub IAuthenticator_HttpOpen(ByRef Http As Object, ByVal Client As RestClient, ByRef Request As RestRequest, BaseUrl As String, Optional UseAsync As Boolean = False)
-    ' Perform standard http open
-    Call Http.Open(Request.MethodName(), Request.FullUrl(BaseUrl), UseAsync)
-End Sub
-
-Public Function CreateHeader(Client As RestClient, Request As RestRequest) As String
+Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
     Dim Uri As String
-    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Uri")
+    Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
 
     CreateHeader = "Digest" & _
         " username=""" & Me.Username & """" & _
@@ -133,23 +118,23 @@ Public Function CreateHeader(Client As RestClient, Request As RestRequest) As St
         ", response=""" & CalculateResponse(Client, Request) & """" & _
         ", opaque=""" & Me.Opaque & """"
         
-    RestHelpers.LogDebug CreateHeader, "DigestAuthenticator.CreateHeader"
+    WebHelpers.LogDebug CreateHeader, "DigestAuthenticator.CreateHeader"
 End Function
 
-Public Function CalculateResponse(Client As RestClient, Request As RestRequest) As String
+Public Function CalculateResponse(Client As WebClient, Request As WebRequest) As String
     Dim HA1 As String
     Dim HA2 As String
     Dim Uri As String
-    Uri = RestHelpers.UrlParts(Request.FullUrl(Client.BaseUrl))("Uri")
+    Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
     
     HA1 = CalculateHA1
-    HA2 = CalculateHA2(Request.MethodName, Uri)
+    HA2 = CalculateHA2(WebHelpers.MethodToName(Request.Method), Uri)
     
-    CalculateResponse = RestHelpers.MD5(HA1 & ":" & Me.ServerNonce & ":" & FormattedRequestCount & ":" & Me.ClientNonce & ":" & qop & ":" & HA2)
+    CalculateResponse = WebHelpers.MD5(HA1 & ":" & Me.ServerNonce & ":" & FormattedRequestCount & ":" & Me.ClientNonce & ":" & qop & ":" & HA2)
 End Function
 
 ' Extract authentication information from 401 response headers
-Public Sub ExtractAuthenticateInformation(Response As RestResponse)
+Public Sub ExtractAuthenticateInformation(Response As WebResponse)
     Dim Header As Dictionary
     For Each Header In Response.Headers
         ' Find authentication header
@@ -176,7 +161,7 @@ Public Sub ExtractAuthenticateInformation(Response As RestResponse)
                     If Key = "opaque" Then Me.Opaque = Value
                 Next i
                 
-                RestHelpers.LogDebug "realm=" & Me.Realm & ", nonce=" & Me.ServerNonce & ", opaque=" & Me.Opaque, "DigestAuthenticator.ExtractAuthenticateInformation"
+                WebHelpers.LogDebug "realm=" & Me.Realm & ", nonce=" & Me.ServerNonce & ", opaque=" & Me.Opaque, "DigestAuthenticator.ExtractAuthenticateInformation"
             End If
             
             Exit Sub
@@ -185,11 +170,11 @@ Public Sub ExtractAuthenticateInformation(Response As RestResponse)
 End Sub
 
 Public Function CalculateHA1() As String
-    CalculateHA1 = RestHelpers.MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
+    CalculateHA1 = WebHelpers.MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
 End Function
 
 Public Function CalculateHA2(Method As String, Uri As String) As String
-    CalculateHA2 = RestHelpers.MD5(Method & ":" & Uri)
+    CalculateHA2 = WebHelpers.MD5(Method & ":" & Uri)
 End Function
 
 ' Pad request count to 8 places
