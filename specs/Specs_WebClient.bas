@@ -265,34 +265,6 @@ Public Function Specs() As SpecSuite
         
         .Expect(Err.Number).ToEqual 11011 + vbObjectError
         Err.Clear
-        
-        ' Invalid URL
-        Client.BaseUrl = "http:////////google.com///////////"
-        Set Response = Client.Execute(Request)
-        
-        .Expect(Err.Number).ToEqual 11011 + vbObjectError
-        Err.Clear
-    End With
-    
-    With Specs.It("[Mac-only] should match common cURL errors to WinHttpRequest errors")
-#If Mac Then
-        ' Unsupported protocol
-        Client.BaseUrl = "unknown://"
-        Set Response = Client.Execute(Request)
-        
-        .Expect(Err.Description).ToMatch "80072ee6"
-        Err.Clear
-        
-        ' Invalid URL
-        Client.BaseUrl = "http:////////google.com///////////"
-        Set Response = Client.Execute(Request)
-        
-        .Expect(Err.Description).ToMatch "80072ee5"
-        Err.Clear
-#Else
-        ' (Mac-only)
-        .Expect(True).ToEqual True
-#End If
     End With
     
     Set Client = Nothing
