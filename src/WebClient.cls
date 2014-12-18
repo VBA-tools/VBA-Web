@@ -31,15 +31,38 @@ Private Const web_DefaultTimeoutMs As Long = 5000
 ' Properties
 ' --------------------------------------------- '
 
-Public BaseUrl As String
+Private pBaseUrl As String
 Public Authenticator As IWebAuthenticator
 Public TimeoutMs As Long
 Public Username As String
 Public Password As String
-Public ProxyServer As String
+Private pProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
 Public ProxyBypassList As String
+Public EnableAutoProxy As Boolean
+
+Public Property Get ProxyServer() As String
+    ProxyServer = pProxyServer
+End Property
+
+Public Property Let ProxyServer(Value As String)
+    ' User defined manually a Proxy -> won't try AutoProxy
+    pProxyServer = Value
+    EnableAutoProxy = False
+End Property
+
+Public Property Get BaseUrl() As String
+    BaseUrl = pBaseUrl
+End Property
+
+Public Property Let BaseUrl(Value As String)
+    pBaseUrl = Value
+    If EnableAutoProxy Then
+        ' A new BaseUrl was defined. Find relevant proxy server
+        pProxyServer = WebHelpers.AutoProxyServer(Value)
+    End If
+End Property
 
 ' ============================================= '
 ' Public Methods
@@ -373,4 +396,5 @@ End Sub
 
 Private Sub Class_Initialize()
     Me.TimeoutMs = web_DefaultTimeoutMs
+    Me.EnableAutoProxy = True
 End Sub
