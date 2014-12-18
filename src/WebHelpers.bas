@@ -16,6 +16,7 @@ Attribute VB_Name = "WebHelpers"
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Option Explicit
 
 ''
 ' Contents:
@@ -30,7 +31,98 @@ Attribute VB_Name = "WebHelpers"
 ' 9. Converters
 ' VBA-JSON
 ' VBA-UTC
+' AutoProxy
 ' --------------------------------------------- '
+
+' === AutoProxy Headers
+#If Mac Then
+#ElseIf VBA7 Then
+
+Private Declare PtrSafe Sub AutoProxy_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
+    (ByVal AutoProxy_lpDest As LongPtr, ByVal AutoProxy_lpSource As LongPtr, ByVal AutoProxy_cbCopy As Long)
+Private Declare PtrSafe Function AutoProxy_SysAllocString Lib "oleaut32" Alias "SysAllocString" _
+    (ByVal AutoProxy_pwsz As LongPtr) As LongPtr
+Private Declare PtrSafe Function AutoProxy_GlobalFree Lib "kernel32" Alias "GlobalFree" _
+    (ByVal AutoProxy_p As LongPtr) As LongPtr
+Private Declare PtrSafe Function AutoProxy_GetIEProxy Lib "WinHTTP.dll" Alias "WinHttpGetIEProxyConfigForCurrentUser" _
+    (ByRef AutoProxy_proxyConfig As AUTOPROXY_IE_PROXY_CONFIG) As Long
+Private Declare PtrSafe Function AutoProxy_GetProxyForUrl Lib "WinHTTP.dll" Alias "WinHttpGetProxyForUrl" _
+    (ByVal AutoProxy_hSession As LongPtr, ByVal AutoProxy_pszUrl As LongPtr, ByRef AutoProxy_pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef AutoProxy_pProxyInfo As AUTOPROXY_INFO) As Long
+Private Declare PtrSafe Function AutoProxy_HttpOpen Lib "WinHTTP.dll" Alias "WinHttpOpen" _
+    (ByVal AutoProxy_pszUserAgent As LongPtr, ByVal AutoProxy_dwAccessType As Long, ByVal AutoProxy_pszProxyName As LongPtr, ByVal AutoProxy_pszProxyBypass As LongPtr, ByVal AutoProxy_dwFlags As Long) As LongPtr
+Private Declare PtrSafe Function AutoProxy_HttpClose Lib "WinHTTP.dll" Alias "WinHttpCloseHandle" _
+    (ByVal AutoProxy_hInternet As LongPtr) As Long
+
+Private Type AUTOPROXY_IE_PROXY_CONFIG
+    AutoProxy_fAutoDetect As Long
+    AutoProxy_lpszAutoConfigUrl As LongPtr
+    AutoProxy_lpszProxy As LongPtr
+    AutoProxy_lpszProxyBypass As LongPtr
+End Type
+Private Type AUTOPROXY_OPTIONS
+    AutoProxy_dwFlags As Long
+    AutoProxy_dwAutoDetectFlags As Long
+    AutoProxy_lpszAutoConfigUrl As LongPtr
+    AutoProxy_lpvReserved As LongPtr
+    AutoProxy_dwReserved As Long
+    AutoProxy_fAutoLogonIfChallenged As Long
+End Type
+Private Type AUTOPROXY_INFO
+    AutoProxy_dwAccessType As Long
+    AutoProxy_lpszProxy As LongPtr
+    AutoProxy_lpszProxyBypass As LongPtr
+End Type
+
+#Else
+
+Private Declare Sub AutoProxy_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
+    (ByVal AutoProxy_lpDest As Long, ByVal AutoProxy_lpSource As Long, ByVal AutoProxy_cbCopy As Long)
+Private Declare Function AutoProxy_SysAllocString Lib "oleaut32" Alias "GlobalFree" _
+    (ByVal AutoProxy_pwsz As Long) As Long
+Private Declare Function AutoProxy_GlobalFree Lib "kernel32" Alias "GlobalFree" _
+    (ByVal AutoProxy_p As Long) As Long
+Private Declare Function AutoProxy_GetIEProxy Lib "WinHTTP.dll" Alias "WinHttpGetIEProxyConfigForCurrentUser" _
+    (ByRef AutoProxy_proxyConfig As AUTOPROXY_IE_PROXY_CONFIG) As Long
+Private Declare Function AutoProxy_GetProxyForUrl Lib "WinHTTP.dll" Alias "WinHttpGetProxyForUrl" _
+    (ByVal AutoProxy_hSession As Long, ByVal AutoProxy_pszUrl As Long, ByRef AutoProxy_pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef AutoProxy_pProxyInfo As AUTOPROXY_INFO) As Long
+Private Declare Function AutoProxy_HttpOpen Lib "WinHTTP.dll" Alias "WinHttpOpen" _
+    (ByVal AutoProxy_pszUserAgent As Long, ByVal AutoProxy_dwAccessType As Long, ByVal AutoProxy_pszProxyName As Long, ByVal AutoProxy_pszProxyBypass As Long, ByVal AutoProxy_dwFlags As Long) As Long
+Private Declare Function AutoProxy_HttpClose Lib "WinHTTP.dll" Alias "WinHttpCloseHandle" _
+    (ByVal AutoProxy_hInternet As Long) As Long
+
+Private Type AUTOPROXY_IE_PROXY_CONFIG
+    AutoProxy_fAutoDetect As Long
+    AutoProxy_lpszAutoConfigUrl As Long
+    AutoProxy_lpszProxy As Long
+    AutoProxy_lpszProxyBypass As Long
+End Type
+Private Type AUTOPROXY_OPTIONS
+    AutoProxy_dwFlags As Long
+    AutoProxy_dwAutoDetectFlags As Long
+    AutoProxy_lpszAutoConfigUrl As Long
+    AutoProxy_lpvReserved As Long
+    AutoProxy_dwReserved As Long
+    AutoProxy_fAutoLogonIfChallenged As Long
+End Type
+Private Type AUTOPROXY_INFO
+    AutoProxy_dwAccessType As Long
+    AutoProxy_lpszProxy As Long
+    AutoProxy_lpszProxyBypass As Long
+End Type
+
+#End If
+
+#If Mac Then
+#Else
+' Constants for dwFlags of AUTOPROXY_OPTIONS
+Const AUTOPROXY_AUTO_DETECT = 1
+Const AUTOPROXY_CONFIG_URL = 2
+ 
+' Constants for dwAutoDetectFlags
+Const AUTOPROXY_DETECT_TYPE_DHCP = 1
+Const AUTOPROXY_DETECT_TYPE_DNS = 2
+#End If
+' ===
 
 ' === VBA-UTC Headers
 #If Mac Then
@@ -2150,3 +2242,184 @@ Private Function utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
 End Function
 #End If
 
+
+''
+' AutoProxy 1.0.0
+' (c) Damien Thirion
+'
+' Auto configure proxy server
+'
+' Based on code shared by Stephen Sulzer
+' https://groups.google.com/d/msg/microsoft.public.winhttp/ZeWN2Xig82g/jgHIBDSfBwsJ
+'
+' Errors:
+' 11020 - Unknown error while detecting proxy
+' 11021 - WPAD detection failed
+' 11022 - Unable to download proxy auto-config script
+' 11023 - Error in proxy auto-config script
+' 11024 - No proxy can be located for the specified URL
+' 11025 - Specified URL is not valid
+'
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+'
+' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
+''
+' Returns IE proxy settings
+' including auto-detection and auto-config scripts results
+'
+' @param {String} Url
+' @param[out] {String} ProxyServer
+' @param[out] {String} ProxyBypass
+' --------------------------------------------- '
+Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef ProxyBypass As String)
+#If Mac Then
+    ' (Windows only)
+#ElseIf VBA7 Then
+    Dim AutoProxy_ProxyStringPtr As LongPtr
+    Dim AutoProxy_ptr As LongPtr
+    Dim AutoProxy_hSession As LongPtr
+#Else
+    Dim AutoProxy_ProxyStringPtr As Long
+    Dim AutoProxy_ptr As Long
+    Dim AutoProxy_hSession As Long
+#End If
+#If Mac Then
+#Else
+    Dim AutoProxy_IEProxyConfig As AUTOPROXY_IE_PROXY_CONFIG
+    Dim AutoProxy_AutoProxyOptions As AUTOPROXY_OPTIONS
+    Dim AutoProxy_ProxyInfo As AUTOPROXY_INFO
+    Dim AutoProxy_doAutoProxy As Boolean
+    Dim AutoProxy_Error As Long
+    Dim AutoProxy_ErrorMsg As String
+    
+    AutoProxy_AutoProxyOptions.AutoProxy_fAutoLogonIfChallenged = 1
+    ProxyServer = ""
+    ProxyBypass = ""
+    
+    ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
+    If Url = "" Then Url = " "
+    
+    On Error GoTo AutoProxy_Cleanup
+    
+    ' Check IE's proxy configuration
+    If (AutoProxy_GetIEProxy(AutoProxy_IEProxyConfig) > 0) Then
+        ' If IE is configured to auto-detect, then we will too.
+        If (AutoProxy_IEProxyConfig.AutoProxy_fAutoDetect <> 0) Then
+            AutoProxy_AutoProxyOptions.AutoProxy_dwFlags = AUTOPROXY_AUTO_DETECT
+            AutoProxy_AutoProxyOptions.AutoProxy_dwAutoDetectFlags = _
+                AUTOPROXY_DETECT_TYPE_DHCP + AUTOPROXY_DETECT_TYPE_DNS
+            AutoProxy_doAutoProxy = True
+        End If
+     
+        ' If IE is configured to use an auto-config script, then
+        ' we will use it too
+        If (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl <> 0) Then
+            AutoProxy_AutoProxyOptions.AutoProxy_dwFlags = _
+                AutoProxy_AutoProxyOptions.AutoProxy_dwFlags + AUTOPROXY_CONFIG_URL
+            AutoProxy_AutoProxyOptions.AutoProxy_lpszAutoConfigUrl = AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl
+            AutoProxy_doAutoProxy = True
+        End If
+    Else
+        ' If the IE proxy config is not available, then
+        ' we will try auto-detection
+        AutoProxy_AutoProxyOptions.AutoProxy_dwFlags = AUTOPROXY_AUTO_DETECT
+        AutoProxy_AutoProxyOptions.AutoProxy_dwAutoDetectFlags = _
+            AUTOPROXY_DETECT_TYPE_DHCP + AUTOPROXY_DETECT_TYPE_DNS
+        AutoProxy_doAutoProxy = True
+    End If
+    
+    If AutoProxy_doAutoProxy Then
+        On Error GoTo AutoProxy_TryIEFallback
+        
+        ' Need to create a temporary WinHttp session handle
+        ' Note: Performance of this GetProxyInfoForUrl function can be
+        '       improved by saving this AutoProxy_hSession handle across calls
+        '       instead of creating a new handle each time
+        AutoProxy_hSession = AutoProxy_HttpOpen(0, 1, 0, 0, 0)
+     
+        If (AutoProxy_GetProxyForUrl( _
+            AutoProxy_hSession, StrPtr(Url), AutoProxy_AutoProxyOptions, AutoProxy_ProxyInfo) > 0) Then
+            
+            AutoProxy_ProxyStringPtr = AutoProxy_ProxyInfo.AutoProxy_lpszProxy
+        Else
+            AutoProxy_Error = Err.LastDllError
+            Select Case AutoProxy_Error
+            Case 12180
+                AutoProxy_ErrorMsg = "WPAD detection failed"
+                AutoProxy_Error = 10021
+            Case 12167
+                AutoProxy_ErrorMsg = "Unable to download proxy auto-config script"
+                AutoProxy_Error = 10022
+            Case 12166
+                AutoProxy_ErrorMsg = "Error in proxy auto-config script"
+                AutoProxy_Error = 10023
+            Case 12178
+                AutoProxy_ErrorMsg = "No proxy can be located for the specified URL"
+                AutoProxy_Error = 10024
+            Case 12005, 12006
+                AutoProxy_ErrorMsg = "Specified URL is not valid"
+                AutoProxy_Error = 10025
+            Case Else
+                AutoProxy_ErrorMsg = "Unknown error while detecting proxy"
+                AutoProxy_Error = 10020
+            End Select
+        End If
+     
+        AutoProxy_HttpClose AutoProxy_hSession
+        AutoProxy_hSession = 0
+    End If
+    
+AutoProxy_TryIEFallback:
+    On Error GoTo AutoProxy_Cleanup
+       
+    ' If we don't have a proxy server from WinHttpGetProxyForUrl,
+    ' then pick one up from the IE proxy config (if given)
+    If (AutoProxy_ProxyStringPtr = 0) Then
+        AutoProxy_ProxyStringPtr = AutoProxy_IEProxyConfig.AutoProxy_lpszProxy
+    End If
+    
+    ' If there's a proxy string, convert it to a Basic string
+    If (AutoProxy_ProxyStringPtr <> 0) Then
+        AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_ProxyStringPtr)
+        AutoProxy_CopyMemory VarPtr(ProxyServer), VarPtr(AutoProxy_ptr), 4
+    End If
+    
+    ' Pick up any bypass string from the IEProxyConfig
+    If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass <> 0) Then
+        AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass)
+        AutoProxy_CopyMemory VarPtr(ProxyBypass), VarPtr(AutoProxy_ptr), 4
+    End If
+    
+    ' Ensure WinHttp session is closed, an error might have occurred
+    If (AutoProxy_hSession <> 0) Then
+        AutoProxy_HttpClose AutoProxy_hSession
+    End If
+    
+AutoProxy_Cleanup:
+    ' Free any strings received from WinHttp APIs
+    If (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl <> 0) Then
+        AutoProxy_GlobalFree (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl)
+    End If
+    If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxy <> 0) Then
+        AutoProxy_GlobalFree (AutoProxy_IEProxyConfig.AutoProxy_lpszProxy)
+    End If
+    If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass <> 0) Then
+        AutoProxy_GlobalFree (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass)
+    End If
+    If (AutoProxy_ProxyInfo.AutoProxy_lpszProxy <> 0) Then
+        AutoProxy_GlobalFree (AutoProxy_ProxyInfo.AutoProxy_lpszProxy)
+    End If
+    If (AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass <> 0) Then
+        AutoProxy_GlobalFree (AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass)
+    End If
+    
+    ' Error handling
+    If Err.Number <> 0 Then
+        ' Unmanaged error
+        Err.Raise Err.Number, "AutoProxy:" & Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
+    ElseIf AutoProxy_Error <> 0 Then
+        Err.Raise AutoProxy_Error, "AutoProxy", AutoProxy_ErrorMsg
+    End If
+#End If
+End Sub

@@ -25,7 +25,14 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
+
 Private Const web_DefaultTimeoutMs As Long = 5000
+
+Private web_pProxyServer As String
+Private web_pAutoProxyDomain As String
 
 ' --------------------------------------------- '
 ' Properties
@@ -36,10 +43,18 @@ Public Authenticator As IWebAuthenticator
 Public TimeoutMs As Long
 Public Username As String
 Public Password As String
-Public ProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
 Public ProxyBypassList As String
+Public EnableAutoProxy As Boolean
+
+Public Property Get ProxyServer() As String
+    ProxyServer = web_pProxyServer
+End Property
+Public Property Let ProxyServer(Value As String)
+    Me.EnableAutoProxy = False
+    web_pProxyServer = Value
+End Property
 
 ' ============================================= '
 ' Public Methods
@@ -225,22 +240,27 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     
     Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
-    ' Set timeouts
-    web_Http.SetTimeouts Me.TimeoutMs, Me.TimeoutMs, Me.TimeoutMs, Me.TimeoutMs
-    
-    ' Setup authenticator
+    ' Prepare request (before open)
     web_BeforeExecute Request
     
     ' Open http request
     web_Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullUrl(Request), Async
     
+    ' Set timeouts
+    web_Http.SetTimeouts Me.TimeoutMs, Me.TimeoutMs, Me.TimeoutMs, Me.TimeoutMs
+    
+    ' Load auto-proxy (if needed)
+    If Me.EnableAutoProxy Then
+        web_LoadAutoProxy Request
+    End If
+    
     ' Setup proxy
     If Me.ProxyServer <> "" Then
-        LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
+        WebHelpers.LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
         web_Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
-            LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
+            WebHelpers.LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
             web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
         End If
     Else
@@ -369,6 +389,46 @@ Private Sub web_BeforeExecute(web_Request As WebRequest)
     ' Preparing request includes adding headers
     ' -> Needs to happen after BeforeExecute in case headers were changed
     web_Request.Prepare
+End Sub
+
+Private Sub web_LoadAutoProxy(web_Request As WebRequest)
+#If Mac Then
+#Else
+    On Error GoTo web_ErrorHandling
+    
+    Dim web_Parts As Dictionary
+    Dim web_Domain As String
+    Dim web_ProxyServer As String
+    Dim web_ProxyBypassList As String
+
+    Set web_Parts = WebHelpers.UrlParts(Me.GetFullUrl(web_Request))
+    web_Domain = VBA.IIf(web_Parts("Protocol") <> "", web_Parts("Protocol") & "://", "") & _
+        web_Parts("Host") & ":" & web_Parts("Port")
+      
+    ' Cache auto-proxy by domain
+    If web_Domain <> web_pAutoProxyDomain Then
+        ' Cache first to store error as no proxy
+        web_pAutoProxyDomain = web_Domain
+        
+        WebHelpers.GetAutoProxy web_Domain, web_ProxyServer, web_ProxyBypassList
+        
+        WebHelpers.LogDebug "Loaded auto-proxy for " & web_Domain & ":" & vbNewLine & _
+            "Server = " & web_ProxyServer & vbNewLine & _
+            "Bypass List = " & web_ProxyBypassList
+        
+        ' Store proxy server in underlying to avoid turning off auto-proxy
+        web_pProxyServer = web_ProxyServer
+        Me.ProxyBypassList = web_ProxyBypassList
+    End If
+       
+    Exit Sub
+     
+web_ErrorHandling:
+    
+    LogError "An error occurred while loading auto-proxy" & vbNewLine & _
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description, _
+        "WebClient.LoadAutoProxy", Err.Number
+#End If
 End Sub
 
 Private Sub Class_Initialize()
