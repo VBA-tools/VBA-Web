@@ -2280,10 +2280,10 @@ End Function
 '
 '
 ' @param {String} Url
-' @return {String}
+' @paramreturn {String} ProxyServer
 ' --------------------------------------------- '
 
-Public Function GetAutoProxyServer(Url As String) As String
+Public Sub GetAutoProxyServer(Url As String, ByRef ProxyServer As String)
 #If Mac Then
     ' Windows only !
 #ElseIf VBA7 Then
@@ -2305,6 +2305,7 @@ Public Function GetAutoProxyServer(Url As String) As String
     Dim AutoProxy_ErrorMsg As String
     
     AutoProxy_AutoProxyOptions.AutoProxy_fAutoLogonIfChallenged = 1
+    ProxyServer = ""
     
     On Error GoTo AutoProxy_Cleanup
     
@@ -2383,7 +2384,7 @@ AutoProxy_TryIEFallback:
     ' If there's a proxy string, convert it to a Basic string
     If (AutoProxy_ProxyStringPtr <> 0) Then
         AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_ProxyStringPtr)
-        AutoProxy_CopyMemory VarPtr(GetAutoProxyServer), VarPtr(AutoProxy_ptr), 4
+        AutoProxy_CopyMemory VarPtr(ProxyServer), VarPtr(AutoProxy_ptr), 4
     End If
     
     ' Ensure WinHttp session is closed, an error might have occurred
@@ -2412,9 +2413,10 @@ AutoProxy_Cleanup:
     ' Error handling
     If Err <> 0 Then
         ' Unmanaged error
-        Err.Raise Err.Number, "AutoProxyServer:" & Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
+        Err.Raise Err.Number, "AutoProxy:" & Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
     ElseIf AutoProxy_Error <> 0 Then
-        Err.Raise AutoProxy_Error, "AutoProxyServer", AutoProxy_ErrorMsg
+        On Error GoTo 0
+        Err.Raise AutoProxy_Error, "AutoProxy", AutoProxy_ErrorMsg
     End If
 #End If
-End Function
+End Sub

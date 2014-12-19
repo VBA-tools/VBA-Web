@@ -52,11 +52,12 @@ Public Property Get ProxyServer() As String
     If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
         LogDebug "Retrieving AutoProxyServer"
         On Error Resume Next
-        pProxyServer = WebHelpers.GetAutoProxyServer(Me.BaseUrl)
+        WebHelpers.GetAutoProxyServer Me.BaseUrl, pProxyServer
         If Err <> 0 Then
-            LogDebug "AutoProxyServer: " & Err.Description
+            LogDebug Err.Source & ": " & Err.Description
         End If
         On Error GoTo 0
+        LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
         pAutoProxyLoaded = True
     End If
 
