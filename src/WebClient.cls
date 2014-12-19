@@ -25,31 +25,48 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
+
 Private Const web_DefaultTimeoutMs As Long = 5000
+
+Private pBaseUrl As String
+Private pProxyServer As String
+Private pAutoProxyLoaded As Boolean
 
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
 
-Private pBaseUrl As String
 Public Authenticator As IWebAuthenticator
 Public TimeoutMs As Long
 Public Username As String
 Public Password As String
-Private pProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
 Public ProxyBypassList As String
 Public EnableAutoProxy As Boolean
 
 Public Property Get ProxyServer() As String
+    If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
+        LogDebug "Retrieving AutoProxyServer"
+        On Error Resume Next
+        pProxyServer = WebHelpers.GetAutoProxyServer(Me.BaseUrl)
+        If Err <> 0 Then
+            LogDebug "AutoProxyServer: " & Err.Description
+        End If
+        On Error GoTo 0
+        pAutoProxyLoaded = True
+    End If
+
     ProxyServer = pProxyServer
 End Property
 
 Public Property Let ProxyServer(Value As String)
     ' User defined manually a Proxy -> won't try AutoProxy
     pProxyServer = Value
-    EnableAutoProxy = False
+    Me.EnableAutoProxy = False
 End Property
 
 Public Property Get BaseUrl() As String
@@ -58,10 +75,8 @@ End Property
 
 Public Property Let BaseUrl(Value As String)
     pBaseUrl = Value
-    If EnableAutoProxy Then
-        ' A new BaseUrl was defined. Find relevant proxy server
-        pProxyServer = WebHelpers.AutoProxyServer(Value)
-    End If
+    ' A new BaseUrl was defined. Flag the AutoProxy to be reevaluated
+    pAutoProxyLoaded = False
 End Property
 
 ' ============================================= '
