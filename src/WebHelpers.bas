@@ -2307,6 +2307,9 @@ Public Sub GetAutoProxyServer(Url As String, ByRef ProxyServer As String)
     AutoProxy_AutoProxyOptions.AutoProxy_fAutoLogonIfChallenged = 1
     ProxyServer = ""
     
+    ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
+    If Url = "" Then Url = " "
+    
     On Error GoTo AutoProxy_Cleanup
     
     ' Check IE's proxy configuration
@@ -2362,6 +2365,12 @@ Public Sub GetAutoProxyServer(Url As String, ByRef ProxyServer As String)
               Case 12166
                 AutoProxy_ErrorMsg = "Error in proxy auto-config script"
                 AutoProxy_Error = 10023
+              Case 12178
+                AutoProxy_ErrorMsg = "No proxy can be located for the specified URL"
+                AutoProxy_Error = 10024
+              Case 12005, 12006
+                AutoProxy_ErrorMsg = "Specified URL is not valid"
+                AutoProxy_Error = 10025
               Case Else
                 AutoProxy_ErrorMsg = "Unknown error while detecting proxy"
                 AutoProxy_Error = 10020
