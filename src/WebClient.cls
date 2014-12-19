@@ -50,18 +50,20 @@ Public EnableAutoProxy As Boolean
 
 Public Property Get ProxyServer() As String
     If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
+        On Error GoTo web_ErrorHandling
         LogDebug "Retrieving AutoProxyServer"
-        On Error Resume Next
         WebHelpers.GetAutoProxyServer Me.BaseUrl, pProxyServer
-        If Err <> 0 Then
-            LogDebug Err.Source & ": " & Err.Description
-        End If
-        On Error GoTo 0
         LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
         pAutoProxyLoaded = True
     End If
 
     ProxyServer = pProxyServer
+    
+    Exit Property
+    
+web_ErrorHandling:
+    LogDebug Err.Source & ": " & Err.Description
+    Resume Next
 End Property
 
 Public Property Let ProxyServer(Value As String)
@@ -273,6 +275,13 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     ' Open http request
     web_Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullUrl(Request), Async
     
+    ' AutoProxy for empty BaseUrl
+    If EnableAutoProxy And BaseUrl = "" Then
+        LogDebug "Retrieving AutoProxyServer for full URL"
+        WebHelpers.GetAutoProxyServer Me.GetFullUrl(Request), pProxyServer
+        LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
+        pAutoProxyLoaded = True
+    End If
     ' Setup proxy
     If Me.ProxyServer <> "" Then
         LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
@@ -311,6 +320,10 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     
 web_ErrorHandling:
 
+    If Err.Source Like "AutoProxy*" Then
+        LogDebug Err.Source & ": " & Err.Description
+        Resume Next
+    End If
     Set web_Http = Nothing
     Err.Raise 11012 + vbObjectError, "WebClient.PrepareHttpRequest", _
         "An error occurred while preparing http request" & vbNewLine & _
