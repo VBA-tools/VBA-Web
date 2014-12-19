@@ -2280,10 +2280,10 @@ End Function
 '
 '
 ' @param {String} Url
-' @paramreturn {String} ProxyServer
+' @param[out] {String} ProxyServer
+' @param[out] {String} ProxyBypass
 ' --------------------------------------------- '
-
-Public Sub GetAutoProxyServer(Url As String, ByRef ProxyServer As String)
+Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef ProxyBypass As String)
 #If Mac Then
     ' Windows only !
 #ElseIf VBA7 Then
@@ -2306,6 +2306,7 @@ Public Sub GetAutoProxyServer(Url As String, ByRef ProxyServer As String)
     
     AutoProxy_AutoProxyOptions.AutoProxy_fAutoLogonIfChallenged = 1
     ProxyServer = ""
+    ProxyBypass = ""
     
     ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
     If Url = "" Then Url = " "
@@ -2394,6 +2395,12 @@ AutoProxy_TryIEFallback:
     If (AutoProxy_ProxyStringPtr <> 0) Then
         AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_ProxyStringPtr)
         AutoProxy_CopyMemory VarPtr(ProxyServer), VarPtr(AutoProxy_ptr), 4
+    End If
+    
+    ' Pick up any bypass string from the IEProxyConfig
+    If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass <> 0) Then
+        AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass)
+        AutoProxy_CopyMemory VarPtr(ProxyBypass), VarPtr(AutoProxy_ptr), 4
     End If
     
     ' Ensure WinHttp session is closed, an error might have occurred

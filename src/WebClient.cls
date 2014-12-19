@@ -33,6 +33,7 @@ Private Const web_DefaultTimeoutMs As Long = 5000
 
 Private pBaseUrl As String
 Private pProxyServer As String
+Private pProxyBypassList As String
 Private pAutoProxyLoaded As Boolean
 
 ' --------------------------------------------- '
@@ -45,30 +46,35 @@ Public Username As String
 Public Password As String
 Public ProxyUsername As String
 Public ProxyPassword As String
-Public ProxyBypassList As String
 Public EnableAutoProxy As Boolean
 
 Public Property Get ProxyServer() As String
     If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
-        On Error GoTo web_ErrorHandling
-        LogDebug "Retrieving AutoProxyServer"
-        WebHelpers.GetAutoProxyServer Me.BaseUrl, pProxyServer
-        LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
-        pAutoProxyLoaded = True
+        LogDebug "Retrieving AutoProxy"
+        web_loadAutoProxy Me.BaseUrl
     End If
 
     ProxyServer = pProxyServer
-    
-    Exit Property
-    
-web_ErrorHandling:
-    LogDebug Err.Source & ": " & Err.Description
-    Resume Next
 End Property
 
 Public Property Let ProxyServer(Value As String)
     ' User defined manually a Proxy -> won't try AutoProxy
     pProxyServer = Value
+    Me.EnableAutoProxy = False
+End Property
+
+Public Property Get ProxyBypassList() As String
+    If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
+        LogDebug "Retrieving AutoProxy"
+        web_loadAutoProxy Me.BaseUrl
+    End If
+
+    ProxyBypassList = pProxyBypassList
+End Property
+
+Public Property Let ProxyBypassList(Value As String)
+    ' User defined manually a Proxy -> won't try AutoProxy
+    pProxyBypassList = Value
     Me.EnableAutoProxy = False
 End Property
 
@@ -277,10 +283,8 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     
     ' AutoProxy for empty BaseUrl
     If EnableAutoProxy And BaseUrl = "" Then
-        LogDebug "Retrieving AutoProxyServer for full URL"
-        WebHelpers.GetAutoProxyServer Me.GetFullUrl(Request), pProxyServer
-        LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
-        pAutoProxyLoaded = True
+        LogDebug "Retrieving AutoProxy for full URL"
+        web_loadAutoProxy Me.GetFullUrl(Request)
     End If
     ' Setup proxy
     If Me.ProxyServer <> "" Then
@@ -320,10 +324,6 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     
 web_ErrorHandling:
 
-    If Err.Source Like "AutoProxy*" Then
-        LogDebug Err.Source & ": " & Err.Description
-        Resume Next
-    End If
     Set web_Http = Nothing
     Err.Raise 11012 + vbObjectError, "WebClient.PrepareHttpRequest", _
         "An error occurred while preparing http request" & vbNewLine & _
@@ -421,6 +421,20 @@ Private Sub web_BeforeExecute(web_Request As WebRequest)
     ' Preparing request includes adding headers
     ' -> Needs to happen after BeforeExecute in case headers were changed
     web_Request.Prepare
+End Sub
+
+Private Sub web_loadAutoProxy(Url As String)
+    On Error GoTo web_ErrorHandling
+    WebHelpers.GetAutoProxy Url, pProxyServer, pProxyBypassList
+    LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
+    LogDebug "AutoProxy: ProxyBypassList=""" & pProxyBypassList & """"
+    pAutoProxyLoaded = True
+    Exit Sub
+    
+web_ErrorHandling:
+
+    LogDebug Err.Source & ": " & Err.Description
+    Resume Next
 End Sub
 
 Private Sub Class_Initialize()
