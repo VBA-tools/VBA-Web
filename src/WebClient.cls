@@ -25,21 +25,68 @@ Attribute VB_Exposed = True
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
+
 Private Const web_DefaultTimeoutMs As Long = 5000
+
+Private pBaseUrl As String
+Private pProxyServer As String
+Private pProxyBypassList As String
+Private pAutoProxyLoaded As Boolean
 
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
 
-Public BaseUrl As String
 Public Authenticator As IWebAuthenticator
 Public TimeoutMs As Long
 Public Username As String
 Public Password As String
-Public ProxyServer As String
 Public ProxyUsername As String
 Public ProxyPassword As String
-Public ProxyBypassList As String
+Public EnableAutoProxy As Boolean
+
+Public Property Get ProxyServer() As String
+    If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
+        LogDebug "Retrieving AutoProxy"
+        web_loadAutoProxy Me.BaseUrl
+    End If
+
+    ProxyServer = pProxyServer
+End Property
+
+Public Property Let ProxyServer(Value As String)
+    ' User defined manually a Proxy -> won't try AutoProxy
+    pProxyServer = Value
+    Me.EnableAutoProxy = False
+End Property
+
+Public Property Get ProxyBypassList() As String
+    If Me.EnableAutoProxy And Not pAutoProxyLoaded Then
+        LogDebug "Retrieving AutoProxy"
+        web_loadAutoProxy Me.BaseUrl
+    End If
+
+    ProxyBypassList = pProxyBypassList
+End Property
+
+Public Property Let ProxyBypassList(Value As String)
+    ' User defined manually a Proxy -> won't try AutoProxy
+    pProxyBypassList = Value
+    Me.EnableAutoProxy = False
+End Property
+
+Public Property Get BaseUrl() As String
+    BaseUrl = pBaseUrl
+End Property
+
+Public Property Let BaseUrl(Value As String)
+    pBaseUrl = Value
+    ' A new BaseUrl was defined. Flag the AutoProxy to be reevaluated
+    pAutoProxyLoaded = False
+End Property
 
 ' ============================================= '
 ' Public Methods
@@ -234,6 +281,11 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     ' Open http request
     web_Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullUrl(Request), Async
     
+    ' AutoProxy for empty BaseUrl
+    If EnableAutoProxy And BaseUrl = "" Then
+        LogDebug "Retrieving AutoProxy for full URL"
+        web_loadAutoProxy Me.GetFullUrl(Request)
+    End If
     ' Setup proxy
     If Me.ProxyServer <> "" Then
         LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
@@ -371,6 +423,21 @@ Private Sub web_BeforeExecute(web_Request As WebRequest)
     web_Request.Prepare
 End Sub
 
+Private Sub web_loadAutoProxy(Url As String)
+    On Error GoTo web_ErrorHandling
+    WebHelpers.GetAutoProxy Url, pProxyServer, pProxyBypassList
+    LogDebug "AutoProxy: ProxyServer=""" & pProxyServer & """"
+    LogDebug "AutoProxy: ProxyBypassList=""" & pProxyBypassList & """"
+    pAutoProxyLoaded = True
+    Exit Sub
+    
+web_ErrorHandling:
+
+    LogDebug Err.Source & ": " & Err.Description
+    Resume Next
+End Sub
+
 Private Sub Class_Initialize()
     Me.TimeoutMs = web_DefaultTimeoutMs
+    Me.EnableAutoProxy = True
 End Sub
