@@ -9,7 +9,7 @@ next: setting-up-restclient.html
 
 # Making a GET Request
 
-Excel-REST consists of three primary components: 
+VBA-Web consists of three primary components: 
 
 - `RestClient` makes requests and handles responses
 - `RestRequest` define the request

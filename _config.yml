@@ -1,9 +1,9 @@
-name: Excel-REST
-baseurl: "/Excel-REST"
+name: VBA-Web
+baseurl: "/VBA-Web"
 
-url: http://timhall.github.io
-github: "https://github.com/timhall/Excel-REST"
-download: "https://github.com/timhall/Excel-REST/releases"
+url: http://vba-tools.github.io
+github: "https://github.com/VBA-tools/VBA-Web"
+download: "https://github.com/VBA-tools/VBA-Web/releases"
 
 defaults:
 - scope:
