@@ -54,6 +54,7 @@ Authenticators = Array( _
   "HttpBasicAuthenticator.cls", _
   "OAuth1Authenticator.cls", _
   "OAuth2Authenticator.cls", _
+  "WindowsAuthenticator.cls", _
   "GoogleAuthenticator.cls", _
   "TwitterAuthenticator.cls", _
   "FacebookAuthenticator.cls", _
