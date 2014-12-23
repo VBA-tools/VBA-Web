@@ -51,6 +51,7 @@ Src = Array( _
 Dim Authenticators
 Authenticators = Array( _
   "EmptyAuthenticator.cls", _
+  "HttpBasicAuthenticator.cls", _
   "OAuth1Authenticator.cls", _
   "OAuth2Authenticator.cls", _
   "GoogleAuthenticator.cls", _

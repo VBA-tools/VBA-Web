@@ -31,6 +31,14 @@ Option Explicit
 
 Private Const web_DefaultTimeoutMs As Long = 5000
 
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER = 0
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY = 1
+
+Private Const web_HTTPREQUEST_PROXYSETTING_DEFAULT = 0
+Private Const web_HTTPREQUEST_PROXYSETTING_PRECONFIG = 0
+Private Const web_HTTPREQUEST_PROXYSETTING_DIRECT = 1
+Private Const web_HTTPREQUEST_PROXYSETTING_PROXY = 2
+
 Private web_pProxyServer As String
 Private web_pAutoProxyDomain As String
 
@@ -255,35 +263,40 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     End If
     
     ' Setup proxy
+    ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
     If Me.ProxyServer <> "" Then
         WebHelpers.LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
-        web_Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
+        web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PROXY, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
             WebHelpers.LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
-            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
+            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY
         End If
     Else
         ' Attempt to get proxy setup with Proxycfg.exe, otherwise direct
-        ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-        web_Http.SetProxy 1 ' 1 = HTTPREQUEST_PROXYSETTING_PRECONFIG
+        web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PRECONFIG
     End If
     
-    ' Setup Basic authentication
+    ' TODO: Move to BasicAuthenticator
     If Me.Username <> "" Then
-        web_Http.SetCredentials Me.Username, Me.Password, 0 ' 0 = Credentials for server
+        web_Http.SetCredentials Me.Username, Me.Password, web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER
         Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
     ' Set headers on http request (after open)
     Dim web_KeyValue As Dictionary
     For Each web_KeyValue In Request.Headers
-        web_Http.setRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
+        web_Http.SetRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
     Next web_KeyValue
     
     For Each web_KeyValue In Request.Cookies
-        web_Http.setRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
+        web_Http.SetRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
     Next web_KeyValue
+    
+    ' Give authenticator opportunity to update Http
+    If Not Me.Authenticator Is Nothing Then
+        Me.Authenticator.PrepareHttp Me, Request, web_Http
+    End If
     
     ' Log request and return
     WebHelpers.LogRequest Me, Request
@@ -354,6 +367,11 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     web_Curl = web_Curl & " -X " & WebHelpers.MethodToName(Request.Method)
     web_Curl = web_Curl & " -d '" & Request.Body & "'"
     web_Curl = web_Curl & " '" & Me.GetFullUrl(Request) & "'"
+    
+    ' Give authenticator opportunity to update cURL
+    If Not Me.Authenticator Is Nothing Then
+        Me.Authenticator.PrepareCurl Me, Request, web_Curl
+    End If
     
     ' Log request and return
     WebHelpers.LogRequest Me, Request

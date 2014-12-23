@@ -8,12 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' OAuth1 Authenticator v2.0.6
+' OAuth1 Authenticator v3.0.0
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Utilize OAuth1 authentication
 '
-' @implements: IWebAuthenticator v3.*
+' @implements: IWebAuthenticator v4.*
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -95,17 +95,12 @@ Public Sub Setup(ConsumerKey As String, ConsumerSecret As String, _
     Me.Realm = Realm
 End Sub
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 ''
 ' Hook for taking action before a request is executed
 '
 ' @param {WebClient} Client The client that is about to execute the request
-' @param {WebRequest} Request The request about to be executed
+' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add authorization header to request
     Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -116,11 +111,32 @@ End Sub
 '
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
-' @param {WebResponse} Response to request
+' @param in|out {WebResponse} Response to request
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
 
+End Sub
+
+''
+' Hook for updating http before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {WinHttpRequest} Http
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
+    ' e.g. Update option, headers, etc.
+End Sub
+
+''
+' Hook for updating cURL before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {String} Curl
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
+    ' e.g. Add flags to cURL
 End Sub
 
 Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
@@ -245,13 +261,17 @@ Public Function CreateTimestamp() As String
     CreateTimestamp = CStr(DateDiff("s", #1/1/1970#, GetGMT()))
 End Function
 
+' ============================================= '
+' Private Methods
+' ============================================= '
+
 ' ======================================================================================== '
 '
 ' Time Calculations
 '
 ' ======================================================================================== '
 
-Function GetGMT(Optional LocalTime As Date) As Date
+Private Function GetGMT(Optional LocalTime As Date) As Date
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' http://www.cpearson.com/excel/TimeZoneAndDaylightTime.aspx
     ' ConvertLocalToGMT

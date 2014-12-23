@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Twitter Authenticator v2.0.6
+' Twitter Authenticator v3.0.0
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for application-only authentication in Twitter's V1.1 REST API
@@ -16,7 +16,7 @@ Attribute VB_Exposed = False
 ' - https://dev.twitter.com/docs/auth/application-only-auth
 ' - https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IWebAuthenticator
 '
-' @implements: IWebAuthenticator v3.*
+' @implements: IWebAuthenticator v4.*
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -81,17 +81,12 @@ Public Sub Setup(ConsumerKey As String, ConsumerSecret As String)
     Me.ConsumerSecret = ConsumerSecret
 End Sub
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 ''
 ' Hook for taking action before a request is executed
 '
 ' @param {WebClient} Client The client that is about to execute the request
-' @param {WebRequest} Request The request about to be executed
+' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     Request.AddHeader "Authorization", "Bearer " & Me.Token
 End Sub
@@ -101,12 +96,37 @@ End Sub
 '
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
-' @param {WebResponse} Response to request
+' @param in|out {WebResponse} Response to request
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     
 End Sub
+
+''
+' Hook for updating http before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {WinHttpRequest} Http
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
+    ' e.g. Update option, headers, etc.
+End Sub
+
+''
+' Hook for updating cURL before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {String} Curl
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
+    ' e.g. Add flags to cURL
+End Sub
+
+' ============================================= '
+' Private Methods
+' ============================================= '
 
 Private Function TokenRequest() As WebRequest
     Set TokenRequest = New WebRequest

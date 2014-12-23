@@ -221,20 +221,20 @@ Public Function Specs() As SpecSuite
         Request.AddHeader "custom", "Howdy!"
         Request.AddCookie "test-cookie", "howdy"
         
-        Dim cURL As String
+        Dim Curl As String
         
-        cURL = Client.PrepareCurlRequest(Request)
-        .Expect(cURL).ToMatch "http://localhost:3000/text?type=message"
-        .Expect(cURL).ToMatch "-X POST"
-        .Expect(cURL).ToMatch "--user user:password"
-        .Expect(cURL).ToMatch "--proxy proxyserver"
-        .Expect(cURL).ToMatch "--noproxy proxyserver:80, *.github.com"
-        .Expect(cURL).ToMatch "--proxy-user proxyuser:proxypassword"
-        .Expect(cURL).ToMatch "-H 'Content-Type: text/plain'"
-        .Expect(cURL).ToMatch "-H 'Accept: application/json'"
-        .Expect(cURL).ToMatch "-H 'custom: Howdy!'"
-        .Expect(cURL).ToMatch "--cookie 'test-cookie=howdy;'"
-        .Expect(cURL).ToMatch "-d 'Howdy!'"
+        Curl = Client.PrepareCurlRequest(Request)
+        .Expect(Curl).ToMatch "http://localhost:3000/text?type=message"
+        .Expect(Curl).ToMatch "-X POST"
+        .Expect(Curl).ToMatch "--user user:password"
+        .Expect(Curl).ToMatch "--proxy proxyserver"
+        .Expect(Curl).ToMatch "--noproxy proxyserver:80, *.github.com"
+        .Expect(Curl).ToMatch "--proxy-user proxyuser:proxypassword"
+        .Expect(Curl).ToMatch "-H 'Content-Type: text/plain'"
+        .Expect(Curl).ToMatch "-H 'Accept: application/json'"
+        .Expect(Curl).ToMatch "-H 'custom: Howdy!'"
+        .Expect(Curl).ToMatch "--cookie 'test-cookie=howdy;'"
+        .Expect(Curl).ToMatch "-d 'Howdy!'"
 #Else
         ' (Mac-only)
         .Expect(True).ToEqual True
