@@ -22,8 +22,8 @@ Attribute VB_Exposed = False
 Implements IWebAuthenticator
 Option Explicit
 
-Private Const qop As String = "auth"
-Private pClientNonce As String
+Private Const auth_Qop As String = "auth"
+Private auth_pClientNonce As String
 
 ' --------------------------------------------- '
 ' Properties
@@ -31,19 +31,20 @@ Private pClientNonce As String
 
 Public Username As String
 Public Password As String
+
 Public Realm As String
 Public ServerNonce As String
 Public RequestCount As Long
 Public Opaque As String
 
 Public Property Get ClientNonce() As String
-    If pClientNonce = "" Then
-        pClientNonce = WebHelpers.CreateNonce
+    If auth_pClientNonce = "" Then
+        auth_pClientNonce = WebHelpers.CreateNonce
     End If
-    ClientNonce = pClientNonce
+    ClientNonce = auth_pClientNonce
 End Property
 Public Property Let ClientNonce(Value As String)
-    pClientNonce = Value
+    auth_pClientNonce = Value
 End Property
 
 Public Property Get IsAuthenticated() As Boolean
@@ -59,7 +60,6 @@ End Property
 ''
 ' Setup authenticator
 ' --------------------------------------------- '
-
 Public Sub Setup(Username As String, Password As String)
     Me.Username = Username
     Me.Password = Password
@@ -72,8 +72,6 @@ End Sub
 ' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    ' Add headers, cookies, etc to `Request` before it is executed
-    ' (Leave blank to pass Request through unmodified)
     If Me.IsAuthenticated Then
         Me.RequestCount = Me.RequestCount + 1
         Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -116,84 +114,127 @@ End Sub
 ' @param in|out {String} Curl
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
-    ' e.g. Add flags to cURL
+    ' http://curl.haxx.se/docs/manpage.html#--digest
+    Curl = Curl & " --digest --user " & Me.Username & ":" & Me.Password
 End Sub
 
+''
+' Create digest header for given Client and Request
+'
+' @internal
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @return {String}
+' --------------------------------------------- '
 Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
-    Dim Uri As String
-    Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
+    Dim auth_Uri As String
+    auth_Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
 
-    CreateHeader = "Digest" & _
-        " username=""" & Me.Username & """" & _
-        ", realm=""" & Me.Realm & """" & _
-        ", nonce=""" & Me.ServerNonce & """" & _
-        ", uri=""" & Uri & """" & _
-        ", qop=" & qop & _
-        ", nc=" & FormattedRequestCount & _
-        ", cnonce=""" & Me.ClientNonce & """" & _
-        ", response=""" & CalculateResponse(Client, Request) & """" & _
-        ", opaque=""" & Me.Opaque & """"
+    CreateHeader = "Digest " & _
+        "username=""" & Me.Username & """, " & _
+        "realm=""" & Me.Realm & """, " & _
+        "nonce=""" & Me.ServerNonce & """, " & _
+        "uri=""" & auth_Uri & """, " & _
+        "qop=" & auth_Qop & ", " & _
+        "nc=" & web_FormattedRequestCount & ", " & _
+        "cnonce=""" & Me.ClientNonce & """, " & _
+        "response=""" & web_CalculateResponse(Client, Request) & """, " & _
+        "opaque=""" & Me.Opaque & """"
         
     WebHelpers.LogDebug CreateHeader, "DigestAuthenticator.CreateHeader"
 End Function
 
-Public Function CalculateResponse(Client As WebClient, Request As WebRequest) As String
-    Dim HA1 As String
-    Dim HA2 As String
-    Dim Uri As String
-    Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
-    
-    HA1 = CalculateHA1
-    HA2 = CalculateHA2(WebHelpers.MethodToName(Request.Method), Uri)
-    
-    CalculateResponse = WebHelpers.MD5(HA1 & ":" & Me.ServerNonce & ":" & FormattedRequestCount & ":" & Me.ClientNonce & ":" & qop & ":" & HA2)
-End Function
-
+''
 ' Extract authentication information from 401 response headers
+'
+' @internal
+' @param {WebResponse} Response
+' --------------------------------------------- '
 Public Sub ExtractAuthenticateInformation(Response As WebResponse)
-    Dim Header As Dictionary
-    For Each Header In Response.Headers
+    Dim auth_Header As Dictionary
+    For Each auth_Header In Response.Headers
         ' Find authentication header
-        If Header("key") = "WWW-Authenticate" Then
+        If auth_Header("key") = "WWW-Authenticate" Then
             ' Make sure using Digest authentication
-            If Left(Header("value"), 6) = "Digest" Then
-                Dim Lines As Variant
-                Lines = Split(Mid$(Header("value"), 7), vbCrLf)
+            If VBA.Left$(auth_Header("value"), 6) = "Digest" Then
+                Dim auth_Lines As Variant
+                auth_Lines = VBA.Split(VBA.Mid$(auth_Header("value"), 7), vbCrLf)
                 
-                Dim i As Integer
-                Dim Key As String
-                Dim Value As String
-                For i = LBound(Lines) To UBound(Lines)
-                    Key = LCase(Trim(Mid$(Lines(i), 1, InStr(1, Lines(i), "=") - 1)))
-                    Value = Trim(Mid$(Lines(i), InStr(1, Lines(i), "=") + 1, Len(Lines(i))))
+                Dim auth_i As Integer
+                Dim auth_Key As String
+                Dim auth_Value As String
+                For auth_i = LBound(auth_Lines) To UBound(auth_Lines)
+                    auth_Key = VBA.LCase$(VBA.Trim$(VBA.Mid$(auth_Lines(auth_i), 1, VBA.InStr(1, auth_Lines(auth_i), "=") - 1)))
+                    auth_Value = VBA.Trim$(VBA.Mid$(auth_Lines(auth_i), VBA.InStr(1, auth_Lines(auth_i), "=") + 1, VBA.Len(auth_Lines(auth_i))))
                     
                     ' Remove quotes and trailing comma
-                    Value = Replace(Value, """", "")
-                    If Right(Value, 1) = "," Then Value = Left(Value, Len(Value) - 1)
+                    auth_Value = VBA.Replace(auth_Value, """", "")
+                    If VBA.Right$(auth_Value, 1) = "," Then auth_Value = VBA.Left$(auth_Value, VBA.Len(auth_Value) - 1)
                     
                     ' Find realm, nonce, and opaque
-                    If Key = "realm" Then Me.Realm = Value
-                    If Key = "nonce" Then Me.ServerNonce = Value
-                    If Key = "opaque" Then Me.Opaque = Value
-                Next i
+                    If auth_Key = "realm" Then Me.Realm = auth_Value
+                    If auth_Key = "nonce" Then Me.ServerNonce = auth_Value
+                    If auth_Key = "opaque" Then Me.Opaque = auth_Value
+                Next auth_i
                 
                 WebHelpers.LogDebug "realm=" & Me.Realm & ", nonce=" & Me.ServerNonce & ", opaque=" & Me.Opaque, "DigestAuthenticator.ExtractAuthenticateInformation"
             End If
             
             Exit Sub
         End If
-    Next Header
+    Next auth_Header
 End Sub
 
-Public Function CalculateHA1() As String
-    CalculateHA1 = WebHelpers.MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
+' ============================================= '
+' Private Methods
+' ============================================= '
+
+''
+' Calculate digest response fro given Client and Request
+'
+' @internal
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @return {String}
+' --------------------------------------------- '
+Private Function web_CalculateResponse(web_Client As WebClient, web_Request As WebRequest) As String
+    Dim auth_HA1 As String
+    Dim auth_HA2 As String
+    Dim auth_Uri As String
+    
+    auth_Uri = WebHelpers.UrlParts(web_Client.GetFullUrl(web_Request))("Path")
+    auth_HA1 = web_CalculateHA1
+    auth_HA2 = web_CalculateHA2(WebHelpers.MethodToName(web_Request.Method), auth_Uri)
+    
+    web_CalculateResponse = WebHelpers.MD5(auth_HA1 & ":" & Me.ServerNonce & ":" & web_FormattedRequestCount & ":" & Me.ClientNonce & ":" & auth_Qop & ":" & auth_HA2)
 End Function
 
-Public Function CalculateHA2(Method As String, Uri As String) As String
-    CalculateHA2 = WebHelpers.MD5(Method & ":" & Uri)
+''
+' Calculate HA1 portion of digest response
+'
+' @internal
+' @return {String}
+' --------------------------------------------- '
+Private Function web_CalculateHA1() As String
+    web_CalculateHA1 = WebHelpers.MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
 End Function
 
+''
+' Calculate HA1 portion of digest response
+'
+' @internal
+' @return {String}
+' --------------------------------------------- '
+Private Function web_CalculateHA2(web_Method As String, web_Uri As String) As String
+    web_CalculateHA2 = WebHelpers.MD5(web_Method & ":" & web_Uri)
+End Function
+
+''
 ' Pad request count to 8 places
-Public Function FormattedRequestCount() As String
-    FormattedRequestCount = Right("00000000" & Me.RequestCount, 8)
+'
+' @internal
+' @return {String}
+' --------------------------------------------- '
+Private Function web_FormattedRequestCount() As String
+    web_FormattedRequestCount = Right("00000000" & Me.RequestCount, 8)
 End Function

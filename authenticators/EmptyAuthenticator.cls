@@ -28,7 +28,6 @@ Option Explicit
 ''
 ' Setup authenticator
 ' --------------------------------------------- '
-
 Public Sub Setup()
     ' Define any user-specific variables needed for authentication
 End Sub
