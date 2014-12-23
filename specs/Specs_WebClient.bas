@@ -70,23 +70,6 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("form")("message")).ToEqual "Howdy!"
     End With
     
-    With Specs.It("Execute should use Basic Authentication")
-        Set Request = New WebRequest
-        Request.Resource = "basic-auth/{user}/{password}"
-        Request.AddUrlSegment "user", "Tim"
-        Request.AddUrlSegment "password", "Secret123"
-        
-        Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual WebStatusCode.Unauthorized
-        
-        Client.Username = "Tim"
-        Client.Password = "Secret123"
-        
-        Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual 200
-        .Expect(Response.Data("authenticated")).ToEqual True
-    End With
-    
     ' GetJSON
     ' --------------------------------------------- '
     With Specs.It("should GetJSON")

@@ -49,8 +49,6 @@ Private web_pAutoProxyDomain As String
 Public BaseUrl As String
 Public Authenticator As IWebAuthenticator
 Public TimeoutMs As Long
-Public Username As String
-Public Password As String
 Public ProxyUsername As String
 Public ProxyPassword As String
 Public ProxyBypassList As String
@@ -277,12 +275,6 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
         web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PRECONFIG
     End If
     
-    ' TODO: Move to BasicAuthenticator
-    If Me.Username <> "" Then
-        web_Http.SetCredentials Me.Username, Me.Password, web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER
-        Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
-    End If
-    
     ' Set headers on http request (after open)
     Dim web_KeyValue As Dictionary
     For Each web_KeyValue In Request.Headers
@@ -340,12 +332,6 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
         If Me.ProxyUsername <> "" Then
             web_Curl = web_Curl & " --proxy-user " & Me.ProxyUsername & ":" & Me.ProxyPassword
         End If
-    End If
-    
-    ' Setup Basic authentication
-    If Me.Username <> "" Then
-        web_Curl = web_Curl & " --user " & Me.Username & ":" & Me.Password
-        Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
     End If
     
     ' Setup authenticator

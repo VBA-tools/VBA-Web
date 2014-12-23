@@ -76,6 +76,7 @@ Specs = Array( _
 Dim AuthSpecs
 AuthSpecs = Array( _
   "Specs_IWebAuthenticator.bas", _
+  "Specs_HttpBasicAuthenticator.bas", _
   "Specs_DigestAuthenticator.bas", _
   "Specs_GoogleAuthenticator.bas", _
   "Specs_OAuth1Authenticator.bas", _
