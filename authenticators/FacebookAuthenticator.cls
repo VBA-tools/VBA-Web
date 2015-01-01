@@ -239,7 +239,7 @@ Private Function TokenRequest() As WebRequest
 End Function
 
 Private Function OAuthIsComplete(IE As Object) As Boolean
-    If Not IE.Busy And IE.readyState = 4 Then
+    If Not IE.Busy And IE.ReadyState = 4 Then
         If OAuthIsSuccessful(IE) Or OAuthIsDenied(IE) Then
             OAuthIsComplete = True
         End If

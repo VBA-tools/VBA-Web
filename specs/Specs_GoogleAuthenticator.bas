@@ -26,29 +26,29 @@ Public Function Specs() As SpecSuite
         Secret = InputBox("Google Client Secret")
     End If
     Auth.Setup Id, Secret
-    
+
     With Specs.It("should login")
         Auth.Login
-        .Expect(Auth.Token).ToNotBeUndefined
+        .Expect(Auth.AuthorizationCode).ToNotEqual ""
     End With
-    
+
     With Specs.It("should skip login if API key is used")
-        Auth.Token = ""
-        Auth.APIKey = "abc"
+        Auth.Logout
+        Auth.ApiKey = "abc"
         Auth.Login
-        .Expect(Auth.Token).ToEqual ""
+        .Expect(Auth.AuthorizationCode).ToEqual ""
     End With
     
-    With Specs.It("should add enabled scopes to login url")
+    With Specs.It("should add scopes to login url")
+        Auth.AddScope "analytics"
         Auth.AddScope "http://new_scope"
-        Auth.EnableScope "analytics"
         
         Dim Parts As Dictionary
-        Set Parts = WebHelpers.UrlParts(Auth.LoginUrl)
+        Set Parts = WebHelpers.UrlParts(Auth.GetLoginUrl)
         Dim Scope As String
         Scope = WebHelpers.UrlDecode(Parts("Querystring"))
         Scope = Mid$(Scope, InStr(1, Scope, "scope") + 6)
-        .Expect(Scope).ToEqual "https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/userinfo.email http://new_scope"
+        .Expect(Scope).ToEqual "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/analytics http://new_scope"
     End With
     
     InlineRunner.RunSuite Specs

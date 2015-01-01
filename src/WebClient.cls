@@ -381,6 +381,23 @@ Public Function GetFullUrl(Request As WebRequest) As String
     GetFullUrl = WebHelpers.JoinUrl(Me.BaseUrl, Request.FormattedResource)
 End Function
 
+''
+' Clone client
+'
+' @return {WebClient}
+' --------------------------------------------- '
+Public Function Clone() As WebClient
+    Set Clone = New WebClient
+    Clone.BaseUrl = Me.BaseUrl
+    Clone.EnableAutoProxy = Me.EnableAutoProxy
+    Clone.ProxyServer = Me.ProxyServer
+    Clone.ProxyBypassList = Me.ProxyBypassList
+    Clone.ProxyUsername = Me.ProxyUsername
+    Clone.ProxyPassword = Me.ProxyPassword
+    Clone.TimeoutMs = Me.TimeoutMs
+    Set Clone.Authenticator = Me.Authenticator
+End Function
+
 ' ============================================= '
 ' Private Methods
 ' ============================================= '

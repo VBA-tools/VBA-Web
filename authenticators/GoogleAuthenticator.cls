@@ -17,29 +17,33 @@ Attribute VB_Exposed = True
 ' - https://developers.google.com/accounts/docs/OAuth2#installed
 ' - https://developers.google.com/accounts/docs/OAuth2InstalledApp
 '
-' Register for Client Id and Client Secret:
-' https://console.developers.google.com/
+' Developers:
+' - Register for Client Id and Client Secret: https://console.developers.google.com/
+' - List of available scopes: https://developers.google.com/oauthplayground/
 '
-' List of available scopes:
-' https://developers.google.com/oauthplayground/
+' Errors:
+' 11040 / 80042b20 / -2147210464 - Error logging in
+' 11041 / 80042b21 / -2147210463 - Error retreiving token
 '
 ' @example
 '
-' Dim Auth As New GoogleAuthenticator
-' Auth.Setup "Your Client Id", "Your Client Secret"
+'   Dim Auth As New GoogleAuthenticator
+'   Auth.Setup "Your Client Id", "Your Client Secret"
 '
-' ' Enable analytics scope and add YouTube scope
-' Auth.EnableScope("analytics")
-' Auth.AddScope("https://www.googleapis.com/auth/yt-analytics.readonly")
+'   ' Add Google Analytics and Gmail scopes
+'   ' (https://www.googleapis.com/auth/ is added automatically when no domain is specified)
+'   Auth.AddScope "analytics" ' -> https://www.googleapis.com/auth/analytics
+'   Auth.AddScope "https://mail.google.com/"
 '
-' ' Open up Google login
-' Auth.Login
+'   ' Manually open up Google login
+'   ' (called automatically on first request otherwise)
+'   Auth.Login
 '
-' ' or - Use your API key to access your own information
-' Auth.ApiKey = "Your Api Key"
+'   ' alternatively, use your API key to bypass login process
+'   Auth.ApiKey = "Your API Key"
 '
-' ' Add authenticator to client
-' Set Client.Authenticator = Auth
+'   ' Add authenticator to client
+'   Set Client.Authenticator = Auth
 '
 ' @implements: IWebAuthenticator v4.*
 ' @author: tim.hall.engr@gmail.com
@@ -49,10 +53,20 @@ Attribute VB_Exposed = True
 Implements IWebAuthenticator
 Option Explicit
 
-Private Const AuthorizationUrl As String = "https://accounts.google.com/o/oauth2/auth"
-Private Const RedirectUri As String = "urn:ietf:wg:oauth:2.0:oob"
-Private pAuthorizationCode As String
-Private pToken As String
+Private Declare Function ShellExecute _
+  Lib "shell32.dll" Alias "ShellExecuteA" ( _
+  ByVal hWnd As Long, _
+  ByVal Operation As String, _
+  ByVal Filename As String, _
+  Optional ByVal Parameters As String, _
+  Optional ByVal Directory As String, _
+  Optional ByVal WindowStyle As Long = vbMinimizedFocus _
+  ) As Long
+
+Private Const auth_AuthorizationUrl As String = "https://accounts.google.com/o/oauth2/auth"
+Private Const auth_RedirectUri As String = "urn:ietf:wg:oauth:2.0:oob"
+
+Private auth_pScopes As Variant
 
 ' --------------------------------------------- '
 ' Properties
@@ -60,240 +74,159 @@ Private pToken As String
 
 Public ClientId As String
 Public ClientSecret As String
-Public APIKey As String
-Public Scopes As Dictionary
-Public LoginByDefault As Boolean
-
-Public Property Get AuthorizationCode() As String
-    If pAuthorizationCode = "" And LoginByDefault Then
-        Login
-    End If
-    
-    AuthorizationCode = pAuthorizationCode
-End Property
-Public Property Let AuthorizationCode(Value As String)
-    pAuthorizationCode = Value
-End Property
-
-Public Property Get LoginUrl() As String
-    ' Use Request for Url helpers
-    Dim Request As New WebRequest
-    Request.Resource = AuthorizationUrl
-    
-    Request.AddQuerystringParam "redirect_uri", RedirectUri
-    Request.AddQuerystringParam "client_id", Me.ClientId
-    Request.AddQuerystringParam "response_type", "code"
-    Request.AddQuerystringParam "access_type", "offline"
-    Request.AddQuerystringParam "approval_prompt", "force"
-    
-    Dim ScopeString As String
-    If Not Me.Scopes Is Nothing Then
-        Dim Scope As Variant
-        Dim UrlParts As Dictionary
-        For Each Scope In Me.Scopes.Keys()
-            If Me.Scopes(Scope) Then
-                Set UrlParts = WebHelpers.UrlParts(CStr(Scope))
-                If UrlParts("Protocol") = "" Then
-                    Scope = "https://www.googleapis.com/auth/" & Scope
-                End If
-                
-                If ScopeString = "" Then
-                    ScopeString = Scope
-                Else
-                    ScopeString = ScopeString & " " & Scope
-                End If
-            End If
-        Next Scope
-    End If
-    
-    Request.AddQuerystringParam "scope", ScopeString
-    
-    LoginUrl = Request.FormattedResource
-    Set Request = Nothing
-End Property
-
-Public Property Get Token() As String
-    On Error GoTo Cleanup
-    
-    If pToken = "" And Me.APIKey = "" Then
-        Dim Client As New WebClient
-        Dim Response As WebResponse
-        
-        ' Request a new token
-        Client.BaseUrl = "https://accounts.google.com/"
-        Set Response = Client.Execute(TokenRequest)
-        
-        ' Store token if successful, otherwise throw error
-        If Response.StatusCode = Ok Then
-            Dim Data As Object
-            Set Data = WebHelpers.ParseJson(Response.Content)
-            pToken = Data("access_token")
-            WebHelpers.LogDebug "Received Token: " & pToken, "GoogleAuthenticator.Token"
-        Else
-            WebHelpers.LogError "Failed to load token: " & Response.StatusCode & " - " & Response.Content, "GoogleAuthenticator.Token"
-            Err.Raise vbObjectError + Response.StatusCode, _
-                Description:="Failed to load Bearer Token: " & Response.StatusCode & " - " & Response.Content
-        End If
-    End If
-    
-    ' Return token
-    Token = pToken
-    
-Cleanup:
-    
-    If Not Client Is Nothing Then Set Client = Nothing
-    If Not Response Is Nothing Then Set Response = Nothing
-    
-    ' Rethrow error
-    If Err.Number <> 0 Then Err.Raise Err.Number, Description:=Err.Description
-    
-End Property
-Public Property Let Token(Value As String)
-    pToken = Value
-End Property
+Public ApiKey As String
+Public AuthorizationCode As String
+Public Token As String
+Public Scopes As Variant
 
 ' ============================================= '
 ' Public Methods
 ' ============================================= '
 
 ''
-' Setup authenticator
+' Setup
 ' --------------------------------------------- '
-
 Public Sub Setup(ClientId As String, ClientSecret As String)
     Me.ClientId = ClientId
     Me.ClientSecret = ClientSecret
 End Sub
 
 ''
-' Login to Google
+' Login
 ' --------------------------------------------- '
-
-Public Sub Login(Optional APIKey As String = "")
-    On Error GoTo Cleanup
+Public Sub Login()
+    On Error GoTo auth_ErrorHandling
     
-    Dim IE As Object
-    Dim Completed As Boolean
-    Dim ErrorCode As String
-    Dim Code As String
-    
-    Completed = True
-    If APIKey <> "" Then
-        Me.APIKey = APIKey
-    ElseIf Me.APIKey = "" Then
-        Completed = False
-        Set IE = CreateObject("InternetExplorer.Application")
-        With IE
-            .Silent = True
-            .AddressBar = False
-            
-            .Navigate LoginUrl
-            .Visible = True
-            
-            Do While Not OAuthIsComplete(IE)
-                ' Wait asynchronously for login to complete
-                DoEvents
-            Loop
-            
-            Completed = True
-            If OAuthIsDenied(IE) Then
-                ' Login failed
-                WebHelpers.LogError "Login failed or was denied", "GoogleAuthenticator.Login"
-                Err.Raise vbObjectError + 1, "OAuthDialog", "Login failed or was denied"
-            Else
-                Code = OAuthExtractCode(IE)
-                If Left(Code, 5) = "Error" Then
-                    WebHelpers.LogError "Login error: " & Code, "GoogleAuthenticator.Login"
-                    Err.Raise vbObjectError + 1, "OAuthDialog", Code
-                Else
-                    ' Success!
-                    Me.AuthorizationCode = Code
-                    WebHelpers.LogDebug "Login success: " & Code, "GoogleAuthenticator.Login"
-                    
-                    ' Temporarily assign token to force request
-                    Dim Token As String
-                    Token = Me.Token
-                End If
-            End If
-        End With
+    ' No need to login if API key, authorization code, or token have been set
+    If Me.ApiKey <> "" Or Me.AuthorizationCode <> "" Or Me.Token <> "" Then
+        Exit Sub
     End If
     
-Cleanup:
-
-    If Not IE Is Nothing Then: IE.Quit
-    Set IE = Nothing
+#If Mac Then
     
-    If Not Completed Then
-        WebHelpers.LogError "Login did not complete", "GoogleAuthenticator.Login"
-        Err.Raise vbObjectError + 1, "OAuthDialog", "Login did not complete"
+    Dim auth_Result As web_ShellResult
+    Dim auth_Response As String
+    
+    auth_Result = WebHelpers.ExecuteInShell("open " & WebHelpers.PrepareTextForShell(Me.GetLoginUrl))
+    
+    If auth_Result.web_ExitCode <> 0 Then
+        Err.Raise 11040 + vbObjectError, "OAuthDialog", "Unable to open browser"
+    End If
+    
+    auth_Response = VBA.InputBox("Opening Google Login..." & vbNewLine & vbNewLine & _
+        "After you've logged in, copy the code from the browser and paste it here to authorize this application", _
+        Title:="Logging in...")
+    
+    If auth_Response = "" Then
+        Err.Raise 11040 + vbObjectError, "OAuthDialog", "Login was cancelled"
+    End If
+    
+    ' Success!
+    Me.AuthorizationCode = auth_Response
+    
+#Else
+
+    ' Windows login uses IE to automate retrieving authorization code for user
+    On Error GoTo auth_Cleanup
+    
+    Dim auth_IE As Object
+    Dim auth_Completed As Boolean
+    
+    auth_Completed = False
+    
+    Set auth_IE = CreateObject("InternetExplorer.Application")
+    auth_IE.Silent = True
+    auth_IE.AddressBar = False
+    auth_IE.Navigate Me.GetLoginUrl
+    auth_IE.Visible = True
+        
+    ' Wait for login to complete
+    Do While Not auth_LoginIsComplete(auth_IE)
+        DoEvents
+    Loop
+    auth_Completed = True
+    
+    If auth_LoginIsDenied(auth_IE) Then
+        Err.Raise 11040 + vbObjectError, "OAuthDialog", "Login failed or was denied"
+    ElseIf auth_LoginIsError(auth_IE) Then
+        Err.Raise 11040 + vbObjectError, "OAuthDialog", "Login error: " & auth_LoginExtractError(auth_IE)
+    End If
+    
+    ' Success!
+    Me.AuthorizationCode = auth_LoginExtractCode(auth_IE)
+    
+auth_Cleanup:
+
+    On Error GoTo auth_ErrorHandling
+    
+    If Not auth_IE Is Nothing Then: auth_IE.Quit
+    Set auth_IE = Nothing
+    
+    If Not auth_Completed Then
+        Err.Raise 11040 + vbObjectError, "GoogleAuthenticator.Login", "Login did not complete"
     ElseIf Err.Number <> 0 Then
-        ' Rethrow error
         Err.Raise Err.Number, Err.Source, Err.Description
     End If
+    
+#End If
+    
+    WebHelpers.LogDebug "Login succeeded: " & Me.AuthorizationCode, "GoogleAuthenticator.Login"
+    
+    Exit Sub
+
+auth_ErrorHandling:
+    
+    Dim auth_ErrorDescription As String
+    
+    auth_ErrorDescription = "An error occurred while logging in" & vbNewLine
+    If Err.Number - vbObjectError <> 11040 Then
+        auth_ErrorDescription = auth_ErrorDescription & _
+            Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
+    End If
+    auth_ErrorDescription = auth_ErrorDescription & Err.Description
+
+    WebHelpers.LogError auth_ErrorDescription, "GoogleAuthenticator.Login", 11040 + vbObjectError
+    Err.Raise 11040 + vbObjectError, "GoogleAuthenticator.Login", auth_ErrorDescription
 End Sub
 
 ''
-' Logout of Google
+' Logout
 ' --------------------------------------------- '
-
 Public Sub Logout()
-    Me.APIKey = ""
     Me.AuthorizationCode = ""
     Me.Token = ""
 End Sub
 
 ''
-' Add scope to scopes to authorized
+' Add scope to authorized scopes
 '
-' To get a list of available scopes, visit https://developers.google.com/oauthplayground/
+' - To get a list of available scopes, visit https://developers.google.com/oauthplayground/
+' - As a shortcut, if a domain isn't given, https://www.googleapis.com/auth/ is automatically added
 '
 ' @example
-' (YouTube analytics)
-' Auth.AddScope("https://www.googleapis.com/auth/yt-analytics.readonly")
+' Auth.AddScope "yt-analytics.readonly" ' -> https://www.googleapis.com/auth/yt-analytics.readonly
+' Auth.AddScope "https://mail.google.com/"
 '
 ' @param {String} Scope
 ' --------------------------------------------- '
-
 Public Sub AddScope(Scope As String)
-    Dim Scopes As Dictionary
-    Set Scopes = Me.Scopes
+    Dim auth_Scopes As Variant
     
-    If Scopes.Exists(Scope) Then
-        Scopes(Scope) = True
+    ' Prepare scopes array
+    auth_Scopes = Me.Scopes
+    If VBA.IsEmpty(auth_Scopes) Then
+        ReDim auth_Scopes(0 To 0)
     Else
-        Scopes.Add Scope, True
+        ReDim Preserve auth_Scopes(0 To UBound(auth_Scopes) + 1)
     End If
     
-    Set Me.Scopes = Scopes
-End Sub
-
-''
-' Enable scope to add to scopes to authorized
-'
-' Available scopes
-' - calendar
-' - https://www.google.com/m8/feeds/
-' - analytics
-' - coordinate
-' - userinfo.email
-' - userinfo.profile
-' - https://spreadsheets.google.com/feeds/
-' - urlshortener
-'
-' @param {String} Scope
-' --------------------------------------------- '
-
-Public Sub EnableScope(Scope As String)
-    Dim Scopes As Dictionary
-    Set Scopes = Me.Scopes
-    
-    If Scopes.Exists(Scope) Then
-        Scopes(Scope) = True
-    Else
-        Scopes.Add Scope, True
+    ' Add standard domain if it hasn't been set
+    If VBA.Left$(Scope, 4) <> "http" And Not VBA.InStr(1, Scope, "://") Then
+        Scope = "https://www.googleapis.com/auth/" & Scope
     End If
     
-    Set Me.Scopes = Scopes
+    auth_Scopes(UBound(auth_Scopes)) = Scope
+    Me.Scopes = auth_Scopes
 End Sub
 
 ''
@@ -303,12 +236,18 @@ End Sub
 ' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    If Me.APIKey <> "" Then
-        Request.AddQuerystringParam "key", Me.APIKey
-        WebHelpers.LogDebug "Login with key: " & WebHelpers.Obfuscate(Me.APIKey), "GoogleAuthenticator.BeforeExecute"
+    If Me.ApiKey <> "" Then
+        Request.AddQuerystringParam "key", Me.ApiKey
     Else
+        If Me.Token = "" Then
+            If Me.AuthorizationCode = "" Then
+                Me.Login
+            End If
+            
+            Me.Token = Me.GetToken(Client)
+        End If
+    
         Request.AddHeader "Authorization", "Bearer " & Me.Token
-        WebHelpers.LogDebug "Login with token: " & WebHelpers.Obfuscate(Me.Token), "GoogleAuthenticator.BeforeExecute"
     End If
 End Sub
 
@@ -320,7 +259,7 @@ End Sub
 ' @param in|out {WebResponse} Response to request
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
-
+    ' e.g. Handle 401 Unauthorized or other issues
 End Sub
 
 ''
@@ -345,119 +284,159 @@ Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Reque
     ' e.g. Add flags to cURL
 End Sub
 
+''
+' Get token (for current AuthorizationCode)
+'
+' @internal
+' @param {WebClient} Client
+' @return {String}
+' --------------------------------------------- '
+Public Function GetToken(auth_Client As WebClient) As String
+    On Error GoTo auth_Cleanup
+    
+    Dim auth_TokenClient As WebClient
+    Dim auth_Request As New WebRequest
+    Dim auth_Body As New Dictionary
+    Dim auth_Response As WebResponse
+    
+    ' Clone client (to avoid accidental interactions)
+    Set auth_TokenClient = auth_Client.Clone
+    Set auth_TokenClient.Authenticator = Nothing
+    auth_TokenClient.BaseUrl = "https://accounts.google.com/"
+    
+    ' Prepare token request
+    auth_Request.Resource = "o/oauth2/token"
+    auth_Request.Method = WebMethod.HttpPost
+    auth_Request.RequestFormat = WebFormat.FormUrlEncoded
+    auth_Request.ResponseFormat = WebFormat.Json
+    
+    auth_Body.Add "code", Me.AuthorizationCode
+    auth_Body.Add "client_id", Me.ClientId
+    auth_Body.Add "client_secret", Me.ClientSecret
+    auth_Body.Add "redirect_uri", auth_RedirectUri
+    auth_Body.Add "grant_type", "authorization_code"
+    Set auth_Request.Body = auth_Body
+    
+    Set auth_Response = auth_TokenClient.Execute(auth_Request)
+    
+    If auth_Response.StatusCode = WebStatusCode.Ok Then
+        GetToken = auth_Response.Data("access_token")
+    Else
+        Err.Raise 11041 + vbObjectError, "GoogleAuthenticator.GetToken", _
+            auth_Response.StatusCode & ": " & auth_Response.Content
+    End If
+    
+auth_Cleanup:
+    
+    If Not auth_TokenClient Is Nothing Then: Set auth_TokenClient = Nothing
+    If Not auth_Request Is Nothing Then: Set auth_Request = Nothing
+    If Not auth_Response Is Nothing Then: Set auth_Response = Nothing
+    
+    ' Rethrow error
+    If Err.Number <> 0 Then
+        Dim auth_ErrorDescription As String
+        
+        auth_ErrorDescription = "An error occurred while retrieving token" & vbNewLine
+        If Err.Number - vbObjectError <> 11041 Then
+            auth_ErrorDescription = auth_ErrorDescription & _
+                Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
+        End If
+        auth_ErrorDescription = auth_ErrorDescription & Err.Description
+    
+        WebHelpers.LogError auth_ErrorDescription, "GoogleAuthenticator.GetToken", 11041 + vbObjectError
+        Err.Raise 11041 + vbObjectError, "GoogleAuthenticator.GetToken", auth_ErrorDescription
+    End If
+End Function
+
+''
+' Get login url for current client and scopes
+'
+' @internal
+' @return {String}
+' --------------------------------------------- '
+Public Function GetLoginUrl() As String
+    ' Use Request for Url helpers
+    Dim auth_Request As New WebRequest
+    auth_Request.Resource = auth_AuthorizationUrl
+    
+    auth_Request.AddQuerystringParam "redirect_uri", auth_RedirectUri
+    auth_Request.AddQuerystringParam "client_id", Me.ClientId
+    auth_Request.AddQuerystringParam "response_type", "code"
+    auth_Request.AddQuerystringParam "access_type", "offline"
+    auth_Request.AddQuerystringParam "approval_prompt", "force"
+    
+    If Not VBA.IsEmpty(Me.Scopes) Then
+        auth_Request.AddQuerystringParam "scope", VBA.Join(Me.Scopes, " ")
+    Else
+        auth_Request.AddQuerystringParam "scope", ""
+    End If
+    
+    GetLoginUrl = auth_Request.FormattedResource
+    Set auth_Request = Nothing
+End Function
+
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
 
-Private Function TokenRequest() As WebRequest
-    Set TokenRequest = New WebRequest
-    TokenRequest.Resource = "o/oauth2/token"
-    TokenRequest.Method = WebMethod.HttpPost
-    TokenRequest.Format = WebFormat.FormUrlEncoded
-    
-    Dim Body As New Dictionary
-    Body.Add "code", Me.AuthorizationCode
-    Body.Add "client_id", Me.ClientId
-    Body.Add "client_secret", Me.ClientSecret
-    Body.Add "redirect_uri", RedirectUri
-    Body.Add "grant_type", "authorization_code"
-    Set TokenRequest.Body = Body
-End Function
-
-Private Function OAuthIsComplete(IE As Object) As Boolean
-    If Not IE.Busy And IE.readyState = 4 Then
-        OAuthIsComplete = OAuthIsApproval(IE) Or OAuthIsError(IE)
+Private Function auth_LoginIsComplete(auth_IE As Object) As Boolean
+    If Not auth_IE.Busy And auth_IE.ReadyState = 4 Then
+        auth_LoginIsComplete = auth_LoginIsApproval(auth_IE) Or auth_LoginIsError(auth_IE)
     End If
 End Function
 
-Private Function OAuthIsApproval(IE As Object) As Boolean
-    Dim UrlParts As Dictionary
-    Set UrlParts = WebHelpers.UrlParts(IE.LocationURL)
+Private Function auth_LoginIsApproval(auth_IE As Object) As Boolean
+    Dim auth_UrlParts As Dictionary
+    Set auth_UrlParts = WebHelpers.UrlParts(auth_IE.LocationURL)
     
-    OAuthIsApproval = UrlParts("Uri") = "/o/oauth2/approval"
+    auth_LoginIsApproval = auth_UrlParts("Path") = "/o/oauth2/approval"
 End Function
 
-Private Function OAuthIsDenied(IE As Object) As Boolean
-    Dim UrlParts As Dictionary
-    Set UrlParts = WebHelpers.UrlParts(IE.LocationURL)
-    
-    If OAuthIsApproval(IE) Then
-        Dim Document As Object
-        Set Document = IE.Document
-        
-        Dim Element As Object
-        For Each Element In Document.Body.all
-            If Element.nodeName = "P" And Element.Id = "access_denied" Then
-                OAuthIsDenied = True
+Private Function auth_LoginIsDenied(auth_IE As Object) As Boolean
+    Dim auth_Document As Object
+    Dim auth_Element As Object
+
+    If auth_LoginIsApproval(auth_IE) Then
+        For Each auth_Element In auth_IE.Document.Body.all
+            If VBA.UCase(auth_Element.NodeName) = "P" And auth_Element.Id = "access_denied" Then
+                auth_LoginIsDenied = True
                 Exit Function
             End If
-        Next Element
+        Next auth_Element
     End If
 End Function
 
-Private Function OAuthIsError(IE As Object) As Boolean
-    Dim Document As Object
-    Set Document = IE.Document
-    If Not Document Is Nothing Then
-        OAuthIsError = InStr(1, Document.Body.innerHTML, "errorCode") > 0
-    End If
+Private Function auth_LoginIsError(auth_IE As Object) As Boolean
+    auth_LoginIsError = InStr(1, auth_IE.Document.Body.innerHTML, "errorCode") > 0
 End Function
 
-Private Function OAuthExtractCode(IE As Object) As String
-    If OAuthIsApproval(IE) Then
+Private Function auth_LoginExtractCode(auth_IE As Object) As String
+    Dim auth_Element As Object
+    
+    If auth_LoginIsApproval(auth_IE) Then
         ' Extract authorization code
-        Dim Document As Object
-        Dim Element As Object
-        
-        Set Document = IE.Document
-        For Each Element In Document.Body.all
-            If Element.nodeName = "INPUT" Then
-                OAuthExtractCode = Element.DefaultValue
+        For Each auth_Element In auth_IE.Document.Body.all
+            If VBA.UCase(auth_Element.NodeName) = "INPUT" Then
+                auth_LoginExtractCode = auth_Element.DefaultValue
                 Exit Function
             End If
-        Next Element
-    Else
-        ' Login error, extract error message
-        OAuthExtractCode = OAuthExtractError(IE)
+        Next auth_Element
     End If
 End Function
 
-Private Function OAuthExtractError(IE As Object) As String
-    Dim Document As Object
-    Dim Element As Object
+Private Function auth_LoginExtractError(auth_IE As Object) As String
+    Dim auth_Element As Object
     
-    Set Document = IE.Document
-    For Each Element In Document.Body.all
-        If Element.Id = "errorCode" Then
-            OAuthExtractError = Element.innerHTML
-        ElseIf Element.Id = "errorDescription" Then
-            OAuthExtractError = OAuthExtractError & ", " & Element.innerHTML
+    For Each auth_Element In auth_IE.Document.Body.all
+        If auth_Element.Id = "errorCode" Then
+            auth_LoginExtractError = auth_Element.innerHTML
+        ElseIf auth_Element.Id = "errorDescription" Then
+            auth_LoginExtractError = auth_LoginExtractError & ", " & auth_Element.innerHTML
             Exit Function
         End If
-    Next Element
+    Next auth_Element
 End Function
 
 Private Sub Class_Initialize()
-    ' Setup scopes
-    Dim ScopeKeys As Variant
-    Dim Scopes As New Dictionary
-    Dim Enabled As Boolean
-    Dim i As Integer
-    
-    ScopeKeys = Array( _
-        "calendar", _
-        "https://www.google.com/m8/feeds/", _
-        "analytics", _
-        "coordinate", _
-        "userinfo.email", _
-        "userinfo.profile", _
-        "https://spreadsheets.google.com/feeds/", _
-        "urlshortener" _
-    )
-    For i = LBound(ScopeKeys) To UBound(ScopeKeys)
-        ' Enable only email by default
-        Enabled = ScopeKeys(i) = "userinfo.email"
-        Scopes.Add ScopeKeys(i), Enabled
-    Next i
-    Set Me.Scopes = Scopes
+    Me.Scopes = Array("https://www.googleapis.com/auth/userinfo.email")
 End Sub
