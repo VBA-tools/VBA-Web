@@ -36,9 +36,11 @@ Public Password As String
 ' ============================================= '
 
 ''
-' Setup authenticator
+' Setup
+'
+' @param {String} Username
+' @param {String} Password
 ' --------------------------------------------- '
-
 Public Sub Setup(Username As String, Password As String)
     Me.Username = Username
     Me.Password = Password

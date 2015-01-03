@@ -64,6 +64,9 @@ Public Scopes As Variant
 
 ''
 ' Setup
+'
+' @param {String} ApplicationId
+' @param {String} ApplicationSecret
 ' --------------------------------------------- '
 Public Sub Setup(ApplicationId As String, ApplicationSecret As String)
     Me.ApplicationId = ApplicationId

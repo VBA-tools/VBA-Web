@@ -30,14 +30,6 @@ Private Const web_AUTOLOGONPOLICY_NEVER = 2
 ' ============================================= '
 
 ''
-' Setup authenticator
-' --------------------------------------------- '
-
-Public Sub Setup()
-    ' Define any user-specific variables needed for authentication
-End Sub
-
-''
 ' Hook for taking action before a request is executed
 '
 ' @param {WebClient} Client The client that is about to execute the request

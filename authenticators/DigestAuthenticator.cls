@@ -59,6 +59,9 @@ End Property
 
 ''
 ' Setup authenticator
+'
+' @param {String} Username
+' @param {String} Password
 ' --------------------------------------------- '
 Public Sub Setup(Username As String, Password As String)
     Me.Username = Username

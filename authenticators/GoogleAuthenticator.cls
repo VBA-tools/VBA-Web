@@ -73,6 +73,9 @@ Public Scopes As Variant
 
 ''
 ' Setup
+'
+' @param {String} ClientId
+' @param {String} ClientSecret
 ' --------------------------------------------- '
 Public Sub Setup(ClientId As String, ClientSecret As String)
     Me.ClientId = ClientId

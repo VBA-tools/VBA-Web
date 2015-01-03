@@ -46,6 +46,12 @@ Public Token As String
 ' Public Methods
 ' ============================================= '
 
+''
+' Setup
+'
+' @param {String} ConsumerKey
+' @param {String} ConsumerSecret
+' --------------------------------------------- '
 Public Sub Setup(ConsumerKey As String, ConsumerSecret As String)
     Me.ConsumerKey = ConsumerKey
     Me.ConsumerSecret = ConsumerSecret
