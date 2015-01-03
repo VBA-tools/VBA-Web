@@ -23,7 +23,7 @@ Attribute VB_Exposed = True
 '
 ' Errors:
 ' 11040 / 80042b20 / -2147210464 - Error logging in
-' 11041 / 80042b21 / -2147210463 - Error retreiving token
+' 11041 / 80042b21 / -2147210463 - Error retrieving token
 '
 ' @example
 '
@@ -53,20 +53,8 @@ Attribute VB_Exposed = True
 Implements IWebAuthenticator
 Option Explicit
 
-Private Declare Function ShellExecute _
-  Lib "shell32.dll" Alias "ShellExecuteA" ( _
-  ByVal hWnd As Long, _
-  ByVal Operation As String, _
-  ByVal Filename As String, _
-  Optional ByVal Parameters As String, _
-  Optional ByVal Directory As String, _
-  Optional ByVal WindowStyle As Long = vbMinimizedFocus _
-  ) As Long
-
 Private Const auth_AuthorizationUrl As String = "https://accounts.google.com/o/oauth2/auth"
-Private Const auth_RedirectUri As String = "urn:ietf:wg:oauth:2.0:oob"
-
-Private auth_pScopes As Variant
+Private Const auth_RedirectUrl As String = "urn:ietf:wg:oauth:2.0:oob"
 
 ' --------------------------------------------- '
 ' Properties
@@ -92,7 +80,7 @@ Public Sub Setup(ClientId As String, ClientSecret As String)
 End Sub
 
 ''
-' Login
+' Login to Google
 ' --------------------------------------------- '
 Public Sub Login()
     On Error GoTo auth_ErrorHandling
@@ -104,6 +92,7 @@ Public Sub Login()
     
 #If Mac Then
     
+    ' Mac login opens dialog and then user copy-paste's authorization code into InputBox
     Dim auth_Result As web_ShellResult
     Dim auth_Response As String
     
@@ -162,10 +151,10 @@ auth_Cleanup:
     If Not auth_IE Is Nothing Then: auth_IE.Quit
     Set auth_IE = Nothing
     
-    If Not auth_Completed Then
-        Err.Raise 11040 + vbObjectError, "GoogleAuthenticator.Login", "Login did not complete"
-    ElseIf Err.Number <> 0 Then
+    If Err.Number <> 0 Then
         Err.Raise Err.Number, Err.Source, Err.Description
+    ElseIf Not auth_Completed Then
+        Err.Raise 11040 + vbObjectError, "GoogleAuthenticator.Login", "Login did not complete"
     End If
     
 #End If
@@ -178,7 +167,7 @@ auth_ErrorHandling:
     
     Dim auth_ErrorDescription As String
     
-    auth_ErrorDescription = "An error occurred while logging in" & vbNewLine
+    auth_ErrorDescription = "An error occurred while logging in." & vbNewLine
     If Err.Number - vbObjectError <> 11040 Then
         auth_ErrorDescription = auth_ErrorDescription & _
             Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
@@ -291,7 +280,7 @@ End Sub
 ' @param {WebClient} Client
 ' @return {String}
 ' --------------------------------------------- '
-Public Function GetToken(auth_Client As WebClient) As String
+Public Function GetToken(Client As WebClient) As String
     On Error GoTo auth_Cleanup
     
     Dim auth_TokenClient As WebClient
@@ -300,7 +289,7 @@ Public Function GetToken(auth_Client As WebClient) As String
     Dim auth_Response As WebResponse
     
     ' Clone client (to avoid accidental interactions)
-    Set auth_TokenClient = auth_Client.Clone
+    Set auth_TokenClient = Client.Clone
     Set auth_TokenClient.Authenticator = Nothing
     auth_TokenClient.BaseUrl = "https://accounts.google.com/"
     
@@ -313,7 +302,7 @@ Public Function GetToken(auth_Client As WebClient) As String
     auth_Body.Add "code", Me.AuthorizationCode
     auth_Body.Add "client_id", Me.ClientId
     auth_Body.Add "client_secret", Me.ClientSecret
-    auth_Body.Add "redirect_uri", auth_RedirectUri
+    auth_Body.Add "redirect_uri", auth_RedirectUrl
     auth_Body.Add "grant_type", "authorization_code"
     Set auth_Request.Body = auth_Body
     
@@ -328,15 +317,15 @@ Public Function GetToken(auth_Client As WebClient) As String
     
 auth_Cleanup:
     
-    If Not auth_TokenClient Is Nothing Then: Set auth_TokenClient = Nothing
-    If Not auth_Request Is Nothing Then: Set auth_Request = Nothing
-    If Not auth_Response Is Nothing Then: Set auth_Response = Nothing
+    Set auth_TokenClient = Nothing
+    Set auth_Request = Nothing
+    Set auth_Response = Nothing
     
     ' Rethrow error
     If Err.Number <> 0 Then
         Dim auth_ErrorDescription As String
         
-        auth_ErrorDescription = "An error occurred while retrieving token" & vbNewLine
+        auth_ErrorDescription = "An error occurred while retrieving token." & vbNewLine
         If Err.Number - vbObjectError <> 11041 Then
             auth_ErrorDescription = auth_ErrorDescription & _
                 Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
@@ -349,7 +338,7 @@ auth_Cleanup:
 End Function
 
 ''
-' Get login url for current client and scopes
+' Get login url for current scopes
 '
 ' @internal
 ' @return {String}
@@ -359,7 +348,7 @@ Public Function GetLoginUrl() As String
     Dim auth_Request As New WebRequest
     auth_Request.Resource = auth_AuthorizationUrl
     
-    auth_Request.AddQuerystringParam "redirect_uri", auth_RedirectUri
+    auth_Request.AddQuerystringParam "redirect_uri", auth_RedirectUrl
     auth_Request.AddQuerystringParam "client_id", Me.ClientId
     auth_Request.AddQuerystringParam "response_type", "code"
     auth_Request.AddQuerystringParam "access_type", "offline"
@@ -397,7 +386,7 @@ Private Function auth_LoginIsDenied(auth_IE As Object) As Boolean
     Dim auth_Element As Object
 
     If auth_LoginIsApproval(auth_IE) Then
-        For Each auth_Element In auth_IE.Document.Body.all
+        For Each auth_Element In auth_IE.Document.Body.All
             If VBA.UCase(auth_Element.NodeName) = "P" And auth_Element.Id = "access_denied" Then
                 auth_LoginIsDenied = True
                 Exit Function
@@ -415,7 +404,7 @@ Private Function auth_LoginExtractCode(auth_IE As Object) As String
     
     If auth_LoginIsApproval(auth_IE) Then
         ' Extract authorization code
-        For Each auth_Element In auth_IE.Document.Body.all
+        For Each auth_Element In auth_IE.Document.Body.All
             If VBA.UCase(auth_Element.NodeName) = "INPUT" Then
                 auth_LoginExtractCode = auth_Element.DefaultValue
                 Exit Function
@@ -427,7 +416,7 @@ End Function
 Private Function auth_LoginExtractError(auth_IE As Object) As String
     Dim auth_Element As Object
     
-    For Each auth_Element In auth_IE.Document.Body.all
+    For Each auth_Element In auth_IE.Document.Body.All
         If auth_Element.Id = "errorCode" Then
             auth_LoginExtractError = auth_Element.innerHTML
         ElseIf auth_Element.Id = "errorDescription" Then
