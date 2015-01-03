@@ -41,7 +41,7 @@ Public Function Specs() As SpecSuite
         Client.BaseUrl = "HTTP://localhost:3000/"
         Request.Resource = "a/b/c?d=4#e"
         
-        .Expect(Auth.RequestUrl(Client, Request)).ToEqual "http://localhost:3000/a/b/c"
+        .Expect(Auth.GetRequestUrl(Client, Request)).ToEqual "http://localhost:3000/a/b/c"
     End With
     
     With Specs.It("should property format request parameters")
@@ -51,7 +51,7 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "b", "abc"
         Request.AddQuerystringParam "c", 1.23
     
-        .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=true&b=abc&c=1.23"
+        .Expect(Auth.GetRequestParameters(Client, Request)).ToEqual "a=true&b=abc&c=1.23"
     End With
     
     With Specs.It("should include explicit and implicit querystring parameters")
@@ -61,7 +61,7 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "c", "Howdy!"
         Request.AddQuerystringParam "d", 789
         
-        .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=123&b=456&c=Howdy!&d=789"
+        .Expect(Auth.GetRequestParameters(Client, Request)).ToEqual "a=123&b=456&c=Howdy!&d=789"
     End With
     
     With Specs.It("should handle spaces in parameters correctly")
@@ -70,7 +70,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "testing"
         Request.AddQuerystringParam "a", "a b"
         
-        .Expect(Auth.RequestParameters(Client, Request)).ToEqual "a=a%20b"
+        .Expect(Auth.GetRequestParameters(Client, Request)).ToEqual "a=a%20b"
         .Expect(Client.GetFullUrl(Request)).ToEqual "http://localhost:3000/testing?a=a+b"
     End With
     
@@ -100,7 +100,7 @@ Public Function Specs() As SpecSuite
     End With
     
     With Specs.It("should create signature from base and secrets with proper hashing")
-        .Expect(Auth.CreateSignature(ExpectedBaseString, Auth.CreateSigningKey())).ToEqual ExpectedSignature
+        .Expect(Auth.CreateSignature(ExpectedBaseString, ConsumerSecret & "&" & TokenSecret)).ToEqual ExpectedSignature
     End With
     
     InlineRunner.RunSuite Specs
@@ -144,7 +144,7 @@ Sub LinkedInSpecs()
     
     With Specs.It("should get profile")
         Set Request = New WebRequest
-        Request.Resource = "people/~?format={format}"
+        Request.Resource = "people/~?format=json"
         
         Set Response = Client.Execute(Request)
         
@@ -154,7 +154,7 @@ Sub LinkedInSpecs()
     
     With Specs.It("should search with space")
         Set Request = New WebRequest
-        Request.Resource = "company-search?format={format}"
+        Request.Resource = "company-search?format=json"
         Request.AddQuerystringParam "keywords", "microsoft corp"
         
         Set Response = Client.Execute(Request)
