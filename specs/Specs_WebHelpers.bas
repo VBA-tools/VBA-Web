@@ -26,8 +26,8 @@ Public Function Specs() As SpecSuite
     ' Errors
     ' --------------------------------------------- '
     
-    Dim JSONString As String
-    Dim XMLString As String
+    Dim JsonString As String
+    Dim XmlString As String
     Dim Parsed As Object
     Dim Obj As Object
     Dim Coll As Collection
@@ -68,8 +68,8 @@ Public Function Specs() As SpecSuite
     ' ParseJson
     ' --------------------------------------------- '
     With Specs.It("should parse JSON")
-        JSONString = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
-        Set Parsed = WebHelpers.ParseJson(JSONString)
+        JsonString = "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2]}"
+        Set Parsed = WebHelpers.ParseJson(JsonString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -80,8 +80,8 @@ Public Function Specs() As SpecSuite
             .Expect(Parsed("e").Count).ToEqual 2
         End If
         
-        JSONString = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
-        Set Parsed = WebHelpers.ParseJson(JSONString)
+        JsonString = "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""}]"
+        Set Parsed = WebHelpers.ParseJson(JsonString)
         
         .Expect(Parsed).ToNotBeUndefined
         If Not Parsed Is Nothing Then
@@ -106,8 +106,8 @@ Public Function Specs() As SpecSuite
         Obj.Add "f", Empty
         Obj.Add "g", Null
         
-        JSONString = WebHelpers.ConvertToJson(Obj)
-        .Expect(JSONString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
+        JsonString = WebHelpers.ConvertToJson(Obj)
+        .Expect(JsonString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
         
         Set Obj = New Dictionary
         Obj.Add "a", "Howdy!"
@@ -122,8 +122,8 @@ Public Function Specs() As SpecSuite
         Coll.Add Empty
         Coll.Add Null
         
-        JSONString = WebHelpers.ConvertToJson(Coll)
-        .Expect(JSONString).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
+        JsonString = WebHelpers.ConvertToJson(Coll)
+        .Expect(JsonString).ToEqual "[1,3.14,""Howdy!"",true,[1,2],{""a"":""Howdy!""},null,null]"
     End With
     
     ' ParseUrlEncoded
@@ -168,13 +168,13 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("[Windows-only] should convert to XML")
 #If Win32 Or Win64 Then
-        XMLString = "<Point><X>1.23</X><Y>4.56</Y></Point>"
+        XmlString = "<Point><X>1.23</X><Y>4.56</Y></Point>"
         Set Obj = CreateObject("MSXML2.DOMDocument")
         Obj.Async = False
-        Obj.LoadXML XMLString
+        Obj.LoadXML XmlString
 
         Encoded = WebHelpers.ConvertToXML(Obj)
-        .Expect(Encoded).ToEqual XMLString
+        .Expect(Encoded).ToEqual XmlString
 #Else
         .Expect(True).ToEqual True
 #End If
@@ -217,8 +217,8 @@ Public Function Specs() As SpecSuite
         Set Obj = New Dictionary
         Obj.Add "message", "Howdy!"
         
-        JSONString = WebHelpers.ConvertToFormat(Obj, WebFormat.Custom, "custom-a")
-        .Expect(JSONString).ToEqual "{""message"":""Howdy!"",""response"":""Goodbye!""}"
+        JsonString = WebHelpers.ConvertToFormat(Obj, WebFormat.Custom, "custom-a")
+        .Expect(JsonString).ToEqual "{""message"":""Howdy!"",""response"":""Goodbye!""}"
     End With
     
     With Specs.It("RegisterConverter should register and use converter with instance")
@@ -404,9 +404,10 @@ Public Function Specs() As SpecSuite
     
     ' PrepareTextForShell
     ' --------------------------------------------- '
-    With Specs.It("should prepare text for shell (wrap string and !)")
-        .Expect(WebHelpers.PrepareTextForShell("""message""")).ToEqual """""message"""""
-        .Expect(WebHelpers.PrepareTextForShell("!abc!")).ToEqual "'!'""abc""'!'"
+    With Specs.It("should prepare text for shell")
+        .Expect(WebHelpers.PrepareTextForShell("""message""")).ToEqual """\""message\"""""
+        .Expect(WebHelpers.PrepareTextForShell("!abc!123!")).ToEqual "'!'""abc""'!'""123""'!'"
+        .Expect(WebHelpers.PrepareTextForShell("`!$\""%")).ToEqual """\`""'!'""\$\\\""\%"""
     End With
 #End If
     

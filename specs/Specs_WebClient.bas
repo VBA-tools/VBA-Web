@@ -187,8 +187,6 @@ Public Function Specs() As SpecSuite
 #If Mac Then
         Set Client = New WebClient
         Client.BaseUrl = "http://localhost:3000/"
-        Client.Username = "user"
-        Client.Password = "password"
         Client.ProxyServer = "proxyserver"
         Client.ProxyBypassList = "proxyserver:80, *.github.com"
         Client.ProxyUsername = "proxyuser"
@@ -209,7 +207,6 @@ Public Function Specs() As SpecSuite
         Curl = Client.PrepareCurlRequest(Request)
         .Expect(Curl).ToMatch "http://localhost:3000/text?type=message"
         .Expect(Curl).ToMatch "-X POST"
-        .Expect(Curl).ToMatch "--user user:password"
         .Expect(Curl).ToMatch "--proxy proxyserver"
         .Expect(Curl).ToMatch "--noproxy proxyserver:80, *.github.com"
         .Expect(Curl).ToMatch "--proxy-user proxyuser:proxypassword"

@@ -674,26 +674,13 @@ Public Function Base64Encode(Text As String) As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl base64"
     Base64Encode = ExecuteInShell(web_Command).Output
 #Else
-    ' Use XML to convert to Base64
-    ' but XML requires bytes, so convert to bytes first
     Dim web_Bytes() As Byte
-    Dim web_XmlObj As Object
-    Dim web_Node As Object
     
     web_Bytes = VBA.StrConv(Text, vbFromUnicode)
-    
-    Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
-    Set web_Node = web_XmlObj.createElement("b64")
-    
-    web_Node.DataType = "bin.base64"
-    web_Node.nodeTypedValue = web_Bytes
-    Base64Encode = VBA.Replace$(web_Node.Text, vbLf, "")
-
-    Set web_Node = Nothing
-    Set web_XmlObj = Nothing
+    Base64Encode = web_AnsiBytesToBase64(web_Bytes)
 #End If
 
-    Base64Encode = Base64Encode
+    Base64Encode = VBA.Replace$(Base64Encode, vbLf, "")
 End Function
 
 ''
@@ -1159,9 +1146,20 @@ End Function
 ' @return {String}
 ' --------------------------------------------- '
 Public Function PrepareTextForShell(ByVal web_Text As String) As String
-    web_Text = VBA.Replace("""" & web_Text & """", "!", """'!'""")
+    ' Escape special characters (except for !)
+    web_Text = VBA.Replace(web_Text, "\", "\\")
+    web_Text = VBA.Replace(web_Text, "`", "\`")
+    web_Text = VBA.Replace(web_Text, "$", "\$")
+    web_Text = VBA.Replace(web_Text, "%", "\%")
+    web_Text = VBA.Replace(web_Text, """", "\""")
     
-    ' Guard for ! at beginning or end ("'!'"..." or "..."'!'" -> '!'"..." or "..."'!')
+    ' Wrap in quotes
+    web_Text = """" & web_Text & """"
+    
+    ' Escape !
+    web_Text = VBA.Replace(web_Text, "!", """'!'""")
+    
+    ' Guard for ! at beginning or end (""'!'"..." or "..."'!'"" -> '!'"..." or "..."'!')
     If VBA.Left$(web_Text, 3) = """""'" Then
         web_Text = VBA.Right$(web_Text, VBA.Len(web_Text) - 2)
     End If
@@ -1191,20 +1189,32 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
+    
+    If Format = "Base64" Then
+        web_Command = web_Command & " -binary | openssl enc -base64"
+    End If
+    
     HMACSHA1 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
+    Dim web_TextBytes() As Byte
+    Dim web_SecretBytes() As Byte
     Dim web_Bytes() As Byte
     
+    web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
+    web_SecretBytes = VBA.StrConv(Text, vbFromUnicode)
+    
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
-    web_Crypto.Key = StringToANSIBytes(Secret)
-    web_Bytes = web_Crypto.ComputeHash_2(StringToANSIBytes(Text))
-    HMACSHA1 = web_ANSIBytesToHex(web_Bytes)
+    web_Crypto.Key = web_SecretBytes
+    web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
+    
+    Select Case Format
+    Case "Base64"
+        HMACSHA1 = web_AnsiBytesToBase64(web_Bytes)
+    Case Else
+        HMACSHA1 = web_AnsiBytesToHex(web_Bytes)
+    End Select
 #End If
-
-    If Format = "Base64" Then
-        HMACSHA1 = web_HexToBase64(HMACSHA1)
-    End If
 End Function
 
 ''
@@ -1219,20 +1229,32 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
+    
+    If Format = "Base64" Then
+        web_Command = web_Command & " -binary | openssl enc -base64"
+    End If
+    
     HMACSHA256 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
+    Dim web_TextBytes() As Byte
+    Dim web_SecretBytes() As Byte
     Dim web_Bytes() As Byte
     
+    web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
+    web_SecretBytes = VBA.StrConv(Text, vbFromUnicode)
+    
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
-    web_Crypto.Key = StringToANSIBytes(Secret)
-    web_Bytes = web_Crypto.ComputeHash_2(StringToANSIBytes(Text))
-    HMACSHA256 = web_ANSIBytesToHex(web_Bytes)
+    web_Crypto.Key = web_SecretBytes
+    web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
+    
+    Select Case Format
+    Case "Base64"
+        HMACSHA1 = web_AnsiBytesToBase64(web_Bytes)
+    Case Else
+        HMACSHA1 = web_AnsiBytesToHex(web_Bytes)
+    End Select
 #End If
-
-    If Format = "Base64" Then
-        HMACSHA256 = web_HexToBase64(HMACSHA256)
-    End If
 End Function
 
 ''
@@ -1247,19 +1269,29 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
+    
+    If Format = "Base64" Then
+        web_Command = web_Command & " -binary | openssl enc -base64"
+    End If
+    
     MD5 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
+    Dim web_TextBytes() As Byte
     Dim web_Bytes() As Byte
     
+    web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
+    
     Set web_Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
-    web_Bytes = web_Crypto.ComputeHash_2(StringToANSIBytes(Text))
-    MD5 = web_ANSIBytesToHex(web_Bytes)
+    web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
+    
+    Select Case Format
+    Case "Base64"
+        HMACSHA1 = web_AnsiBytesToBase64(web_Bytes)
+    Case Else
+        HMACSHA1 = web_AnsiBytesToHex(web_Bytes)
+    End Select
 #End If
-
-    If Format = "Base64" Then
-        MD5 = web_HexToBase64(MD5)
-    End If
 End Function
 
 ''
@@ -1291,75 +1323,52 @@ End Function
 ' @param {String} Text
 ' @return {Byte()}
 ' --------------------------------------------- '
-Public Function StringToANSIBytes(web_Text As String) As Byte()
+Public Function StringToAnsiBytes(web_Text As String) As Byte()
     Dim web_Bytes() As Byte
-    Dim web_ANSIBytes() As Byte
+    Dim web_AnsiBytes() As Byte
     Dim web_ByteIndex As Long
-    Dim web_ANSIIndex As Long
+    Dim web_AnsiIndex As Long
     
     If VBA.Len(web_Text) > 0 Then
         ' Take first byte from unicode bytes
         ' VBA.Int is used for floor instead of round
         web_Bytes = web_Text
-        ReDim web_ANSIBytes(VBA.Int(UBound(web_Bytes) / 2))
+        ReDim web_AnsiBytes(VBA.Int(UBound(web_Bytes) / 2))
         
-        web_ANSIIndex = LBound(web_Bytes)
+        web_AnsiIndex = LBound(web_Bytes)
         For web_ByteIndex = LBound(web_Bytes) To UBound(web_Bytes) Step 2
-            web_ANSIBytes(web_ANSIIndex) = web_Bytes(web_ByteIndex)
-            web_ANSIIndex = web_ANSIIndex + 1
+            web_AnsiBytes(web_AnsiIndex) = web_Bytes(web_ByteIndex)
+            web_AnsiIndex = web_AnsiIndex + 1
         Next web_ByteIndex
     End If
     
-    StringToANSIBytes = web_ANSIBytes
+    StringToAnsiBytes = web_AnsiBytes
 End Function
 
-Private Function web_ANSIBytesToString(web_Bytes() As Byte) As String
+#If Win32 Or Win64 Then
+Private Function web_AnsiBytesToBase64(web_Bytes() As Byte)
+    ' Use XML to convert to Base64
+    Dim web_XmlObj As Object
+    Dim web_Node As Object
+    
+    Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
+    Set web_Node = web_XmlObj.createElement("b64")
+    
+    web_Node.DataType = "bin.base64"
+    web_Node.nodeTypedValue = web_Bytes
+    web_AnsiBytesToBase64 = web_Node.Text
+
+    Set web_Node = Nothing
+    Set web_XmlObj = Nothing
+End Function
+
+Private Function web_AnsiBytesToHex(web_Bytes() As Byte)
     Dim web_i As Long
     For web_i = LBound(web_Bytes) To UBound(web_Bytes)
-        web_ANSIBytesToString = web_ANSIBytesToString & VBA.Chr$(web_Bytes(web_i))
+        web_AnsiBytesToHex = web_AnsiBytesToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(web_Bytes(web_i)), 2))
     Next web_i
 End Function
-
-Private Function web_HexToANSIBytes(web_Hex As String) As Byte()
-    Dim web_Bytes() As Byte
-    Dim web_HexIndex As Integer
-    Dim web_ByteIndex As Integer
-
-    ' Remove linefeeds
-    web_Hex = VBA.Replace(web_Hex, vbLf, "")
-
-    ReDim web_Bytes(VBA.Len(web_Hex) / 2 - 1)
-    web_ByteIndex = 0
-    For web_HexIndex = 1 To Len(web_Hex) Step 2
-        web_Bytes(web_ByteIndex) = VBA.CLng("&H" & VBA.Mid$(web_Hex, web_HexIndex, 2))
-        web_ByteIndex = web_ByteIndex + 1
-    Next web_HexIndex
-    
-    web_HexToANSIBytes = web_Bytes
-End Function
-
-Private Function web_ANSIBytesToHex(web_Bytes() As Byte)
-    Dim web_i As Long
-    For web_i = LBound(web_Bytes) To UBound(web_Bytes)
-        web_ANSIBytesToHex = web_ANSIBytesToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(web_Bytes(web_i)), 2))
-    Next web_i
-End Function
-
-Private Function web_StringToHex(web_Text As String) As String
-    ' Convert single-byte character to hex
-    ' (May need better international handling in the future)
-    Dim web_Bytes() As Byte
-    Dim web_i As Integer
-    
-    web_Bytes = StringToANSIBytes(web_Text)
-    For web_i = LBound(web_Bytes) To UBound(web_Bytes)
-        web_StringToHex = web_StringToHex & VBA.LCase$(VBA.Right$("0" & VBA.Hex$(web_Bytes(web_i)), 2))
-    Next web_i
-End Function
-
-Private Function web_HexToBase64(ByVal web_Hex As String) As String
-    web_HexToBase64 = Base64Encode(web_ANSIBytesToString(web_HexToANSIBytes(web_Hex)))
-End Function
+#End If
 
 ' ============================================= '
 ' 9. Converters
