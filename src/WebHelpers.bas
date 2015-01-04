@@ -1077,7 +1077,7 @@ Public Sub StartTimeoutTimer(web_AsyncWrapper As Object, web_TimeoutMs As Long)
     End If
 
     AddAsyncRequest web_AsyncWrapper
-    Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.TimeoutTimerExpired """ & web_AsyncWrapper.Request.Id & """'"
+    Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.OnTimeoutTimerExpired """ & web_AsyncWrapper.Request.Id & """'"
 End Sub
 
 ''
@@ -1098,14 +1098,14 @@ End Sub
 ' @internal
 ' @param {String} RequestId
 ' --------------------------------------------- '
-Public Sub TimeoutTimerExpired(web_RequestId As String)
+Public Sub OnTimeoutTimerExpired(web_RequestId As String)
     Dim web_AsyncWrapper As Object
     Set web_AsyncWrapper = GetAsyncRequest(web_RequestId)
     
     If Not web_AsyncWrapper Is Nothing Then
         StopTimeoutTimer web_AsyncWrapper
         
-        LogDebug "Async Timeout: " & web_AsyncWrapper.Request.FormattedResource, "WebHelpers.TimeoutTimerExpired"
+        LogDebug "Async Timeout: " & web_AsyncWrapper.Request.FormattedResource, "WebHelpers.OnTimeoutTimerExpired"
         web_AsyncWrapper.TimedOut
     End If
 End Sub

@@ -393,7 +393,7 @@ Public Function Specs() As SpecSuite
     
     ' StartTimeoutTimer
     ' StopTimeoutTimer
-    ' TimeoutTimerExpired
+    ' OnTimeoutTimerExpired
     
     ' ============================================= '
     ' 7. Mac
