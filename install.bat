@@ -1,1 +1,0 @@
-cscript build/install.vbs
