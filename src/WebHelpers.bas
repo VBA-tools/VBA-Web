@@ -1202,7 +1202,7 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
     Dim web_Bytes() As Byte
     
     web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
-    web_SecretBytes = VBA.StrConv(Text, vbFromUnicode)
+    web_SecretBytes = VBA.StrConv(Secret, vbFromUnicode)
     
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
     web_Crypto.Key = web_SecretBytes
@@ -1242,7 +1242,7 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
     Dim web_Bytes() As Byte
     
     web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
-    web_SecretBytes = VBA.StrConv(Text, vbFromUnicode)
+    web_SecretBytes = VBA.StrConv(Secret, vbFromUnicode)
     
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
     web_Crypto.Key = web_SecretBytes
@@ -1250,9 +1250,9 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
     
     Select Case Format
     Case "Base64"
-        HMACSHA1 = web_AnsiBytesToBase64(web_Bytes)
+        HMACSHA256 = web_AnsiBytesToBase64(web_Bytes)
     Case Else
-        HMACSHA1 = web_AnsiBytesToHex(web_Bytes)
+        HMACSHA256 = web_AnsiBytesToHex(web_Bytes)
     End Select
 #End If
 End Function
@@ -1287,9 +1287,9 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
     
     Select Case Format
     Case "Base64"
-        HMACSHA1 = web_AnsiBytesToBase64(web_Bytes)
+        MD5 = web_AnsiBytesToBase64(web_Bytes)
     Case Else
-        HMACSHA1 = web_AnsiBytesToHex(web_Bytes)
+        MD5 = web_AnsiBytesToHex(web_Bytes)
     End Select
 #End If
 End Function
