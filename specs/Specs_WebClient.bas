@@ -70,23 +70,6 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("form")("message")).ToEqual "Howdy!"
     End With
     
-    With Specs.It("Execute should use Basic Authentication")
-        Set Request = New WebRequest
-        Request.Resource = "basic-auth/{user}/{password}"
-        Request.AddUrlSegment "user", "Tim"
-        Request.AddUrlSegment "password", "Secret123"
-        
-        Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual WebStatusCode.Unauthorized
-        
-        Client.Username = "Tim"
-        Client.Password = "Secret123"
-        
-        Set Response = Client.Execute(Request)
-        .Expect(Response.StatusCode).ToEqual 200
-        .Expect(Response.Data("authenticated")).ToEqual True
-    End With
-    
     ' GetJSON
     ' --------------------------------------------- '
     With Specs.It("should GetJSON")
@@ -204,8 +187,6 @@ Public Function Specs() As SpecSuite
 #If Mac Then
         Set Client = New WebClient
         Client.BaseUrl = "http://localhost:3000/"
-        Client.Username = "user"
-        Client.Password = "password"
         Client.ProxyServer = "proxyserver"
         Client.ProxyBypassList = "proxyserver:80, *.github.com"
         Client.ProxyUsername = "proxyuser"
@@ -221,20 +202,19 @@ Public Function Specs() As SpecSuite
         Request.AddHeader "custom", "Howdy!"
         Request.AddCookie "test-cookie", "howdy"
         
-        Dim cURL As String
+        Dim Curl As String
         
-        cURL = Client.PrepareCurlRequest(Request)
-        .Expect(cURL).ToMatch "http://localhost:3000/text?type=message"
-        .Expect(cURL).ToMatch "-X POST"
-        .Expect(cURL).ToMatch "--user user:password"
-        .Expect(cURL).ToMatch "--proxy proxyserver"
-        .Expect(cURL).ToMatch "--noproxy proxyserver:80, *.github.com"
-        .Expect(cURL).ToMatch "--proxy-user proxyuser:proxypassword"
-        .Expect(cURL).ToMatch "-H 'Content-Type: text/plain'"
-        .Expect(cURL).ToMatch "-H 'Accept: application/json'"
-        .Expect(cURL).ToMatch "-H 'custom: Howdy!'"
-        .Expect(cURL).ToMatch "--cookie 'test-cookie=howdy;'"
-        .Expect(cURL).ToMatch "-d 'Howdy!'"
+        Curl = Client.PrepareCurlRequest(Request)
+        .Expect(Curl).ToMatch "http://localhost:3000/text?type=message"
+        .Expect(Curl).ToMatch "-X POST"
+        .Expect(Curl).ToMatch "--proxy proxyserver"
+        .Expect(Curl).ToMatch "--noproxy proxyserver:80, *.github.com"
+        .Expect(Curl).ToMatch "--proxy-user proxyuser:proxypassword"
+        .Expect(Curl).ToMatch "-H 'Content-Type: text/plain'"
+        .Expect(Curl).ToMatch "-H 'Accept: application/json'"
+        .Expect(Curl).ToMatch "-H 'custom: Howdy!'"
+        .Expect(Curl).ToMatch "--cookie 'test-cookie=howdy;'"
+        .Expect(Curl).ToMatch "-d 'Howdy!'"
 #Else
         ' (Mac-only)
         .Expect(True).ToEqual True

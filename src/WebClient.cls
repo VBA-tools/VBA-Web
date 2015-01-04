@@ -31,6 +31,14 @@ Option Explicit
 
 Private Const web_DefaultTimeoutMs As Long = 5000
 
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER = 0
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY = 1
+
+Private Const web_HTTPREQUEST_PROXYSETTING_DEFAULT = 0
+Private Const web_HTTPREQUEST_PROXYSETTING_PRECONFIG = 0
+Private Const web_HTTPREQUEST_PROXYSETTING_DIRECT = 1
+Private Const web_HTTPREQUEST_PROXYSETTING_PROXY = 2
+
 Private web_pProxyServer As String
 Private web_pAutoProxyDomain As String
 
@@ -41,8 +49,6 @@ Private web_pAutoProxyDomain As String
 Public BaseUrl As String
 Public Authenticator As IWebAuthenticator
 Public TimeoutMs As Long
-Public Username As String
-Public Password As String
 Public ProxyUsername As String
 Public ProxyPassword As String
 Public ProxyBypassList As String
@@ -74,22 +80,22 @@ Public Function Execute(Request As WebRequest) As WebResponse
     
 #If Mac Then
     Dim web_Curl As String
-    Dim web_Result As web_ShellResult
+    Dim web_Result As ShellResult
     
     web_Curl = Me.PrepareCurlRequest(Request)
     web_Result = WebHelpers.ExecuteInShell(web_Curl)
     
-    If web_Result.web_ExitCode > 0 Then
+    If web_Result.ExitCode > 0 Then
         Dim web_ErrorNumber As Long
         Dim web_ErrorMessage As String
-        web_ErrorNumber = web_Result.web_ExitCode / 256
+        web_ErrorNumber = web_Result.ExitCode / 256
         
         Select Case web_ErrorNumber
         Case 1
             ' 1 = CURLE_UNSUPPORTED_PROTOCOL
             Err.Raise 208614 + vbObjectError, "The URL does not use a recognized protocol (1: CURLE_UNSUPPORTED_PROTOCOL)" & vbNewLine & _
                 "URL: " & Me.GetFullUrl(Request) & vbNewLine & _
-                "Protocol: " & WebHelpers.UrlParts(Me.GetFullUrl(Request))("Protocol")
+                "Protocol: " & WebHelpers.GetUrlParts(Me.GetFullUrl(Request))("Protocol")
         Case 3
             ' 3 = CURLE_URL_MALFORMAT
             Err.Raise 208613 + vbObjectError, "The URL is invalid (3: CURLE_URL_MALFORMAT)" & _
@@ -109,7 +115,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
         End Select
     End If
     
-    web_Response.CreateFromCurl Me, Request, web_Result.web_Output
+    web_Response.CreateFromCurl Me, Request, web_Result.Output
 
 #Else
     Set web_Http = Me.PrepareHttpRequest(Request)
@@ -255,35 +261,34 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     End If
     
     ' Setup proxy
+    ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
     If Me.ProxyServer <> "" Then
         WebHelpers.LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
-        web_Http.SetProxy 2, Me.ProxyServer, Me.ProxyBypassList
+        web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PROXY, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
             WebHelpers.LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
-            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, 1 ' 1 = Credentials for proxy
+            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY
         End If
     Else
         ' Attempt to get proxy setup with Proxycfg.exe, otherwise direct
-        ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-        web_Http.SetProxy 1 ' 1 = HTTPREQUEST_PROXYSETTING_PRECONFIG
-    End If
-    
-    ' Setup Basic authentication
-    If Me.Username <> "" Then
-        web_Http.SetCredentials Me.Username, Me.Password, 0 ' 0 = Credentials for server
-        Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+        web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PRECONFIG
     End If
     
     ' Set headers on http request (after open)
     Dim web_KeyValue As Dictionary
     For Each web_KeyValue In Request.Headers
-        web_Http.setRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
+        web_Http.SetRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
     Next web_KeyValue
     
     For Each web_KeyValue In Request.Cookies
-        web_Http.setRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
+        web_Http.SetRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
     Next web_KeyValue
+    
+    ' Give authenticator opportunity to update Http
+    If Not Me.Authenticator Is Nothing Then
+        Me.Authenticator.PrepareHttp Me, Request, web_Http
+    End If
     
     ' Log request and return
     WebHelpers.LogRequest Me, Request
@@ -329,12 +334,6 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
         End If
     End If
     
-    ' Setup Basic authentication
-    If Me.Username <> "" Then
-        web_Curl = web_Curl & " --user " & Me.Username & ":" & Me.Password
-        Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
-    End If
-    
     ' Setup authenticator
     web_BeforeExecute Request
     
@@ -354,6 +353,11 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     web_Curl = web_Curl & " -X " & WebHelpers.MethodToName(Request.Method)
     web_Curl = web_Curl & " -d '" & Request.Body & "'"
     web_Curl = web_Curl & " '" & Me.GetFullUrl(Request) & "'"
+    
+    ' Give authenticator opportunity to update cURL
+    If Not Me.Authenticator Is Nothing Then
+        Me.Authenticator.PrepareCurl Me, Request, web_Curl
+    End If
     
     ' Log request and return
     WebHelpers.LogRequest Me, Request
@@ -375,6 +379,23 @@ End Function
 ' --------------------------------------------- '
 Public Function GetFullUrl(Request As WebRequest) As String
     GetFullUrl = WebHelpers.JoinUrl(Me.BaseUrl, Request.FormattedResource)
+End Function
+
+''
+' Clone client
+'
+' @return {WebClient}
+' --------------------------------------------- '
+Public Function Clone() As WebClient
+    Set Clone = New WebClient
+    Clone.BaseUrl = Me.BaseUrl
+    Clone.EnableAutoProxy = Me.EnableAutoProxy
+    Clone.ProxyServer = Me.ProxyServer
+    Clone.ProxyBypassList = Me.ProxyBypassList
+    Clone.ProxyUsername = Me.ProxyUsername
+    Clone.ProxyPassword = Me.ProxyPassword
+    Clone.TimeoutMs = Me.TimeoutMs
+    Set Clone.Authenticator = Me.Authenticator
 End Function
 
 ' ============================================= '
@@ -401,7 +422,7 @@ Private Sub web_LoadAutoProxy(web_Request As WebRequest)
     Dim web_ProxyServer As String
     Dim web_ProxyBypassList As String
 
-    Set web_Parts = WebHelpers.UrlParts(Me.GetFullUrl(web_Request))
+    Set web_Parts = WebHelpers.GetUrlParts(Me.GetFullUrl(web_Request))
     web_Domain = VBA.IIf(web_Parts("Protocol") <> "", web_Parts("Protocol") & "://", "") & _
         web_Parts("Host") & ":" & web_Parts("Port")
       

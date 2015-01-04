@@ -8,9 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Base for setting up authenticator v2.0.6
+' Title v3.0.0
+' (c) Name
 '
-' @implements: IWebAuthenticator v3.*
+' Description
+'
+' @implements: IWebAuthenticator v4.*
 ' @author:
 ' @license:
 '
@@ -25,25 +28,18 @@ Option Explicit
 ''
 ' Setup authenticator
 ' --------------------------------------------- '
-
 Public Sub Setup()
     ' Define any user-specific variables needed for authentication
 End Sub
-
-' ============================================= '
-' Private Methods
-' ============================================= '
 
 ''
 ' Hook for taking action before a request is executed
 '
 ' @param {WebClient} Client The client that is about to execute the request
-' @param {WebRequest} Request The request about to be executed
+' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    ' Add headers, cookies, etc to `Request` before it is executed
-    ' (Leave blank to pass Request through unmodified)
+    ' e.g Add headers, cookies, etc.
 End Sub
 
 ''
@@ -51,9 +47,30 @@ End Sub
 '
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
-' @param {WebResponse} Response to request
+' @param in|out {WebResponse} Response to request
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
-    ' Handle 401 Unauthorized or other issues
+    ' e.g. Handle 401 Unauthorized or other issues
+End Sub
+
+''
+' Hook for updating http before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {WinHttpRequest} Http
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
+    ' e.g. Update option, headers, etc.
+End Sub
+
+''
+' Hook for updating cURL before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {String} Curl
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
+    ' e.g. Add flags to cURL
 End Sub

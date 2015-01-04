@@ -8,12 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' OAuth1 Authenticator v2.0.6
+' OAuth1 Authenticator v3.0.0
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Utilize OAuth1 authentication
+' OAuth1 authenticator
 '
-' @implements: IWebAuthenticator v3.*
+' @implements: IWebAuthenticator v4.*
 ' @author tim.hall.engr@gmail.com
 ' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
@@ -21,43 +21,8 @@ Attribute VB_Exposed = True
 Implements IWebAuthenticator
 Option Explicit
 
-' Declarations
-Private Declare Function GetTimeZoneInformation Lib "kernel32" _
-    (lpTimeZoneInformation As TIME_ZONE_INFORMATION) As Long
-Private Declare Sub GetSystemTime Lib "kernel32" _
-    (lpSystemTime As SYSTEMTIME)
-
 ' Constants and private variables
-Private Const SignatureMethod As String = "HMAC-SHA1"
-
-' --------------------------------------------- '
-' Types
-' --------------------------------------------- '
-
-Private Type SYSTEMTIME
-    wYear As Integer
-    wMonth As Integer
-    wDayOfWeek As Integer
-    wDay As Integer
-    wHour As Integer
-    wMinute As Integer
-    wSecond As Integer
-    wMilliseconds As Integer
-End Type
-Private Type TIME_ZONE_INFORMATION
-    Bias As Long
-    StandardName(0 To 31) As Integer
-    StandardDate As SYSTEMTIME
-    StandardBias As Long
-    DaylightName(0 To 31) As Integer
-    DaylightDate As SYSTEMTIME
-    DaylightBias As Long
-End Type
-Private Enum TIME_ZONE
-    TIME_ZONE_ID_INVALID = 0
-    TIME_ZONE_STANDARD = 1
-    TIME_ZONE_DAYLIGHT = 2
-End Enum
+Private Const auth_SignatureMethod As String = "HMAC-SHA1"
 
 ' --------------------------------------------- '
 ' Properties
@@ -76,7 +41,7 @@ Public Timestamp As String
 ' ============================================= '
 
 ''
-' Helper for setting required parameters at once
+' Setup
 '
 ' @param {String} ConsumerKey
 ' @param {String} ConsumerSecret
@@ -84,7 +49,6 @@ Public Timestamp As String
 ' @param {String} TokenSecret
 ' @param {String} [Realm]
 ' --------------------------------------------- '
-
 Public Sub Setup(ConsumerKey As String, ConsumerSecret As String, _
     Token As String, TokenSecret As String, Optional Realm As String = "")
     
@@ -95,17 +59,12 @@ Public Sub Setup(ConsumerKey As String, ConsumerSecret As String, _
     Me.Realm = Realm
 End Sub
 
-' ============================================= '
-' Private Methods
-' ============================================= '
-
 ''
 ' Hook for taking action before a request is executed
 '
 ' @param {WebClient} Client The client that is about to execute the request
-' @param {WebRequest} Request The request about to be executed
+' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add authorization header to request
     Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -116,80 +75,140 @@ End Sub
 '
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
-' @param {WebResponse} Response to request
+' @param in|out {WebResponse} Response to request
 ' --------------------------------------------- '
-
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
-
+    ' e.g. Handle 401 Unauthorized or other issues
 End Sub
 
-Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
-    Dim Header As String
-    Dim Nonce As String
-    Dim Timestamp As String
-    Dim base As String
-    Dim signingKey As String
-    Dim signature As String
+''
+' Hook for updating http before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {WinHttpRequest} Http
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
+    ' e.g. Update option, headers, etc.
+End Sub
+
+''
+' Hook for updating cURL before send
+'
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @param in|out {String} Curl
+' --------------------------------------------- '
+Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
+    ' e.g. Add flags to cURL
+End Sub
+
+''
+' Create header for given client and request
+'
+' @internal
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @return {String}
+' --------------------------------------------- '
+Public Function CreateHeader(auth_Client As WebClient, auth_Request As WebRequest) As String
+    Dim auth_Nonce As String
+    Dim auth_Timestamp As String
+    Dim auth_Base As String
+    Dim auth_SigningKey As String
+    Dim auth_Signature As String
     
     ' Load or create nonce and timestamp
     If Me.Nonce <> "" Then
-        Nonce = Me.Nonce
+        auth_Nonce = Me.Nonce
     Else
-        Nonce = WebHelpers.CreateNonce()
+        auth_Nonce = WebHelpers.CreateNonce()
     End If
     If Me.Timestamp <> "" Then
-        Timestamp = Me.Timestamp
+        auth_Timestamp = Me.Timestamp
     Else
-        Timestamp = CreateTimestamp
+        auth_Timestamp = auth_CreateTimestamp
     End If
     
     ' Create needed parts of authorization header
-    base = CreateBaseString(Nonce, Timestamp, Client, Request)
-    signingKey = CreateSigningKey()
-    signature = CreateSignature(base, signingKey)
+    auth_Base = CreateBaseString(auth_Nonce, auth_Timestamp, auth_Client, auth_Request)
+    auth_SigningKey = auth_CreateSigningKey()
+    auth_Signature = CreateSignature(auth_Base, auth_SigningKey)
+    
+    ' Generate header
+    CreateHeader = "OAuth "
     
     ' Add realm (if exists)
     If Me.Realm <> "" Then
-        Header = "OAuth realm=" & Chr(34) & Me.Realm & Chr(34) & ", "
-    Else
-        Header = "OAuth "
+        CreateHeader = CreateHeader & "realm=""" & Me.Realm & """, "
     End If
     
     ' Construct header parts
     ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
-    Header = Header & "oauth_consumer_key=" & Chr(34) & Me.ConsumerKey & Chr(34) & ", "
-    Header = Header & "oauth_nonce=" & Chr(34) & Nonce & Chr(34) & ", "
-    Header = Header & "oauth_signature=" & Chr(34) & WebHelpers.UrlEncode(signature) & Chr(34) & ", "
-    Header = Header & "oauth_signature_method=" & Chr(34) & SignatureMethod & Chr(34) & ", "
-    Header = Header & "oauth_timestamp=" & Chr(34) & Timestamp & Chr(34) & ", "
-    Header = Header & "oauth_token=" & Chr(34) & Me.Token & Chr(34) & ", "
-    Header = Header & "oauth_version=" & Chr(34) & "1.0" & Chr(34)
-    CreateHeader = Header
+    CreateHeader = CreateHeader & "oauth_consumer_key=""" & Me.ConsumerKey & """, "
+    CreateHeader = CreateHeader & "oauth_nonce=""" & auth_Nonce & """, "
+    CreateHeader = CreateHeader & "oauth_signature=""" & WebHelpers.UrlEncode(auth_Signature) & """, "
+    CreateHeader = CreateHeader & "oauth_signature_method=""" & auth_SignatureMethod & """, "
+    CreateHeader = CreateHeader & "oauth_timestamp=""" & auth_Timestamp & """, "
+    CreateHeader = CreateHeader & "oauth_token=""" & Me.Token & """, "
+    CreateHeader = CreateHeader & "oauth_version=""" & "1.0" & """"
     
-    WebHelpers.LogDebug CreateHeader, "OAuth1Authenticator.CreateHeader"
+    CreateHeader = CreateHeader
 End Function
 
-Public Function CreateBaseString(Nonce As String, Timestamp As String, Client As WebClient, Request As WebRequest) As String
-    Dim base As String
+''
+' Create base string for given parameters
+'
+' @internal
+' @param {String} Nonce
+' @param {String} Timestamp
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @return {String}
+' --------------------------------------------- '
+Public Function CreateBaseString(auth_Nonce As String, auth_Timestamp As String, auth_Client As WebClient, auth_Request As WebRequest) As String
+    Dim auth_Base As String
+    Dim auth_Parameters As String
     
-    ' Check for parameters and add to base if present
-    Dim Parameters As String
-    Parameters = RequestParameters(Client, Request)
-    If Parameters <> "" Then
-        base = Parameters & "&"
+    ' Check for parameters and add to auth_Base if present
+    auth_Parameters = GetRequestParameters(auth_Client, auth_Request)
+    If auth_Parameters <> "" Then
+        auth_Base = auth_Parameters & "&"
     End If
     
-    base = base & "oauth_consumer_key" & "=" & Me.ConsumerKey
-    base = base & "&" & "oauth_nonce" & "=" & Nonce
-    base = base & "&" & "oauth_signature_method" & "=" & SignatureMethod
-    base = base & "&" & "oauth_timestamp" & "=" & Timestamp
-    base = base & "&" & "oauth_token" & "=" & Me.Token
-    base = base & "&" & "oauth_version=1.0"
+    auth_Base = auth_Base & "oauth_consumer_key" & "=" & Me.ConsumerKey
+    auth_Base = auth_Base & "&" & "oauth_nonce" & "=" & auth_Nonce
+    auth_Base = auth_Base & "&" & "oauth_signature_method" & "=" & auth_SignatureMethod
+    auth_Base = auth_Base & "&" & "oauth_timestamp" & "=" & auth_Timestamp
+    auth_Base = auth_Base & "&" & "oauth_token" & "=" & Me.Token
+    auth_Base = auth_Base & "&" & "oauth_version=1.0"
     
-    CreateBaseString = WebHelpers.MethodToName(Request.Method) & "&" & WebHelpers.UrlEncode(RequestUrl(Client, Request)) & "&" & WebHelpers.UrlEncode(base)
+    CreateBaseString = WebHelpers.MethodToName(auth_Request.Method) & "&" & _
+        WebHelpers.UrlEncode(GetRequestUrl(auth_Client, auth_Request), EncodeUnsafe:=False) & "&" & _
+        WebHelpers.UrlEncode(auth_Base)
 End Function
 
-Public Function RequestUrl(Client As WebClient, Request As WebRequest) As String
+''
+' Create signature with given parameters
+'
+' @internal
+' @param {String} Base
+' @param {String} SigningKey
+' @return {String}
+' --------------------------------------------- '
+Public Function CreateSignature(auth_Base As String, auth_SigningKey As String) As String
+    CreateSignature = WebHelpers.HMACSHA1(auth_Base, auth_SigningKey, "Base64")
+End Function
+
+''
+' Create request url for given client and request
+'
+' @internal
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @return {String}
+' --------------------------------------------- '
+Public Function GetRequestUrl(auth_Client As WebClient, auth_Request As WebRequest) As String
 ' From OAuth 1.0 Docs
 ' http://oauth.net/core/1.0/#anchor14
 '
@@ -203,75 +222,52 @@ Public Function RequestUrl(Client As WebClient, Request As WebRequest) As String
 ' The Service Provider SHOULD document the form of URL used in the Signature Base String to avoid ambiguity due to URL normalization.
 ' Unless specified, URL scheme and authority MUST be lowercase and include the port number; http default port 80 and https default port 443 MUST be excluded.
 
-    Dim Parts As Dictionary
-    Set Parts = WebHelpers.UrlParts(Client.GetFullUrl(Request))
+    Dim auth_Parts As Dictionary
+    Set auth_Parts = WebHelpers.GetUrlParts(auth_Client.GetFullUrl(auth_Request))
     
     ' Url scheme and authority MUST be lowercase
-    RequestUrl = LCase(Parts("Protocol") & "://" & Parts("Host"))
+    GetRequestUrl = LCase(auth_Parts("Protocol") & "://" & auth_Parts("Host"))
     
     ' Include port (80 and 443 MUST be excluded)
-    If Parts("Port") <> 80 And Parts("Port") <> 443 Then
-        RequestUrl = RequestUrl & ":" & Parts("Port")
+    If auth_Parts("Port") <> 80 And auth_Parts("Port") <> 443 Then
+        GetRequestUrl = GetRequestUrl & ":" & auth_Parts("Port")
     End If
     
     ' Include path
-    RequestUrl = RequestUrl + Parts("Path")
+    GetRequestUrl = GetRequestUrl + auth_Parts("Path")
     
     ' MUST exclude query and fragment
 End Function
 
-Public Function RequestParameters(Client As WebClient, Request As WebRequest) As String
-' TODO Sort parameters by key then value
+''
+' Create request parameters for given client and request
+'
+' @internal
+' @param {WebClient} Client
+' @param {WebRequest} Request
+' @return {String}
+' --------------------------------------------- '
+Public Function GetRequestParameters(auth_Client As WebClient, auth_Request As WebRequest) As String
+    ' TODO Sort parameters by key then value
     
-    Dim Parts As Dictionary
-    Set Parts = WebHelpers.UrlParts(Client.GetFullUrl(Request))
+    Dim auth_Parts As Dictionary
+    Set auth_Parts = WebHelpers.GetUrlParts(auth_Client.GetFullUrl(auth_Request))
     
     ' Remove leading ?
-    RequestParameters = Parts("Querystring")
+    GetRequestParameters = auth_Parts("Querystring")
     
     ' Replace + for spaces with %20
-    RequestParameters = Replace(RequestParameters, "+", "%20")
+    GetRequestParameters = Replace(GetRequestParameters, "+", "%20")
 End Function
 
-Public Function CreateSigningKey() As String
-    CreateSigningKey = Me.ConsumerSecret & "&" & Me.TokenSecret
+' ============================================= '
+' Private Methods
+' ============================================= '
+
+Private Function auth_CreateSigningKey() As String
+    auth_CreateSigningKey = Me.ConsumerSecret & "&" & Me.TokenSecret
 End Function
 
-Public Function CreateSignature(base As String, signingKey As String) As String
-    CreateSignature = WebHelpers.HMACSHA1(base, signingKey, "Base64")
-End Function
-
-Public Function CreateTimestamp() As String
-    CreateTimestamp = CStr(DateDiff("s", #1/1/1970#, GetGMT()))
-End Function
-
-' ======================================================================================== '
-'
-' Time Calculations
-'
-' ======================================================================================== '
-
-Function GetGMT(Optional LocalTime As Date) As Date
-    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    ' http://www.cpearson.com/excel/TimeZoneAndDaylightTime.aspx
-    ' ConvertLocalToGMT
-    ' This function returns the GMT based on LocalTime, if provided.
-    ' If LocalTime is not equal to 0, the GMT corresponding to LocalTime
-    ' is returned. If LocalTime is 0, the GMT corresponding to the local
-    ' time is returned. Since GMT isn't affected by DST, we need to
-    ' subtract 1 hour if we are presently in DST.
-    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    Dim T As Date
-    Dim TZI As TIME_ZONE_INFORMATION
-    Dim DST As TIME_ZONE
-    Dim GMT As Date
-    
-    If LocalTime <= 0 Then
-        T = Now
-    Else
-        T = LocalTime
-    End If
-    DST = GetTimeZoneInformation(TZI)
-    GMT = T + TimeSerial(0, TZI.Bias, 0) - IIf(DST = TIME_ZONE_DAYLIGHT, TimeSerial(1, 0, 0), 0)
-    GetGMT = GMT
+Private Function auth_CreateTimestamp() As String
+    auth_CreateTimestamp = VBA.CStr(VBA.DateDiff("s", #1/1/1970#, WebHelpers.ConvertToUtc(VBA.Now)))
 End Function

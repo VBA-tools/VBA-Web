@@ -51,8 +51,10 @@ Src = Array( _
 Dim Authenticators
 Authenticators = Array( _
   "EmptyAuthenticator.cls", _
+  "HttpBasicAuthenticator.cls", _
   "OAuth1Authenticator.cls", _
   "OAuth2Authenticator.cls", _
+  "WindowsAuthenticator.cls", _
   "GoogleAuthenticator.cls", _
   "TwitterAuthenticator.cls", _
   "FacebookAuthenticator.cls", _
@@ -75,9 +77,11 @@ Specs = Array( _
 Dim AuthSpecs
 AuthSpecs = Array( _
   "Specs_IWebAuthenticator.bas", _
+  "Specs_HttpBasicAuthenticator.bas", _
+  "Specs_OAuth1Authenticator.bas", _
+  "Specs_OAuth2Authenticator.bas", _
   "Specs_DigestAuthenticator.bas", _
   "Specs_GoogleAuthenticator.bas", _
-  "Specs_OAuth1Authenticator.bas", _
   "SpecAuthenticator.cls" _
 )
 

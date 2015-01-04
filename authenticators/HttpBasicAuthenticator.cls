@@ -2,32 +2,48 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SpecAuthenticator"
+Attribute VB_Name = "HttpBasicAuthenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 ''
-' Spec Authenticator
+' Http Basic Authenticator v3.0.0
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
+'
+' Custom IWebAuthenticator for Http Basic Authenticator
 '
 ' @implements: IWebAuthenticator v4.*
-' @author: Tim Hall
-' @license: MIT
+' @author: tim.hall.engr@gmail.com
+' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
 '
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
+
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER = 0
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY = 1
+
+' --------------------------------------------- '
+' Properties
+' --------------------------------------------- '
+
+Public Username As String
+Public Password As String
 
 ' ============================================= '
 ' Public Methods
 ' ============================================= '
 
 ''
-' Setup authenticator
+' Setup
+'
+' @param {String} Username
+' @param {String} Password
 ' --------------------------------------------- '
-
-Public Sub Setup()
-    ' Define any user-specific variables needed for authentication
+Public Sub Setup(Username As String, Password As String)
+    Me.Username = Username
+    Me.Password = Password
 End Sub
 
 ''
@@ -37,13 +53,7 @@ End Sub
 ' @param in|out {WebRequest} Request The request about to be executed
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    ' It should:
-    ' Add parameter, header, cookie, content-type
-    Request.AddBodyParameter "auth_parameter", "auth"
-    Request.AddQuerystringParam "auth_query", "auth"
-    Request.ContentType = "text/plain"
-    Request.AddHeader "X-Custom-A", "auth"
-    Request.AddCookie "auth_cookie", "auth"
+    Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
 End Sub
 
 ''
@@ -54,9 +64,7 @@ End Sub
 ' @param in|out {WebResponse} Response to request
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
-    ' It should:
-    ' Update response
-    Response.StatusCode = 204
+    ' e.g. Handle 401 Unauthorized or other issues
 End Sub
 
 ''
@@ -67,7 +75,7 @@ End Sub
 ' @param in|out {WinHttpRequest} Http
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
-    ' e.g. Update option, headers, etc.
+    Http.SetCredentials Me.Username, Me.Password, web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER
 End Sub
 
 ''
@@ -79,5 +87,6 @@ End Sub
 ' --------------------------------------------- '
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
+    Curl = Curl & " --basic --user " & Me.Username & ":" & Me.Password
 End Sub
 

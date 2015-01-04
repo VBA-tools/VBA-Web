@@ -164,7 +164,7 @@ Public Sub CreateFromCurl(Client As WebClient, Request As WebRequest, Result As 
     Next web_ReadIndex
     
     Me.Content = VBA.Join$(web_BodyLines, vbCrLf)
-    Me.Body = WebHelpers.StringToANSIBytes(Me.Content)
+    Me.Body = WebHelpers.StringToAnsiBytes(Me.Content)
     
     ' Convert content to data by format
     If Request.ResponseFormat <> WebFormat.PlainText Then
