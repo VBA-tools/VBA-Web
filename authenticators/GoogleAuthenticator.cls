@@ -96,12 +96,12 @@ Public Sub Login()
 #If Mac Then
     
     ' Mac login opens dialog and then user copy-paste's authorization code into InputBox
-    Dim auth_Result As web_ShellResult
+    Dim auth_Result As ShellResult
     Dim auth_Response As String
     
     auth_Result = WebHelpers.ExecuteInShell("open " & WebHelpers.PrepareTextForShell(Me.GetLoginUrl))
     
-    If auth_Result.web_ExitCode <> 0 Then
+    If auth_Result.ExitCode <> 0 Then
         Err.Raise 11040 + vbObjectError, "OAuthDialog", "Unable to open browser"
     End If
     
@@ -149,31 +149,28 @@ Public Sub Login()
     
 auth_Cleanup:
 
-    On Error GoTo auth_ErrorHandling
-    
     If Not auth_IE Is Nothing Then: auth_IE.Quit
     Set auth_IE = Nothing
     
-    If Err.Number <> 0 Then
-        Err.Raise Err.Number, Err.Source, Err.Description
-    ElseIf Not auth_Completed Then
-        Err.Raise 11040 + vbObjectError, "GoogleAuthenticator.Login", "Login did not complete"
-    End If
-    
 #End If
-    
-    WebHelpers.LogDebug "Login succeeded: " & Me.AuthorizationCode, "GoogleAuthenticator.Login"
-    
-    Exit Sub
+
+    If Err.Number = 0 And auth_Completed Then
+        WebHelpers.LogDebug "Login succeeded: " & Me.AuthorizationCode, "GoogleAuthenticator.Login"
+        Exit Sub
+    End If
 
 auth_ErrorHandling:
     
     Dim auth_ErrorDescription As String
     
     auth_ErrorDescription = "An error occurred while logging in." & vbNewLine
-    If Err.Number - vbObjectError <> 11040 Then
-        auth_ErrorDescription = auth_ErrorDescription & _
-            Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
+    If Err.Number <> 0 Then
+        If Err.Number - vbObjectError <> 11040 Then
+            auth_ErrorDescription = auth_ErrorDescription & _
+                Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
+        End If
+    Else
+        auth_ErrorDescription = auth_ErrorDescription & "Login did not complete"
     End If
     auth_ErrorDescription = auth_ErrorDescription & Err.Description
 

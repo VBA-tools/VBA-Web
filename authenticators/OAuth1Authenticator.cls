@@ -146,7 +146,7 @@ Public Function CreateHeader(auth_Client As WebClient, auth_Request As WebReques
     ' Construct header parts
     ' [OAuth Core 1.0 Revision A](http://oauth.net/core/1.0a/)
     CreateHeader = CreateHeader & "oauth_consumer_key=""" & Me.ConsumerKey & """, "
-    CreateHeader = CreateHeader & "oauth_nonce=""" & auth_Nonce & ", "
+    CreateHeader = CreateHeader & "oauth_nonce=""" & auth_Nonce & """, "
     CreateHeader = CreateHeader & "oauth_signature=""" & WebHelpers.UrlEncode(auth_Signature) & """, "
     CreateHeader = CreateHeader & "oauth_signature_method=""" & auth_SignatureMethod & """, "
     CreateHeader = CreateHeader & "oauth_timestamp=""" & auth_Timestamp & """, "
@@ -184,7 +184,7 @@ Public Function CreateBaseString(auth_Nonce As String, auth_Timestamp As String,
     auth_Base = auth_Base & "&" & "oauth_version=1.0"
     
     CreateBaseString = WebHelpers.MethodToName(auth_Request.Method) & "&" & _
-        WebHelpers.UrlEncode(GetRequestUrl(auth_Client, auth_Request)) & "&" & _
+        WebHelpers.UrlEncode(GetRequestUrl(auth_Client, auth_Request), EncodeUnsafe:=False) & "&" & _
         WebHelpers.UrlEncode(auth_Base)
 End Function
 

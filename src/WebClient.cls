@@ -80,15 +80,15 @@ Public Function Execute(Request As WebRequest) As WebResponse
     
 #If Mac Then
     Dim web_Curl As String
-    Dim web_Result As web_ShellResult
+    Dim web_Result As ShellResult
     
     web_Curl = Me.PrepareCurlRequest(Request)
     web_Result = WebHelpers.ExecuteInShell(web_Curl)
     
-    If web_Result.web_ExitCode > 0 Then
+    If web_Result.ExitCode > 0 Then
         Dim web_ErrorNumber As Long
         Dim web_ErrorMessage As String
-        web_ErrorNumber = web_Result.web_ExitCode / 256
+        web_ErrorNumber = web_Result.ExitCode / 256
         
         Select Case web_ErrorNumber
         Case 1
@@ -115,7 +115,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
         End Select
     End If
     
-    web_Response.CreateFromCurl Me, Request, web_Result.web_Output
+    web_Response.CreateFromCurl Me, Request, web_Result.Output
 
 #Else
     Set web_Http = Me.PrepareHttpRequest(Request)

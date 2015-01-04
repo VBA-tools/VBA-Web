@@ -136,7 +136,7 @@ Sub LinkedInSpecs()
         ConsumerSecret:=ConsumerSecret, _
         Token:=Token, _
         TokenSecret:=TokenSecret
-        
+    
     Set Client.Authenticator = Auth
     
     Dim Request As WebRequest
@@ -161,10 +161,6 @@ Sub LinkedInSpecs()
         
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data("companies")).ToNotBeUndefined
-        
-        If (Response.StatusCode <> 200) Then
-            Debug.Print "Error :" & Response.StatusCode & " - " & Response.Content
-        End If
     End With
     
     InlineRunner.RunSuite Specs

@@ -419,6 +419,9 @@ Public Function Specs() As SpecSuite
     With Specs.It("should calculate HMAC with SHA1 algorithm")
         .Expect(WebHelpers.HMACSHA1("test", "secret")).ToEqual "1aa349585ed7ecbd3b9c486a30067e395ca4b356"
         .Expect(WebHelpers.HMACSHA1("123456789", "987654321")).ToEqual "eea1a8e956b1b26067e6d0bef57e54490b8892a9"
+
+        .Expect(WebHelpers.HMACSHA1("test", "secret", "Base64")).ToEqual "GqNJWF7X7L07nEhqMAZ+OVyks1Y="
+        .Expect(WebHelpers.HMACSHA1("123456789", "987654321", "Base64")).ToEqual "7qGo6VaxsmBn5tC+9X5USQuIkqk="
     End With
     
     ' HMACSHA256
@@ -426,6 +429,9 @@ Public Function Specs() As SpecSuite
     With Specs.It("should calculate HMAC with SHA256 algorithm")
         .Expect(WebHelpers.HMACSHA256("test", "secret")).ToEqual "0329a06b62cd16b33eb6792be8c60b158d89a2ee3a876fce9a881ebb488c0914"
         .Expect(WebHelpers.HMACSHA256("123456789", "987654321")).ToEqual "3122584687113ac66d3c2f3c3518c789eef536a298121e0dbc82fc8fe7621e73"
+        
+        .Expect(WebHelpers.HMACSHA256("test", "secret", "Base64")).ToEqual "Aymga2LNFrM+tnkr6MYLFY2Jou46h2/Omogeu0iMCRQ="
+        .Expect(WebHelpers.HMACSHA256("123456789", "987654321", "Base64")).ToEqual "MSJYRocROsZtPC88NRjHie71NqKYEh4NvIL8j+diHnM="
     End With
     
     ' MD5
@@ -434,6 +440,10 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.MD5("test")).ToEqual "098f6bcd4621d373cade4e832627b4f6"
         .Expect(WebHelpers.MD5("123456789")).ToEqual "25f9e794323b453885f5181f1b624d0b"
         .Expect(WebHelpers.MD5("Mufasa:testrealm@host.com:Circle Of Life")).ToEqual "939e7578ed9e3c518a452acee763bce9"
+        
+        .Expect(WebHelpers.MD5("test", "Base64")).ToEqual "CY9rzUYh03PK3k6DJie09g=="
+        .Expect(WebHelpers.MD5("123456789", "Base64")).ToEqual "JfnnlDI7RTiF9RgfG2JNCw=="
+        .Expect(WebHelpers.MD5("Mufasa:testrealm@host.com:Circle Of Life", "Base64")).ToEqual "k551eO2ePFGKRSrO52O86Q=="
     End With
     
     ' CreateNonce

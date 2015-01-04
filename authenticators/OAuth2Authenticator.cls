@@ -110,7 +110,8 @@ End Sub
 ' --------------------------------------------- '
 Public Function GetToken(auth_Client As WebClient) As String
     ' Generate token request using client credentials flow
-    ' This is currently setup using Salesforce's implementation, but may need to be generalized
+    ' This is currently setup using Salesforce's implementation
+    ' TODO Generalize flow
     ' [Digging Deeper into OAuth 2.0 on Force.com](http://wiki.developerforce.com/page/Digging_Deeper_into_OAuth_2.0_at_Salesforce.com)
     
     On Error GoTo auth_Cleanup
@@ -128,6 +129,7 @@ Public Function GetToken(auth_Client As WebClient) As String
     auth_Request.Resource = Me.TokenUrl
     auth_Request.Method = WebMethod.HttpPost
     
+    auth_Request.AddQuerystringParam "grant_type", "password"
     auth_Request.AddQuerystringParam "client_id", Me.ClientId
     auth_Request.AddQuerystringParam "client_secret", Me.ClientSecret
     auth_Request.AddQuerystringParam "username", Me.Username

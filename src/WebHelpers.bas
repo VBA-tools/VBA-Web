@@ -194,9 +194,9 @@ Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal File As L
 Public Const WebUserAgent As String = "VBA-Web v4.0.0-rc.1 (https://github.com/VBA-tools/VBA-Web)"
 
 ' @internal
-Public Type web_ShellResult
-    web_Output As String
-    web_ExitCode As Long
+Public Type ShellResult
+    Output As String
+    ExitCode As Long
 End Type
 
 Private web_pDocumentHelper As Object
@@ -355,7 +355,7 @@ End Function
 ''
 ' Parse given JSON string into object (Dictionary or Collection)
 '
-' @param {String} JSON
+' @param {String} Json
 ' @return {Object}
 ' --------------------------------------------- '
 ' ParseJSON - Implemented in VBA-JSON embedded below
@@ -608,20 +608,20 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
             web_CharCode = VBA.Asc(web_Char)
             
             Select Case web_CharCode
-                Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
-                    ' Reserved characters
+            Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
+                ' Reserved characters
+                web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+            Case 32
+                web_Result(web_i) = web_Space
+            Case 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
+                ' Unsafe characters
+                If EncodeUnsafe Then
                     web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                Case 32, 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
-                    ' Unsafe characters
-                    If EncodeUnsafe Then
-                        If web_CharCode = 32 Then
-                            web_Result(web_i) = web_Space
-                        Else
-                            web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                        End If
-                    End If
-                Case Else
+                Else
                     web_Result(web_i) = web_Char
+                End If
+            Case Else
+                web_Result(web_i) = web_Char
             End Select
         Next web_i
         UrlEncode = VBA.Join$(web_Result, "")
@@ -669,7 +669,31 @@ End Function
 ' @return {String} Encoded string
 ' --------------------------------------------- '
 Public Function Base64Encode(Text As String) As String
-    Base64Encode = VBA.Replace$(web_StringToBase64(Text), vbLf, "")
+#If Mac Then
+    Dim web_Command As String
+    web_Command = "printf " & PrepareTextForShell(Text) & " | openssl base64"
+    Base64Encode = ExecuteInShell(web_Command).Output
+#Else
+    ' Use XML to convert to Base64
+    ' but XML requires bytes, so convert to bytes first
+    Dim web_Bytes() As Byte
+    Dim web_XmlObj As Object
+    Dim web_Node As Object
+    
+    web_Bytes = VBA.StrConv(Text, vbFromUnicode)
+    
+    Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
+    Set web_Node = web_XmlObj.createElement("b64")
+    
+    web_Node.DataType = "bin.base64"
+    web_Node.nodeTypedValue = web_Bytes
+    Base64Encode = VBA.Replace$(web_Node.Text, vbLf, "")
+
+    Set web_Node = Nothing
+    Set web_XmlObj = Nothing
+#End If
+
+    Base64Encode = Base64Encode
 End Function
 
 ''
@@ -797,7 +821,7 @@ Public Function UrlParts(Url As String) As Dictionary
         "print "" | Hash="" . $url->frag;" & vbNewLine & _
     "}'"
 
-    web_Results = Split(ExecuteInShell(web_Command).web_Output, " | ")
+    web_Results = Split(ExecuteInShell(web_Command).Output, " | ")
     For Each web_ResultPart In web_Results
         web_EqualsIndex = InStr(1, web_ResultPart, "=")
         web_Key = Trim(VBA.Mid$(web_ResultPart, 1, web_EqualsIndex - 1))
@@ -1001,10 +1025,10 @@ End Function
 ' @internal
 ' @param {RestAsyncWrapper} AsyncWrapper
 ' --------------------------------------------- '
-Public Sub AddAsyncRequest(AsyncWrapper As Object)
+Public Sub AddAsyncRequest(web_AsyncWrapper As Object)
     If web_pAsyncRequests Is Nothing Then: Set web_pAsyncRequests = New Dictionary
-    If Not AsyncWrapper.Request Is Nothing Then
-        web_pAsyncRequests.Add AsyncWrapper.Request.Id, AsyncWrapper
+    If Not web_AsyncWrapper.Request Is Nothing Then
+        web_pAsyncRequests.Add web_AsyncWrapper.Request.Id, web_AsyncWrapper
     End If
 End Sub
 
@@ -1015,9 +1039,9 @@ End Sub
 ' @param {String} RequestId
 ' @return {RestAsyncWrapper}
 ' --------------------------------------------- '
-Public Function GetAsyncRequest(RequestId As String) As Object
-    If web_pAsyncRequests.Exists(RequestId) Then
-        Set GetAsyncRequest = web_pAsyncRequests(RequestId)
+Public Function GetAsyncRequest(web_RequestId As String) As Object
+    If web_pAsyncRequests.Exists(web_RequestId) Then
+        Set GetAsyncRequest = web_pAsyncRequests(web_RequestId)
     End If
 End Function
 
@@ -1027,9 +1051,9 @@ End Function
 ' @internal
 ' @param {String} RequestId
 ' --------------------------------------------- '
-Public Sub RemoveAsyncRequest(RequestId As String)
+Public Sub RemoveAsyncRequest(web_RequestId As String)
     If Not web_pAsyncRequests Is Nothing Then
-        If web_pAsyncRequests.Exists(RequestId) Then: web_pAsyncRequests.Remove RequestId
+        If web_pAsyncRequests.Exists(web_RequestId) Then: web_pAsyncRequests.Remove web_RequestId
     End If
 End Sub
 
@@ -1044,16 +1068,16 @@ End Sub
 ' @param {WebRequest} Request
 ' @param {Long} TimeoutMS
 ' --------------------------------------------- '
-Public Sub StartTimeoutTimer(AsyncWrapper As Object, TimeoutMs As Long)
+Public Sub StartTimeoutTimer(web_AsyncWrapper As Object, web_TimeoutMs As Long)
     ' Round ms to seconds with minimum of 1 second if ms > 0
     Dim web_TimeoutS As Long
-    web_TimeoutS = Round(TimeoutMs / 1000, 0)
-    If TimeoutMs > 0 And web_TimeoutS = 0 Then
+    web_TimeoutS = Round(web_TimeoutMs / 1000, 0)
+    If web_TimeoutMs > 0 And web_TimeoutS = 0 Then
         web_TimeoutS = 1
     End If
 
-    AddAsyncRequest AsyncWrapper
-    Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.TimeoutTimerExpired """ & AsyncWrapper.Request.Id & """'"
+    AddAsyncRequest web_AsyncWrapper
+    Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.TimeoutTimerExpired """ & web_AsyncWrapper.Request.Id & """'"
 End Sub
 
 ''
@@ -1062,9 +1086,9 @@ End Sub
 ' @internal
 ' @param {WebRequest} Request
 ' --------------------------------------------- '
-Public Sub StopTimeoutTimer(AsyncWrapper As Object)
-    If Not AsyncWrapper.Request Is Nothing Then
-        RemoveAsyncRequest AsyncWrapper.Request.Id
+Public Sub StopTimeoutTimer(web_AsyncWrapper As Object)
+    If Not web_AsyncWrapper.Request Is Nothing Then
+        RemoveAsyncRequest web_AsyncWrapper.Request.Id
     End If
 End Sub
 
@@ -1074,9 +1098,9 @@ End Sub
 ' @internal
 ' @param {String} RequestId
 ' --------------------------------------------- '
-Public Sub TimeoutTimerExpired(RequestId As String)
+Public Sub TimeoutTimerExpired(web_RequestId As String)
     Dim web_AsyncWrapper As Object
-    Set web_AsyncWrapper = GetAsyncRequest(RequestId)
+    Set web_AsyncWrapper = GetAsyncRequest(web_RequestId)
     
     If Not web_AsyncWrapper Is Nothing Then
         StopTimeoutTimer web_AsyncWrapper
@@ -1098,14 +1122,14 @@ End Sub
 ' @param {String} Command
 ' @return {WebShellResult}
 ' --------------------------------------------- '
-Public Function ExecuteInShell(Command As String) As web_ShellResult
+Public Function ExecuteInShell(web_Command As String) As ShellResult
     Dim web_File As Long
     Dim web_Chunk As String
     Dim web_Read As Long
     
     On Error GoTo web_Cleanup
     
-    web_File = web_popen(Command, "r")
+    web_File = web_popen(web_Command, "r")
     
     If web_File = 0 Then
         ' TODO Investigate why this could happen and what should be done if it happens
@@ -1117,13 +1141,13 @@ Public Function ExecuteInShell(Command As String) As web_ShellResult
         web_Read = web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File)
         If web_Read > 0 Then
             web_Chunk = VBA.Left$(web_Chunk, web_Read)
-            ExecuteInShell.web_Output = ExecuteInShell.web_Output & web_Chunk
+            ExecuteInShell.Output = ExecuteInShell.Output & web_Chunk
         End If
     Loop
 
 web_Cleanup:
 
-    ExecuteInShell.web_ExitCode = web_pclose(web_File)
+    ExecuteInShell.ExitCode = web_pclose(web_File)
 End Function
 
 ''
@@ -1134,18 +1158,18 @@ End Function
 ' @param {String} Text
 ' @return {String}
 ' --------------------------------------------- '
-Public Function PrepareTextForShell(ByVal Text As String) As String
-    Text = VBA.Replace("""" & Text & """", "!", """'!'""")
+Public Function PrepareTextForShell(ByVal web_Text As String) As String
+    web_Text = VBA.Replace("""" & web_Text & """", "!", """'!'""")
     
     ' Guard for ! at beginning or end ("'!'"..." or "..."'!'" -> '!'"..." or "..."'!')
-    If VBA.Left$(Text, 3) = """""'" Then
-        Text = VBA.Right$(Text, VBA.Len(Text) - 2)
+    If VBA.Left$(web_Text, 3) = """""'" Then
+        web_Text = VBA.Right$(web_Text, VBA.Len(web_Text) - 2)
     End If
-    If VBA.Right$(Text, 3) = "'""""" Then
-        Text = VBA.Left$(Text, VBA.Len(Text) - 2)
+    If VBA.Right$(web_Text, 3) = "'""""" Then
+        web_Text = VBA.Left$(web_Text, VBA.Len(web_Text) - 2)
     End If
     
-    PrepareTextForShell = Text
+    PrepareTextForShell = web_Text
 End Function
 
 #End If
@@ -1167,7 +1191,7 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA1 = VBA.Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
+    HMACSHA1 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_Bytes() As Byte
@@ -1195,7 +1219,7 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
-    HMACSHA256 = VBA.Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
+    HMACSHA256 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_Bytes() As Byte
@@ -1223,7 +1247,7 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
-    MD5 = VBA.Replace(ExecuteInShell(web_Command).web_Output, vbLf, "")
+    MD5 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_Bytes() As Byte
@@ -1255,21 +1279,28 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     
     For web_Count = 1 To NonceLength
         web_Random = VBA.Int(((VBA.Len(web_Str) - 1) * VBA.Rnd) + 1)
-        web_Result = web_Result + VBA.Mid$(web_Str, web_Random, 1)
+        web_Result = web_Result & VBA.Mid$(web_Str, web_Random, 1)
     Next
     CreateNonce = web_Result
 End Function
 
-Public Function StringToANSIBytes(Text As String) As Byte()
+''
+' Convert string to ANSI bytes
+'
+' @internal
+' @param {String} Text
+' @return {Byte()}
+' --------------------------------------------- '
+Public Function StringToANSIBytes(web_Text As String) As Byte()
     Dim web_Bytes() As Byte
     Dim web_ANSIBytes() As Byte
     Dim web_ByteIndex As Long
     Dim web_ANSIIndex As Long
     
-    If VBA.Len(Text) > 0 Then
+    If VBA.Len(web_Text) > 0 Then
         ' Take first byte from unicode bytes
         ' VBA.Int is used for floor instead of round
-        web_Bytes = Text
+        web_Bytes = web_Text
         ReDim web_ANSIBytes(VBA.Int(UBound(web_Bytes) / 2))
         
         web_ANSIIndex = LBound(web_Bytes)
@@ -1326,30 +1357,8 @@ Private Function web_StringToHex(web_Text As String) As String
     Next web_i
 End Function
 
-Private Function web_StringToBase64(ByVal web_Text As String) As String
-#If Mac Then
-    Dim web_Command As String
-    web_Command = "printf " & PrepareTextForShell(web_Text) & " | openssl base64"
-    web_StringToBase64 = ExecuteInShell(web_Command).web_Output
-#Else
-    ' Use XML to convert to Base64
-    ' but XML requires bytes, so convert to bytes first
-    Dim web_XmlObj As Object
-    Dim web_Node As Object
-    Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
-    
-    Set web_Node = web_XmlObj.createElement("b64")
-    web_Node.DataType = "bin.base64"
-    web_Node.nodeTypedValue = StringToANSIBytes(web_Text)
-    web_StringToBase64 = web_Node.Text
-
-    Set web_Node = Nothing
-    Set web_XmlObj = Nothing
-#End If
-End Function
-
 Private Function web_HexToBase64(ByVal web_Hex As String) As String
-    web_HexToBase64 = web_StringToBase64(web_ANSIBytesToString(web_HexToANSIBytes(web_Hex)))
+    web_HexToBase64 = Base64Encode(web_ANSIBytesToString(web_HexToANSIBytes(web_Hex)))
 End Function
 
 ' ============================================= '
