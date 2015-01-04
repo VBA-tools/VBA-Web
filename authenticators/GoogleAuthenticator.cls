@@ -376,7 +376,7 @@ End Function
 
 Private Function auth_LoginIsApproval(auth_IE As Object) As Boolean
     Dim auth_UrlParts As Dictionary
-    Set auth_UrlParts = WebHelpers.UrlParts(auth_IE.LocationURL)
+    Set auth_UrlParts = WebHelpers.GetUrlParts(auth_IE.LocationURL)
     
     auth_LoginIsApproval = auth_UrlParts("Path") = "/o/oauth2/approval"
 End Function

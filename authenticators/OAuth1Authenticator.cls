@@ -223,7 +223,7 @@ Public Function GetRequestUrl(auth_Client As WebClient, auth_Request As WebReque
 ' Unless specified, URL scheme and authority MUST be lowercase and include the port number; http default port 80 and https default port 443 MUST be excluded.
 
     Dim auth_Parts As Dictionary
-    Set auth_Parts = WebHelpers.UrlParts(auth_Client.GetFullUrl(auth_Request))
+    Set auth_Parts = WebHelpers.GetUrlParts(auth_Client.GetFullUrl(auth_Request))
     
     ' Url scheme and authority MUST be lowercase
     GetRequestUrl = LCase(auth_Parts("Protocol") & "://" & auth_Parts("Host"))
@@ -251,7 +251,7 @@ Public Function GetRequestParameters(auth_Client As WebClient, auth_Request As W
     ' TODO Sort parameters by key then value
     
     Dim auth_Parts As Dictionary
-    Set auth_Parts = WebHelpers.UrlParts(auth_Client.GetFullUrl(auth_Request))
+    Set auth_Parts = WebHelpers.GetUrlParts(auth_Client.GetFullUrl(auth_Request))
     
     ' Remove leading ?
     GetRequestParameters = auth_Parts("Querystring")

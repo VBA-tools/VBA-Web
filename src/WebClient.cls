@@ -95,7 +95,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
             ' 1 = CURLE_UNSUPPORTED_PROTOCOL
             Err.Raise 208614 + vbObjectError, "The URL does not use a recognized protocol (1: CURLE_UNSUPPORTED_PROTOCOL)" & vbNewLine & _
                 "URL: " & Me.GetFullUrl(Request) & vbNewLine & _
-                "Protocol: " & WebHelpers.UrlParts(Me.GetFullUrl(Request))("Protocol")
+                "Protocol: " & WebHelpers.GetUrlParts(Me.GetFullUrl(Request))("Protocol")
         Case 3
             ' 3 = CURLE_URL_MALFORMAT
             Err.Raise 208613 + vbObjectError, "The URL is invalid (3: CURLE_URL_MALFORMAT)" & _
@@ -422,7 +422,7 @@ Private Sub web_LoadAutoProxy(web_Request As WebRequest)
     Dim web_ProxyServer As String
     Dim web_ProxyBypassList As String
 
-    Set web_Parts = WebHelpers.UrlParts(Me.GetFullUrl(web_Request))
+    Set web_Parts = WebHelpers.GetUrlParts(Me.GetFullUrl(web_Request))
     web_Domain = VBA.IIf(web_Parts("Protocol") <> "", web_Parts("Protocol") & "://", "") & _
         web_Parts("Host") & ":" & web_Parts("Port")
       

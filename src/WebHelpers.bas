@@ -786,7 +786,7 @@ End Function
 ' @return {Dictionary} Parts of url
 ' Protocol, Host, Hostname, Port, Uri, Querystring, Hash
 ' --------------------------------------------- '
-Public Function UrlParts(Url As String) As Dictionary
+Public Function GetUrlParts(Url As String) As Dictionary
     Dim web_Parts As New Dictionary
     
     On Error GoTo web_ErrorHandling
@@ -878,7 +878,7 @@ Public Function UrlParts(Url As String) As Dictionary
         web_Parts("Path") = "/" & web_Parts("Path")
     End If
 
-    Set UrlParts = web_Parts
+    Set GetUrlParts = web_Parts
     Exit Function
     
 web_ErrorHandling:
@@ -887,8 +887,8 @@ web_ErrorHandling:
     web_ErrorDescription = "An error occurred while getting url parts" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
     
-    LogError web_ErrorDescription, "WebHelpers.UrlParts", 11003
-    Err.Raise 11003, "WebHelpers.UrlParts", web_ErrorDescription
+    LogError web_ErrorDescription, "WebHelpers.GetUrlParts", 11003
+    Err.Raise 11003, "WebHelpers.GetUrlParts", web_ErrorDescription
 End Function
 
 ' ============================================= '

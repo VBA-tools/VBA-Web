@@ -260,10 +260,10 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.JoinUrl("a", "")).ToEqual "a"
     End With
     
-    ' UrlParts
+    ' GetUrlParts
     ' --------------------------------------------- '
     With Specs.It("should extract parts from url")
-        Set Parts = WebHelpers.UrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy%20World!&other=123#hash")
+        Set Parts = WebHelpers.GetUrlParts("https://www.google.com/dir/1/2/search.html?message=Howdy%20World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual "https"
         .Expect(Parts("Host")).ToEqual "www.google.com"
@@ -272,7 +272,7 @@ Public Function Specs() As SpecSuite
         .Expect(Parts("Querystring")).ToEqual "message=Howdy%20World!&other=123"
         .Expect(Parts("Hash")).ToEqual "hash"
         
-        Set Parts = WebHelpers.UrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World!&other=123#hash")
+        Set Parts = WebHelpers.GetUrlParts("localhost:3000/dir/1/2/page%202.html?message=Howdy%20World!&other=123#hash")
         
         .Expect(Parts("Protocol")).ToEqual ""
         .Expect(Parts("Host")).ToEqual "localhost"

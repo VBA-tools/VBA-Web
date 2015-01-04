@@ -131,7 +131,7 @@ End Sub
 ' --------------------------------------------- '
 Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
     Dim auth_Uri As String
-    auth_Uri = WebHelpers.UrlParts(Client.GetFullUrl(Request))("Path")
+    auth_Uri = WebHelpers.GetUrlParts(Client.GetFullUrl(Request))("Path")
 
     CreateHeader = "Digest " & _
         "username=""" & Me.Username & """, " & _
@@ -205,7 +205,7 @@ Private Function web_CalculateResponse(web_Client As WebClient, web_Request As W
     Dim auth_HA2 As String
     Dim auth_Uri As String
     
-    auth_Uri = WebHelpers.UrlParts(web_Client.GetFullUrl(web_Request))("Path")
+    auth_Uri = WebHelpers.GetUrlParts(web_Client.GetFullUrl(web_Request))("Path")
     auth_HA1 = web_CalculateHA1
     auth_HA2 = web_CalculateHA2(WebHelpers.MethodToName(web_Request.Method), auth_Uri)
     

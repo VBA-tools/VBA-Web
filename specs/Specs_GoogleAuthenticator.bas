@@ -44,7 +44,7 @@ Public Function Specs() As SpecSuite
         Auth.AddScope "http://new_scope"
         
         Dim Parts As Dictionary
-        Set Parts = WebHelpers.UrlParts(Auth.GetLoginUrl)
+        Set Parts = WebHelpers.GetUrlParts(Auth.GetLoginUrl)
         Dim Scope As String
         Scope = WebHelpers.UrlDecode(Parts("Querystring"))
         Scope = Mid$(Scope, InStr(1, Scope, "scope") + 6)

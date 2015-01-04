@@ -326,7 +326,7 @@ Private Function auth_LoginIsApproval(auth_IE As Object) As Boolean
     Dim auth_UrlParts As Dictionary
 
     If VBA.InStr(1, auth_IE.LocationURL, auth_RedirectUrl) > 0 Then
-        Set auth_UrlParts = WebHelpers.UrlParts(auth_IE.LocationURL)
+        Set auth_UrlParts = WebHelpers.GetUrlParts(auth_IE.LocationURL)
         
         If VBA.InStr(1, auth_UrlParts("Hash"), "code") > 0 Or VBA.InStr(1, auth_UrlParts("Hash"), "token") > 0 Then
             auth_LoginIsApproval = True
@@ -336,7 +336,7 @@ End Function
 
 Private Function auth_LoginIsDenied(auth_IE As Object) As Boolean
     If VBA.InStr(1, auth_IE.LocationURL, auth_RedirectUrl) > 0 Then
-        If VBA.InStr(1, WebHelpers.UrlParts(auth_IE.LocationURL)("Querystring"), "error=access_denied") > 0 Then
+        If VBA.InStr(1, WebHelpers.GetUrlParts(auth_IE.LocationURL)("Querystring"), "error=access_denied") > 0 Then
             auth_LoginIsDenied = True
         End If
     End If
@@ -344,7 +344,7 @@ End Function
 
 Private Function auth_LoginIsError(auth_IE As Object) As Boolean
     If VBA.InStr(1, auth_IE.LocationURL, auth_RedirectUrl) > 0 Then
-        If VBA.InStr(1, WebHelpers.UrlParts(auth_IE.LocationURL)("Querystring"), "error") > 0 Then
+        If VBA.InStr(1, WebHelpers.GetUrlParts(auth_IE.LocationURL)("Querystring"), "error") > 0 Then
             auth_LoginIsError = True
         End If
     ElseIf VBA.InStr(1, auth_IE.LocationURL, auth_AuthorizationUrl) > 0 Then
@@ -362,7 +362,7 @@ Private Function auth_LoginExtractCode(auth_IE As Object) As String
     
     Dim auth_Data As Dictionary
     
-    Set auth_Data = WebHelpers.ParseUrlEncoded(WebHelpers.UrlParts(auth_IE.LocationURL)("Hash"))
+    Set auth_Data = WebHelpers.ParseUrlEncoded(WebHelpers.GetUrlParts(auth_IE.LocationURL)("Hash"))
     auth_LoginExtractCode = auth_Data("code")
     
     If auth_LoginExtractCode = "" Then
@@ -392,7 +392,7 @@ Private Function auth_LoginExtractError(auth_IE As Object) As String
     If VBA.InStr(1, auth_IE.LocationURL, auth_RedirectUrl) > 0 Then
         Dim auth_QuerystringParts() As String
         
-        auth_QuerystringParts = VBA.Split(WebHelpers.UrlParts(auth_IE.LocationURL)("Querystring"), "&")
+        auth_QuerystringParts = VBA.Split(WebHelpers.GetUrlParts(auth_IE.LocationURL)("Querystring"), "&")
         auth_LoginExtractError = VBA.Replace(VBA.Join(auth_QuerystringParts, vbNewLine), "=", ": ")
     ElseIf VBA.InStr(1, auth_IE.LocationURL, auth_AuthorizationUrl) > 0 Then
         auth_LoginExtractError = auth_IE.Document.Body.FirstChild.innerText
