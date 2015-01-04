@@ -1,6 +1,6 @@
 Attribute VB_Name = "WebHelpers"
 ''
-' WebHelpers v4.0.0-rc.1
+' WebHelpers v4.0.0-rc.2
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Common helpers VBA-Web
@@ -191,7 +191,7 @@ Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal outStr 
 Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal File As Long) As Long
 #End If
 
-Public Const WebUserAgent As String = "VBA-Web v4.0.0-rc.1 (https://github.com/VBA-tools/VBA-Web)"
+Public Const WebUserAgent As String = "VBA-Web v4.0.0-rc.2 (https://github.com/VBA-tools/VBA-Web)"
 
 ' @internal
 Public Type ShellResult
