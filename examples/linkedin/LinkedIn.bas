@@ -1,5 +1,5 @@
 Attribute VB_Name = "LinkedIn"
-Private pLinkedInClient As RestClient
+Private pLinkedInClient As WebClient
 Private pLinkedInAPIKey As String
 Private pLinkedInAPISecret As String
 Private pLinkedInUserToken As String
@@ -53,9 +53,9 @@ Private Property Get LinkedInUserSecret() As String
     LinkedInUserSecret = pLinkedInUserSecret
 End Property
 
-Private Property Get LinkedInClient() As RestClient
+Private Property Get LinkedInClient() As WebClient
     If pLinkedInClient Is Nothing Then
-        Set pLinkedInClient = New RestClient
+        Set pLinkedInClient = New WebClient
         pLinkedInClient.BaseUrl = "http://api.linkedin.com/v1/"
         
         Dim Auth As New OAuth1Authenticator
@@ -70,13 +70,13 @@ Private Property Get LinkedInClient() As RestClient
     Set LinkedInClient = pLinkedInClient
 End Property
 
-Public Function GetProfile(Optional Callback As String = "") As RestResponse
-    Dim Request As New RestRequest
-    Request.Resource = "people/~?format={format}"
+Public Function GetProfile(Optional Callback As String = "") As WebResponse
+    Dim Request As New WebRequest
+    Request.Resource = "people/~?format=json"
     
-    If Callback <> "" Then
-        LinkedInClient.ExecuteAsync Request, Callback
-    Else
+'    If Callback <> "" Then
+'        LinkedInClient.ExecuteAsync Request, Callback
+'    Else
         Set GetProfile = LinkedInClient.Execute(Request)
-    End If
+'    End If
 End Function

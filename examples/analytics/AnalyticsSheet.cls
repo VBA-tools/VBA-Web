@@ -13,14 +13,14 @@ Public Sub DownloadAnalytics()
     Me.[GAVisits] = ""
     Me.[GABounces] = ""
     
-    Analytics.GAClient.ExecuteAsync Analytics.AnalyticsRequest(Me.[GAProfileId], Me.[GAStartDate], Me.[GAEndDate]), "AnalyticsSheet.OutputAnalytics"
+    OutputAnalytics Analytics.GAClient.Execute(Analytics.AnalyticsRequest(Me.[GAProfileId], Me.[GAStartDate], Me.[GAEndDate]))
     
 End Sub
 
-Public Sub OutputAnalytics(Response As RestResponse)
+Public Sub OutputAnalytics(Response As WebResponse)
 
     If Response.StatusCode = Ok Then
-        Me.[GAMessage] = "Loaded Asynchronously!"
+        Me.[GAMessage] = "Loaded!"
         Me.[GAVisits] = Response.Data("totalsForAllResults")("ga:visits")
         Me.[GABounces] = Response.Data("totalsForAllResults")("ga:bounces")
     Else

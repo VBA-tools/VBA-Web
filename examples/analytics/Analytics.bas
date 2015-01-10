@@ -1,9 +1,9 @@
 Attribute VB_Name = "Analytics"
-Private pGAClient As RestClient
+Private pGAClient As WebClient
 Private pGAClientId As String
 Private pGAClientSecret As String
 
-' Implement caching for Client Id, Client Secret, and RestClient
+' Implement caching for Client Id, Client Secret, and WebClient
 
 Private Property Get GAClientId() As String
     If pGAClientId = "" Then
@@ -28,9 +28,9 @@ Private Property Get GAClientSecret() As String
     GAClientSecret = pGAClientSecret
 End Property
 
-Public Property Get GAClient() As RestClient
+Public Property Get GAClient() As WebClient
     If pGAClient Is Nothing Then
-        Set pGAClient = New RestClient
+        Set pGAClient = New WebClient
         pGAClient.BaseUrl = "https://www.googleapis.com/analytics/v3"
         
         Dim Auth As New GoogleAuthenticator
@@ -44,15 +44,15 @@ Public Property Get GAClient() As RestClient
     Set GAClient = pGAClient
 End Property
 
-Public Function AnalyticsRequest(ProfileId As String, StartDate As Date, EndDate As Date) As RestRequest
+Public Function AnalyticsRequest(ProfileId As String, StartDate As Date, EndDate As Date) As WebRequest
     
     If ProfileId = "" And Credentials.Loaded Then
         ProfileId = Credentials.Values("Google")("profile")
     End If
     
-    Set AnalyticsRequest = New RestRequest
+    Set AnalyticsRequest = New WebRequest
     AnalyticsRequest.Resource = "data/ga"
-    AnalyticsRequest.Method = httpGET
+    AnalyticsRequest.Method = WebMethod.HttpGet
     
     AnalyticsRequest.AddQuerystringParam "ids", "ga:" & ProfileId
     AnalyticsRequest.AddQuerystringParam "start-date", Format(StartDate, "yyyy-mm-dd")

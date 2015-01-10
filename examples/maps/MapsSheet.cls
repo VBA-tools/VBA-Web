@@ -13,10 +13,10 @@ Public Sub FindDrivingDistance()
     Me.[Message] = ""
 
     ' Get directions for given origin and destination and process async
-    Maps.MapsClient.ExecuteAsync Maps.DirectionsRequest(Me.[Origin], Me.[Destination]), "MapsSheet.OutputDrivingDistance"
+    OutputDrivingDistance Maps.MapsClient.Execute(Maps.DirectionsRequest(Me.[Origin], Me.[Destination]))
 End Sub
 
-Public Sub OutputDrivingDistance(Response As RestResponse)
+Public Sub OutputDrivingDistance(Response As WebResponse)
     If Response.StatusCode = Ok Then
         Dim Route As Dictionary
         Dim Duration As String
@@ -32,7 +32,7 @@ Public Sub OutputDrivingDistance(Response As RestResponse)
             Distance = Route("distance")("text")
             
             Me.[Distance] = Distance & ", " & Duration
-            Me.[Message] = "Found Asynchronously!"
+            ' Me.[Message] = "Found Asynchronously!"
         End If
     Else
         Me.[Message] = "Error: " & Response.Content

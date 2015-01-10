@@ -14,14 +14,14 @@ Private Const TwitterResultsCol As Integer = 2
 Public Sub SearchTwitter()
     ClearResults
     
-    If Me.[useAsync] Then
-        Twitter.SearchTwitterAsync Me.[TwitterQuery], "TwitterSheet.ProcessResults"
-    Else
-        Dim Results As RestResponse
+'    If Me.[UseAsync] Then
+'        Twitter.SearchTwitterAsync Me.[TwitterQuery], "TwitterSheet.ProcessResults"
+'    Else
+        Dim Results As WebResponse
         Set Results = Twitter.SearchTwitter(Me.[TwitterQuery])
         
         ProcessResults Results
-    End If
+'    End If
 End Sub
 
 Private Sub ClearResults()
@@ -58,7 +58,7 @@ Private Sub OutputError(Code As Integer, Message As String)
     Me.Cells(TwitterResultsFirstRow, TwitterResultsCol) = "Error " & Code & ": " & Message
 End Sub
 
-Public Sub ProcessResults(Results As RestResponse)
+Public Sub ProcessResults(Results As WebResponse)
     If Results.StatusCode < 400 Then
         OutputResults Results.Data
     Else

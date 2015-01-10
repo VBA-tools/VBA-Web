@@ -8,15 +8,15 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Public Sub LoadProfile()
-    Me.[LinkedInFirstName] = "Loading Async..."
+    Me.[LinkedInFirstName] = "Loading..."
     Me.[LinkedInLastName] = ""
     Me.[LinkedInHeadline] = ""
     
-    LinkedIn.GetProfile "LinkedInSheet.LoadedProfile"
+    LinkedInSheet.LoadedProfile LinkedIn.GetProfile
 End Sub
 
-Public Sub LoadedProfile(Response As RestResponse)
-    If Response.StatusCode = 200 Then
+Public Sub LoadedProfile(Response As WebResponse)
+    If Response.StatusCode = WebStatusCode.Ok Then
         Me.[LinkedInFirstName] = Response.Data("firstName")
         Me.[LinkedInLastName] = Response.Data("lastName")
         Me.[LinkedInHeadline] = Response.Data("headline")

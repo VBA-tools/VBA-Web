@@ -1,10 +1,10 @@
 Attribute VB_Name = "Gmail"
 ' Setup client and authenticator (cached between requests)
-Private pGmailClient As RestClient
-Private Property Get GmailClient() As RestClient
+Private pGmailClient As WebClient
+Private Property Get GmailClient() As WebClient
     If pGmailClient Is Nothing Then
         ' Create client with base url that is appended to all requests
-        Set pGmailClient = New RestClient
+        Set pGmailClient = New WebClient
         pGmailClient.BaseUrl = "https://www.googleapis.com/gmail/v1/"
         
         ' Use the pre-made GoogleAuthenticator found in authenticators/ folder
@@ -26,15 +26,15 @@ Function LoadInbox() As Collection
     Set LoadInbox = New Collection
     
     ' Create inbox request with userId and querystring for inbox label
-    Dim Request As New RestRequest
+    Dim Request As New WebRequest
     Request.Resource = "users/{userId}/messages"
     Request.AddUrlSegment "userId", "me"
     Request.AddQuerystringParam "q", "label:inbox"
     
-    Dim Response As RestResponse
+    Dim Response As WebResponse
     Set Response = GmailClient.Execute(Request)
     
-    If Response.StatusCode = Ok Then
+    If Response.StatusCode = WebStatusCode.Ok Then
         Dim MessageInfo As Dictionary
         Dim Message As Dictionary
         
@@ -50,15 +50,15 @@ End Function
 
 ' Load message details
 Function LoadMessage(MessageId As String) As Dictionary
-    Dim Request As New RestRequest
+    Dim Request As New WebRequest
     Request.Resource = "users/{userId}/messages/{messageId}"
     Request.AddUrlSegment "userId", "me"
     Request.AddUrlSegment "messageId", MessageId
     
-    Dim Response As RestResponse
+    Dim Response As WebResponse
     Set Response = GmailClient.Execute(Request)
     
-    If Response.StatusCode = Ok Then
+    If Response.StatusCode = WebStatusCode.Ok Then
         Set LoadMessage = New Dictionary
     
         ' Pull out relevant parts of message (from, to, and subject from headers)

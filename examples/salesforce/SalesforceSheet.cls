@@ -57,14 +57,14 @@ Public Sub GetObject()
     
     ClearOutput
     Login
-    If Me.[SalesforceUseAsync] Then
-        Salesforce.GetObjectAsync Me.[GetObjectType], Me.[GetObjectId], "SalesforceSheet.ProcessObject"
-    Else
-        Dim Results As RestResponse
+'    If Me.[SalesforceUseAsync] Then
+'        Salesforce.GetObjectAsync Me.[GetObjectType], Me.[GetObjectId], "SalesforceSheet.ProcessObject"
+'    Else
+        Dim Results As WebResponse
         Set Results = Salesforce.GetObject(Me.[GetObjectType], Me.[GetObjectId])
         
         ProcessObject Results
-    End If
+'    End If
     Exit Sub
     
 ErrorHandling:
@@ -73,7 +73,7 @@ ErrorHandling:
     
 End Sub
 
-Public Sub ProcessObject(Results As RestResponse, Optional Args As Variant)
+Public Sub ProcessObject(Results As WebResponse)
     If Results.StatusCode < 400 Then
         OutputObject Results.Data
     Else
