@@ -93,6 +93,9 @@ Public Sub Login()
         Exit Sub
     End If
     
+    Dim auth_Completed As Boolean
+    auth_Completed = True
+    
 #If Mac Then
     
     ' Mac login opens dialog and then user copy-paste's authorization code into InputBox
@@ -122,8 +125,6 @@ Public Sub Login()
     On Error GoTo auth_Cleanup
     
     Dim auth_IE As Object
-    Dim auth_Completed As Boolean
-    
     auth_Completed = False
     
     Set auth_IE = CreateObject("InternetExplorer.Application")

@@ -22,6 +22,7 @@ Public Function Specs() As SpecSuite
     Dim i As Integer
     Dim Options As Dictionary
     Dim XMLBody As Object
+    Dim Curl As String
     
     Client.BaseUrl = HttpbinBaseUrl
     Client.TimeoutMs = 5000
@@ -69,13 +70,14 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("[Mac-only] Insecure should set --insecure flag in cURL")
 #If Mac Then
-    Dim Curl As String
-    Curl = Client.PrepareCurlRequest(Request)
+    Set Request = New WebRequest
     
+    Curl = Client.PrepareCurlRequest(Request)
     .Expect(Curl).ToNotMatch "--insecure"
     
     Client.Insecure = True
     
+    Curl = Client.PrepareCurlRequest(Request)
     .Expect(Curl).ToMatch "--insecure"
 #Else
     ' (Mac-only)
@@ -244,8 +246,6 @@ Public Function Specs() As SpecSuite
         Request.Body = "Howdy!"
         Request.AddHeader "custom", "Howdy!"
         Request.AddCookie "test-cookie", "howdy"
-        
-        Dim Curl As String
         
         Curl = Client.PrepareCurlRequest(Request)
         .Expect(Curl).ToMatch "http://localhost:3000/text?type=message"
