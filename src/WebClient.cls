@@ -31,13 +31,35 @@ Option Explicit
 
 Private Const web_DefaultTimeoutMs As Long = 5000
 
-Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER = 0
-Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY = 1
+Private Const web_HttpRequest_SetCredentials_ForServer = 0
+Private Const web_HttpRequest_SetCredentials_ForProxy = 1
 
-Private Const web_HTTPREQUEST_PROXYSETTING_DEFAULT = 0
-Private Const web_HTTPREQUEST_PROXYSETTING_PRECONFIG = 0
-Private Const web_HTTPREQUEST_PROXYSETTING_DIRECT = 1
-Private Const web_HTTPREQUEST_PROXYSETTING_PROXY = 2
+Private Const web_HttpRequest_ProxySetting_Default = 0
+Private Const web_HttpRequest_ProxySetting_PreConfig = 0
+Private Const web_HttpRequest_ProxySetting_Direct = 1
+Private Const web_HttpRequest_ProxySetting_Proxy = 2
+
+Private Enum web_WinHttpRequestOption
+    web_WinHttpRequestOption_UserAgentString = 0
+    web_WinHttpRequestOption_URL = 1
+    web_WinHttpRequestOption_URLCodePage = 2
+    web_WinHttpRequestOption_EscapePercentInURL = 3
+    web_WinHttpRequestOption_SslErrorIgnoreFlags = 4
+    web_WinHttpRequestOption_SelectCertificate = 5
+    web_WinHttpRequestOption_EnableRedirects = 6
+    web_WinHttpRequestOption_UrlEscapeDisable = 7
+    web_WinHttpRequestOption_UrlEscapeDisableQuery = 8
+    web_WinHttpRequestOption_SecureProtocols = 9
+    web_WinHttpRequestOption_EnableTracing = 10
+    web_WinHttpRequestOption_RevertImpersonationOverSsl = 11
+    web_WinHttpRequestOption_EnableHttpsToHttpRedirects = 12
+    web_WinHttpRequestOption_EnablePassportAuthentication = 13
+    web_WinHttpRequestOption_MaxAutomaticRedirects = 14
+    web_WinHttpRequestOption_MaxResponseHeaderSize = 15
+    web_WinHttpRequestOption_MaxResponseDrainSize = 16
+    web_WinHttpRequestOption_EnableHttp1_1 = 17
+    web_WinHttpRequestOption_EnableCertificateRevocationCheck = 18
+End Enum
 
 Private web_pProxyServer As String
 Private web_pAutoProxyDomain As String
@@ -52,7 +74,20 @@ Public TimeoutMs As Long
 Public ProxyUsername As String
 Public ProxyPassword As String
 Public ProxyBypassList As String
+
+''
+' Load proxy server and bypass list automatically
+'
+' @default False
+' --------------------------------------------- '
 Public EnableAutoProxy As Boolean
+
+''
+' Turn off SSL validation
+'
+' @default False
+' --------------------------------------------- '
+Public Insecure As Boolean
 
 Public Property Get ProxyServer() As String
     ProxyServer = web_pProxyServer
@@ -264,15 +299,36 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
     If Me.ProxyServer <> "" Then
         WebHelpers.LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
-        web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PROXY, Me.ProxyServer, Me.ProxyBypassList
+        web_Http.SetProxy web_HttpRequest_ProxySetting_Proxy, Me.ProxyServer, Me.ProxyBypassList
         
         If Me.ProxyUsername <> "" Then
             WebHelpers.LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
-            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, web_HTTPREQUEST_SETCREDENTIALS_FOR_PROXY
+            web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, web_HttpRequest_SetCredentials_ForProxy
         End If
     Else
         ' Attempt to get proxy setup with Proxycfg.exe, otherwise direct
-        web_Http.SetProxy web_HTTPREQUEST_PROXYSETTING_PRECONFIG
+        web_Http.SetProxy web_HttpRequest_ProxySetting_PreConfig
+    End If
+    
+    ' Setup security
+    '
+    ' By default:
+    ' - Enable certificate revocation check (especially useful after HeartBleed)
+    ' - Disable redirects (matches cURL behavior)
+    web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = True
+    web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = False
+        
+    If Me.Insecure Then
+        ' Disable SSL validation
+        ' - Disable certifcate revocation check
+        ' - Ignore all SSL errors
+        '   Unknown certification authority (CA) or untrusted root, 0x0100
+        '   Wrong usage, 0x0200
+        '   Invalid common name (CN), 0x1000
+        '   Invalid date or certificate expired, 0x2000
+        '   = 0x3300 = 13056
+        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = False
+        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 13056
     End If
     
     ' Set headers on http request (after open)
@@ -332,6 +388,11 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
         If Me.ProxyUsername <> "" Then
             web_Curl = web_Curl & " --proxy-user " & Me.ProxyUsername & ":" & Me.ProxyPassword
         End If
+    End If
+    
+    ' Setup security
+    If Me.Insecure Then
+        web_Curl = web_Curl & " --insecure"
     End If
     
     ' Setup authenticator
@@ -413,8 +474,7 @@ Private Sub web_BeforeExecute(web_Request As WebRequest)
 End Sub
 
 Private Sub web_LoadAutoProxy(web_Request As WebRequest)
-#If Mac Then
-#Else
+#If Win32 Or Win64 Then
     On Error GoTo web_ErrorHandling
     
     Dim web_Parts As Dictionary
@@ -454,4 +514,6 @@ End Sub
 
 Private Sub Class_Initialize()
     Me.TimeoutMs = web_DefaultTimeoutMs
+    Me.EnableAutoProxy = False
+    Me.Insecure = False
 End Sub
