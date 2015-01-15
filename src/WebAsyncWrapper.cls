@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebAsyncWrapper v4.0.0-rc.2
+' WebAsyncWrapper v4.0.0-rc.3
 ' (c) Tim Hall - https://github.com/timhall/Excel-REST
 '
 ' Wrapper WebClient and WebRequest that enables callback-style async requests

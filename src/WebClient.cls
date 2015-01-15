@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebClient v4.0.0-rc.2
+' WebClient v4.0.0-rc.3
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Interact with REST web services from Excel

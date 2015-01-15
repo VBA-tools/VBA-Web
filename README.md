@@ -6,7 +6,7 @@ VBA-Web makes working with complex webservices and APIs easy with VBA on Windows
 Getting started
 ---------------
 
-- Download the [latest release (v4.0.0-rc.2)](https://github.com/VBA-tools/VBA-Web/releases)
+- Download the [latest release (v4.0.0-rc.3)](https://github.com/VBA-tools/VBA-Web/releases)
 - To install/upgrade in an existing file, use `VBA-Web - Installer.xlsm`
 - To start from scratch on Excel, `VBA-Web - Blank.xlsm` has everything setup and ready to go
 
