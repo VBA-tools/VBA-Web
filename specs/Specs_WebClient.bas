@@ -31,14 +31,57 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     
     ' BaseUrl
-    ' Username
-    ' Password
     ' Authenticator
     ' TimeoutMS
     ' ProxyServer
     ' ProxyUsername
     ' ProxyPassword
     ' ProxyBypassList
+    
+    ' Insecure
+    ' --------------------------------------------- '
+    With Specs.It("should not be Insecure by default")
+        .Expect(Client.Insecure).ToEqual False
+    End With
+    
+    With Specs.It("[Windows-only] Insecure should set options in WinHttpRequest")
+#If Mac Then
+    ' (Windows-only)
+    .Expect(True).ToEqual True
+#Else
+    Dim Http As Object
+    Set Request = New WebRequest
+    
+    ' WinHttpRequestOption_EnableCertificateRevocationCheck = 18
+    ' WinHttpRequestOption_SslErrorIgnoreFlags = 4
+    
+    Set Http = Client.PrepareHttpRequest(Request)
+    .Expect(Http.Option(18)).ToEqual True
+    .Expect(Http.Option(4)).ToEqual 0
+    
+    Client.Insecure = True
+    
+    Set Http = Client.PrepareHttpRequest(Request)
+    .Expect(Http.Option(18)).ToEqual False
+    .Expect(Http.Option(4)).ToEqual 13056
+#End If
+    End With
+    
+    With Specs.It("[Mac-only] Insecure should set --insecure flag in cURL")
+#If Mac Then
+    Dim Curl As String
+    Curl = Client.PrepareCurlRequest(Request)
+    
+    .Expect(Curl).ToNotMatch "--insecure"
+    
+    Client.Insecure = True
+    
+    .Expect(Curl).ToMatch "--insecure"
+#Else
+    ' (Mac-only)
+    .Expect(True).ToEqual True
+#End If
+    End With
     
     ' ============================================= '
     ' Public Methods
