@@ -127,10 +127,10 @@ Const AUTOPROXY_DETECT_TYPE_DNS = 2
 ' === VBA-UTC Headers
 #If Mac Then
 
-Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" (ByVal utc_command As String, ByVal utc_mode As String) As Long
-Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" (ByVal utc_file As Long) As Long
-Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" (ByVal utc_buffer As String, ByVal utc_size As Long, ByVal utc_number As Long, ByVal utc_file As Long) As Long
-Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" (ByVal utc_file As Long) As Long
+Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
+Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" (ByVal utc_File As Long) As Long
+Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
+Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" (ByVal utc_File As Long) As Long
 
 Private Type utc_ShellResult
     utc_Output As String
@@ -1396,7 +1396,7 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
 End Function
 
 ''
-' VBA-JSON v1.0.0-rc.1
+' VBA-JSON v1.0.0-rc.4
 ' (c) Tim Hall - https://github.com/timhall/VBA-JSONConverter
 '
 ' JSON Converter for VBA
@@ -2020,7 +2020,7 @@ Private Function json_UnsignedAdd(json_Start As Long, json_Increment As Long) As
 End Function
 
 ''
-' VBA-UTC v1.0.0-rc.1
+' VBA-UTC v1.0.0-rc.3
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-UtcConverter
 '
 ' UTC/ISO 8601 Converter for VBA
@@ -2048,7 +2048,7 @@ End Function
 ' @return {Date} Local date
 ' -------------------------------------- '
 Public Function ParseUtc(utc_UtcDate As Date) As Date
-    On Error GoTo web_ErrorHandling
+    On Error GoTo utc_ErrorHandling
     
 #If Mac Then
     ParseUtc = utc_ConvertDate(utc_UtcDate)
@@ -2064,7 +2064,7 @@ Public Function ParseUtc(utc_UtcDate As Date) As Date
 
     Exit Function
 
-web_ErrorHandling:
+utc_ErrorHandling:
     Err.Raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.Description
 End Function
 
@@ -2075,7 +2075,7 @@ End Function
 ' @return {Date} UTC date
 ' -------------------------------------- '
 Public Function ConvertToUtc(utc_LocalDate As Date) As Date
-    On Error GoTo web_ErrorHandling
+    On Error GoTo utc_ErrorHandling
     
 #If Mac Then
     ConvertToUtc = utc_ConvertDate(utc_LocalDate, utc_ConvertToUtc:=True)
@@ -2091,7 +2091,7 @@ Public Function ConvertToUtc(utc_LocalDate As Date) As Date
     
     Exit Function
     
-web_ErrorHandling:
+utc_ErrorHandling:
     Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
@@ -2102,7 +2102,7 @@ End Function
 ' @return {Date} Local date
 ' -------------------------------------- '
 Public Function ParseIso(utc_IsoString As String) As Date
-    On Error GoTo web_ErrorHandling
+    On Error GoTo utc_ErrorHandling
     
     Dim utc_Parts() As String
     Dim utc_DateParts() As String
@@ -2165,7 +2165,7 @@ Public Function ParseIso(utc_IsoString As String) As Date
     
     Exit Function
     
-web_ErrorHandling:
+utc_ErrorHandling:
     Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
 End Function
 
@@ -2176,13 +2176,13 @@ End Function
 ' @return {Date} ISO 8601 string
 ' -------------------------------------- '
 Public Function ConvertToIso(utc_LocalDate As Date) As String
-    On Error GoTo web_ErrorHandling
+    On Error GoTo utc_ErrorHandling
     
     ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
     
     Exit Function
     
-web_ErrorHandling:
+utc_ErrorHandling:
     Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
@@ -2222,26 +2222,26 @@ Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As
     End If
 End Function
 Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResult
-    Dim utc_file As Long
+    Dim utc_File As Long
     Dim utc_Chunk As String
     Dim utc_Read As Long
     
-    On Error GoTo web_ErrorHandling
-    utc_file = utc_popen(utc_ShellCommand, "r")
+    On Error GoTo utc_ErrorHandling
+    utc_File = utc_popen(utc_ShellCommand, "r")
     
-    If utc_file = 0 Then: Exit Function
+    If utc_File = 0 Then: Exit Function
     
-    Do While utc_feof(utc_file) = 0
+    Do While utc_feof(utc_File) = 0
         utc_Chunk = VBA.Space$(50)
-        utc_Read = utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_file)
+        utc_Read = utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File)
         If utc_Read > 0 Then
             utc_Chunk = VBA.Left$(utc_Chunk, utc_Read)
             utc_ExecuteInShell.utc_Output = utc_ExecuteInShell.utc_Output & utc_Chunk
         End If
     Loop
 
-web_ErrorHandling:
-    utc_ExecuteInShell.utc_ExitCode = utc_pclose(File)
+utc_ErrorHandling:
+    utc_ExecuteInShell.utc_ExitCode = utc_pclose(utc_File)
 End Function
 #Else
 Private Function utc_DateToSystemTime(utc_Value As Date) As utc_SYSTEMTIME
@@ -2259,7 +2259,6 @@ Private Function utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
         TimeSerial(utc_Value.utc_wHour, utc_Value.utc_wMinute, utc_Value.utc_wSecond)
 End Function
 #End If
-
 
 ''
 ' AutoProxy 1.0.0
