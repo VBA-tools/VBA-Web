@@ -371,6 +371,29 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.FindInKeyValues(KeyValues, "d")).ToBeEmpty
     End With
     
+    ' AddOrReplaceInKeyValues
+    ' --------------------------------------------- '
+    With Specs.It("should add or replace (with retained order) in Key-Values")
+        Set KeyValues = New Collection
+        KeyValues.Add WebHelpers.CreateKeyValue("a", 123)
+        KeyValues.Add WebHelpers.CreateKeyValue("b", 456)
+        KeyValues.Add WebHelpers.CreateKeyValue("c", 789)
+        
+        WebHelpers.AddOrReplaceInKeyValues KeyValues, "a", "abc"
+        WebHelpers.AddOrReplaceInKeyValues KeyValues, "b", "def"
+        WebHelpers.AddOrReplaceInKeyValues KeyValues, "c", "ghi"
+        WebHelpers.AddOrReplaceInKeyValues KeyValues, "d", "jkl"
+        
+        .Expect(KeyValues.Count).ToEqual 4
+        .Expect(KeyValues(1)("Key")).ToEqual "a"
+        .Expect(KeyValues(2)("Key")).ToEqual "b"
+        .Expect(KeyValues(3)("Key")).ToEqual "c"
+        .Expect(KeyValues(4)("Key")).ToEqual "d"
+        
+        .Expect(KeyValues(2)("Value")).ToEqual "def"
+        .Expect(KeyValues(4)("Value")).ToEqual "jkl"
+    End With
+    
     ' ============================================= '
     ' 5. Request preparation / handling
     ' ============================================= '

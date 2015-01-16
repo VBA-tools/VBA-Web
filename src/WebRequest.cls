@@ -248,11 +248,11 @@ End Sub
 ' Prepare request for execution
 ' --------------------------------------------- '
 Public Sub Prepare()
-    ' Add general headers to request
-    Me.AddHeader "User-Agent", WebUserAgent
-    Me.AddHeader "Content-Type", Me.ContentType
-    Me.AddHeader "Accept", Me.Accept
-    Me.AddHeader "Content-Length", VBA.CStr(Me.ContentLength)
+    ' Add/replace general headers for request
+    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "User-Agent", WebUserAgent
+    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "Content-Type", Me.ContentType
+    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "Accept", Me.Accept
+    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "Content-Length", VBA.CStr(Me.ContentLength)
 End Sub
 
 ''

@@ -960,6 +960,43 @@ Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Vari
     Next web_KeyValue
 End Function
 
+''
+' Helper for adding/replacing key-value in Collection of key-value
+' - Add if key not found
+' - Replace if key is found
+'
+' @param {Collection} KeyValues
+' @param {String} Key to find
+' @return {Variant}
+' --------------------------------------------- '
+Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Value As Variant)
+    Dim web_KeyValue As Dictionary
+    Dim web_Index As Long
+    Dim web_NewKeyValue As Dictionary
+    
+    Set web_NewKeyValue = CreateKeyValue(CStr(Key), Value)
+    
+    web_Index = 1
+    For Each web_KeyValue In KeyValues
+        If web_KeyValue("Key") = Key Then
+            ' Replace existing
+            KeyValues.Remove web_Index
+            
+            If web_Index > KeyValues.Count Then
+                KeyValues.Add web_NewKeyValue, After:=web_Index - 1
+            Else
+                KeyValues.Add web_NewKeyValue, Before:=web_Index
+            End If
+            Exit Sub
+        End If
+        
+        web_Index = web_Index + 1
+    Next web_KeyValue
+    
+    ' Add
+    KeyValues.Add web_NewKeyValue
+End Sub
+
 ' ============================================= '
 ' 5. Request preparation / handling
 ' ============================================= '

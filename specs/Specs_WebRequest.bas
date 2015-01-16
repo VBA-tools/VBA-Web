@@ -16,6 +16,7 @@ Public Function Specs() As SpecSuite
     Dim Request As WebRequest
     Dim Body As Object
     Dim Cloned As WebRequest
+    Dim NumHeaders As Long
     
     WebHelpers.RegisterConverter "csv", "text/csv", "Specs_WebHelpers.SimpleConverter", "Specs_WebHelpers.SimpleParser"
     
@@ -474,13 +475,29 @@ Public Function Specs() As SpecSuite
         Request.ContentLength = 100
         
         .Expect(Request.Headers.Count).ToEqual 0
-        
+         
         Request.Prepare
         
         .Expect(Request.Headers.Count).ToBeGTE 3
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Accept")).ToEqual "text/csv"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "100"
+    End With
+    
+    With Specs.It("Prepare should only add headers once")
+        Set Request = New WebRequest
+        
+        Request.ContentType = "text/plain"
+        Request.Accept = "text/csv"
+        Request.ContentLength = 100
+         
+        Request.Prepare
+        
+        NumHeaders = Request.Headers.Count
+        
+        Request.Prepare
+        
+        .Expect(Request.Headers.Count).ToEqual NumHeaders
     End With
     
     ' ============================================= '
