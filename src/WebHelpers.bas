@@ -883,19 +883,6 @@ End Function
 ' ============================================= '
 
 ''
-' Check if given is an array
-'
-' @param {Object} Obj
-' @return {Boolean}
-' --------------------------------------------- '
-Public Function IsArray(Obj As Variant) As Boolean
-    Select Case VarType(Obj)
-    Case VBA.vbArray To VBA.vbArray + VBA.vbByte
-        IsArray = True
-    End Select
-End Function
-
-''
 ' Clone dictionary
 '
 ' @param {Dictionary} Dict

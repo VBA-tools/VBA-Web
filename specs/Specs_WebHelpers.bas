@@ -286,19 +286,6 @@ Public Function Specs() As SpecSuite
     ' 4. Object/Dictionary/Collection helpers
     ' ============================================= '
     
-    ' IsArray
-    ' --------------------------------------------- '
-    With Specs.It("should check for Variant and Typed arrays")
-        Arr = Array(1, 2, 3)
-        Erase Bytes
-        
-        .Expect(WebHelpers.IsArray(Arr)).ToEqual True
-        .Expect(WebHelpers.IsArray(Bytes)).ToEqual True
-        .Expect(WebHelpers.IsArray(Strings)).ToEqual True
-        .Expect(WebHelpers.IsArray(Var)).ToEqual False
-        .Expect(WebHelpers.IsArray(New Collection)).ToEqual False
-    End With
-    
     ' CloneDictionary
     ' --------------------------------------------- '
     With Specs.It("should clone Dictionary")
