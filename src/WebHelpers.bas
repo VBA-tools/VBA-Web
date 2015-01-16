@@ -1396,7 +1396,7 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
 End Function
 
 ''
-' VBA-JSON v1.0.0-rc.4
+' VBA-JSON v1.0.0-rc.5
 ' (c) Tim Hall - https://github.com/timhall/VBA-JSONConverter
 '
 ' JSON Converter for VBA
@@ -1614,7 +1614,7 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
     Case Else
         ' Number
         On Error Resume Next
-        ConvertToJson = json_DictionaryCollectionOrArray
+        ConvertToJson = VBA.Replace(json_DictionaryCollectionOrArray, ",", ".")
         On Error GoTo 0
     End Select
 End Function
