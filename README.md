@@ -1,16 +1,21 @@
 VBA-Web
 =======
 
-VBA-Web makes working with complex webservices and APIs easy with VBA on Windows and Mac. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
+VBA-Web (formerly Excel-REST) makes working with complex webservices and APIs easy with VBA on Windows and Mac. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
 
 Getting started
 ---------------
 
 - Download the [latest release (v4.0.0-rc.5)](https://github.com/VBA-tools/VBA-Web/releases)
 - To install/upgrade in an existing file, use `VBA-Web - Installer.xlsm`
-- To start from scratch on Excel, `VBA-Web - Blank.xlsm` has everything setup and ready to go
+- To start from scratch in Excel, `VBA-Web - Blank.xlsm` has everything setup and ready to go
 
 For more details see the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki)
+
+Upgrading
+---------
+
+To upgrade from Excel-REST to VBA-Web, follow the [Upgrading Guide](https://github.com/VBA-tools/VBA-Web/wiki/Upgrading-from-v3.*-to-v4.*)
 
 Examples
 -------
@@ -20,16 +25,19 @@ The following examples demonstrate using the Google Maps API to get directions b
 ### GetJSON Example
 ```VB.net
 Function GetDirections(Origin As String, Destination As String) As String
-    ' Create a RestClient for executing requests
+    ' Create a WebClient for executing requests
     ' and set a base url that all requests will be appended to
-    Dim MapsClient As New RestClient
+    Dim MapsClient As New WebClient
     MapsClient.BaseUrl = "https://maps.googleapis.com/maps/api/"
     
     ' Use GetJSON helper to execute simple request and work with response
     Dim Resource As String
-    Dim Response As RestResponse
+    Dim Response As WebResponse
     
-    Resource = "directions/json?origin=" & Origin & "&destination=" & Destination & "&sensor=false"
+    Resource = "directions/json?" & _
+        "origin=" & Origin & _
+        "&destination=" & Destination & _
+        "&sensor=false"
     Set Response = MapsClient.GetJSON(Resource)
     
     ' => GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false
@@ -37,8 +45,8 @@ Function GetDirections(Origin As String, Destination As String) As String
     ProcessDirections Response
 End Function
 
-Public Sub ProcessDirections(Response As RestResponse)
-    If Response.StatusCode = Ok Then
+Public Sub ProcessDirections(Response As WebResponse)
+    If Response.StatusCode = WebStatusCode.Ok Then
         Dim Route As Dictionary
         Set Route = Response.Data("routes")(1)("legs")(1)
 
@@ -52,74 +60,73 @@ Public Sub ProcessDirections(Response As RestResponse)
 End Sub
 ```
 
-There are 3 primary components in Excel-REST: 
+There are 3 primary components in VBA-Web: 
 
-1. `RestRequest` for defining complex requests
-2. `RestClient` for executing requests
-3. `RestResponse` for dealing with responses. 
+1. `WebRequest` for defining complex requests
+2. `WebClient` for executing requests
+3. `WebResponse` for dealing with responses. 
  
-In the above example, the request is fairly simple, so we can skip creating a `RestRequest` and instead use the `Client.GetJSON` helper to GET json from a specific url. In processing the response, we can look at the `StatusCode` to make sure the request succeeded and then use the parsed json in the `Data` parameter to extract complex information from the response. 
+In the above example, the request is fairly simple, so we can skip creating a `WebRequest` and instead use the `Client.GetJSON` helper to GET json from a specific url. In processing the response, we can look at the `StatusCode` to make sure the request succeeded and then use the parsed json in the `Data` parameter to extract complex information from the response. 
 
-### RestRequest Example
+### WebRequest Example
 
-If we wish to have more control over the request, the following example uses `RestRequest` to define a complex request.
+If you wish to have more control over the request, the following example uses `WebRequest` to define a complex request.
 
 ```VB.net
 Function GetDirections(Origin As String, Destination As String) As String
-    Dim MapsClient As New RestClient
-    ' ... Setup client using GetJSON Example
+    Dim MapsClient As New WebClient
+    MapsClient.BaseUrl = "https://maps.googleapis.com/maps/api/"
     
-    ' Create a RestRequest for getting directions
-    Dim DirectionsRequest As New RestRequest
+    ' Create a WebRequest for getting directions
+    Dim DirectionsRequest As New WebRequest
     DirectionsRequest.Resource = "directions/{format}"
-    DirectionsRequest.Method = httpGET
+    DirectionsRequest.Method = WebMethod.HttpGet
     
-    ' Set the request format -> Sets {format} segment, content-types, and parses the response
-    DirectionsRequest.Format = json
+    ' Set the request format 
+    ' -> Sets content-type and accept headers and parses the response
+    DirectionsRequest.Format = WebFormat.Json
     
-    ' (Alternatively, replace {format} segment directly)
+    ' Replace {format} segment
     DirectionsRequest.AddUrlSegment "format", "json"
     
-    ' Add parameters to the request (as querystring for GET calls and body otherwise)
-    DirectionsRequest.AddParameter "origin", Origin
-    DirectionsRequest.AddParameter "destination", Destination
-    
-    ' Force parameter as querystring for all requests
+    ' Add querystring to the request
+    DirectionsRequest.AddQuerystringParam "origin", Origin
+    DirectionsRequest.AddQuerystringParam "destination", Destination
     DirectionsRequest.AddQuerystringParam "sensor", "false"
     
     ' => GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false
     
     ' Execute the request and work with the response
-    Dim Response As RestResponse
+    Dim Response As WebResponse
     Set Response = MapsClient.Execute(DirectionsRequest)
     
     ProcessDirections Response
 End Function
 
-Public Sub ProcessDirections(Response As RestResponse)
-    ' ... Same as previous examples
+Public Sub ProcessDirections(Response As WebResponse)
+    ' ... Same as previous example
 End Sub
 ```
 
-The above example demonstrates some of the powerful feature available with `RestRequest`. Some of the features include:
+The above example demonstrates some of the powerful feature available with `WebRequest`. Some of the features include:
 
 - Url segments (Replace {segment} in resource with value)
 - Method (GET, POST, PUT, PATCH, DELETE)
-- Format (json and url-encoded) for content-type and converting/parsing request and response
-- Parameters and QuerystringParams
+- Format (json, xml, url-encoded, plain-text) for content-type and accept headers and converting/parsing request and response
+- QuerystringParams
 - Body
 - Cookies
 - Headers
 
-For more details, see the `RestRequest` page in with [Wiki](https://github.com/VBA-tools/VBA-Web/wiki/RestRequest)
+For more details, see the `WebRequest` portion of the [Docs](https://vba-tools.github.io/VBA-Web/docs/)
 
 ### Authentication Example
 
-The following example demonstrates using an authenticator with Excel-REST to query Twitter. The `TwitterAuthenticator` (found in the `authenticators/` [folder](https://github.com/VBA-tools/VBA-Web/tree/master/authenticators)) uses Twitter's OAuth 1.0a authentication and details of how it was created can be found in the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IAuthenticator).
+The following example demonstrates using an authenticator with VBA-Web to query Twitter. The `TwitterAuthenticator` (found in the `authenticators/` [folder](https://github.com/VBA-tools/VBA-Web/tree/master/authenticators)) uses Twitter's OAuth 1.0a authentication and details of how it was created can be found in the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IAuthenticator).
 
 ```VB.net
-Function QueryTwitter(query As String) As RestResponse
-    Dim TwitterClient As New RestClient
+Function QueryTwitter(Query As String) As WebResponse
+    Dim TwitterClient As New WebClient
     TwitterClient.BaseUrl = "https://api.twitter.com/1.1/"
     
     ' Setup authenticator
@@ -127,14 +134,14 @@ Function QueryTwitter(query As String) As RestResponse
     TwitterAuth.Setup _
         ConsumerKey:="Your consumer key", _
         ConsumerSecret:="Your consumer secret"
-    Set TwitterClient.Authenticator = TwitterAUth
+    Set TwitterClient.Authenticator = TwitterAuth
     
     ' Setup query request
-    Dim Request As New RestRequest
-    Request.Resource = "search/tweets.{format}"
-    Request.Format = json
-    Request.Method = httpGET
-    Request.AddParameter "q", query
+    Dim Request As New WebRequest
+    Request.Resource = "search/tweets.json"
+    Request.Format = WebFormat.Json
+    Request.Method = WebMethod.HttpGet
+    Request.AddParameter "q", Query
     Request.AddParameter "lang", "en"
     Request.AddParameter "count", 20
     
@@ -145,7 +152,7 @@ Function QueryTwitter(query As String) As RestResponse
 End Function
 ```
 
-For more details, check out the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki) and [Examples](https://github.com/VBA-tools/VBA-Web/tree/master/examples)
+For more details, check out the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki), [Docs](https://vba-tools.github.com/VBA-Web/docs/), and [Examples](https://github.com/VBA-tools/VBA-Web/tree/master/examples)
 
 ### Release Notes
 
