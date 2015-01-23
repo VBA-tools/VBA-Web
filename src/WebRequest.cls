@@ -16,10 +16,10 @@ Attribute VB_Exposed = True
 ' Errors:
 ' 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class WebRequest
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
 ' --------------------------------------------- '
@@ -41,13 +41,133 @@ Private web_pId As String
 ' Properties
 ' --------------------------------------------- '
 
+''
+' Set the request's portion of the url to be appended to the client's BaseUrl.
+' Can include Url Segments for dynamic values
+' and Querystring parameters are smart enough to be appended to existing querystring
+' (or added to resource if there isn't an existing querystring).
+'
+' @example
+' ```VB.net
+' Dim Client As New WebClient
+' Client.BaseUrl = "https://api.example.com/"
+'
+' Dim Request As New WebRequest
+' Request.Resource = "messages"
+'
+' ' -> Url: https://api.example.com/messages
+'
+' Request.Resource = "messages/{id}?a=1"
+' Request.AddUrlSegment "id", 123
+' Request.AddQuerystringParam "b", 2
+'
+' ' -> Url: https://api.example.com/messages/123?a=1&b=2
+' ```
+'
+' @property Resource
+' @type String
+''
 Public Resource As String
+
+''
+' Set the HTTP method to be used for the request:
+' GET, POST, PUT, PATCH, DELETE
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Method = WebMethod.HttpGet
+' Request.Method = WebMethod.HttpPost
+' ' or HttpPut / HttpPatch / HttpDelete
+' ```
+'
+' @property Method
+' @type WebMethod
+''
 Public Method As WebMethod
+
+''
+' _Note_ To add headers, use [`AddHeader`](#/WebRequest/AddHeader).
+'
+' `Collection` of Headers to include with request,
+' stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
+'
+' @property Headers
+' @type Collection
+''
 Public Headers As Collection
+
+''
+' _Note_ To add querystring parameters, use [`AddQuerystringParam`](#/WebRequest/AddQuerystringParam).
+'
+' `Collection` of querystring parameters to include with request,
+' stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
+'
+' @property QuerystringParams
+' @type Collection
+''
 Public QuerystringParams As Collection
+
+''
+' _Note_ To add Url Segments, use [`AddUrlSegment`](#/WebRequest/AddUrlSegment)
+'
+' Url Segments are used to easily add dynamic values to `Resource`.
+' Create a Url Segement in `Resource` with curly brackets and then
+' replace with dynamic value with [`AddUrlSegment`](#AddUrlSegment).
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+'
+' Dim User As String
+' Dim Id As Long
+' User = "Tim"
+' Id = 123
+'
+' ' OK: Use string concatenation for dynamic values
+' Request.Resource = User & "/messages/" & Id
+'
+' ' BETTER: Use Url Segments for dynamic values
+' Request.Resource = "{User}/messages/{Id}"
+' Request.AddUrlSegment "User", User
+' Request.AddUrlSegment "Id", Id
+'
+' Request.FormattedResource ' = "Tim/messages/123"
+' ```
+'
+' @property UrlSegments
+' @type Dictionary
+''
 Public UrlSegments As Dictionary
+
+''
+' _Note_ To add cookies, use [`AddCookie`](#/WebRequest/AddCookie).
+'
+' `Collection` of cookies to include with request,
+' stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
+'
+' @property Cookies
+' @type Collection
+''
 Public Cookies As Collection
 
+''
+' Set `RequestFormat`, `ResponseFormat`, and `Content-Type` and `Accept`
+' headers for the `WebRequest`
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Format = WebFormat.Json
+' ' -> Request.RequestFormat = WebFormat.Json
+' '    Request.ResponseFormat = WebFormat.Json
+' '    (Header) Content-Type: application/json
+' '    (Header) Accept: application/json
+' ```
+'
+' @property Format
+' @type WebFormat
+''
 Public Property Get Format() As WebFormat
     Format = RequestFormat
 End Property
@@ -56,46 +176,163 @@ Public Property Let Format(Value As WebFormat)
     Me.ResponseFormat = Value
 End Property
 
+''
+' Set the format to use for converting the response `Body` to string and for the `Content-Type` header
+'
+' _Note_ If `WebFormat.Custom` is used, the [`CustomRequestFormat`](#/WebRequest/CustomRequestFormat) must be set.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Body = Array("A", "B", "C")
+'
+' Request.RequestFormat = WebFormat.Json
+'
+' ' -> (Header) Content-Type: application/json
+' ' -> Convert Body to JSON string
+' Request.Body ' = "["A","B","C"]"
+' ```
+'
+' @property RequestFormat
+' @type WebFormat
+' @default WebFormat.Json
+''
 Public Property Get RequestFormat() As WebFormat
     RequestFormat = web_pRequestFormat
 End Property
 Public Property Let RequestFormat(Value As WebFormat)
-    web_pRequestFormat = Value
-    web_pConvertedBody = ""
+    If Value <> web_pRequestFormat Then
+        web_pRequestFormat = Value
+    
+        ' Clear cached converted body
+        web_pConvertedBody = ""
+    End If
 End Property
 
+''
+' Set the format to use for converting the response `Content` to `Data` and for the `Accept` header
+'
+' _Note_ If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#/WebRequest/CustomResponseFormat) must be set.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.ResponseFormat = WebFormat.Json
+'
+' ' -> (Header) Accept: application/json
+'
+' Dim Response As WebResponse
+' ' ... from Execute
+' Response.Content = "{""message"":""Howdy!""}"
+'
+' ' -> Parse Content to JSON Dictionary
+' Debug.Print Response.Data("message") ' -> "Howdy!"
+' ```
+'
+' @property ResponseFormat
+' @type WebFormat
+' @default WebFormat.Json
+''
 Public Property Get ResponseFormat() As WebFormat
     ResponseFormat = web_pResponseFormat
 End Property
 Public Property Let ResponseFormat(Value As WebFormat)
-    web_pResponseFormat = Value
-    web_pConvertedBody = ""
+    If Value <> web_pResponseFormat Then
+        web_pResponseFormat = Value
+        
+        ' Clear cached converted body
+        web_pConvertedBody = ""
+    End If
 End Property
 
+''
+' Use converter registered with [`WebHelpers.RegisterConverter`](#/WebHelpers/RegisterConverter)
+' to convert `Body` to string and set `Content-Type` header.
+'
+' (Automatically sets `RequestFormat` to `WebFormat.Custom`)
+'
+' @example
+' ```VB.net
+' WebHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCsv", "Module.ParseCsv"
+'
+' Dim Request As New WebRequest
+' Request.CustomRequestFormat = "csv"
+'
+' ' -> (Header) Content-Type: text/csv
+' ' -> Body converted to string with Module.ConvertToCsv
+' ```
+'
+' @property CustomRequestFormat
+' @type String
+''
 Public Property Get CustomRequestFormat() As String
     CustomRequestFormat = web_pCustomRequestFormat
 End Property
 Public Property Let CustomRequestFormat(Value As String)
-    web_pCustomRequestFormat = Value
-    web_pConvertedBody = ""
-    
-    If Value <> "" Then
-        web_pRequestFormat = WebFormat.Custom
+    If Value <> web_pCustomRequestFormat Then
+        web_pCustomRequestFormat = Value
+        
+        ' Clear cached converted body
+        web_pConvertedBody = ""
+        
+        If Value <> "" Then
+            web_pRequestFormat = WebFormat.Custom
+        End If
     End If
 End Property
 
+''
+' Use converter registered with [`WebHelpers.RegisterConverter`](#/WebHelpers/RegisterConverter)
+' to convert the response `Content` to `Data` and set `Accept` header.
+'
+' (Automatically sets `ResponseFormat` to `WebFormat.Custom`)
+'
+' @example
+' ```VB.net
+' WebHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCsv", "Module.ParseCsv"
+'
+' Dim Request As New WebRequest
+' Request.CustomResponseFormat = "csv"
+'
+' ' -> (Header) Accept: text/csv
+' ' -> WebResponse Content converted Data with Module.ParseCsv
+' ```
+'
+' @property CustomResponseFormat
+' @type String
+''
 Public Property Get CustomResponseFormat() As String
     CustomResponseFormat = web_pCustomResponseFormat
 End Property
 Public Property Let CustomResponseFormat(Value As String)
-    web_pCustomResponseFormat = Value
-    web_pConvertedBody = ""
-    
-    If Value <> "" Then
-        ResponseFormat = WebFormat.Custom
+    If Value <> web_pCustomResponseFormat Then
+        web_pCustomResponseFormat = Value
+        
+        ' Clear cached converted body
+        web_pConvertedBody = ""
+        
+        If Value <> "" Then
+            ResponseFormat = WebFormat.Custom
+        End If
     End If
 End Property
 
+''
+' Set automatically from `RequestFormat` or `CustomRequestFormat`,
+' but can be overriden to set `Content-Type` header for request.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.ContentType = "text/csv"
+'
+' ' -> (Header) Content-Type: text/csv
+' ```
+'
+' @property ContentType
+' @type String
+' @default Media-type of request format
+''
 Public Property Get ContentType() As String
     If web_pContentType <> "" Then
         ContentType = web_pContentType
@@ -107,6 +344,22 @@ Public Property Let ContentType(Value As String)
     web_pContentType = Value
 End Property
 
+''
+' Set automatically from `ResponseFormat` or `CustomResponseFormat`,
+' but can be overriden to set `Accept` header for request.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Accept = "text/csv"
+'
+' ' -> (Header) Accept: text/csv
+' ```
+'
+' @property Accept
+' @type String
+' @default Media-type of response format
+''
 Public Property Get Accept() As String
     If web_pAccept <> "" Then
         Accept = web_pAccept
@@ -118,6 +371,22 @@ Public Property Let Accept(Value As String)
     web_pAccept = Value
 End Property
 
+''
+' Set automatically by length of `Body`,
+' but can be overriden to set `Content-Length` header for request.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.ContentLength = 200
+'
+' ' -> (Header) Content-Length: 200
+' ```
+'
+' @property ContentLength
+' @type Long
+' @default Length of `Body`
+''
 Public Property Get ContentLength() As Long
     If web_pContentLength >= 0 Then
         ContentLength = web_pContentLength
@@ -129,9 +398,43 @@ Public Property Let ContentLength(Value As Long)
     web_pContentLength = Value
 End Property
 
+''
+' - Get: Body value converted to string using `RequestFormat` or `CustomRequestFormat`
+' - Let: Use `String` or `Array` for Body
+' - Set: Use `Collection`, `Dictionary`, or `Object` for Body
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.RequestFormat = WebFormat.Json
+'
+' ' Let: String|Array
+' Request.Body = "text"
+' Debug.Print Request.Body ' -> "text"
+'
+' Request.Body = Array("A", "B", "C")
+' Debug.Print Request.Body ' -> "["A","B","C"]"
+'
+' ' Set: Collection|Dictionary|Object
+' Dim Body As Object
+' Set Body = New Collection
+' Body.Add "Howdy!"
+' Set Request.Body = Body
+' Debug.Print Request.Body ' -> "["Howdy!"]"
+'
+' Set Body = New Dictionary
+' Body.Add "a", 123
+' Body.Add "b", 456
+' Set Request.Body = Body
+' Debug.Print Request.Body ' -> "{"a":123,"b":456}"
+' ```
+'
+' @property Body
+' @type String|Array|Collection|Dictionary|Variant
+''
 Public Property Get Body() As Variant
-    If Not IsEmpty(web_pBody) Then
-        If VarType(web_pBody) = vbString Then
+    If Not VBA.IsEmpty(web_pBody) Then
+        If VBA.VarType(web_pBody) = vbString Then
             Body = web_pBody
         ElseIf web_pConvertedBody = "" Then
             ' Convert body and cache
@@ -151,11 +454,28 @@ Public Property Set Body(Value As Variant)
     Set web_pBody = Value
 End Property
 
+''
+' Get `Resource` with Url Segments replaced and Querystring added.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Resource = "examples/{Id}"
+' Request.AddUrlSegment "Id", 123
+' Request.AddQuerystringParam "message", "Hello"
+'
+' Debug.Print Request.FormattedResource ' -> "examples/123?message=Hello"
+' ```
+'
+' @property FormattedResource
+' @type String
+''
 Public Property Get FormattedResource() As String
+    Dim web_Segment As Variant
+    
     FormattedResource = Me.Resource
     
     ' Replace url segments
-    Dim web_Segment As Variant
     For Each web_Segment In Me.UrlSegments.Keys
         FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", Me.UrlSegments(web_Segment))
     Next web_Segment
@@ -172,6 +492,11 @@ Public Property Get FormattedResource() As String
     End If
 End Property
 
+''
+' @internal
+' @property Id
+' @type String
+''
 Public Property Get Id() As String
     If web_pId = "" Then: web_pId = WebHelpers.CreateNonce
     Id = web_pId
@@ -182,59 +507,133 @@ End Property
 ' ============================================= '
 
 ''
-' Add the specified key/value to the request headers
+' Add header to be sent with request
 '
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.AddHeader "Authentication", "Bearer ..."
+'
+' ' -> (Header) Authentication: Bearer ...
+' ```
+'
+' @method AddHeader
 ' @param {String} Key
 ' @param {Variant} Value
-' --------------------------------------------- '
+''
 Public Sub AddHeader(Key As String, Value As Variant)
     Me.Headers.Add WebHelpers.CreateKeyValue(Key, Value)
 End Sub
 
 ''
-' Replace the defined segment in the url with the provided value
+' Url Segments are used to easily add dynamic values to `Resource`.
+' Create a Url Segement in `Resource` with curly brackets and then
+' replace with dynamic value with `AddUrlSegment`.
 '
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Dim User As String
+' Dim Id As Long
+'
+' User = "Tim"
+' Id = 123
+'
+' ' OK: Use string concatenation for dynamic values
+' Request.Resource = User & "/messages/" & Id
+'
+' ' BETTER: Use Url Segments for dynamic values
+' Request.Resource = "{User}/messages/{Id}"
+' Request.AddUrlSegment "User", User
+' Request.AddUrlSegment "Id", Id
+'
+' Debug.Print Request.FormattedResource ' > "Tim/messages/123"
+' ```
+'
+' @method AddUrlSegment
 ' @param {String} Key
 ' @param {String} Value
-' --------------------------------------------- '
+''
 Public Sub AddUrlSegment(Segment As String, Value As Variant)
     Me.UrlSegments.Item(Segment) = Value
 End Sub
 
 ''
-' Add querystring parameter to request
+' Add querysting parameter to be used in `FormattedResource` for request.
 '
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Resource = "messages"
+' Request.AddQuerystringParam "from", "Tim"
+'
+' Request.FormattedResource ' = "messages?from=Tim"
+' ```
+'
+' @method AddQuerystringParam
 ' @param {String} Key
 ' @param {Variant} Value
-' --------------------------------------------- '
+''
 Public Sub AddQuerystringParam(Key As String, Value As Variant)
     Me.QuerystringParams.Add WebHelpers.CreateKeyValue(Key, Value)
 End Sub
 
 ''
-' Add cookie to request
+' Add cookie to be sent with request.
 '
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.AddCookie "a", "abc"
+' Request.AddCookie "b", 123
+'
+' ' -> (Header) Cookie: a=abc; b=123;
+' ```
+'
+' @method AddCookie
 ' @param {String} Key
 ' @param {Variant} Value
-' --------------------------------------------- '
+''
 Public Sub AddCookie(Key As String, Value As Variant)
     Me.Cookies.Add WebHelpers.CreateKeyValue(Key, Value)
 End Sub
 
 ''
-' Add parameter to body of request
+' Add `Key-Value` to `Body`.
+' `Body` must be a `Dictionary` (if it's an `Array` or `Collection` an error is thrown)
 '
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Format = WebFormat.Json
+'
+' Request.AddBodyParameter "a", 123
+' Debug.Print Request.Body ' -> "{"a":123}"
+'
+' ' Can add parameters to existing Dictionary
+' Dim Body As New Dictionary
+' Body.Add "a", 123
+'
+' Set Request.Body = Body
+' Request.AddBodyParameter "b", 456
+'
+' Debug.Print Request.Body ' -> "{"a":123,"b":456}"
+' ```
+'
+' @method AddBodyParameter
 ' @param {String} Key
 ' @param {Variant} Value
-' --------------------------------------------- '
+' @throws 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
+''
 Public Sub AddBodyParameter(Key As String, Value As Variant)
     If VBA.IsEmpty(web_pBody) Then
         Set web_pBody = New Dictionary
     ElseIf Not TypeOf web_pBody Is Dictionary Then
-        WebHelpers.LogError "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)", _
-            "WebRequest.AddBodyParameter", 11020 + vbObjectError
-        Err.Raise 11020 + vbObjectError, "WebRequest.AddBodyParameter", _
-            "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)"
+        Dim web_ErrorDescription As String
+        web_ErrorDescription = "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)"
+    
+        WebHelpers.LogError web_ErrorDescription, "WebRequest.AddBodyParameter", 11020 + vbObjectError
+        Err.Raise 11020 + vbObjectError, "WebRequest.AddBodyParameter", web_ErrorDescription
     End If
     
     If VBA.IsObject(Value) Then
@@ -246,7 +645,10 @@ End Sub
 
 ''
 ' Prepare request for execution
-' --------------------------------------------- '
+'
+' @internal
+' @method Prepare
+''
 Public Sub Prepare()
     ' Add/replace general headers for request
     WebHelpers.AddOrReplaceInKeyValues Me.Headers, "User-Agent", WebUserAgent
@@ -258,15 +660,19 @@ End Sub
 ''
 ' Clone request
 '
+' @internal
+' @method Clone
 ' @return {WebRequest}
-' --------------------------------------------- '
+''
 Public Function Clone() As WebRequest
     Set Clone = New WebRequest
     
+    ' Note: Clone underlying for properties with default values
     Clone.Resource = Me.Resource
     Clone.Method = Me.Method
-    Clone.Accept = Me.Accept
-    Clone.ContentType = Me.ContentType
+    Clone.Accept = web_pAccept
+    Clone.ContentType = web_pContentType
+    Clone.ContentLength = web_pContentLength
     Clone.RequestFormat = Me.RequestFormat
     Clone.ResponseFormat = Me.ResponseFormat
     Clone.CustomRequestFormat = Me.CustomRequestFormat
@@ -285,14 +691,15 @@ Public Function Clone() As WebRequest
 End Function
 
 ''
-' Create from options
+' Create WebRequest from options
 '
+' @method CreateFromOptions
 ' @param {Dictionary} Options
-' - Headers {Collection}
-' - Cookies {Collection}
-' - QuerystringParams {Collection}
-' - UrlSegments {DIctionary}
-' --------------------------------------------- '
+' @param {Collection} [Options.Headers] Collection of `KeyValue`
+' @param {Collection} [Options.Cookies] Collection of `KeyValue`
+' @param {Collection} [Options.QuerystringParams] Collection of `KeyValue`
+' @param {Dictionary} [Options.UrlSegments]
+''
 Public Sub CreateFromOptions(Options As Dictionary)
     If Not Options Is Nothing Then
         If Options.Exists("Headers") Then
@@ -318,6 +725,7 @@ Private Sub Class_Initialize()
     ' Set default values
     Me.RequestFormat = WebFormat.Json
     Me.ResponseFormat = WebFormat.Json
+    
     Set Me.Headers = New Collection
     Set Me.QuerystringParams = New Collection
     Set Me.UrlSegments = New Dictionary
