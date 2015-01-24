@@ -26,11 +26,11 @@ Attribute VB_Exposed = False
 '
 '   Set Client.Authenticator = Auth
 '
-' @implements: IWebAuthenticator v4.*
+' @class TwitterAuthenticator
+' @implements IWebAuthenticator v4.*
 ' @author tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
 
@@ -51,7 +51,7 @@ Public Token As String
 '
 ' @param {String} ConsumerKey
 ' @param {String} ConsumerSecret
-' --------------------------------------------- '
+''
 Public Sub Setup(ConsumerKey As String, ConsumerSecret As String)
     Me.ConsumerKey = ConsumerKey
     Me.ConsumerSecret = ConsumerSecret
@@ -62,7 +62,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.Token = "" Then
         Me.Token = Me.GetToken(Client)
@@ -77,7 +77,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -88,7 +88,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -99,7 +99,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
 End Sub
@@ -109,7 +109,7 @@ End Sub
 '
 ' @param {WebClient} Client
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetToken(auth_Client As WebClient) As String
     On Error GoTo auth_Cleanup
     

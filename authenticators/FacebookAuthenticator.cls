@@ -23,27 +23,32 @@ Attribute VB_Exposed = True
 ' 11042 / 80042b22 / -2147210462 - Error parsing authorization code
 '
 ' @example
+' ```VB.net
+' Dim Auth As New FacebookAuthenticator
+' Auth.Setup "Your Application Id", "Your Application Secret"
 '
-'   Dim Auth As New FacebookAuthenticator
-'   Auth.Setup "Your Application Id", "Your Application Secret"
+' ' Add user location scope
+' Auth.AddScope "user_location"
 '
-'   ' Add user location scope
-'   Auth.AddScope "user_location"
+' ' Manually open Facebook login
+' ' (called automatically on first request otherwise)
+' Auth.Login
 '
-'   ' Manually open Facebook login
-'   ' (called automatically on first request otherwise)
-'   Auth.Login
+' ' Add authenticator to client
+' Set Client.Authenticator = Auth
+' ```
 '
-'   ' Add authenticator to client
-'   Set Client.Authenticator = Auth
-'
-' @implements: IWebAuthenticator v4.*
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class FacebookAuthenticator
+' @implements IWebAuthenticator v4.*
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
+
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
 
 Private Const auth_AuthorizationUrl As String = "https://www.facebook.com/dialog/oauth"
 Private Const auth_RedirectUrl As String = "https://www.facebook.com/connect/login_success.html"
@@ -67,7 +72,7 @@ Public Scopes As Variant
 '
 ' @param {String} ApplicationId
 ' @param {String} ApplicationSecret
-' --------------------------------------------- '
+''
 Public Sub Setup(ApplicationId As String, ApplicationSecret As String)
     Me.ApplicationId = ApplicationId
     Me.ApplicationSecret = ApplicationSecret
@@ -75,7 +80,7 @@ End Sub
 
 ''
 ' Login to Facebook
-' --------------------------------------------- '
+''
 Public Sub Login()
     On Error GoTo auth_ErrorHandling
     
@@ -149,7 +154,7 @@ End Sub
 
 ''
 ' Logout of Facebook
-' --------------------------------------------- '
+''
 Public Sub Logout()
     Me.AuthorizationCode = ""
     Me.Token = ""
@@ -160,7 +165,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.Token = "" Then
         If Me.AuthorizationCode = "" Then
@@ -179,7 +184,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -190,7 +195,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -201,7 +206,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
 End Sub
@@ -212,7 +217,7 @@ End Sub
 ' - To get a list of available scopes, visit https://developers.facebook.com/docs/facebook-login/permissions/v2.2
 '
 ' @param {String} Scope
-' --------------------------------------------- '
+''
 Public Sub AddScope(Scope As String)
     Dim auth_Scopes As Variant
     
@@ -234,7 +239,7 @@ End Sub
 ' @internal
 ' @param {WebClient} Client
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetToken(Client As WebClient) As String
     On Error GoTo auth_Cleanup
     
@@ -295,7 +300,7 @@ End Function
 '
 ' @internal
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetLoginUrl() As String
     ' Use Request for Url helpers
     Dim auth_Request As New WebRequest

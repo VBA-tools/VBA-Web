@@ -14,11 +14,11 @@ Attribute VB_Exposed = True
 ' OAuth2 authenticator
 ' (Currently using client credentials flow only)
 '
-' @implements: IWebAuthenticator v4.*
+' @class OAuth2Authenticator
+' @implements IWebAuthenticator v4.*
 ' @author tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
 
@@ -46,7 +46,7 @@ Public Token As String
 ' @param {String} ClientSecret
 ' @param {String} Username
 ' @param {String} Password
-' --------------------------------------------- '
+''
 Public Sub Setup(ClientId As String, ClientSecret As String, Username As String, Password As String)
     Me.ClientId = ClientId
     Me.ClientSecret = ClientSecret
@@ -59,7 +59,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.Token = "" Then
         Me.Token = Me.GetToken(Client)
@@ -74,7 +74,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -85,7 +85,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -96,7 +96,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
 End Sub
@@ -107,7 +107,7 @@ End Sub
 ' @internal
 ' @param {WebClient} Client
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetToken(auth_Client As WebClient) As String
     ' Generate token request using client credentials flow
     ' This is currently setup using Salesforce's implementation

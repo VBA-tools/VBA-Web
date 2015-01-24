@@ -26,32 +26,37 @@ Attribute VB_Exposed = True
 ' 11041 / 80042b21 / -2147210463 - Error retrieving token
 '
 ' @example
+' ```VB.net
+' Dim Auth As New GoogleAuthenticator
+' Auth.Setup "Your Client Id", "Your Client Secret"
 '
-'   Dim Auth As New GoogleAuthenticator
-'   Auth.Setup "Your Client Id", "Your Client Secret"
+' ' Add Google Analytics and Gmail scopes
+' ' (https://www.googleapis.com/auth/ is added automatically when no domain is specified)
+' Auth.AddScope "analytics" ' -> https://www.googleapis.com/auth/analytics
+' Auth.AddScope "https://mail.google.com/"
 '
-'   ' Add Google Analytics and Gmail scopes
-'   ' (https://www.googleapis.com/auth/ is added automatically when no domain is specified)
-'   Auth.AddScope "analytics" ' -> https://www.googleapis.com/auth/analytics
-'   Auth.AddScope "https://mail.google.com/"
+' ' Manually open up Google login
+' ' (called automatically on first request otherwise)
+' Auth.Login
 '
-'   ' Manually open up Google login
-'   ' (called automatically on first request otherwise)
-'   Auth.Login
+' ' alternatively, use your API key to bypass login process
+' Auth.ApiKey = "Your API Key"
 '
-'   ' alternatively, use your API key to bypass login process
-'   Auth.ApiKey = "Your API Key"
+' ' Add authenticator to client
+' Set Client.Authenticator = Auth
+' ```
 '
-'   ' Add authenticator to client
-'   Set Client.Authenticator = Auth
-'
-' @implements: IWebAuthenticator v4.*
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class GoogleAuthenticator
+' @implements IWebAuthenticator v4.*
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
+
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
 
 Private Const auth_AuthorizationUrl As String = "https://accounts.google.com/o/oauth2/auth"
 Private Const auth_RedirectUrl As String = "urn:ietf:wg:oauth:2.0:oob"
@@ -76,7 +81,7 @@ Public Scopes As Variant
 '
 ' @param {String} ClientId
 ' @param {String} ClientSecret
-' --------------------------------------------- '
+''
 Public Sub Setup(ClientId As String, ClientSecret As String)
     Me.ClientId = ClientId
     Me.ClientSecret = ClientSecret
@@ -84,7 +89,7 @@ End Sub
 
 ''
 ' Login to Google
-' --------------------------------------------- '
+''
 Public Sub Login()
     On Error GoTo auth_ErrorHandling
     
@@ -181,7 +186,7 @@ End Sub
 
 ''
 ' Logout
-' --------------------------------------------- '
+''
 Public Sub Logout()
     Me.AuthorizationCode = ""
     Me.Token = ""
@@ -198,7 +203,7 @@ End Sub
 ' Auth.AddScope "https://mail.google.com/"
 '
 ' @param {String} Scope
-' --------------------------------------------- '
+''
 Public Sub AddScope(Scope As String)
     Dim auth_Scopes As Variant
     
@@ -224,7 +229,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.ApiKey <> "" Then
         Request.AddQuerystringParam "key", Me.ApiKey
@@ -247,7 +252,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -258,7 +263,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -269,7 +274,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
 End Sub
@@ -280,7 +285,7 @@ End Sub
 ' @internal
 ' @param {WebClient} Client
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetToken(Client As WebClient) As String
     On Error GoTo auth_Cleanup
     
@@ -343,7 +348,7 @@ End Function
 '
 ' @internal
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetLoginUrl() As String
     ' Use Request for Url helpers
     Dim auth_Request As New WebRequest

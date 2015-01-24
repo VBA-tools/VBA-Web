@@ -13,13 +13,17 @@ Attribute VB_Exposed = True
 '
 ' Use Windows (NTLM) authentication
 '
-' @implements: IWebAuthenticator v4.*
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class WindowsAuthenticator
+' @implements IWebAuthenticator v4.*
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
+
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
 
 Private Const web_AUTOLOGONPOLICY_ALWAYS = 0
 Private Const web_AUTOLOGONPOLICY_ONLYIFBYPASSPROXY = 1
@@ -34,7 +38,7 @@ Private Const web_AUTOLOGONPOLICY_NEVER = 2
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' e.g Add headers, cookies, etc.
 End Sub
@@ -45,7 +49,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -56,7 +60,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' http://msdn.microsoft.com/en-us/library/windows/desktop/aa384107(v=vs.85).aspx
     Http.SetAutoLogonPolicy web_AUTOLOGONPOLICY_ALWAYS
@@ -68,7 +72,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' http://curl.haxx.se/docs/manpage.html#--ntlm
     Curl = Curl & " --ntlm"
