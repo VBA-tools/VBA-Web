@@ -143,9 +143,9 @@ Public Function GetToken(auth_Client As WebClient) As String
     
 auth_Cleanup:
     
-    If Not auth_TokenClient Is Nothing Then: Set auth_TokenClient = Nothing
-    If Not auth_Request Is Nothing Then: Set auth_Request = Nothing
-    If Not auth_Response Is Nothing Then: Set auth_Response = Nothing
+    Set auth_TokenClient = Nothing
+    Set auth_Request = Nothing
+    Set auth_Response = Nothing
     
     ' Rethrow error
     If Err.Number <> 0 Then

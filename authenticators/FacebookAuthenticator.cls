@@ -105,7 +105,6 @@ Public Sub Login()
     auth_IE.Navigate Me.GetLoginUrl
         
     ' Wait for login to complete
-    Debug.Print auth_IE.LocationURL
     Do While Not auth_LoginIsComplete(auth_IE)
         DoEvents
     Loop

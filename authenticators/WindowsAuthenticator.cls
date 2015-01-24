@@ -25,9 +25,9 @@ Option Explicit
 ' Constants and Private Variables
 ' --------------------------------------------- '
 
-Private Const web_AUTOLOGONPOLICY_ALWAYS = 0
-Private Const web_AUTOLOGONPOLICY_ONLYIFBYPASSPROXY = 1
-Private Const web_AUTOLOGONPOLICY_NEVER = 2
+Private Const web_AutoLogonPolicy_Always = 0
+Private Const web_AutoLogonPolicy_OnlyIfBypassProxy = 1
+Private Const web_AutoLogonPolicy_Never = 2
 
 ' ============================================= '
 ' Public Methods
@@ -63,7 +63,7 @@ End Sub
 ''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' http://msdn.microsoft.com/en-us/library/windows/desktop/aa384107(v=vs.85).aspx
-    Http.SetAutoLogonPolicy web_AUTOLOGONPOLICY_ALWAYS
+    Http.SetAutoLogonPolicy web_AutoLogonPolicy_Always
 End Sub
 
 ''
