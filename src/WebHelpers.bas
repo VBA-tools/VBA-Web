@@ -6,19 +6,18 @@ Attribute VB_Name = "WebHelpers"
 ' Common helpers VBA-Web
 '
 ' Errors:
-' 11000 - Error during parsing
-' 11001 - Error during conversion
-' 11002 - No matching converter has been registered
-' 11003 - Error while getting url parts
-' 11099 - (Temp) XML format is not currently supported on Mac
+' 11000 / 80042af8 / -2147210504 - Error during parsing
+' 11001 / 80042af9 / -2147210503 - Error during conversion
+' 11002 / 80042afa / -2147210502 - No matching converter has been registered
+' 11003 / 80042afb / -2147210501 - Error while getting url parts
+' 11099 / 80042b5b / -2147210405 - XML format is not currently supported
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @module WebHelpers
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
-''
 ' Contents:
 ' 1. Logging
 ' 2. Converters and encoding
@@ -208,6 +207,36 @@ Private web_pConverters As Dictionary
 ' Types
 ' --------------------------------------------- '
 
+''
+' Helper for common http status codes. (Use underlying status code for any codes not listed)
+'
+' @example
+' ```VB.net
+' Dim Response As WebResponse
+'
+' If Response.StatusCode = WebStatusCode.Ok Then
+'   ' Ok
+' ElseIf Response.StatusCode = 418 Then
+'   ' I'm a teapot
+' End If
+' ```
+'
+' @property WebStatusCode
+' @param Ok `200`
+' @param Created `201`
+' @param NoContent `204`
+' @param NotModified `304`
+' @param BadRequest `400`
+' @param Unauthorized `401`
+' @param Forbidden `403`
+' @param NotFound `404`
+' @param RequestTimeout `408`
+' @param UnsupportedMediaType `415`
+' @param InternalServerError `500`
+' @param BadGateway `502`
+' @param ServiceUnavailable `503`
+' @param GatewayTimeout `504`
+''
 Public Enum WebStatusCode
     Ok = 200
     Created = 201
@@ -224,6 +253,16 @@ Public Enum WebStatusCode
     ServiceUnavailable = 503
     GatewayTimeout = 504
 End Enum
+
+''
+' @property WebMethod
+' @param HttpGet
+' @param HttpPost
+' @param HttpGet
+' @param HttpGet
+' @param HttpGet
+' @default HttpGet
+''
 Public Enum WebMethod
     HttpGet = 0
     HttpPost = 1
@@ -231,6 +270,16 @@ Public Enum WebMethod
     HttpDelete = 3
     HttpPatch = 4
 End Enum
+
+''
+' @property WebFormat
+' @param PlainText
+' @param Json
+' @param FormUrlEncoded
+' @param Xml
+' @param Custom
+' @default PlainText
+''
 Public Enum WebFormat
     PlainText = 0
     Json = 1
@@ -239,6 +288,20 @@ Public Enum WebFormat
     Custom = 9
 End Enum
 
+''
+' Enable logging of requests and responses and other internal messages from VBA-Web.
+' Should be the first step in debugging VBA-Web if something isn't working as expected.
+' (Logs display in Immediate Window (`View > Immediate Window` or `ctrl+g`)
+'
+' @example
+' ```VB.net
+'
+' ```
+'
+' @property EnableLogging
+' @type Boolean
+' @default False
+''
 Public EnableLogging As Boolean
 
 ' ============================================= '
@@ -246,50 +309,95 @@ Public EnableLogging As Boolean
 ' ============================================= '
 
 ''
-' Log debug message with optional from description
+' Log message (when logging is enabled with `EnableLogging`)
+' with optional location where the message is coming from.
+' Useful when writing extensions to VBA-Web (like an `IWebAuthenticator`).
 '
+' @example
+' ```VB.net
+' LogDebug "Executing request..."
+' ' -> VBA-Web: Executing request...
+'
+' LogDebug "Executing request...", "Module.Function"
+' ' -> Module.Function: Executing request...
+' ```
+'
+' @method LogDebug
 ' @param {String} Message
-' @param {String} [From]
-' --------------------------------------------- '
-Public Sub LogDebug(Message As String, Optional From As String = "")
+' @param {String} [From="VBA-Web"]
+''
+Public Sub LogDebug(Message As String, Optional From As String = "VBA-Web")
     If EnableLogging Then
-        If From = "" Then
-            From = "VBA-Web"
-        End If
-        
         Debug.Print From & ": " & Message
     End If
 End Sub
 
 ''
-' Log error message with optional from description and error number
+' Log warning (even when logging is disabled with `EnableLogging`)
+' with optional location where the message is coming from.
+' Useful when writing extensions to VBA-Web (like an `IWebAuthenticator`).
 '
+' @example
+' ```VB.net
+' WebHelpers.LogWarning "Something could go wrong"
+' ' -> WARNING - VBA-Web: Something could go wrong
+'
+' WebHelpers.LogWarning "Something could go wrong", "Module.Function"
+' ' -> WARNING - Module.Function: Something could go wrong
+' ```
+'
+' @method LogWarning
 ' @param {String} Message
-' @param {String} [From]
-' @param {Long} [ErrNumber]
-' --------------------------------------------- '
-Public Sub LogError(Message As String, Optional From As String = "", Optional ErrNumber As Long = 0)
-    If From = "" Then
-        From = "VBA-Web"
-    End If
-    If ErrNumber <> 0 Then
-        If ErrNumber < 0 Then
-            From = From & ": " & ErrNumber & " (" & VBA.LCase$(VBA.Hex$(ErrNumber)) & "), "
-        Else
-            From = From & ": " & ErrNumber & ", "
-        End If
-    Else
-        From = From & ": "
-    End If
-    
-    Debug.Print "ERROR - " & From & Message
+' @param {String} [From="VBA-Web"]
+''
+Public Sub LogWarning(Message As String, Optional From As String = "VBA-Web")
+    Debug.Print "WARNING - " & From & ": " & Message
 End Sub
 
 ''
-' Log request
+' Log error (even when logging is disabled with `EnableLogging`)
+' with optional location where the message is coming from and error number.
+' Useful when writing extensions to VBA-Web (like an `IWebAuthenticator`).
 '
+' @example
+' ```VB.net
+' WebHelpers.LogError "Something went wrong"
+' ' -> ERROR - VBA-Web: Something went wrong
+'
+' WebHelpers.LogError "Something went wrong", "Module.Function"
+' ' -> ERROR - Module.Function: Something went wrong
+'
+' WebHelpers.LogError "Something went wrong", "Module.Function", 100
+' ' -> ERROR - Module.Function: 100, Something went wrong
+' ```
+'
+' @method LogError
+' @param {String} Message
+' @param {String} [From="VBA-Web"]
+' @param {Long} [ErrNumber=0]
+''
+Public Sub LogError(Message As String, Optional From As String = "VBA-Web", Optional ErrNumber As Long = 0)
+    Dim web_ErrorValue As String
+    If ErrNumber <> 0 Then
+        web_ErrorValue = ErrNumber
+    
+        If ErrNumber < 0 Then
+            web_ErrorValue = web_ErrorValue & " (" & (ErrNumber - vbObjectError) & " / " & VBA.LCase$(VBA.Hex$(ErrNumber)) & ")"
+        End If
+        
+        web_ErrorValue = web_ErrorValue & ", "
+    End If
+    
+    Debug.Print "ERROR - " & From & ": " & web_ErrorValue & Message
+End Sub
+
+''
+' Log details of the request (Url, headers, cookies, body, etc.).
+'
+' @method LogRequest
+' @param {WebClient} Client
 ' @param {WebRequest} Request
-' --------------------------------------------- '
+''
 Public Sub LogRequest(Client As WebClient, Request As WebRequest)
     If EnableLogging Then
         Debug.Print "--> Request - " & Format(Now, "Long Time")
@@ -313,16 +421,20 @@ Public Sub LogRequest(Client As WebClient, Request As WebRequest)
 End Sub
 
 ''
-' Log response
+' Log details of the response (Status, headers, content, etc.).
 '
+' @method LogResponse
+' @param {WebClient} Client
+' @param {WebRequest} Request
 ' @param {WebResponse} Response
-' --------------------------------------------- '
+''
 Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As WebResponse)
     If EnableLogging Then
+        Dim web_KeyValue As Dictionary
+        
         Debug.Print "<-- Response - " & Format(Now, "Long Time")
         Debug.Print Response.StatusCode & " " & Response.StatusDescription
         
-        Dim web_KeyValue As Dictionary
         For Each web_KeyValue In Response.Headers
             Debug.Print web_KeyValue("Key") & ": " & web_KeyValue("Value")
         Next web_KeyValue
@@ -336,14 +448,21 @@ Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As W
 End Sub
 
 ''
-' Obfuscate message (for logging) by replacing with given character
+' Obfuscate any secure information before logging.
 '
-' Example: ("Password", "#") -> ########
+' @example
+' ```VB.net
+' Dim Password As String
+' Password = "Secret"
 '
-' @param {String} Secure
-' @param {String} [Character = *]
+' WebHelpers.LogDebug "Password = " & WebHelpers.Obfuscate(Password)
+' -> Password = ******
+' ```
+'
+' @param {String} Secure Message to obfuscate
+' @param {String} [Character = *] Character to obfuscate with
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function Obfuscate(Secure As String, Optional Character As String = "*") As String
     Obfuscate = VBA.String$(VBA.Len(Secure), Character)
 End Function
@@ -352,28 +471,31 @@ End Function
 ' 2. Converters and encoding
 ' ============================================= '
 
-''
-' Parse given JSON string into object (Dictionary or Collection)
 '
-' @param {String} Json
+' Parse JSON value to `Dictionary` if it's an object or `Collection` if it's an array.
+'
+' @method ParseJson
+' @param {String} Json JSON value to parse
 ' @return {Object}
-' --------------------------------------------- '
-' ParseJSON - Implemented in VBA-JSON embedded below
-
-''
-' Convert object to JSON string
 '
-' @param {Variant} Obj
+' (Implemented in VBA-JSON embedded below)
+
+'
+' Convert `Dictionary`, `Collection`, or `Array` to JSON string.
+'
+' @method ConvertToJson
+' @param {Dictionary|Collection|Variant} Obj
 ' @return {String}
-' --------------------------------------------- '
-' ConvertToJSON - Implemented in VBA-JSON embedded below
+'
+' (Implemented in VBA-JSON embedded below)
 
 ''
-' Parse url-encoded string to Dictionary
+' Parse Url-Encoded value to `Dictionary`.
 '
-' @param {String} UrlEncoded
+' @method ParseUrlEncoded
+' @param {String} UrlEncoded Url-Encoded value to parse
 ' @return {Dictionary} Parsed
-' --------------------------------------------- '
+''
 Public Function ParseUrlEncoded(Encoded As String) As Dictionary
     Dim web_Items As Variant
     Dim web_i As Integer
@@ -399,22 +521,25 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
 End Function
 
 ''
-' Convert Dictionary/Collection of key-value to url encoded string
+' Convert `Dictionary`/`Collection` to Url-Encoded string.
 '
-' @param {Variant} Obj
+' @method ConvertToUrlEncoded
+' @param {Dictionary|Collection|Variant} Obj Value to convert to Url-Encoded string
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
-' --------------------------------------------- '
+''
 Public Function ConvertToUrlEncoded(Obj As Variant) As String
     Dim web_Encoded As String
 
     If TypeOf Obj Is Collection Then
         Dim web_KeyValue As Dictionary
+        
         For Each web_KeyValue In Obj
             If VBA.Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
             web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_KeyValue("Key"), web_KeyValue("Value"))
         Next web_KeyValue
     Else
         Dim web_Key As Variant
+        
         For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
             web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
@@ -425,48 +550,67 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
 End Function
 
 ''
-' Parse XML string to XML
+' Parse XML value to `Dictionary`.
 '
-' @param {String} Encoded
-' @return {Object} XML
-' --------------------------------------------- '
-Public Function ParseXML(Encoded As String) As Object
-#If Mac Then
-    LogError "XML format is not currently supported on Mac", "WebHelpers.ParseXML", 11050 + vbObjectError
-    Err.Raise 11099, "WebHelpers.ParseXML", "XML format is not currently supported on Mac"
-#Else
-    Set ParseXML = CreateObject("MSXML2.DOMDocument")
-    ParseXML.Async = False
-    ParseXML.LoadXML Encoded
-#End If
+' _Note_ Currently, XML is not supported in 4.0.0 due to lack of Mac support.
+' An updated parser is being created that supports Mac and Windows,
+' but in order to avoid future breaking changes, ParseXml and ConvertToXml are not currently implemented.
+'
+' See https://github.com/VBA-tools/VBA-Web/wiki/XML-Support-in-4.0 for details on how to use XML in Windows in the meantime.
+'
+' @param {String} Encoded XML value to parse
+' @return {Dictionary|Object} Parsed
+' @throws 11099 / 80042b5b / -2147210405 - XML format is not currently supported
+''
+Public Function ParseXml(Encoded As String) As Object
+    Dim web_ErrorMsg As String
+    
+    web_ErrorMsg = "XML is not currently supported (An updated parser is being created that supports Mac and Windows)." & vbNewLine & _
+        "To use XML parsing for Windows currently, use the instructions found here:" & vbNewLine & _
+        vbNewLine & _
+        "https://github.com/VBA-tools/VBA-Web/wiki/XML-Support-in-4.0"
+
+    LogError web_ErrorMsg, "WebHelpers.ParseXml", 11099 + vbObjectError
+    Err.Raise 11099 + vbObjectError, "WebHeleprs.ParseXml", web_ErrorMsg
 End Function
 
 ''
-' Convert MSXML2.DomDocument to string
+' Convert `Dictionary` to XML string.
 '
-' @param {Object: MSXML2.DomDocument} XML
+' _Note_ Currently, XML is not supported in 4.0.0 due to lack of Mac support.
+' An updated parser is being created that supports Mac and Windows,
+' but in order to avoid future breaking changes, ParseXml and ConvertToXml are not currently implemented.
+'
+' See https://github.com/VBA-tools/VBA-Web/wiki/XML-Support-in-4.0 for details on how to use XML in Windows in the meantime.
+'
+' @param {Dictionary|Variant} XML
 ' @return {String} XML string
-' --------------------------------------------- '
+' @throws 11099 / 80042b5b / -2147210405 - XML format is not currently supported
+''
+Public Function ConvertToXml(Obj As Variant) As String
+    Dim web_ErrorMsg As String
+    
+    web_ErrorMsg = "XML is not currently supported (An updated parser is being created that supports Mac and Windows)." & vbNewLine & _
+        "To use XML parsing for Windows currently, use the instructions found here:" & vbNewLine & _
+        vbNewLine & _
+        "https://github.com/VBA-tools/VBA-Web/wiki/XML-Support-in-4.0"
 
-Public Function ConvertToXML(Obj As Variant) As String
-#If Mac Then
-    LogError "XML format is not currently supported on Mac", "WebHelpers.ConvertToXML", 11050 + vbObjectError
-    Err.Raise 11099 + vbObjectError, "WebHelpers.ConvertToXML", "XML format is not currently supported on Mac"
-#Else
-    On Error Resume Next
-    ConvertToXML = Trim(Replace(Obj.Xml, vbCrLf, ""))
-#End If
+    LogError web_ErrorMsg, "WebHelpers.ParseXml", 11099 + vbObjectError
+    Err.Raise 11099 + vbObjectError, "WebHeleprs.ParseXml", web_ErrorMsg
 End Function
 
 ''
-' Parse given string into object (Dictionary or Collection) for given format
+' Helper for parsing value to given `WebFormat` or custom format.
+' Returns `Dictionary` or `Collection` based on given `Value`.
 '
-' @param {String} Value
+' @method ParseByFormat
+' @param {String} Value Value to parse
 ' @param {WebFormat} Format
-' @param {String} [CustomFormat] Name of custom formatter to use
-' @param {Variant} [Bytes] Raw response bytes to use with formatter (if specified)
-' @return {Object|Dictionary|Collection}
-' --------------------------------------------- '
+' @param {String} [CustomFormat=""] Name of registered custom converter
+' @param {Variant} [Bytes] Bytes for custom convert (if `ParseType = "Binary"`)
+' @return {Dictionary|Collection|Object}
+' @throws 11000 / 80042af8 / -2147210504 - Error during parsing
+''
 Public Function ParseByFormat(Value As String, Format As WebFormat, _
     Optional CustomFormat As String = "", Optional Bytes As Variant) As Object
     
@@ -483,12 +627,12 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
     Case WebFormat.FormUrlEncoded
         Set ParseByFormat = ParseUrlEncoded(Value)
     Case WebFormat.Xml
-        Set ParseByFormat = ParseXML(Value)
+        Set ParseByFormat = ParseXml(Value)
     Case WebFormat.Custom
         Dim web_Converter As Dictionary
         Dim web_Callback As String
         
-        Set web_Converter = GetConverter(CustomFormat)
+        Set web_Converter = web_GetConverter(CustomFormat)
         web_Callback = web_Converter("ParseCallback")
         
         If web_Converter.Exists("Instance") Then
@@ -521,13 +665,17 @@ web_ErrorHandling:
 End Function
 
 ''
-' Convert object to given format
+' Helper for converting value to given `WebFormat` or custom format.
 '
-' @param {Variant|Dictionary|Collection} Obj
+' _Note_ Only some converters handle `Collection` or `Array`.
+'
+' @method ConvertToFormat
+' @param {Dictionary|Collection|Variant} Obj
 ' @param {WebFormat} Format
-' @param {String} [CustomFormat] Name of custom formatter to use
+' @param {String} [CustomFormat] Name of registered custom converter
 ' @return {String}
-' --------------------------------------------- '
+' @throws 11001 / 80042af9 / -2147210503 - Error during conversion
+''
 Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As String
     On Error GoTo web_ErrorHandling
 
@@ -537,12 +685,12 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
     Case WebFormat.FormUrlEncoded
         ConvertToFormat = ConvertToUrlEncoded(Obj)
     Case WebFormat.Xml
-        ConvertToFormat = ConvertToXML(Obj)
+        ConvertToFormat = ConvertToXml(Obj)
     Case WebFormat.Custom
         Dim web_Converter As Dictionary
         Dim web_Callback As String
         
-        Set web_Converter = GetConverter(CustomFormat)
+        Set web_Converter = web_GetConverter(CustomFormat)
         web_Callback = web_Converter("ConvertCallback")
         
         If web_Converter.Exists("web_Instance") Then
@@ -571,14 +719,16 @@ web_ErrorHandling:
 End Function
 
 ''
-' Url encode the given string
+' Encode string for URLs
 ' Reference: http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
 '
-' @param {Variant} Text The raw string to encode
-' @param {Boolean} [SpaceAsPlus = False] Use plus sign for encoded spaces (otherwise %20)
-' @param {Boolean} [EncodeUnsafe = True] Encode unsafe characters
+' @method UrlEncode
+' @param {Variant} Text Text to encode
+' @param {Boolean} [SpaceAsPlus = False] `%20` if `False` / `+` if `True`
+' @param {Boolean} [EncodeUnsafe = True] Encode characters that could be misunderstood within URLs.
+'   (``SPACE, ", <, >, #, %, {, }, |, \, ^, ~, `, [, ]``)
 ' @return {String} Encoded string
-' --------------------------------------------- '
+''
 Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False, Optional EncodeUnsafe As Boolean = True) As String
     Dim web_UrlVal As String
     Dim web_StringLen As Long
@@ -629,11 +779,12 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
 End Function
 
 ''
-' Url decode the given encoded string
+' Decode Url-encoded string.
 '
-' @param {String} Encoded
+' @method UrlDecode
+' @param {String} Encoded Text to decode
 ' @return {String} Decoded string
-' --------------------------------------------- '
+''
 Public Function UrlDecode(Encoded As String) As String
     Dim web_StringLen As Long
     web_StringLen = VBA.Len(Encoded)
@@ -663,11 +814,11 @@ Public Function UrlDecode(Encoded As String) As String
 End Function
 
 ''
-' Url encode the given string
+' Base64-encode text.
 '
-' @param {Variant} Text The raw string to encode
+' @param {Variant} Text Text to encode
 ' @return {String} Encoded string
-' --------------------------------------------- '
+''
 Public Function Base64Encode(Text As String) As String
 #If Mac Then
     Dim web_Command As String
@@ -684,15 +835,66 @@ Public Function Base64Encode(Text As String) As String
 End Function
 
 ''
-' Register custom converter to use with requests
+' Register custom converter for converting request `Body` and response `Content`.
+' If the `ConvertCallback` or `ParseCallback` are object methods,
+' pass in an object instance.
+' If the `ParseCallback` needs the raw binary response value (e.g. file download),
+' set `ParseType = "Binary"`, otherwise `"String"` is used.
 '
+' - `ConvertCallback` signature: `Function ...(Value As Variant) As String`
+' - `ParseCallback` signature: `Function ...(Value As String) As Object`
+'
+' @example
+' ```VB.net
+' ' 1. Use global module functions for Convert and Parse
+' ' ---
+' ' Module: CSVConverter
+' Function ParseCSV(Value As String) As Object
+'   ' ...
+' End Function
+' Function ConvertToCSV(Value As Variant) As String
+'   ' ...
+' End Function
+'
+' WebHelpers.RegisterConverter "csv", "text/csv", _
+'   "CSVConverter.ConvertToCSV", "CSVConverter.ParseCSV"
+'
+' ' 2. Use object instance functions for Convert and Parse
+' ' ---
+' ' Object: CSVConverterClass
+' ' same as above...
+'
+' Dim Converter As New CSVConverterClass
+' WebHelpers.RegisterConverter "csv", "text/csv", _
+'   "ConvertToCSV", "ParseCSV", Instance:=Converter
+'
+' ' 3. Pass raw binary value to ParseCallback
+' ' ---
+' ' Module: ImageConverter
+' Function ParseImage(Bytes As Variant) As Object
+'   ' ...
+' End Function
+' Function ConvertToImage(Value As Variant) As String
+'   ' ...
+' End Function
+'
+' WebHelpers.RegisterConverter "image", "image/jpeg", _
+'   "ImageConverter.ConvertToImage", "ImageConverter.ParseImage", _
+'   ParseType:="Binary"
+' ```
+'
+' @method RegisterConverter
 ' @param {String} Name
+'   Name of converter for use with `CustomRequestFormat` or `CustomResponseFormat`
 ' @param {String} MediaType
-' @param {String} ConvertCallback
-' @param {String} ParseCallback
+'   Media type to use for `Content-Type` and `Accept` headers
+' @param {String} ConvertCallback Global or object function name for converting
+' @param {String} ParseCallback Global or object function name for parsing
 ' @param {Object} [Instance]
-' @param {String} [ParseType="String"] Use Content="String" or Body="Binary" in ParseCallback
-' --------------------------------------------- '
+'   Use instance methods for `ConvertCallback` and `ParseCallback`
+' @param {String} [ParseType="String"]
+'   "String"` (default) or `"Binary"` to pass raw binary response to `ParseCallback`
+''
 Public Sub RegisterConverter( _
     Name As String, MediaType As String, ConvertCallback As String, ParseCallback As String, _
     Optional Instance As Object, Optional ParseType As String = "String")
@@ -712,14 +914,15 @@ Public Sub RegisterConverter( _
 End Sub
 
 ' Helper for getting custom converter
-Private Function GetConverter(CustomFormat As String) As Dictionary
-    If web_pConverters.Exists(CustomFormat) Then
-        Set GetConverter = web_pConverters(CustomFormat)
+' @throws 11002 / 80042afa / -2147210502 - No matching converter has been registered
+Private Function web_GetConverter(web_CustomFormat As String) As Dictionary
+    If web_pConverters.Exists(web_CustomFormat) Then
+        Set web_GetConverter = web_pConverters(web_CustomFormat)
     Else
-        LogError "No matching converter has been registered for custom format: " & CustomFormat, _
-            "WebHelpers.GetConverter", 11002
-        Err.Raise 11002, "WebHelpers.GetConverter", _
-            "No matching converter has been registered for custom format: " & CustomFormat
+        LogError "No matching converter has been registered for custom format: " & web_CustomFormat, _
+            "WebHelpers.web_GetConverter", 11002 + vbObjectError
+        Err.Raise 11002 + vbObjectError, "WebHelpers.web_GetConverter", _
+            "No matching converter has been registered for custom format: " & web_CustomFormat
     End If
 End Function
 
@@ -730,10 +933,19 @@ End Function
 ''
 ' Join Url with /
 '
+' @example
+' ```VB.net
+' Debug.Print WebHelpers.JoinUrl("a/", "/b")
+' Debug.Print WebHelpers.JoinUrl("a", "b")
+' Debug.Print WebHelpers.JoinUrl("a/", "b")
+' Debug.Print WebHelpers.JoinUrl("a", "/b")
+' -> a/b
+' ```
+'
 ' @param {String} LeftSide
 ' @param {String} RightSide
 ' @return {String} Joined url
-' --------------------------------------------- '
+''
 Public Function JoinUrl(LeftSide As String, RightSide As String) As String
     If Left(RightSide, 1) = "/" Then
         RightSide = Right(RightSide, Len(RightSide) - 1)
@@ -750,29 +962,34 @@ Public Function JoinUrl(LeftSide As String, RightSide As String) As String
 End Function
 
 ''
-' Get Url parts
+' Get relevant parts of the given url.
+' Returns `Protocol`, `Host`, `Port`, `Path`, `Querystring`, and `Hash`
 '
-' Example:
-' "https://www.google.com/a/b/c.html?a=1&b=2#hash" ->
-' - Protocol = https
-' - Host = www.google.com
-' - Port = 443
-' - Path = /a/b/c.html
-' - Querystring = a=1&b=2
-' - Hash = hash
+' @example
+' ```VB.net
+' WebHelpers.GetUrlParts "https://www.google.com/a/b/c.html?a=1&b=2#hash"
+' ' -> Protocol = "https"
+' '    Host = "www.google.com"
+' '    Port = "443"
+' '    Path = "/a/b/c.html"
+' '    Querystring = "a=1&b=2"
+' '    Hash = "hash"
 '
-' "https://localhost:3000/a/b/c.html?a=1&b=2#hash" ->
-' - Protocol = https
-' - Host = localhost
-' - Port = 3000
-' - Path = /a/b/c.html
-' - Querystring = a=1&b=2
-' - Hash = hash
+' WebHelpers.GetUrlParts "localhost:3000/a/b/c"
+' ' -> Protocol = ""
+' '    Host = "localhost"
+' '    Port = "3000"
+' '    Path = "/a/b/c"
+' '    Querystring = ""
+' '    Hash = ""
+' ```
 '
+' @method GetUrlParts
 ' @param {String} Url
 ' @return {Dictionary} Parts of url
-' Protocol, Host, Hostname, Port, Uri, Querystring, Hash
-' --------------------------------------------- '
+'   Protocol, Host, Port, Path, Querystring, Hash
+' @throws 11003 / 80042afb / -2147210501 - Error while getting url parts
+''
 Public Function GetUrlParts(Url As String) As Dictionary
     Dim web_Parts As New Dictionary
     
@@ -883,44 +1100,56 @@ End Function
 ' ============================================= '
 
 ''
-' Clone dictionary
+' Create a cloned copy of the `Dictionary`.
+' This is not a deep copy, so children objects are copied by reference.
 '
-' @param {Dictionary} Dict
-' @return {Dictionary}
-' --------------------------------------------- '
-Public Function CloneDictionary(Dict As Dictionary) As Dictionary
+' @method CloneDictionary
+' @param {Dictionary} Original
+' @return {Dictionary} Clone
+''
+Public Function CloneDictionary(Original As Dictionary) As Dictionary
     Dim web_Key As Variant
     
     Set CloneDictionary = New Dictionary
-    For Each web_Key In Dict.Keys
-        CloneDictionary.Add VBA.CStr(web_Key), Dict(web_Key)
+    For Each web_Key In Original.Keys
+        CloneDictionary.Add VBA.CStr(web_Key), Original(web_Key)
     Next web_Key
 End Function
 
 ''
-' Clone collection
+' Create a cloned copy of the `Collection`.
+' This is not a deep copy, so children objects are copied by reference.
 '
-' Note: Keys are not transferred to clone
+' _Note_ Keys are not transferred to clone
 '
-' @param {Collection} Coll
-' @return {Collection}
-' --------------------------------------------- '
-Public Function CloneCollection(Coll As Collection) As Collection
+' @method CloneCollection
+' @param {Collection} Original
+' @return {Collection} Clone
+''
+Public Function CloneCollection(Original As Collection) As Collection
     Dim web_Item As Variant
     
     Set CloneCollection = New Collection
-    For Each web_Item In Coll
+    For Each web_Item In Original
         CloneCollection.Add web_Item
     Next web_Item
 End Function
 
 ''
-' Helper for creating key-value Dictionary for collection
+' Helper for creating `Key-Value` pair with `Dictionary`.
+' Used in `WebRequest`/`WebResponse` `Cookies`, `Headers`, and `QuerystringParams`
 '
+' @example
+' ```VB.net
+' WebHelpers.CreateKeyValue "abc", 123
+' ' -> {"Key": "abc", "Value": 123}
+' ```
+'
+' @method CreateKeyValue
 ' @param {String} Key
 ' @param {Variant} Value
 ' @return {Dictionary}
-' --------------------------------------------- '
+''
 Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
     Dim web_KeyValue As New Dictionary
     
@@ -930,12 +1159,25 @@ Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
 End Function
 
 ''
-' Helper for finding key-value in Collection of key-value
+' Search a `Collection` of `KeyValue` and retrieve the value for the given key.
 '
+' @example
+' ```VB.net
+' Dim KeyValues As New Collection
+' KeyValues.Add WebHelpers.CreateKeyValue("abc", 123)
+'
+' WebHelpers.FindInKeyValues KeyValues, "abc"
+' ' -> 123
+'
+' WebHelpers.FindInKeyValues KeyValues, "unknown"
+' ' -> Empty
+' ```
+'
+' @method FindInKeyValues
 ' @param {Collection} KeyValues
 ' @param {String} Key to find
 ' @return {Variant}
-' --------------------------------------------- '
+''
 Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Variant
     Dim web_KeyValue As Dictionary
     
@@ -948,14 +1190,34 @@ Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Vari
 End Function
 
 ''
-' Helper for adding/replacing key-value in Collection of key-value
+' Helper for adding/replacing `KeyValue` in `Collection` of `KeyValue`
 ' - Add if key not found
 ' - Replace if key is found
 '
+' @example
+' ```VB.net
+' Dim KeyValues As New Collection
+' KeyValues.Add WebHelpers.CreateKeyValue("a", 123)
+' KeyValues.Add WebHelpers.CreateKeyValue("b", 456)
+' KeyValues.Add WebHelpers.CreateKeyValue("c", 789)
+'
+' WebHelpers.AddOrReplaceInKeyValues KeyValues, "b", "abc"
+' WebHelpers.AddOrReplaceInKeyValues KeyValues, "d", "def"
+'
+' ' -> [
+' '      {"Key":"a","Value":123},
+' '      {"Key":"b","Value":"abc"},
+' '      {"Key":"c","Value":789},
+' '      {"Key":"d","Value":"def"}
+' '    ]
+' ```
+'
+' @method AddOrReplaceInKeyValues
 ' @param {Collection} KeyValues
-' @param {String} Key to find
+' @param {String} Key
+' @param {Variant} Value
 ' @return {Variant}
-' --------------------------------------------- '
+''
 Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Value As Variant)
     Dim web_KeyValue As Dictionary
     Dim web_Index As Long
@@ -989,11 +1251,13 @@ End Sub
 ' ============================================= '
 
 ''
-' Get content-type for format
+' Get the media-type for the given format / custom format.
 '
+' @method FormatToMediaType
 ' @param {WebFormat} Format
+' @param {String} [CustomFormat] Needed if `Format = WebFormat.Custom`
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function FormatToMediaType(Format As WebFormat, Optional CustomFormat As String) As String
     Select Case Format
     Case WebFormat.FormUrlEncoded
@@ -1003,18 +1267,25 @@ Public Function FormatToMediaType(Format As WebFormat, Optional CustomFormat As 
     Case WebFormat.Xml
         FormatToMediaType = "application/xml"
     Case WebFormat.Custom
-        FormatToMediaType = GetConverter(CustomFormat)("MediaType")
+        FormatToMediaType = web_GetConverter(CustomFormat)("MediaType")
     Case Else
         FormatToMediaType = "text/plain"
     End Select
 End Function
 
 ''
-' Get name for method
+' Get the method name for the given `WebMethod`
 '
-' @param {} Method
+' @example
+' ```VB.net
+' WebHelpers.MethodToName WebMethod.HttpPost
+' ' -> "POST"
+' ```
+'
+' @method MethodToName
+' @param {WebMethod} Method
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function MethodToName(Method As WebMethod) As String
     Select Case Method
     Case WebMethod.HttpDelete
@@ -1034,8 +1305,9 @@ End Function
 ' Add request to watched requests
 '
 ' @internal
+' @method AddAsyncRequest
 ' @param {RestAsyncWrapper} AsyncWrapper
-' --------------------------------------------- '
+''
 Public Sub AddAsyncRequest(web_AsyncWrapper As Object)
     If web_pAsyncRequests Is Nothing Then: Set web_pAsyncRequests = New Dictionary
     If Not web_AsyncWrapper.Request Is Nothing Then
@@ -1047,9 +1319,10 @@ End Sub
 ' Get watched request
 '
 ' @internal
+' @method GetAsyncRequest
 ' @param {String} RequestId
 ' @return {RestAsyncWrapper}
-' --------------------------------------------- '
+''
 Public Function GetAsyncRequest(web_RequestId As String) As Object
     If web_pAsyncRequests.Exists(web_RequestId) Then
         Set GetAsyncRequest = web_pAsyncRequests(web_RequestId)
@@ -1060,8 +1333,9 @@ End Function
 ' Remove request from watched requests
 '
 ' @internal
+' @method RemoveAsyncRequest
 ' @param {String} RequestId
-' --------------------------------------------- '
+''
 Public Sub RemoveAsyncRequest(web_RequestId As String)
     If Not web_pAsyncRequests Is Nothing Then
         If web_pAsyncRequests.Exists(web_RequestId) Then: web_pAsyncRequests.Remove web_RequestId
@@ -1076,9 +1350,10 @@ End Sub
 ' Start timeout timer for request
 '
 ' @internal
-' @param {WebRequest} Request
+' @method StartTimeoutTimer
+' @param {RestAsyncWrapper} AsyncWrapper
 ' @param {Long} TimeoutMS
-' --------------------------------------------- '
+''
 Public Sub StartTimeoutTimer(web_AsyncWrapper As Object, web_TimeoutMs As Long)
     ' Round ms to seconds with minimum of 1 second if ms > 0
     Dim web_TimeoutS As Long
@@ -1095,8 +1370,9 @@ End Sub
 ' Stop timeout timer for request
 '
 ' @internal
-' @param {WebRequest} Request
-' --------------------------------------------- '
+' @method StopTimeoutTimer
+' @param {RestAsyncWrapper} AsyncWrapper
+''
 Public Sub StopTimeoutTimer(web_AsyncWrapper As Object)
     If Not web_AsyncWrapper.Request Is Nothing Then
         RemoveAsyncRequest web_AsyncWrapper.Request.Id
@@ -1107,8 +1383,9 @@ End Sub
 ' Handle timeout timers expiring
 '
 ' @internal
+' @method OnTimeoutTimerExpired
 ' @param {String} RequestId
-' --------------------------------------------- '
+''
 Public Sub OnTimeoutTimerExpired(web_RequestId As String)
     Dim web_AsyncWrapper As Object
     Set web_AsyncWrapper = GetAsyncRequest(web_RequestId)
@@ -1130,9 +1407,10 @@ End Sub
 ' Execute the given command
 '
 ' @internal
+' @method ExecuteInShell
 ' @param {String} Command
-' @return {WebShellResult}
-' --------------------------------------------- '
+' @return {ShellResult}
+''
 Public Function ExecuteInShell(web_Command As String) As ShellResult
     Dim web_File As Long
     Dim web_Chunk As String
@@ -1163,12 +1441,15 @@ End Function
 
 ''
 ' Prepare text for shell
-' Wrap in "..." and replace ! with '!' (reserved in bash)
+' - Wrap in "..."
+' - Replace ! with '!' (reserved in bash)
+' - Escape \, `, $, %, and "
 '
 ' @internal
+' @method PrepareTextForShell
 ' @param {String} Text
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function PrepareTextForShell(ByVal web_Text As String) As String
     ' Escape special characters (except for !)
     web_Text = VBA.Replace(web_Text, "\", "\\")
@@ -1201,14 +1482,23 @@ End Function
 ' ============================================= '
 
 ''
-' Perform HMAC-SHA1 on string and return as Hex or Base64
-' [Does VBA have a Hash_HMAC](http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac)
+' Determine the HMAC for the given text and secret using the SHA1 hash algorithm.
 '
+' Reference:
+' - http://stackoverflow.com/questions/8246340/does-vba-have-a-hash-hmac
+'
+' @example
+' ```VB.net
+' WebHelpers.HMACSHA1 "Howdy!", "Secret"
+' ' -> c8fdf74a9d62aa41ac8136a1af471cec028fb157
+' ```
+'
+' @method HMACSHA1
 ' @param {String} Text
 ' @param {String} Secret
-' @param {String} [Format = Hex] Hex or Base64
+' @param {String} [Format="Hex"] "Hex" or "Base64" encoding for result
 ' @return {String} HMAC-SHA1
-' --------------------------------------------- '
+''
 Public Function HMACSHA1(Text As String, Secret As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
@@ -1242,13 +1532,20 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
 End Function
 
 ''
-' Perform HMAC-SHA256 on string and return as Hex or Base64
+' Determine the HMAC for the given text and secret using the SHA256 hash algorithm.
 '
+' @example
+' ```VB.net
+' WebHelpers.HMACSHA256 "Howdy!", "Secret"
+' ' -> fb5d65...
+' ```
+'
+' @method HMACSHA256
 ' @param {String} Text
 ' @param {String} Secret
-' @param {String} [Format = Hex] Hex or Base64
+' @param {String} [Format="Hex"] "Hex" or "Base64" encoding for result
 ' @return {String} HMAC-SHA256
-' --------------------------------------------- '
+''
 Public Function HMACSHA256(Text As String, Secret As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
@@ -1282,13 +1579,22 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
 End Function
 
 ''
-' Perform MD5 Hash on string and return as Hex or Base64
-' Source: http://www.di-mgt.com.au/src/basMD5.bas.html
+' Determine the MD5 hash of the given text.
 '
+' Reference:
+' - http://www.di-mgt.com.au/src/basMD5.bas.html
+'
+' @example
+' ```VB.net
+' WebHelpers.MD5 "Howdy!"
+' ' -> 7105f32280940271293ee00ac97da5a7
+' ```
+'
+' @method MD5
 ' @param {String} Text
-' @param {String} [Format = Hex] Hex or Base64
+' @param {String} [Format="Hex"] "Hex" or "Base64" encoding for result
 ' @return {String} MD5 Hash
-' --------------------------------------------- '
+''
 Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
@@ -1319,11 +1625,12 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 End Function
 
 ''
-' Create random alphanumeric nonce
+' Create random alphanumeric nonce (0-9a-zA-Z)
 '
+' @method CreateNonce
 ' @param {Integer} [NonceLength=32]
 ' @return {String} Randomly generated nonce
-' --------------------------------------------- '
+''
 Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Dim web_Str As String
     Dim web_Count As Integer
@@ -1344,9 +1651,10 @@ End Function
 ' Convert string to ANSI bytes
 '
 ' @internal
+' @method StringToAnsiBytes
 ' @param {String} Text
 ' @return {Byte()}
-' --------------------------------------------- '
+''
 Public Function StringToAnsiBytes(web_Text As String) As Byte()
     Dim web_Bytes() As Byte
     Dim web_AnsiBytes() As Byte
@@ -1398,13 +1706,7 @@ End Function
 ' 9. Converters
 ' ============================================= '
 
-''
 ' Helper for url-encoded to create key=value pair
-'
-' @param {Variant} Key
-' @param {Variant} Value
-' @return {String}
-' --------------------------------------------- '
 Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
     ' Convert boolean to lowercase
     If VBA.VarType(Value) = VBA.vbBoolean Then
@@ -1429,10 +1731,10 @@ End Function
 ' 10001 - JSON parse error
 ' 10002 - ISO 8601 date conversion error
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
 '
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 '
 ' Based originally on vba-json (with extensive changes)
 ' BSD license included below
@@ -1464,7 +1766,7 @@ End Function
 ' (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ' SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
 ' (Declarations moved to top)
 
@@ -2055,9 +2357,9 @@ End Function
 ' 10013 - ISO 8601 parsing error
 ' 10014 - ISO 8601 conversion error
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
 ' (Declarations moved to top)
 
@@ -2301,9 +2603,9 @@ End Function
 ' 11024 - No proxy can be located for the specified URL
 ' 11025 - Specified URL is not valid
 '
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
 '
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
 ''
 ' Returns IE proxy settings
@@ -2312,7 +2614,7 @@ End Function
 ' @param {String} Url
 ' @param[out] {String} ProxyServer
 ' @param[out] {String} ProxyBypass
-' --------------------------------------------- '
+''
 Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef ProxyBypass As String)
 #If Mac Then
     ' (Windows only)

@@ -152,32 +152,24 @@ Public Function Specs() As SpecSuite
    
     ' ParseXml
     ' --------------------------------------------- '
-    With Specs.It("[Windows-only] should parse XML")
-#If Win32 Or Win64 Then
-        Set Parsed = WebHelpers.ParseXML("<Point><X>1.23</X><Y>4.56</Y></Point>")
-        
-        .Expect(Parsed.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
-        .Expect(Parsed.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
-#Else
-        .Expect(True).ToEqual True
-#End If
-    End With
+'    With Specs.It("[Windows-only] should parse XML")
+'        Set Parsed = WebHelpers.ParseXml("<Point><X>1.23</X><Y>4.56</Y></Point>")
+'
+'        .Expect(Parsed.FirstChild.SelectSingleNode("X").Text).ToEqual "1.23"
+'        .Expect(Parsed.FirstChild.SelectSingleNode("Y").Text).ToEqual "4.56"
+'    End With
     
     ' ConvertToXml
     ' --------------------------------------------- '
-    With Specs.It("[Windows-only] should convert to XML")
-#If Win32 Or Win64 Then
-        XmlString = "<Point><X>1.23</X><Y>4.56</Y></Point>"
-        Set Obj = CreateObject("MSXML2.DOMDocument")
-        Obj.Async = False
-        Obj.LoadXML XmlString
-
-        Encoded = WebHelpers.ConvertToXML(Obj)
-        .Expect(Encoded).ToEqual XmlString
-#Else
-        .Expect(True).ToEqual True
-#End If
-    End With
+'    With Specs.It("[Windows-only] should convert to XML")
+'        XmlString = "<Point><X>1.23</X><Y>4.56</Y></Point>"
+'        Set Obj = CreateObject("MSXML2.DOMDocument")
+'        Obj.Async = False
+'        Obj.LoadXML XmlString
+'
+'        Encoded = WebHelpers.ConvertToXml(Obj)
+'        .Expect(Encoded).ToEqual XmlString
+'    End With
     
     ' ParseByFormat
     ' --------------------------------------------- '
