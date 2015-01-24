@@ -13,15 +13,18 @@ Attribute VB_Exposed = True
 '
 ' OAuth1 authenticator
 '
-' @implements: IWebAuthenticator v4.*
+' @class OAuth1Authenticator
+' @implements IWebAuthenticator v4.*
 ' @author tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
 
-' Constants and private variables
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
+
 Private Const auth_SignatureMethod As String = "HMAC-SHA1"
 
 ' --------------------------------------------- '
@@ -48,7 +51,7 @@ Public Timestamp As String
 ' @param {String} Token
 ' @param {String} TokenSecret
 ' @param {String} [Realm]
-' --------------------------------------------- '
+''
 Public Sub Setup(ConsumerKey As String, ConsumerSecret As String, _
     Token As String, TokenSecret As String, Optional Realm As String = "")
     
@@ -64,7 +67,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add authorization header to request
     Request.AddHeader "Authorization", CreateHeader(Client, Request)
@@ -76,7 +79,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -87,7 +90,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -98,7 +101,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
 End Sub
@@ -110,7 +113,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function CreateHeader(auth_Client As WebClient, auth_Request As WebRequest) As String
     Dim auth_Nonce As String
     Dim auth_Timestamp As String
@@ -165,7 +168,7 @@ End Function
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function CreateBaseString(auth_Nonce As String, auth_Timestamp As String, auth_Client As WebClient, auth_Request As WebRequest) As String
     Dim auth_Base As String
     Dim auth_Parameters As String
@@ -195,7 +198,7 @@ End Function
 ' @param {String} Base
 ' @param {String} SigningKey
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function CreateSignature(auth_Base As String, auth_SigningKey As String) As String
     CreateSignature = WebHelpers.HMACSHA1(auth_Base, auth_SigningKey, "Base64")
 End Function
@@ -207,7 +210,7 @@ End Function
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetRequestUrl(auth_Client As WebClient, auth_Request As WebRequest) As String
 ' From OAuth 1.0 Docs
 ' http://oauth.net/core/1.0/#anchor14
@@ -246,7 +249,7 @@ End Function
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function GetRequestParameters(auth_Client As WebClient, auth_Request As WebRequest) As String
     ' TODO Sort parameters by key then value
     

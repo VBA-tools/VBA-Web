@@ -13,11 +13,11 @@ Attribute VB_Exposed = False
 '
 ' Description
 '
-' @implements: IWebAuthenticator v4.*
-' @author:
-' @license:
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class
+' @implements IWebAuthenticator v4.*
+' @author
+' @license
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
 
@@ -27,7 +27,7 @@ Option Explicit
 
 ''
 ' Setup authenticator
-' --------------------------------------------- '
+''
 Public Sub Setup()
     ' Define any user-specific variables needed for authentication
 End Sub
@@ -37,7 +37,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' e.g Add headers, cookies, etc.
 End Sub
@@ -48,7 +48,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     ' e.g. Handle 401 Unauthorized or other issues
 End Sub
@@ -59,7 +59,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -70,7 +70,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
 End Sub

@@ -14,13 +14,17 @@ Attribute VB_Exposed = False
 ' Custom IWebAuthenticator for Digest Authentication
 ' http://en.wikipedia.org/wiki/Digest_access_authentication
 '
-' @implements: IWebAuthenticator v4.*
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class DigestAuthenticator
+' @implements IWebAuthenticator v4.*
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Implements IWebAuthenticator
 Option Explicit
+
+' --------------------------------------------- '
+' Constants and Private Variables
+' --------------------------------------------- '
 
 Private Const auth_Qop As String = "auth"
 Private auth_pClientNonce As String
@@ -62,7 +66,7 @@ End Property
 '
 ' @param {String} Username
 ' @param {String} Password
-' --------------------------------------------- '
+''
 Public Sub Setup(Username As String, Password As String)
     Me.Username = Username
     Me.Password = Password
@@ -73,7 +77,7 @@ End Sub
 '
 ' @param {WebClient} Client The client that is about to execute the request
 ' @param in|out {WebRequest} Request The request about to be executed
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.IsAuthenticated Then
         Me.RequestCount = Me.RequestCount + 1
@@ -87,7 +91,7 @@ End Sub
 ' @param {WebClient} Client The client that executed request
 ' @param {WebRequest} Request The request that was just executed
 ' @param in|out {WebResponse} Response to request
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
     If Response.StatusCode = 401 And Not Me.IsAuthenticated Then
         WebHelpers.LogDebug "Extract Authenticate and retry 401 request " & Client.GetFullUrl(Request), "Digest.AfterExecute"
@@ -104,7 +108,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {WinHttpRequest} Http
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
     ' e.g. Update option, headers, etc.
 End Sub
@@ -115,7 +119,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @param in|out {String} Curl
-' --------------------------------------------- '
+''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' http://curl.haxx.se/docs/manpage.html#--digest
     Curl = Curl & " --digest --user " & Me.Username & ":" & Me.Password
@@ -128,7 +132,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+''
 Public Function CreateHeader(Client As WebClient, Request As WebRequest) As String
     Dim auth_Uri As String
     auth_Uri = WebHelpers.GetUrlParts(Client.GetFullUrl(Request))("Path")
@@ -152,7 +156,7 @@ End Function
 '
 ' @internal
 ' @param {WebResponse} Response
-' --------------------------------------------- '
+''
 Public Sub ExtractAuthenticateInformation(Response As WebResponse)
     Dim auth_Header As Dictionary
     For Each auth_Header In Response.Headers
@@ -199,7 +203,7 @@ End Sub
 ' @param {WebClient} Client
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+''
 Private Function web_CalculateResponse(web_Client As WebClient, web_Request As WebRequest) As String
     Dim auth_HA1 As String
     Dim auth_HA2 As String
@@ -217,7 +221,7 @@ End Function
 '
 ' @internal
 ' @return {String}
-' --------------------------------------------- '
+''
 Private Function web_CalculateHA1() As String
     web_CalculateHA1 = WebHelpers.MD5(Me.Username & ":" & Me.Realm & ":" & Me.Password)
 End Function
@@ -227,7 +231,7 @@ End Function
 '
 ' @internal
 ' @return {String}
-' --------------------------------------------- '
+''
 Private Function web_CalculateHA2(web_Method As String, web_Uri As String) As String
     web_CalculateHA2 = WebHelpers.MD5(web_Method & ":" & web_Uri)
 End Function
@@ -237,7 +241,7 @@ End Function
 '
 ' @internal
 ' @return {String}
-' --------------------------------------------- '
+''
 Private Function web_FormattedRequestCount() As String
     web_FormattedRequestCount = Right("00000000" & Me.RequestCount, 8)
 End Function

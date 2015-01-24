@@ -5,10 +5,9 @@ Attribute VB_Name = "Specs_WebClient"
 '
 ' Specs for WebClient
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
@@ -115,7 +114,7 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("form")("message")).ToEqual "Howdy!"
     End With
     
-    ' GetJSON
+    ' GetJson
     ' --------------------------------------------- '
     With Specs.It("should GetJSON")
         Set Response = Client.GetJson("/get")
@@ -145,7 +144,7 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("headers")("Cookie")).ToMatch "abc=123"
     End With
     
-    ' PostJSON
+    ' PostJson
     ' --------------------------------------------- '
     With Specs.It("should PostJSON")
         Set Body = New Dictionary

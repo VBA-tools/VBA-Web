@@ -104,7 +104,7 @@ Public Function Specs() As SpecSuite
         Request.Resource = "delay/{seconds}"
         Request.AddUrlSegment "seconds", "2"
 
-        Client.TimeoutMS = 100
+        Client.TimeoutMs = 100
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait 2000
         .Expect(AsyncResponse).ToNotBeUndefined
@@ -113,7 +113,7 @@ Public Function Specs() As SpecSuite
             .Expect(AsyncResponse.StatusDescription).ToEqual "Request Timeout"
         End If
         .Expect(AsyncWrapper.Http).ToBeUndefined
-        Client.TimeoutMS = 2000
+        Client.TimeoutMs = 2000
     End With
     
     InlineRunner.RunSuite Specs

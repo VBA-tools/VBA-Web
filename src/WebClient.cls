@@ -11,7 +11,7 @@ Attribute VB_Exposed = True
 ' WebClient v4.0.0-rc.6
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Interact with REST web services from Excel
+' Execute requests and handle responses
 '
 ' Errors:
 ' 11010 / 80042b02 / -2147210494 - cURL error in Execute
@@ -19,10 +19,10 @@ Attribute VB_Exposed = True
 ' 11012 / 80042b04 / -2147210492 - Error preparing http request
 ' 11013 / 80042b05 / -2147210491 - Error preparing cURL request
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @class WebClient
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
 ' --------------------------------------------- '
@@ -68,27 +68,107 @@ Private web_pAutoProxyDomain As String
 ' Properties
 ' --------------------------------------------- '
 
+''
+' Set the base url that is shared by all requests
+' and that the request `Resource` is appended to.
+'
+' @example
+' ```VB.net
+' ' Desired URLs
+' ' https://api.example.com/v1/messages
+' ' https://api.example.com/v1/users/id
+' '                BaseUrl <- ^ -> Resource
+'
+' Dim Client As New WebClient
+' Client.BaseUrl = "https://api.example.com/v1/"
+'
+' Dim Request As New WebRequest
+' Request.Resource = "messages"
+' Request.Resource = "users/{id}"
+' ```
+'
+' @property BaseUrl
+' @type String
+''
 Public BaseUrl As String
+
+''
+' Attach an authenticator to the client for authentication requests.
+'
+' @example
+' ```VB.net
+' Dim Client As New WebClient
+' Dim Auth As New OAuth1Authenticator
+' Auth.Setup ...
+'
+' Set Client.Authenticator = Auth
+' ' -> All requests use Auth to add "Authorization" header
+' ```
+'
+' @property Authenticator
+' @type IWebAuthenticator
+''
 Public Authenticator As IWebAuthenticator
+
+''
+' Timeout (in milliseconds) to wait for timeout in each request phase
+' (Resolve, Connect, Send, Receive).
+
+'
+' @property TimeoutMs
+' @type Long
+' @default 5000
+''
 Public TimeoutMs As Long
-Public ProxyUsername As String
-Public ProxyPassword As String
+
+''
+' Comma separated list of domains to bypass the proxy.
+'
+' @property ProxyBypassList
+' @type String
+''
 Public ProxyBypassList As String
 
 ''
-' Load proxy server and bypass list automatically
+' Username for proxy.
 '
+' @property ProxyUsername
+' @type String
+''
+Public ProxyUsername As String
+
+''
+' Password for proxy.
+'
+' @property ProxyPassword
+' @type String
+''
+Public ProxyPassword As String
+
+''
+' Load proxy server and bypass list automatically.
+'
+' @property EnableAutoProxy
+' @type Boolean
 ' @default False
-' --------------------------------------------- '
+''
 Public EnableAutoProxy As Boolean
 
 ''
-' Turn off SSL validation
+' Turn off SSL validation.
 '
+' @property Insecure
+' @type Boolean
 ' @default False
-' --------------------------------------------- '
+''
 Public Insecure As Boolean
 
+''
+' Proxy server to pass requests through (except for those that match `ProxyBypassList`).
+'
+' @property ProxyServer
+' @type String
+''
 Public Property Get ProxyServer() As String
     ProxyServer = web_pProxyServer
 End Property
@@ -102,11 +182,34 @@ End Property
 ' ============================================= '
 
 ''
-' Execute the specified request
+' Execute the given request
+' (append the request's `FormattedResource` to the `BaseUrl`)
+' and return the response.
 '
+' @example
+' ```VB.net
+' Dim Client As New WebClient
+' Client.BaseUrl = "https://api.example.com/v1/"
+'
+' Dim Request As New WebRequest
+' Request.Resource = "messages/{id}"
+' Request.AddUrlSegment "id", 123
+'
+' ' Add querystring, body, headers, cookies, etc. for request
+'
+' Dim Response As WebResponse
+' Set Response = Client.Execute(Request)
+'
+' ' -> GET https://api.example/com/v1/messages/123
+' '    headers, cookies, and body...
+' ```
+'
+' @method Execute
 ' @param {WebRequest} request The request to execute
 ' @return {WebResponse} Wrapper of server response for request
-' --------------------------------------------- '
+' @throws 11010 / 80042b02 / -2147210494 - cURL error in Execute
+' @throws 11011 / 80042b03 / -2147210493 - Error in Execute
+''
 Public Function Execute(Request As WebRequest) As WebResponse
     Dim web_Http As Object
     Dim web_Response As New WebResponse
@@ -120,6 +223,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
     web_Curl = Me.PrepareCurlRequest(Request)
     web_Result = WebHelpers.ExecuteInShell(web_Curl)
     
+    ' Handle cURL errors
     If web_Result.ExitCode > 0 Then
         Dim web_ErrorNumber As Long
         Dim web_ErrorMessage As String
@@ -188,10 +292,6 @@ web_ErrorHandling:
         WebHelpers.LogResponse Me, Request, web_Response
         Set Execute = web_Response
         Err.Clear
-    Case 11010
-        ' cURL error
-        WebHelpers.LogError Err.Description, "WebClient.Execute", Err.Number
-        Err.Raise Err.Number, "WebClient.Execute", Description:=Err.Description
     Case Else
         ' Error
         web_ErrorDescription = "An error occurred during execute" & vbNewLine & _
@@ -203,16 +303,36 @@ web_ErrorHandling:
 End Function
 
 ''
-' GET JSON from Url using options
+' Get JSON from the given URL
+' (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
 '
-' @param {String} Url (relative to BaseUrl, if set)
+' @example
+' ```VB.net
+' Dim Client As New WebClient
+' Dim Url As String
+' Url = "https://api.example.com/v1/messages/1"
+'
+' Dim Response As WebResponse
+' Set Response = Client.GetJson(Url)
+'
+' Dim Headers As New Collection
+' Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+'
+' Dim Options As New Dictionary
+' Options.Add "Headers", Headers
+'
+' Set Response = Client.GetJson(Url, Options)
+' ```
+'
+' @method GetJson
+' @param {String} Url (appended to `BaseUrl`, if set)
 ' @param {Dictionary} [Options]
-' - Headers
-' - Cookies
-' - QuerystringParams
-' - UrlSegments
+' @param {Collection} [Options.Headers] Collection of `KeyValue`
+' @param {Collection} [Options.Cookies] Collection of `KeyValue`
+' @param {Collection} [Options.QuerystringParams] Collection of `KeyValue`
+' @param {Dictionary} [Options.UrlSegments]
 ' @return {WebResponse} Response
-' --------------------------------------------- '
+''
 Public Function GetJson(Url As String, Optional Options As Dictionary) As WebResponse
     Dim web_Request As New WebRequest
     web_Request.CreateFromOptions Options
@@ -224,24 +344,49 @@ Public Function GetJson(Url As String, Optional Options As Dictionary) As WebRes
 End Function
 
 ''
-' POST JSON to Url using body and options
+' Post JSON Body (`Array`, `Collection`, `Dictionary`) to the given URL
+' (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
 '
-' @param {String} Url (relative to BaseUrl, if set)
+' @example
+' ```VB.net
+' Dim Client As New WebClient
+' Dim Url As String
+' Url = "https://api.example.com/v1/messages/1"
+'
+' ' Body
+' ' Array, Collection, or Dictionary
+' Dim Body As New Dictionary
+' Body.Add "message", "Howdy!"
+'
+' Dim Response As WebResponse
+' Set Response = Client.PostJson(Url, Body)
+'
+' Dim Headers As New Collection
+' Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+'
+' Dim Options As New Dictionary
+' Options.Add "Headers", Headers
+'
+' Set Response = Client.PostJson(Url, Body, Options)
+' ```
+'
+' @method PostJson
+' @param {String} Url (appended to `BaseUrl`, if set)
 ' @param {Dictionary} Body
 ' @param {Dictionary} [Options]
-' - Headers
-' - Cookies
-' - QuerystringParams
-' - UrlSegments
+' @param {Collection} [Options.Headers] Collection of `KeyValue`
+' @param {Collection} [Options.Cookies] Collection of `KeyValue`
+' @param {Collection} [Options.QuerystringParams] Collection of `KeyValue`
+' @param {Dictionary} [Options.UrlSegments]
 ' @return {WebResponse} Response
-' --------------------------------------------- '
+''
 Public Function PostJson(Url As String, Body As Variant, Optional Options As Dictionary) As WebResponse
     Dim web_Request As New WebRequest
     web_Request.CreateFromOptions Options
     web_Request.Resource = Url
     web_Request.Format = WebFormat.Json
     web_Request.Method = WebMethod.HttpPost
-    If IsObject(Body) Then
+    If VBA.IsObject(Body) Then
         Set web_Request.Body = Body
     Else
         web_Request.Body = Body
@@ -253,11 +398,26 @@ End Function
 ''
 ' Set proxy for all requests
 '
-' @param {String} ProxyServer
-' @param {String} [Username=""]
-' @param {String} [Password=""]
-' @param {Variant} [BypassList]
-' --------------------------------------------- '
+' @example
+' ```VB.net
+' Dim Client As New RestClient
+'
+' ' Just Server
+' Client.SetProxy "proxy_server:80"
+'
+' ' Server + Username and Password
+' Client.SetProxy "proxy_server:80", "Tim", "Password"
+'
+' ' Server + Username and Password + BypassList
+' Client.SetProxy "proxy_server:80", "Tim", "Password", "<local>,*.bypass.com"
+' ```
+'
+' @method SetProxy
+' @param {String} ProxyServer Proxy server to pass requests through
+' @param {String} [Username=""] Username for proxy
+' @param {String} [Password=""] Password for proxy
+' @param {String} [BypassList=""] Comma-separated list of servers that should bypass proxy
+''
 Public Sub SetProxy(ProxyServer As String, _
     Optional Username As String = "", Optional Password As String = "", Optional BypassList As String = "")
     
@@ -268,14 +428,28 @@ Public Sub SetProxy(ProxyServer As String, _
 End Sub
 
 ''
+' Get full url by joining given `WebRequest.FormattedResource` and `BaseUrl`.
+'
+' @method GetFullUrl
+' @param {WebRequest} Request
+' @return {String}
+''
+Public Function GetFullUrl(Request As WebRequest) As String
+    GetFullUrl = WebHelpers.JoinUrl(Me.BaseUrl, Request.FormattedResource)
+End Function
+
+''
 ' Prepare Http request for given WebRequest
 '
 ' @internal
+' @method PrepareHttpRequest
 ' @param {WebRequest} Request
 ' @return {WinHttpRequest}
-' --------------------------------------------- '
+' @throws 11012 / 80042b04 / -2147210492 - Error preparing http request
+''
 Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Boolean = True) As Object
     Dim web_Http As Object
+    Dim web_KeyValue As Dictionary
     
     On Error GoTo web_ErrorHandling
     
@@ -332,7 +506,6 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     End If
     
     ' Set headers on http request (after open)
-    Dim web_KeyValue As Dictionary
     For Each web_KeyValue In Request.Headers
         web_Http.SetRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
     Next web_KeyValue
@@ -363,15 +536,22 @@ End Function
 ' Prepare cURL request for given WebRequest
 '
 ' @internal
+' @method PrepareCurlRequest
 ' @param {WebRequest} Request
 ' @return {String}
-' --------------------------------------------- '
+' @throws 11013 / 80042b05 / -2147210491 - Error preparing cURL request
+''
 Public Function PrepareCurlRequest(Request As WebRequest) As String
     Dim web_Curl As String
+    Dim web_KeyValue As Dictionary
+    Dim web_CookieString As String
     
     On Error GoTo web_ErrorHandling
     
     web_Curl = "curl -i"
+    
+    ' Setup authenticator
+    web_BeforeExecute Request
     
     ' Set timeouts
     ' (max time = resolve + sent + receive)
@@ -395,20 +575,17 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
         web_Curl = web_Curl & " --insecure"
     End If
     
-    ' Setup authenticator
-    web_BeforeExecute Request
-    
     ' Set headers and cookies
-    Dim web_KeyValue As Dictionary
     For Each web_KeyValue In Request.Headers
         web_Curl = web_Curl & " -H '" & web_KeyValue("Key") & ": " & web_KeyValue("Value") & "'"
     Next web_KeyValue
     
-    Dim web_CookieString As String
     For Each web_KeyValue In Request.Cookies
         web_CookieString = web_CookieString & web_KeyValue("Key") & "=" & web_KeyValue("Value") & ";"
     Next web_KeyValue
-    web_Curl = web_Curl & " --cookie '" & web_CookieString & "'"
+    If web_CookieString <> "" Then
+        web_Curl = web_Curl & " --cookie '" & web_CookieString & "'"
+    End If
     
     ' Add method, data, and url
     web_Curl = web_Curl & " -X " & WebHelpers.MethodToName(Request.Method)
@@ -433,29 +610,22 @@ web_ErrorHandling:
 End Function
 
 ''
-' Get full url for the given WebRequest
-'
-' @param {WebRequest} Request
-' @return {String}
-' --------------------------------------------- '
-Public Function GetFullUrl(Request As WebRequest) As String
-    GetFullUrl = WebHelpers.JoinUrl(Me.BaseUrl, Request.FormattedResource)
-End Function
-
-''
 ' Clone client
 '
+' @internal
+' @method Clone
 ' @return {WebClient}
-' --------------------------------------------- '
+''
 Public Function Clone() As WebClient
     Set Clone = New WebClient
     Clone.BaseUrl = Me.BaseUrl
-    Clone.EnableAutoProxy = Me.EnableAutoProxy
     Clone.ProxyServer = Me.ProxyServer
     Clone.ProxyBypassList = Me.ProxyBypassList
     Clone.ProxyUsername = Me.ProxyUsername
     Clone.ProxyPassword = Me.ProxyPassword
+    Clone.EnableAutoProxy = Me.EnableAutoProxy
     Clone.TimeoutMs = Me.TimeoutMs
+    Clone.Insecure = Me.Insecure
     Set Clone.Authenticator = Me.Authenticator
 End Function
 
