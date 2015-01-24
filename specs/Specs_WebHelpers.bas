@@ -5,10 +5,9 @@ Attribute VB_Name = "Specs_WebHelpers"
 '
 ' Specs for WebHelpers
 '
-' @author: tim.hall.engr@gmail.com
-' @license: MIT (http://www.opensource.org/licenses/mit-license.php)
-'
-' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
