@@ -1,9 +1,21 @@
 # 4.0.0
 
-- Mac support!
-- Custom converters
-- Switch to `WinHttpRequest`
-- Switch to [VBA-tools/VBA-JSON](https://github.com/VBA-tools/VBA-JSON)
+Major Changes:
+
+- __Mac Support!__
+- General VBA support (no Excel-specific code)
+- Custom formatters
+- Automatic proxy detection
+- Windows authentication
+- Switch to `WinHttpRequest` (Windows' modern web library)
+- General API cleanup and bugfixes
+
+Breaking Changes:
+
+- Excel-REST is now VBA-Web and all classes/modules have been renamed
+- `ExecuteAsync` is Window-only and has been moved to `WebAsyncWrapper`
+- `{format}` UrlSegment is no longer automatically replaced
+- Many methods removed, renamed, or moved (see the [Upgrade Guide](https://github.com/VBA-tools/VBA-Web/wiki/Upgrading-from-v3.*-to-v4.*#6-replaceremove-vba-web-incompatibilities) for a detailed breakdown)
 
 # 3.1.0
 
