@@ -17,6 +17,9 @@ Upgrading
 
 To upgrade from Excel-REST to VBA-Web, follow the [Upgrading Guide](https://github.com/VBA-tools/VBA-Web/wiki/Upgrading-from-v3.*-to-v4.*)
 
+Note: XML support has been temporarily removed from VBA-Web while parser issues for Mac are resolved.
+You can find out how to use XML on Windows with [these instructions](https://github.com/VBA-tools/VBA-Web/wiki/XML-Support-in-4.0)
+
 Examples
 -------
 
