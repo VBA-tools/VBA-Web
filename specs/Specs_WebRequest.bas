@@ -337,6 +337,21 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Headers(2)("Value")).ToEqual "header 2"
     End With
     
+    ' SetHeader
+    ' --------------------------------------------- '
+    With Specs.It("should SetHeader")
+        Set Request = New WebRequest
+        
+        Request.AddHeader "A", "add"
+        
+        Request.SetHeader "A", "set"
+        Request.SetHeader "B", "header"
+        
+        .Expect(Request.Headers.Count).ToEqual 2
+        .Expect(Request.Headers(1)("Value")).ToEqual "set"
+        .Expect(Request.Headers(2)("Key")).ToEqual "B"
+    End With
+    
     ' AddQuerystringParam
     ' --------------------------------------------- '
     With Specs.It("should AddQuerystringParam")

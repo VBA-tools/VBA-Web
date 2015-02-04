@@ -70,7 +70,7 @@ End Sub
 ''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     ' Add authorization header to request
-    Request.AddHeader "Authorization", CreateHeader(Client, Request)
+    Request.SetHeader "Authorization", CreateHeader(Client, Request)
 End Sub
 
 ''

@@ -1244,7 +1244,9 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
             ' Replace existing
             KeyValues.Remove web_Index
             
-            If web_Index > KeyValues.Count Then
+            If KeyValues.Count = 0 Then
+                KeyValues.Add web_NewKeyValue
+            ElseIf web_Index > KeyValues.Count Then
                 KeyValues.Add web_NewKeyValue, After:=web_Index - 1
             Else
                 KeyValues.Add web_NewKeyValue, Before:=web_Index

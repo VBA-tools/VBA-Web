@@ -507,14 +507,14 @@ End Property
 ' ============================================= '
 
 ''
-' Add header to be sent with request
+' Add header to be sent with request.
 '
 ' @example
 ' ```VB.net
 ' Dim Request As New WebRequest
 ' Request.AddHeader "Authentication", "Bearer ..."
 '
-' ' -> (Header) Authentication: Bearer ...
+' ' -> (Header) Authorization: Bearer ...
 ' ```
 '
 ' @method AddHeader
@@ -523,6 +523,35 @@ End Property
 ''
 Public Sub AddHeader(Key As String, Value As Variant)
     Me.Headers.Add WebHelpers.CreateKeyValue(Key, Value)
+End Sub
+
+''
+' Add/replace header to be sent with request.
+' `SetHeader` should be used for headers that can only be included once with a request
+' (e.g. Authorization, Content-Type, etc.).
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.AddHeader "Authorization", "A..."
+' Request.AddHeader "Authorization", "B..."
+'
+' ' -> Headers:
+' '    Authorization: A...
+' '    Authorization: B...
+'
+' Request.SetHeader "Authorization", "C..."
+'
+' ' -> Headers:
+' '    Authorization: C...
+' ```
+'
+' @method SetHeader
+' @param {String} Key
+' @param {Variant} Value
+''
+Public Sub SetHeader(Key As String, Value As Variant)
+    WebHelpers.AddOrReplaceInKeyValues Me.Headers, Key, Value
 End Sub
 
 ''
@@ -651,10 +680,10 @@ End Sub
 ''
 Public Sub Prepare()
     ' Add/replace general headers for request
-    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "User-Agent", WebUserAgent
-    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "Content-Type", Me.ContentType
-    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "Accept", Me.Accept
-    WebHelpers.AddOrReplaceInKeyValues Me.Headers, "Content-Length", VBA.CStr(Me.ContentLength)
+    SetHeader "User-Agent", WebUserAgent
+    SetHeader "Content-Type", Me.ContentType
+    SetHeader "Accept", Me.Accept
+    SetHeader "Content-Length", VBA.CStr(Me.ContentLength)
 End Sub
 
 ''

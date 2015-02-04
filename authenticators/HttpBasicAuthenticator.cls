@@ -57,7 +57,7 @@ End Sub
 ' @param in|out {WebRequest} Request The request about to be executed
 ''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+    Request.SetHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
 End Sub
 
 ''
