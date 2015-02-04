@@ -9,6 +9,7 @@ Major Changes:
 - Windows authentication
 - Switch to `WinHttpRequest` (Windows' modern web library)
 - General API cleanup and bugfixes
+- __4.0.1__ cURL escape parameters in authenticators, url-encode UrlSegments, and add `SetHeader`
 
 Breaking Changes:
 
