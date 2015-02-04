@@ -122,7 +122,7 @@ End Sub
 ''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' http://curl.haxx.se/docs/manpage.html#--digest
-    Curl = Curl & " --digest --user " & Me.Username & ":" & Me.Password
+    Curl = Curl & " --digest --user " & WebHelpers.PrepareTextForShell(Me.Username) & ":" & WebHelpers.PrepareTextForShell(Me.Password)
 End Sub
 
 ''

@@ -91,6 +91,6 @@ End Sub
 ''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
-    Curl = Curl & " --basic --user " & Me.Username & ":" & Me.Password
+    Curl = Curl & " --basic --user " & WebHelpers.PrepareTextForShell(Me.Username) & ":" & WebHelpers.PrepareTextForShell(Me.Password)
 End Sub
 
