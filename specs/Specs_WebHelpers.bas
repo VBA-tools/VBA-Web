@@ -399,8 +399,7 @@ Public Function Specs() As SpecSuite
     ' ============================================= '
     ' 7. Mac
     ' ============================================= '
-
-#If Mac Then
+    
     ' ExecuteInShell
     
     ' PrepareTextForShell
@@ -410,7 +409,6 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.PrepareTextForShell("!abc!123!")).ToEqual "'!'""abc""'!'""123""'!'"
         .Expect(WebHelpers.PrepareTextForShell("`!$\""%")).ToEqual """\`""'!'""\$\\\""\%"""
     End With
-#End If
     
     ' ============================================= '
     ' 8. Cryptography

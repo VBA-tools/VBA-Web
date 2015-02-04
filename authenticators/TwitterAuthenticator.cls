@@ -68,7 +68,7 @@ Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Req
         Me.Token = Me.GetToken(Client)
     End If
 
-    Request.AddHeader "Authorization", "Bearer " & Me.Token
+    Request.SetHeader "Authorization", "Bearer " & Me.Token
 End Sub
 
 ''
@@ -129,7 +129,7 @@ Public Function GetToken(auth_Client As WebClient) As String
     auth_Request.RequestFormat = WebFormat.FormUrlEncoded
     auth_Request.ResponseFormat = WebFormat.Json
     
-    auth_Request.AddHeader "Authorization", _
+    auth_Request.SetHeader "Authorization", _
         "Basic " & WebHelpers.Base64Encode(Me.ConsumerKey & ":" & Me.ConsumerSecret)
     auth_Request.AddBodyParameter "grant_type", "client_credentials"
     

@@ -65,7 +65,7 @@ Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Req
         Me.Token = Me.GetToken(Client)
     End If
     
-    Request.AddHeader "Authorization", "Bearer " & Me.Token
+    Request.SetHeader "Authorization", "Bearer " & Me.Token
 End Sub
 
 ''

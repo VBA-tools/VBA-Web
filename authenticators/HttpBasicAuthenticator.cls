@@ -57,7 +57,7 @@ End Sub
 ' @param in|out {WebRequest} Request The request about to be executed
 ''
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
-    Request.AddHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+    Request.SetHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
 End Sub
 
 ''
@@ -91,6 +91,6 @@ End Sub
 ''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' e.g. Add flags to cURL
-    Curl = Curl & " --basic --user " & Me.Username & ":" & Me.Password
+    Curl = Curl & " --basic --user " & WebHelpers.PrepareTextForShell(Me.Username) & ":" & WebHelpers.PrepareTextForShell(Me.Password)
 End Sub
 

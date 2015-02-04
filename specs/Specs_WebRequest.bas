@@ -224,6 +224,15 @@ Public Function Specs() As SpecSuite
         .Expect(Request.FormattedResource).ToEqual "A/B/C/D"
     End With
     
+    With Specs.It("FormattedResource should url-encode Url Segments")
+        Set Request = New WebRequest
+        
+        Request.Resource = "{segment}"
+        Request.AddUrlSegment "segment", "$&+,/:;=?@"
+        
+        .Expect(Request.FormattedResource).ToEqual "%24%26%2B%2C%2F%3A%3B%3D%3F%40"
+    End With
+    
     With Specs.It("FormattedResource should include querystring parameters")
         Set Request = New WebRequest
     
@@ -302,24 +311,6 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "{""A"":123,""B"":456}"
     End With
     
-    ' TODO
-    'With Specs.It("AddBodyParameter should throw TODO if adding to existing Body this is not Dictionary")
-    '    On Error Resume Next
-    '    Set Request = New WebRequest
-    '
-    '    Request.Body = Array("A", "B", "C")
-    '    Request.AddBodyParameter "D", 123
-    '
-    '    ' TODO Check actual error number
-    '    .Expect(Err.Number).ToNotEqual 0
-    '    Debug.Print Err.Number & ": " & Err.Description
-    '    .Expect(Err.Description).ToEqual _
-    '        "The existing body is not a Dictionary. Adding body parameters can only be used with Dictionaries"
-    '
-    '    Err.Clear
-    '    On Error GoTo 0
-    'End With
-    
     ' AddCookie
     ' --------------------------------------------- '
     With Specs.It("should AddCookie")
@@ -344,6 +335,21 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Headers.Count).ToEqual 2
         .Expect(Request.Headers(1)("Key")).ToEqual "A"
         .Expect(Request.Headers(2)("Value")).ToEqual "header 2"
+    End With
+    
+    ' SetHeader
+    ' --------------------------------------------- '
+    With Specs.It("should SetHeader")
+        Set Request = New WebRequest
+        
+        Request.AddHeader "A", "add"
+        
+        Request.SetHeader "A", "set"
+        Request.SetHeader "B", "header"
+        
+        .Expect(Request.Headers.Count).ToEqual 2
+        .Expect(Request.Headers(1)("Value")).ToEqual "set"
+        .Expect(Request.Headers(2)("Key")).ToEqual "B"
     End With
     
     ' AddQuerystringParam

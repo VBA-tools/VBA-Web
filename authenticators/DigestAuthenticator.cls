@@ -81,7 +81,7 @@ End Sub
 Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
     If Me.IsAuthenticated Then
         Me.RequestCount = Me.RequestCount + 1
-        Request.AddHeader "Authorization", CreateHeader(Client, Request)
+        Request.SetHeader "Authorization", CreateHeader(Client, Request)
     End If
 End Sub
 
@@ -97,7 +97,7 @@ Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Requ
         WebHelpers.LogDebug "Extract Authenticate and retry 401 request " & Client.GetFullUrl(Request), "Digest.AfterExecute"
         ExtractAuthenticateInformation Response
         
-        Request.AddHeader "Authorization", CreateHeader(Client, Request)
+        Request.SetHeader "Authorization", CreateHeader(Client, Request)
         Response.Update Client.Execute(Request)
     End If
 End Sub
@@ -122,7 +122,7 @@ End Sub
 ''
 Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
     ' http://curl.haxx.se/docs/manpage.html#--digest
-    Curl = Curl & " --digest --user " & Me.Username & ":" & Me.Password
+    Curl = Curl & " --digest --user " & WebHelpers.PrepareTextForShell(Me.Username) & ":" & WebHelpers.PrepareTextForShell(Me.Password)
 End Sub
 
 ''

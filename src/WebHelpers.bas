@@ -1244,7 +1244,9 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
             ' Replace existing
             KeyValues.Remove web_Index
             
-            If web_Index > KeyValues.Count Then
+            If KeyValues.Count = 0 Then
+                KeyValues.Add web_NewKeyValue
+            ElseIf web_Index > KeyValues.Count Then
                 KeyValues.Add web_NewKeyValue, After:=web_Index - 1
             Else
                 KeyValues.Add web_NewKeyValue, Before:=web_Index
@@ -1414,7 +1416,6 @@ End Sub
 ' ============================================= '
 ' 7. Mac
 ' ============================================= '
-#If Mac Then
 
 ''
 ' Execute the given command
@@ -1425,6 +1426,7 @@ End Sub
 ' @return {ShellResult}
 ''
 Public Function ExecuteInShell(web_Command As String) As ShellResult
+#If Mac Then
     Dim web_File As Long
     Dim web_Chunk As String
     Dim web_Read As Long
@@ -1450,6 +1452,7 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
 web_Cleanup:
 
     ExecuteInShell.ExitCode = web_pclose(web_File)
+#End If
 End Function
 
 ''
@@ -1487,8 +1490,6 @@ Public Function PrepareTextForShell(ByVal web_Text As String) As String
     
     PrepareTextForShell = web_Text
 End Function
-
-#End If
 
 ' ============================================= '
 ' 8. Cryptography
