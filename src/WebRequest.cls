@@ -477,7 +477,7 @@ Public Property Get FormattedResource() As String
     
     ' Replace url segments
     For Each web_Segment In Me.UrlSegments.Keys
-        FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", Me.UrlSegments(web_Segment))
+        FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", WebHelpers.UrlEncode(Me.UrlSegments(web_Segment)))
     Next web_Segment
     
     ' Add querystring
