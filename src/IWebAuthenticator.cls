@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' IWebAuthenticator v4.0.1
+' IWebAuthenticator v4.0.2
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Interface for creating authenticators for rest client
