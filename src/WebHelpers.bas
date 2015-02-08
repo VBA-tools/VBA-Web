@@ -848,6 +848,38 @@ Public Function Base64Encode(Text As String) As String
 End Function
 
 ''
+' Decode Base64-encoded text
+'
+' @param {Variant} Encoded Text to decode
+' @return {String} Decoded string
+''
+Public Function Base64Decode(Encoded As Variant) As String
+    ' Add trailing padding, if necessary
+    If (VBA.Len(Encoded) Mod 4 > 0) Then
+        Encoded = Encoded & VBA.Left("====", 4 - (VBA.Len(Encoded) Mod 4))
+    End If
+
+#If Mac Then
+    Dim web_Command As String
+    web_Command = "echo " & PrepareTextForShell(Encoded) & " | openssl base64 -d"
+    Base64Decode = ExecuteInShell(web_Command).Output
+#Else
+    Dim web_XmlObj As Object
+    Dim web_Node As Object
+    
+    Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
+    Set web_Node = web_XmlObj.createElement("b64")
+    
+    web_Node.DataType = "bin.base64"
+    web_Node.Text = Encoded
+    Base64Decode = VBA.StrConv(web_Node.nodeTypedValue, vbUnicode)
+
+    Set web_Node = Nothing
+    Set web_XmlObj = Nothing
+#End If
+End Function
+
+''
 ' Register custom converter for converting request `Body` and response `Content`.
 ' If the `ConvertCallback` or `ParseCallback` are object methods,
 ' pass in an object instance.
