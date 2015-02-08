@@ -11,7 +11,26 @@ Attribute VB_Exposed = True
 ' WebClient v4.0.2
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Execute requests and handle responses
+' `WebClient` executes requests and handles response and is responsible for functionality shared between requests,
+'  such as authentication, proxy configuration, and security.
+'
+' Usage:
+'
+' ```VB.net
+' Dim Client As New WebClient
+' Client.BaseUrl = "https://www.example.com/api/"
+'
+' Dim Auth As New HttpBasicAuthenticator
+' Auth.Setup Username, Password
+' Set Client.Authenticator = Auth
+'
+' Dim Request As New WebRequest
+' Dim Response As WebResponse
+' ' Setup WebRequest...
+'
+' Set Response = Client.Execute(Request)
+' ' -> Uses Http Basic authentication and appends Request.Resource to BaseUrl
+' ```
 '
 ' Errors:
 ' 11010 / 80042b02 / -2147210494 - cURL error in Execute
@@ -146,7 +165,7 @@ Public ProxyUsername As String
 Public ProxyPassword As String
 
 ''
-' Load proxy server and bypass list automatically.
+' Load proxy server and bypass list automatically (`False` by default).
 '
 ' @property EnableAutoProxy
 ' @type Boolean
@@ -155,7 +174,8 @@ Public ProxyPassword As String
 Public EnableAutoProxy As Boolean
 
 ''
-' Turn off SSL validation.
+' Turn off SSL validation (`False` by default).
+' Useful for self-signed certificates and should only be used with trusted servers.
 '
 ' @property Insecure
 ' @type Boolean

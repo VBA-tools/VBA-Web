@@ -3,7 +3,17 @@ Attribute VB_Name = "WebHelpers"
 ' WebHelpers v4.0.2
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Common helpers VBA-Web
+' Contains general-purpose helpers that are used throughout VBA-Web. Includes:
+'
+' - Logging
+' - Converters and encoding
+' - Url handling
+' - Object/Dictionary/Collection/Array helpers
+' - Request preparation / handling
+' - Timing
+' - Mac
+' - Cryptography
+' - Converters (JSON, XML, Url-Encoded)
 '
 ' Errors:
 ' 11000 - Error during parsing
@@ -213,11 +223,10 @@ End Type
 
 Private web_pDocumentHelper As Object
 Private web_pElHelper As Object
-Private web_pAsyncRequests As Dictionary
 Private web_pConverters As Dictionary
 
 ' --------------------------------------------- '
-' Types
+' Types and Properties
 ' --------------------------------------------- '
 
 ''
@@ -308,7 +317,26 @@ End Enum
 '
 ' @example
 ' ```VB.net
+' Dim Client As New WebClient
+' Client.BaseUrl = "https://api.example.com/v1/"
 '
+' Dim RequestWithTypo As New WebRequest
+' RequestWithTypo.Resource = "peeple/{id}"
+' RequestWithType.AddUrlSegment "idd", 123
+'
+' ' Enable logging before the request is executed
+' WebHelpers.EnableLogging = True
+'
+' Dim Response As WebResponse
+' Set Response = Client.Execute(Request)
+'
+' ' Immediate window:
+' ' --> Request - (Time)
+' ' GET https://api.example.com/v1/peeple/{id}
+' ' Headers...
+' '
+' ' <-- Response - (Time)
+' ' 404 ...
 ' ```
 '
 ' @property EnableLogging
@@ -316,6 +344,14 @@ End Enum
 ' @default False
 ''
 Public EnableLogging As Boolean
+
+''
+' Store currently running async requests
+'
+' @property AsyncRequests
+' @type Dictionary
+''
+Public AsyncRequests As Dictionary
 
 ' ============================================= '
 ' 1. Logging
@@ -489,7 +525,7 @@ End Function
 '
 ' @method ParseJson
 ' @param {String} Json JSON value to parse
-' @return {Object}
+' @return {Dictionary|Collection}
 '
 ' (Implemented in VBA-JSON embedded below)
 
@@ -497,7 +533,7 @@ End Function
 ' Convert `Dictionary`, `Collection`, or `Array` to JSON string.
 '
 ' @method ConvertToJson
-' @param {Dictionary|Collection|Variant} Obj
+' @param {Dictionary|Collection|Array} Obj
 ' @return {String}
 '
 ' (Implemented in VBA-JSON embedded below)
@@ -880,6 +916,8 @@ Public Function Base64Decode(Encoded As Variant) As String
 End Function
 
 ''
+
+''
 ' Register custom converter for converting request `Body` and response `Content`.
 ' If the `ConvertCallback` or `ParseCallback` are object methods,
 ' pass in an object instance.
@@ -1220,7 +1258,7 @@ End Function
 '
 ' @method FindInKeyValues
 ' @param {Collection} KeyValues
-' @param {String} Key to find
+' @param {Variant} Key to find
 ' @return {Variant}
 ''
 Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Variant
@@ -1259,7 +1297,7 @@ End Function
 '
 ' @method AddOrReplaceInKeyValues
 ' @param {Collection} KeyValues
-' @param {String} Key
+' @param {Variant} Key
 ' @param {Variant} Value
 ' @return {Variant}
 ''
@@ -1348,83 +1386,9 @@ Public Function MethodToName(Method As WebMethod) As String
     End Select
 End Function
 
-''
-' Add request to watched requests
-'
-' @internal
-' @method AddAsyncRequest
-' @param {RestAsyncWrapper} AsyncWrapper
-''
-Public Sub AddAsyncRequest(web_AsyncWrapper As Object)
-    If web_pAsyncRequests Is Nothing Then: Set web_pAsyncRequests = New Dictionary
-    If Not web_AsyncWrapper.Request Is Nothing Then
-        web_pAsyncRequests.Add web_AsyncWrapper.Request.Id, web_AsyncWrapper
-    End If
-End Sub
-
-''
-' Get watched request
-'
-' @internal
-' @method GetAsyncRequest
-' @param {String} RequestId
-' @return {RestAsyncWrapper}
-''
-Public Function GetAsyncRequest(web_RequestId As String) As Object
-    If web_pAsyncRequests.Exists(web_RequestId) Then
-        Set GetAsyncRequest = web_pAsyncRequests(web_RequestId)
-    End If
-End Function
-
-''
-' Remove request from watched requests
-'
-' @internal
-' @method RemoveAsyncRequest
-' @param {String} RequestId
-''
-Public Sub RemoveAsyncRequest(web_RequestId As String)
-    If Not web_pAsyncRequests Is Nothing Then
-        If web_pAsyncRequests.Exists(web_RequestId) Then: web_pAsyncRequests.Remove web_RequestId
-    End If
-End Sub
-
 ' ============================================= '
 ' 6. Timing
 ' ============================================= '
-
-''
-' Start timeout timer for request
-'
-' @internal
-' @method StartTimeoutTimer
-' @param {RestAsyncWrapper} AsyncWrapper
-' @param {Long} TimeoutMS
-''
-Public Sub StartTimeoutTimer(web_AsyncWrapper As Object, web_TimeoutMs As Long)
-    ' Round ms to seconds with minimum of 1 second if ms > 0
-    Dim web_TimeoutS As Long
-    web_TimeoutS = Round(web_TimeoutMs / 1000, 0)
-    If web_TimeoutMs > 0 And web_TimeoutS = 0 Then
-        web_TimeoutS = 1
-    End If
-
-    AddAsyncRequest web_AsyncWrapper
-    Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.OnTimeoutTimerExpired """ & web_AsyncWrapper.Request.Id & """'"
-End Sub
-
-''
-' Stop timeout timer for request
-'
-' @internal
-' @method StopTimeoutTimer
-' @param {RestAsyncWrapper} AsyncWrapper
-''
-Public Sub StopTimeoutTimer(web_AsyncWrapper As Object)
-    If Not web_AsyncWrapper.Request Is Nothing Then
-        RemoveAsyncRequest web_AsyncWrapper.Request.Id
-    End If
-End Sub
 
 ''
 ' Handle timeout timers expiring
@@ -1434,14 +1398,12 @@ End Sub
 ' @param {String} RequestId
 ''
 Public Sub OnTimeoutTimerExpired(web_RequestId As String)
-    Dim web_AsyncWrapper As Object
-    Set web_AsyncWrapper = GetAsyncRequest(web_RequestId)
-    
-    If Not web_AsyncWrapper Is Nothing Then
-        StopTimeoutTimer web_AsyncWrapper
-        
-        LogDebug "Async Timeout: " & web_AsyncWrapper.Request.FormattedResource, "WebHelpers.OnTimeoutTimerExpired"
-        web_AsyncWrapper.TimedOut
+    If Not AsyncRequests Is Nothing Then
+        If AsyncRequests.Exists(web_RequestId) Then
+            Dim web_AsyncWrapper As Object
+            Set web_AsyncWrapper = AsyncRequests(web_RequestId)
+            web_AsyncWrapper.TimedOut
+        End If
     End If
 End Sub
 
