@@ -200,6 +200,17 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.Base64Encode("Howdy!")).ToEqual "SG93ZHkh"
     End With
     
+    ' Base64Decode
+    ' --------------------------------------------- '
+    With Specs.It("should Base64 decode string (with or without padding)")
+        .Expect(WebHelpers.Base64Decode("SG93ZHkh")).ToEqual "Howdy!"
+        
+        ' The following implicitly has padding of "=" and "==" at end, base-64 decoding should handle this
+        .Expect(WebHelpers.Base64Decode("SG93ZHk")).ToEqual "Howdy"
+        .Expect(WebHelpers.Base64Decode("eyJzdWIiOjEyMzQ1Njc4OTAsIm5hbWUiOiJKb2huIERvZSIsImFkbWluIjp0cnVlfQ")).ToEqual _
+            "{""sub"":1234567890,""name"":""John Doe"",""admin"":true}"
+    End With
+    
     ' RegisterConverter
     ' --------------------------------------------- '
     With Specs.It("RegisterConverter should register and use converter")
