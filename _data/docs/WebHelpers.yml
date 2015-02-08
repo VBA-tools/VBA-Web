@@ -267,8 +267,7 @@ Methods:
         Encode characters that could be misunderstood within URLs.<br>
         (``SPACE, ", <, >, #, %, {, }, |, \, ^, ~, `, [, ]``)
     description: |
-      Encode string for URLs.
-      Reference: http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
+      Encode string for URLs ([Reference](http://www.blooberry.com/indexdot/html/topics/urlencoding.htm)).
   
   # UrlDecode
   - name: UrlDecode
