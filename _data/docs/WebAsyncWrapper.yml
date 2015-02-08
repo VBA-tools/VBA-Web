@@ -34,38 +34,8 @@ Methods:
       Callback: "`{String}`"
       CallbackArgs: "`{Variant}` _Optional_"
     description: |
-      Execute the `Request` asynchronously,
-      passing the response (and `CallbackArgs`) to the `Callback`.
-    example: |
-      ' Module: Handler
-      Public Sub Simple(Response As WebResponse)
-        ' ...
-      End Sub
-      Public Sub WithArgs(Response As WebResponse, Args As Variant)
-        ' ...
-      End Sub
-
-      Dim Client As New WebClient
-      Client.BaseUrl = "https://api.example.com/v1/"
-
-      ' Wrapper needs Client to execute requests
-      Dim Wrapper As New WebAsyncWrapper
-      Set Wrapper.Client = Client
-
-      Dim Request As New WebRequest
-      Request.Resource = "messages"
-
-      Wrapper.ExecuteAsync Request, "Handler.Simple"
-
-      ' -> Simple called later with response
-
-      ' If you need to pass state to callback, use CallbackArgs
-      Dim Args As Variant
-      Args = Array("abc", 123)
-
-      Wrapper.ExecuteAsync Request, "Handler.WithArgs", Args
-
-      ' -> WithArgs called later with response and args
+      Execute the given `WebRequest` asynchronously,
+      passing the response (and `CallbackArgs` if given) to the `Callback`.
 
   # Clone
   - name: Clone

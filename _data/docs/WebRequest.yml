@@ -32,9 +32,7 @@ Properties:
       Dim Request As New WebRequest
       Request.Method = WebMethod.HttpGet
       Request.Method = WebMethod.HttpPost
-      Request.Method = WebMethod.HttpPut
-      Request.Method = WebMethod.HttpPatch
-      Request.Method = WebMethod.HttpDelete
+      ' or HttpPut / HttpPatch / HttpDelete
 
   # Body
   - name: Body
@@ -261,45 +259,6 @@ Properties:
     internal: true
 
 Methods:
-  # AddBodyParameter
-  - name: AddBodyParameter
-    code: "AddBodyParameter(Key, Value)"
-    details:
-      Key: "`{String}`"
-      Value: "`{Variant}`"
-    description: |
-      Add `Key-Value` to `Body`. `Body` must be a `Dictionary` (if it's an `Array` or `Collection` an error is thrown)
-    example: |
-      Dim Request As New WebRequest
-      Request.Format = WebFormat.Json
-
-      Request.AddBodyParameter "a", 123
-      Request.Body ' = "{"a":123}"
-
-      ' Can add parameters to existing Dictionary
-      Dim Body As New Dictionary
-      Body.Add "a", 123
-
-      Set Request.Body = Body
-      Request.AddBodyParameter "b", 456
-
-      Request.Body ' = "{"a":123,"b":456}"
-
-  # AddCookie
-  - name: AddCookie
-    code: "AddCookie(Key, Value)"
-    details:
-      Key: "`{String}`"
-      Value: "`{Variant}`"
-    description: |
-      Add cookie to be sent with request.
-    example: |
-      Dim Request As New WebRequest
-      Request.AddCookie "a", "abc"
-      Request.AddCookie "b", 123
-
-      ' -> Header: Cookie: a=abc; b=123;
-
   # AddHeader
   - name: AddHeader
     code: "AddHeader(Key, Value)"
@@ -310,24 +269,33 @@ Methods:
       Add header to be sent with request
     example: |
       Dim Request As New WebRequest
-      Request.AddHeader "Authentication", "Bearer ..."
+      Request.AddHeader "Authorization", "Bearer ..."
 
-      ' -> Header: Authentication: Bearer ...
+      ' -> Header: Authorization: Bearer ...
 
-  # AddQuerystringParam
-  - name: AddQuerystringParam
-    code: "AddQuerystringParam(Key, Value)"
+  # SetHeader
+  - name: SetHeader
+    code: "SetHeader(Key, Value)"
     details:
       Key: "`{String}`"
       Value: "`{Variant}`"
     description: |
-      Add querysting parameter to be used in `FormattedResource` for request.
+      Add/replace header to be sent with request.
+      `SetHeader` should be used for headers that can only be included once with a request
+      (e.g. Authorization, Content-Type, etc.).
     example: |
       Dim Request As New WebRequest
-      Request.Resource = "messages"
-      Request.AddQuerystringParam "from", "Tim"
-
-      Request.FormattedResource ' = "messages?from=Tim"
+      Request.AddHeader "Authorization", "A..."
+      Request.AddHeader "Authorization", "B..."
+      
+      ' -> Headers:
+      '    Authorization: A...
+      '    Authorization: B...
+      
+      Request.SetHeader "Authorization", "C..."
+      
+      ' -> Headers:
+      '    Authorization: C...
 
   # AddUrlSegment
   - name: AddUrlSegment
@@ -356,6 +324,70 @@ Methods:
       Request.AddUrlSegment "Id", Id
 
       Request.FormattedResource ' = "Tim/messages/123"
+
+  # AddQuerystringParam
+  - name: AddQuerystringParam
+    code: "AddQuerystringParam(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Add querysting parameter to be used in `FormattedResource` for request.
+    example: |
+      Dim Request As New WebRequest
+      Request.Resource = "messages"
+      Request.AddQuerystringParam "from", "Tim"
+
+      Request.FormattedResource ' = "messages?from=Tim"
+
+  # AddCookie
+  - name: AddCookie
+    code: "AddCookie(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Add cookie to be sent with request.
+    example: |
+      Dim Request As New WebRequest
+      Request.AddCookie "a", "abc"
+      Request.AddCookie "b", 123
+
+      ' -> Header: Cookie: a=abc; b=123;
+
+  # AddBodyParameter
+  - name: AddBodyParameter
+    code: "AddBodyParameter(Key, Value)"
+    details:
+      Key: "`{String}`"
+      Value: "`{Variant}`"
+    description: |
+      Add `Key-Value` to `Body`. `Body` must be a `Dictionary` (if it's an `Array` or `Collection` an error is thrown).
+    example: |
+      Dim Request As New WebRequest
+      Request.Format = WebFormat.Json
+
+      Request.AddBodyParameter "a", 123
+      Request.Body ' = "{"a":123}"
+
+      ' Can add parameters to existing Dictionary
+      Dim Body As New Dictionary
+      Body.Add "a", 123
+
+      Set Request.Body = Body
+      Request.AddBodyParameter "b", 456
+
+      Request.Body ' = "{"a":123,"b":456}"
+
+  # CreateFromOptions
+  - name: CreateFromOptions
+    code: "CreateFromOptions(Options)"
+    details:
+      Options: "`{Dictionary}`"
+      Options.Headers: "`{Collection}` _Optional_ Collection of `KeyValue`"
+      Options.Cookies: "`{Collection}` _Optional_ Collection of `KeyValue`"
+      Options.QuerystringParams: "`{Collection}` _Optional_ Collection of `KeyValue`"
+      Options.UrlSegments: "`{Dictionary}` _Optional_"
 
   # Clone
   - name: Clone 

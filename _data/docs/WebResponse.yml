@@ -3,7 +3,7 @@ Properties:
   - name: StatusCode
     code: "Get|Let {WebStatusCode}"
     description: |
-      Status code that the server returned.
+      Status code that the server returned (e.g. 200).
 
   # StatusDescription
   - name: StatusDescription
@@ -22,7 +22,7 @@ Properties:
   - name: Data
     code: "Get|Set {Object}"
     description: |
-      Parsed `Content` or `Body` based on the `ResponseFormat`.
+      Parsed `Content` or `Body` based on the `WebRequest.ResponseFormat`.
 
   # Body
   - name: Body
@@ -34,13 +34,13 @@ Properties:
   - name: Headers
     code: "Get|Set {Collection}"
     description: |
-      Headers that were included with the response.
+      Headers that were included with the response (`Collection` of `KeyValue`).
 
   # Cookies
   - name: Cookies
     code: "Get|Set {Collection}"
     description: |
-      Cookies that were included with the response.
+      Cookies that were included with the response (`Collection` of `KeyValue`).
 
 Methods:
   # Update

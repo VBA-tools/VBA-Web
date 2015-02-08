@@ -18,21 +18,9 @@ Properties:
       Request.Resource = "messages"
       Request.Resource = "users/{id}"
 
-  # Username
-  - name: Username
-    code: "Get|Let {String}"
-    description: |
-      Username for Basic Authentication
-
-  # Password
-  - name: Password
-    code: "Get|Let {String}"
-    description: |
-      Password for Basic Authentication
-
   # Authenticator
   - name: Authenticator
-    code: "Get|Set {IAuthenticator}"
+    code: "Get|Set {IWebAuthenticator}"
     description: |
       Attach an authenticator to the client for authentication requests.
     example: |
@@ -43,8 +31,8 @@ Properties:
       Set Client.Authenticator = Auth
       ' -> All requests use Auth to add "Authorization" header
 
-  # TimeoutMS
-  - name: TimeoutMS
+  # TimeoutMs
+  - name: TimeoutMs
     code: "Get|Let {Long}"
     description: |
       Timeout (in milliseconds) to wait for timeout in each request phase 
@@ -54,25 +42,38 @@ Properties:
   - name: ProxyServer
     code: "Get|Let {String}"
     description: |
-      Proxy server to pass requests through (except for those that match `ProxyBypassList`)
-
-  # ProxyUsername
-  - name: ProxyUsername
-    code: "Get|Let {String}"
-    description: |
-      Username for proxy
-
-  # ProxyPassword
-  - name: ProxyPassword
-    code: "Get|Let {String}"
-    description: |
-      Password for proxy
+      Proxy server to pass requests through (except for those that match `ProxyBypassList`).
 
   # ProxyBypassList
   - name: ProxyBypassList
     code: "Get|Let {String}"
     description: |
-      Comma separated list of domains to bypass the proxy
+      Comma separated list of domains to bypass the proxy.
+
+  # ProxyUsername
+  - name: ProxyUsername
+    code: "Get|Let {String}"
+    description: |
+      Username for proxy.
+
+  # ProxyPassword
+  - name: ProxyPassword
+    code: "Get|Let {String}"
+    description: |
+      Password for proxy.
+
+  # EnableAutoProxy
+  - name: EnableAutoProxy
+    code: "Get|Let {Boolean}"
+    description: |
+      Load proxy server and bypass list automatically (`False` by default).
+
+  # Insecure
+  - name: Insecure
+    code: "Get|Let {Boolean}"
+    description: |
+      Turn off SSL validation (`False` by default).
+      Useful for self-signed certificates and should only be used with trusted servers.
 
 Methods:
   # Execute
@@ -100,9 +101,9 @@ Methods:
       ' -> GET https://api.example/com/v1/messages/123
       '    headers, cookies, and body...
 
-  # GetJSON
-  - name: GetJSON
-    code: "GetJSON(Url, [Options]) {WebResponse}"
+  # GetJson
+  - name: GetJson
+    code: "GetJson(Url, [Options]) {WebResponse}"
     details:
       Url: "`{String}`"
       Options: |
@@ -118,7 +119,7 @@ Methods:
       Url = "https://api.example.com/v1/messages/1"
       
       Dim Response As WebResponse
-      Set Response = Client.GetJSON(Url)
+      Set Response = Client.GetJson(Url)
       
       Dim Headers As New Collection
       Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
@@ -126,11 +127,11 @@ Methods:
       Dim Options As New Dictionary
       Options.Add "Headers", Headers
       
-      Set Response = Client.GetJSON(Url, Options)
+      Set Response = Client.GetJson(Url, Options)
 
-  # PostJSON
-  - name: PostJSON
-    code: "PostJSON(Url, Body, [Options]) {WebResponse}"
+  # PostJson
+  - name: PostJson
+    code: "PostJson(Url, Body, [Options]) {WebResponse}"
     details:
       Url: "`{String}`"
       Body: "`{Variant}` `Array`, `Collection`, or `Dictionary` to post"
@@ -153,7 +154,7 @@ Methods:
       Body.Add "message", "Howdy!"
       
       Dim Response As WebResponse
-      Set Response = Client.PostJSON(Url, Body)
+      Set Response = Client.PostJson(Url, Body)
       
       Dim Headers As New Collection
       Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
@@ -161,7 +162,7 @@ Methods:
       Dim Options As New Dictionary
       Options.Add "Headers", Headers
       
-      Set Response = Client.PostJSON(Url, Body, Options)
+      Set Response = Client.PostJson(Url, Body, Options)
 
   # SetProxy
   - name: SetProxy
@@ -187,19 +188,11 @@ Methods:
 
   # GetFullUrl
   - name: GetFullUrl
-    code: "GetFullUrl(Path) {String}"
-    details:
-      Path: "`{String}`"
-    description:
-      Get full url by joining given path and `BaseUrl`.
-
-  # GetFullRequestUrl
-  - name: GetFullRequestUrl
-    code: "GetFullRequestUrl(Request) {String}"
+    code: "GetFullUrl(Request) {String}"
     details:
       Request: "`{WebRequest}`"
     description:
-      Get full request url by joining `BaseUrl` and `Request.FormattedResource`.
+      Get full url by joining given `WebRequest.FormattedResource` and `BaseUrl`.
 
   # PrepareHttpRequest
   - name: PrepareHttpRequest
@@ -209,4 +202,9 @@ Methods:
   # PrepareCURL
   - name: PrepareCURL
     code: "PrepareCURLRequest(Request) {String}"
+    internal: true
+
+  # Clone
+  - name: Clone
+    code: "Clone() {WebClient}"
     internal: true

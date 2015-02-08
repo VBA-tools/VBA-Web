@@ -4,7 +4,7 @@ layout: docs
 ---
 <aside class="toc">
   <a class="toc-title" href="#/">
-    VBA-Web <span class="version">(4.0.0)</span>
+    VBA-Web <span class="version">({{ site.version }})</span>
   </a>
   <ul class="toc-section">
     <li><a href="https://github.com/VBA-tools/VBA-Web/" target="_blank">Github Repository</a></li>
@@ -150,6 +150,7 @@ layout: docs
   <section class="docs-subsection">
     <h3 id="/WebRequest/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebRequest.Properties %}
+    {% unless property.internal %}
     <h4 id="/WebRequest/{{ property.name }}" class="anchor">{{ property.name }}</h4>
     <code>{{ property.code }}</code>
     {% if property.details %}
@@ -171,11 +172,13 @@ layout: docs
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
     <h3 id="/WebRequest/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebRequest.Methods %}
+    {% unless method.internal %}
     <h4 id="/WebRequest/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -199,6 +202,7 @@ layout: docs
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
 
@@ -212,6 +216,7 @@ layout: docs
   <section class="docs-subsection">
     <h3 id="/WebClient/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebClient.Properties %}
+    {% unless property.internal %}
     <h4 id="/WebClient/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
@@ -235,11 +240,13 @@ layout: docs
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
     <h3 id="/WebClient/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebClient.Methods %}
+    {% unless method.internal %}
     <h4 id="/WebClient/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -263,6 +270,7 @@ layout: docs
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
   
@@ -276,6 +284,7 @@ layout: docs
   <section class="docs-subsection">
     <h3 id="/WebResponse/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebResponse.Properties %}
+    {% unless property.internal %}
     <h4 id="/WebResponse/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
@@ -299,11 +308,13 @@ layout: docs
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
     <h3 id="/WebResponse/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebResponse.Methods %}
+    {% unless method.internal %}
     <h4 id="/WebResponse/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -327,6 +338,7 @@ layout: docs
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
 
@@ -340,6 +352,7 @@ layout: docs
   <section class="docs-subsection">
     <h3 id="/WebHelpers/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebHelpers.Properties %}
+    {% unless property.internal %}
     <h4 id="/WebHelpers/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
@@ -363,11 +376,13 @@ layout: docs
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
     <h3 id="/WebHelpers/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebHelpers.Methods %}
+    {% unless method.internal %}
     <h4 id="/WebHelpers/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -391,6 +406,7 @@ layout: docs
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
 
@@ -404,6 +420,7 @@ layout: docs
   <section class="docs-subsection">
     <h3 id="/IWebAuthenticator/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.IWebAuthenticator.Methods %}
+    {% unless method.internal %}
     <h4 id="/IWebAuthenticator/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -427,6 +444,7 @@ layout: docs
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
 
@@ -435,11 +453,46 @@ layout: docs
   ====================================================================== -->
   <h2 id="/WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
   <section class="docs-subsection">
-    <!-- TODO -->
+    <p>Wrapper WebClient and WebRequest that enables callback-style async requests
+    <p><em>Note</em> Windows-only and requires reference to "Microsoft WinHTTP Services, version 5.1"</p>
+
+    <p>Usage:</p>
+{% highlight VB.net %}
+' Module: Handler
+Public Sub Simple(Response As WebResponse)
+  ' ...
+End Sub
+Public Sub WithArgs(Response As WebResponse, Args As Variant)
+  ' ...
+End Sub
+
+Dim Client As New WebClient
+Client.BaseUrl = "https://api.example.com/v1/"
+
+' Wrapper needs Client to execute requests
+Dim Wrapper As New WebAsyncWrapper
+Set Wrapper.Client = Client
+
+Dim Request As New WebRequest
+Request.Resource = "messages"
+
+Wrapper.ExecuteAsync Request, "Handler.Simple"
+
+' -> Simple called later with response
+
+' If you need to pass state to callback, use CallbackArgs
+Dim Args As Variant
+Args = Array("abc", 123)
+
+Wrapper.ExecuteAsync Request, "Handler.WithArgs", Args
+
+' -> WithArgs called later with response and args
+{% endhighlight %}
   </section>
   <section class="docs-subsection">
     <h3 id="/WebAsyncWrapper/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebAsyncWrapper.Properties %}
+    {% unless property.internal %}
     <h4 id="/WebAsyncWrapper/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
@@ -463,11 +516,13 @@ layout: docs
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
     <h3 id="/WebAsyncWrapper/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebAsyncWrapper.Methods %}
+    {% unless method.internal %}
     <h4 id="/WebAsyncWrapper/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
@@ -491,6 +546,7 @@ layout: docs
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+    {% endunless %}
     {% endfor %}
   </section>
 </article>
