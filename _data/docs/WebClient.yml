@@ -108,7 +108,7 @@ Methods:
       Options: |
         `{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments
 
-        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#CreateKeyValue))
+        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#/WebHelpers/CreateKeyValue))
         - `UrlSegments`: `Dictionary`
     description: |
       Get JSON from the given URL (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
@@ -137,7 +137,7 @@ Methods:
       Options: |
         `{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments
 
-        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#CreateKeyValue))
+        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#/WebHelpers/CreateKeyValue))
         - `UrlSegments`: `Dictionary`
     description: |
       Post JSON Body (`Array`, `Collection`, `Dictionary`) to the given URL 

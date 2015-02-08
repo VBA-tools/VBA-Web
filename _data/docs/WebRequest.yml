@@ -4,8 +4,8 @@ Properties:
     code: "Get|Let {String}"
     description: |
       Set the request's portion of the url to be appended to the client's [`BaseUrl`](#BaseUrl).
-      Can include [Url Segments](#UrlSegments) for dynamic values
-      and [Querystring parameters](#QuerystringParams) 
+      Can include [Url Segments](#/WebRequest/UrlSegments) for dynamic values
+      and [Querystring parameters](#/WebRequest/QuerystringParams) 
       are smart enough to be appended to existing querystring
       (or added to resource if there isn't an existing querystring).
     example: |
@@ -87,7 +87,7 @@ Properties:
     description: |
       Set the format to use for converting the response `Body` to string and for the `Content-Type` header
       
-      _Note_ If `WebFormat.Custom` is used, the [`CustomRequestFormat`](#CustomRequestFormat) must be set.
+      _Note_ If `WebFormat.Custom` is used, the [`CustomRequestFormat`](#/WebRequest/CustomRequestFormat) must be set.
     example: |
       Dim Request As New WebRequest
       Request.Body = Array("A", "B", "C")
@@ -104,7 +104,7 @@ Properties:
     description: |
       Set the format to use for converting the response `Content` to `Data` and for the `Accept` header
 
-      _Note_ If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#CustomResponseFormat) must be set.
+      _Note_ If `WebFormat.Custom` is used, the [`CustomResponseFormat`](#/WebRequest/CustomResponseFormat) must be set.
     example: |
       Dim Request As New WebRequest
       Request.ResponseFormat = WebFormat.Json
@@ -122,7 +122,7 @@ Properties:
   - name: CustomRequestFormat
     code: "Get|Let {String}"
     description: |
-      Use converter registered with [`WebHelpers.RegisterConverter`](#RegisterConverter)
+      Use converter registered with [`WebHelpers.RegisterConverter`](#/WebHelpers/RegisterConverter)
       to convert `Body` to string and set `Content-Type` header.
 
       (Automatically sets `RequestFormat` to `WebFormat.Custom`)
@@ -139,7 +139,7 @@ Properties:
   - name: CustomResponseFormat
     code: "Get|Let {String}"
     description: |
-      Use converter registered with [`WebHelpers.RegisterConverter`](#RegisterConverter)
+      Use converter registered with [`WebHelpers.RegisterConverter`](#/WebHelpers/RegisterConverter)
       to convert the response `Content` to `Data` and set `Accept` header.
 
       (Automatically sets `ResponseFormat` to `WebFormat.Custom`)
@@ -205,7 +205,7 @@ Properties:
   - name: Cookies
     code: "Get|Set Collection"
     description: |
-      _Note_ To add cookies, use [`AddCookie`](#AddCookie).
+      _Note_ To add cookies, use [`AddCookie`](#/WebRequest/AddCookie).
 
       `Collection` of Cookies to include with request,
       stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
@@ -214,7 +214,7 @@ Properties:
   - name: Headers
     code: "Get|Set Collection"
     description: |
-      _Note_ To add headers, use [`AddHeader`](#AddHeader).
+      _Note_ To add headers, use [`AddHeader`](#/WebRequest/AddHeader).
 
       `Collection` of Headers to include with request,
       stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
@@ -223,7 +223,7 @@ Properties:
   - name: QuerystringParams
     code: "Get|Set Collection"
     description: |
-      _Note_ To add Querystring parameters, use [`AddQuerystringParam`](#AddQuerystringParam).
+      _Note_ To add Querystring parameters, use [`AddQuerystringParam`](#/WebRequest/AddQuerystringParam).
 
       `Collection` of Querystring parameters to include with request,
       stored as `KeyValue` (`Dictionary: {Key: "...", Value: "..."}`).
@@ -232,7 +232,7 @@ Properties:
   - name: UrlSegments
     code: "Get|Set Dictionary"
     description: |
-      _Note_ To add Url Segments, use [`AddUrlSegment`](#AddUrlSegment)
+      _Note_ To add Url Segments, use [`AddUrlSegment`](#/WebRequest/AddUrlSegment)
 
       Url Segments are used to easily add dynamic values to `Resource`.
       Create a Url Segement in `Resource` with curly brackets and then

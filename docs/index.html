@@ -3,169 +3,155 @@ title: Docs
 layout: docs
 ---
 <aside class="toc">
-  <a class="toc-title" href="#">
+  <a class="toc-title" href="#/">
     VBA-Web <span class="version">(4.0.0)</span>
   </a>
   <ul class="toc-section">
     <li><a href="https://github.com/VBA-tools/VBA-Web/" target="_blank">Github Repository</a></li>
   </ul>
   
-  <a class="toc-title" href="#">Introduction</a>
+  <a class="toc-title" href="#/">Introduction</a>
   <ul class="toc-section">
-    <li><a href="#Installation">Installation</a></li>
+    <li><a href="#/Installation">Installation</a></li>
   </ul>
   
-  <a class="toc-title" href="#WebRequest">
+  <a class="toc-title" href="#/WebRequest">
     WebRequest
   </a>
   <ul class="toc-section">
-    {% if site.data.docs.WebRequest.Intro %}
-    <li><a href="#WebRequest">Introduction</a></li>
-    {% endif %}
+    <li><a href="#/WebRequest">Introduction</a></li>
 
-    <li class="toc-subsection"><a href="#WebRequest-Properties">Properties</a></li>
-    {% for property in site.data.docs.WebRequest.Properties%}
+    <li class="toc-subsection"><a href="#/WebRequest/Properties">Properties</a></li>
+    {% for property in site.data.docs.WebRequest.Properties %}
     {% unless property.internal %}
-    <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
+    <li><a href="#/WebRequest/{{ property.name }}">{{ property.name }}</a></li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebRequest-Methods">Methods</a></li>
-    {% for method in site.data.docs.WebRequest.Methods%}
+    <li class="toc-subsection"><a href="#/WebRequest/Methods">Methods</a></li>
+    {% for method in site.data.docs.WebRequest.Methods %}
     {% unless method.internal %}
-    <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
+    <li><a href="#/WebRequest/{{ method.name }}">{{ method.name }}</a></li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#WebClient">
+  <a class="toc-title" href="#/WebClient">
     WebClient
   </a>
   <ul class="toc-section">
-    {% if site.data.docs.WebClient.Intro %}
-    <li><a href="#WebClient">Introduction</a></li>
-    {% endif %}
+    <li><a href="#/WebClient">Introduction</a></li>
 
-    <li class="toc-subsection"><a href="#WebClient-Properties">Properties</a></li>
+    <li class="toc-subsection"><a href="#/WebClient/Properties">Properties</a></li>
     {% for property in site.data.docs.WebClient.Properties%}
     {% unless property.internal %}
-    <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
+    <li><a href="#/WebClient/{{ property.name }}">{{ property.name }}</a></li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebClient-Methods">Methods</a></li>
+    <li class="toc-subsection"><a href="#/WebClient/Methods">Methods</a></li>
     {% for method in site.data.docs.WebClient.Methods%}
     {% unless method.internal %}
-    <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
+    <li><a href="#/WebClient/{{ method.name }}">{{ method.name }}</a></li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#WebResponse">
+  <a class="toc-title" href="#/WebResponse">
     WebResponse
   </a>
   <ul class="toc-section">
-    {% if site.data.docs.WebResponse.Intro %}
-    <li><a href="#WebResponse">Introduction</a></li>
-    {% endif %}
+    <li><a href="#/WebResponse">Introduction</a></li>
 
-    <li class="toc-subsection"><a href="#WebResponse-Properties">Properties</a></li>
+    <li class="toc-subsection"><a href="#/WebResponse/Properties">Properties</a></li>
     {% for property in site.data.docs.WebResponse.Properties%}
     {% unless property.internal %}
-    <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
+    <li><a href="#/WebResponse/{{ property.name }}">{{ property.name }}</a></li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebResponse-Methods">Methods</a></li>
+    <li class="toc-subsection"><a href="#/WebResponse/Methods">Methods</a></li>
     {% for method in site.data.docs.WebResponse.Methods%}
     {% unless method.internal %}
-    <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
+    <li><a href="#/WebResponse/{{ method.name }}">{{ method.name }}</a></li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#WebHelpers">
+  <a class="toc-title" href="#/WebHelpers">
     WebHelpers
   </a>
   <ul class="toc-section">
-    {% if site.data.docs.WebHelpers.Intro %}
-    <li><a href="#WebHelpers">Introduction</a></li>
-    {% endif %}
+    <li><a href="#/WebHelpers">Introduction</a></li>
 
-    <li class="toc-subsection"><a href="#WebHelpers-Properties">Properties</a></li>
+    <li class="toc-subsection"><a href="#/WebHelpers/Properties">Properties</a></li>
     {% for property in site.data.docs.WebHelpers.Properties%}
     {% unless property.internal %}
-    <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
+    <li><a href="#/WebHelpers/{{ property.name }}">{{ property.name }}</a></li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebHelpers-Methods">Methods</a></li>
+    <li class="toc-subsection"><a href="#/WebHelpers/Methods">Methods</a></li>
     {% for method in site.data.docs.WebHelpers.Methods%}
     {% unless method.internal %}
-    <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
+    <li><a href="#/WebHelpers/{{ method.name }}">{{ method.name }}</a></li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#IWebAuthenticator">
+  <a class="toc-title" href="#/IWebAuthenticator">
     IWebAuthenticator
   </a>
   <ul class="toc-section">
-    {% if site.data.docs.IWebAuthenticator.Intro %}
-    <li><a href="#IWebAuthenticator">Introduction</a></li>
-    {% endif %}
+    <li><a href="#/IWebAuthenticator">Introduction</a></li>
 
-    <li class="toc-subsection"><a href="#IWebAuthenticator-Methods">Methods</a></li>
+    <li class="toc-subsection"><a href="#/IWebAuthenticator/Methods">Methods</a></li>
     {% for method in site.data.docs.IWebAuthenticator.Methods%}
     {% unless method.internal %}
-    <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
+    <li><a href="#/IWebAuthenticator/{{ method.name }}">{{ method.name }}</a></li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#WebAsyncWrapper">
+  <a class="toc-title" href="#/WebAsyncWrapper">
     WebAsyncWrapper
   </a>
   <ul class="toc-section">
-    {% if site.data.docs.WebAsyncWrapper.Intro %}
-    <li><a href="#WebAsyncWrapper">Introduction</a></li>
-    {% endif %}
+    <li><a href="#/WebAsyncWrapper">Introduction</a></li>
 
-    <li class="toc-subsection"><a href="#WebAsyncWrapper-Properties">Properties</a></li>
+    <li class="toc-subsection"><a href="#/WebAsyncWrapper/Properties">Properties</a></li>
     {% for property in site.data.docs.WebAsyncWrapper.Properties%}
     {% unless property.internal %}
-    <li><a href="#{{ property.name }}">{{ property.name }}</a></li>
+    <li><a href="#/WebAsyncWrapper/{{ property.name }}">{{ property.name }}</a></li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#WebAsyncWrapper-Methods">Methods</a></li>
+    <li class="toc-subsection"><a href="#/WebAsyncWrapper/Methods">Methods</a></li>
     {% for method in site.data.docs.WebAsyncWrapper.Methods%}
     {% unless method.internal %}
-    <li><a href="#{{ method.name }}">{{ method.name }}</a></li>
+    <li><a href="#/WebAsyncWrapper/{{ method.name }}">{{ method.name }}</a></li>
     {% endunless %}
     {% endfor %}
   </ul>
 </aside>
 <article class="documentation">
-  <h2 id="Introduction" class="docs-title anchor">Introduction</h2>
-  <h4 id="Installation" class="docs-name anchor">Installation</h4>
+  <h2 id="/" class="docs-title anchor">Introduction</h2>
+  
+  <h4 id="/Installation" class="docs-name anchor">Installation</h4>
+  <!-- TODO -->
 
   <!--
   WebRequest
   ====================================================================== -->
-  <h2 id="WebRequest" class="docs-title anchor">WebRequest</h2>
+  <h2 id="/WebRequest" class="docs-title anchor">WebRequest</h2>
   <section class="docs-subsection">
-    {% if site.data.docs.WebRequest.Intro %}
-    {{ site.data.docs.WebRequest.Intro | markdownify }}
-    {% endif %}
+    <!-- TODO -->
   </section>
   <section class="docs-subsection">
-    <h3 id="WebRequest-Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebRequest/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebRequest.Properties %}
-    <h4 id="{{ property.name }}" class="anchor">
-      <b class="docs-name">{{ property.name }}</b>
-      <code>{{ property.code }}</code>
-    </h4>
+    <h4 id="/WebRequest/{{ property.name }}" class="anchor">{{ property.name }}</h4>
+    <code>{{ property.code }}</code>
     {% if property.details %}
     <dl class="docs-details">
       {% for detail in property.details %}
@@ -188,9 +174,9 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebRequest-Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebRequest/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebRequest.Methods %}
-    <h4 id="{{ method.name }}" class="anchor">
+    <h4 id="/WebRequest/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
     </h4>
@@ -219,16 +205,14 @@ layout: docs
   <!--
   WebClient
   ====================================================================== -->
-  <h2 id="WebClient" class="docs-title anchor">WebClient</h2>
+  <h2 id="/WebClient" class="docs-title anchor">WebClient</h2>
   <section class="docs-subsection">
-    {% if site.data.docs.WebClient.Intro %}
-    {{ site.data.docs.WebClient.Intro | markdownify }}
-    {% endif %}
+    <!-- TODO -->
   </section>
   <section class="docs-subsection">
-    <h3 id="WebClient-Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebClient/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebClient.Properties %}
-    <h4 id="{{ property.name }}" class="anchor">
+    <h4 id="/WebClient/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
     </h4>
@@ -254,9 +238,9 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebClient-Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebClient/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebClient.Methods %}
-    <h4 id="{{ method.name }}" class="anchor">
+    <h4 id="/WebClient/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
     </h4>
@@ -285,16 +269,14 @@ layout: docs
   <!--
   WebResponse
   ====================================================================== -->
-  <h2 id="WebResponse" class="docs-title anchor">WebResponse</h2>
+  <h2 id="/WebResponse" class="docs-title anchor">WebResponse</h2>
   <section class="docs-subsection">
-    {% if site.data.docs.WebResponse.Intro %}
-    {{ site.data.docs.WebResponse.Intro | markdownify }}
-    {% endif %}
+    <!-- TODO -->
   </section>
   <section class="docs-subsection">
-    <h3 id="WebResponse-Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebResponse/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebResponse.Properties %}
-    <h4 id="{{ property.name }}" class="anchor">
+    <h4 id="/WebResponse/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
     </h4>
@@ -320,9 +302,9 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebResponse-Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebResponse/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebResponse.Methods %}
-    <h4 id="{{ method.name }}" class="anchor">
+    <h4 id="/WebResponse/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
     </h4>
@@ -351,16 +333,14 @@ layout: docs
   <!--
   WebHelpers
   ====================================================================== -->
-  <h2 id="WebHelpers" class="docs-title anchor">WebHelpers</h2>
+  <h2 id="/WebHelpers" class="docs-title anchor">WebHelpers</h2>
   <section class="docs-subsection">
-    {% if site.data.docs.WebHelpers.Intro %}
-    {{ site.data.docs.WebHelpers.Intro | markdownify }}
-    {% endif %}
+    <!-- TODO -->
   </section>
   <section class="docs-subsection">
-    <h3 id="WebHelpers-Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebHelpers/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebHelpers.Properties %}
-    <h4 id="{{ property.name }}" class="anchor">
+    <h4 id="/WebHelpers/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
     </h4>
@@ -386,9 +366,9 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebHelpers-Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebHelpers/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebHelpers.Methods %}
-    <h4 id="{{ method.name }}" class="anchor">
+    <h4 id="/WebHelpers/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
     </h4>
@@ -417,16 +397,14 @@ layout: docs
   <!--
   IWebAuthenticator
   ====================================================================== -->
-  <h2 id="IWebAuthenticator" class="docs-title anchor">IWebAuthenticator</h2>
+  <h2 id="/IWebAuthenticator" class="docs-title anchor">IWebAuthenticator</h2>
   <section class="docs-subsection">
-    {% if site.data.docs.IWebAuthenticator.Intro %}
-    {{ site.data.docs.IWebAuthenticator.Intro | markdownify }}
-    {% endif %}
+    <!-- TODO -->
   </section>
   <section class="docs-subsection">
-    <h3 id="IWebAuthenticator-Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/IWebAuthenticator/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.IWebAuthenticator.Methods %}
-    <h4 id="{{ method.name }}" class="anchor">
+    <h4 id="/IWebAuthenticator/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
     </h4>
@@ -455,16 +433,14 @@ layout: docs
   <!--
   WebAsyncWrapper
   ====================================================================== -->
-  <h2 id="WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
+  <h2 id="/WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
   <section class="docs-subsection">
-    {% if site.data.docs.WebAsyncWrapper.Intro %}
-    {{ site.data.docs.WebAsyncWrapper.Intro | markdownify }}
-    {% endif %}
+    <!-- TODO -->
   </section>
   <section class="docs-subsection">
-    <h3 id="WebAsyncWrapper-Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebAsyncWrapper/Properties" class="docs-subsection-title anchor">Properties</h3>
     {% for property in site.data.docs.WebAsyncWrapper.Properties %}
-    <h4 id="{{ property.name }}" class="anchor">
+    <h4 id="/WebAsyncWrapper/{{ property.name }}" class="anchor">
       <b class="docs-name">{{ property.name }}</b>
       <code>{{ property.code }}</code>
     </h4>
@@ -490,9 +466,9 @@ layout: docs
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="WebAsyncWrapper-Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebAsyncWrapper/Methods" class="docs-subsection-title anchor">Methods</h3>
     {% for method in site.data.docs.WebAsyncWrapper.Methods %}
-    <h4 id="{{ method.name }}" class="anchor">
+    <h4 id="/WebAsyncWrapper/{{ method.name }}" class="anchor">
       <b class="docs-name">{{ method.name }}</b>
       <code>{{ method.code }}</code>
     </h4>
