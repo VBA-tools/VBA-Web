@@ -11,7 +11,21 @@ Attribute VB_Exposed = True
 ' WebResponse v4.0.3
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Wrapper for http/cURL responses
+' Wrapper for http/cURL responses that includes parsed Data based on WebRequest.ResponseFormat.
+'
+' Usage:
+' ```VB.net
+' Dim Response As WebResponse
+' Set Response = Client.Execute(Request)
+'
+' If Response.StatusCode = WebStatusCode.Ok Then
+'   ' Response.Headers, Response.Cookies
+'   ' Response.Data -> Parsed Response.Content based on Request.ResponseFormat
+'   ' Response.Body -> Raw response bytes
+' Else
+'   Debug.Print "Error: " & Response.StatusCode & " - " & Response.Content
+' End If
+' ```
 '
 ' Errors:
 ' 11030 / 80042b16 / -2147210474 - Error creating from http

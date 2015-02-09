@@ -13,7 +13,7 @@ Attribute VB_Exposed = True
 '
 ' Wrapper WebClient and WebRequest that enables callback-style async requests
 '
-' _Note_ Windows-only and requires reference to "Microsoft WinHTTP Services, version 5.1"
+' _Note_ Windows-only and Excel-only and requires reference to "Microsoft WinHTTP Services, version 5.1"
 '
 ' Errors:
 ' 11050 / 80042b2a / -2147210454 - Client should not be changed
@@ -163,11 +163,13 @@ End Sub
 ''
 Public Sub TimedOut()
     Dim web_Response As New WebResponse
+    
+    web_StopTimeoutTimer
+    WebHelpers.LogDebug "Timed out", "WebAsyncWrapper.TimedOut"
+    
+    ' Callback
     web_Response.StatusCode = WebStatusCode.RequestTimeout
     web_Response.StatusDescription = "Request Timeout"
-
-    ' Callback
-    WebHelpers.LogDebug "Timed out", "WebAsyncWrapper.TimedOut"
     web_RunCallback web_Response
 End Sub
 
@@ -210,12 +212,27 @@ End Sub
 
 ' Start timeout timer
 Private Sub web_StartTimeoutTimer()
-    WebHelpers.StartTimeoutTimer Me, Me.Client.TimeoutMs
+    Dim web_TimeoutS As Long
+
+    If WebHelpers.AsyncRequests Is Nothing Then: Set WebHelpers.AsyncRequests = New Dictionary
+    
+    ' Round ms to seconds with minimum of 1 second if ms > 0
+    web_TimeoutS = Round(Me.Client.TimeoutMs / 1000, 0)
+    If Me.Client.TimeoutMs > 0 And web_TimeoutS = 0 Then
+        web_TimeoutS = 1
+    End If
+    
+    WebHelpers.AsyncRequests.Add Me.Request.Id, Me
+    Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.OnTimeoutTimerExpired """ & Me.Request.Id & """'"
 End Sub
 
 ' Stop timeout timer
 Private Sub web_StopTimeoutTimer()
-    WebHelpers.StopTimeoutTimer Me
+    If Not WebHelpers.AsyncRequests Is Nothing And Not Me.Request Is Nothing Then
+        If WebHelpers.AsyncRequests.Exists(Me.Request.Id) Then
+            WebHelpers.AsyncRequests.Remove Me.Request.Id
+        End If
+    End If
 End Sub
 
 ' Process asynchronous requests

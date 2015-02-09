@@ -11,7 +11,32 @@ Attribute VB_Exposed = True
 ' WebRequest v4.0.3
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
-' Create a request for use with a WebClient
+' `WebRequest` is used to create detailed requests
+' (including formatting, querystrings, headers, cookies, and much more).
+'
+' Usage:
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.Resource = "users/{Id}"
+'
+' Request.Method = WebMethod.HttpPut
+' Request.RequestFormat = WebFormat.UrlEncoded
+' Request.ResponseFormat = WebFormat.Json
+'
+' Dim Body As New Dictionary
+' Body.Add "name", "Tim"
+' Body.Add "project", "VBA-Web"
+' Set Request.Body = Body
+'
+' Request.AddUrlSegment "Id", 123
+' Request.AddQuerystringParam "api_key", "abcd"
+' Request.AddHeader "Authorization", "Token ..."
+'
+' ' -> PUT (Client.BaseUrl)users/123?api_key=abcd
+' '    Authorization: Token ...
+' '
+' '    name=Tim&project=VBA-Web
+' ```
 '
 ' Errors:
 ' 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
