@@ -484,34 +484,9 @@ Methods:
       WebHelpers.MethodToName WebMethod.HttpPost
       ' -> "POST"
 
-  # AddAsyncRequest
-  - name: AddAsyncRequest
-    code: "AddAsyncRequest()"
-    internal: true
-
-  # GetAsyncRequest
-  - name: GetAsyncRequest
-    code: "GetAsyncRequest()"
-    internal: true
-
-  # RemoveAsyncRequest
-  - name: RemoveAsyncRequest
-    code: "RemoveAsyncRequest()"
-    internal: true
-
-  # StartTimeoutTimer
-  - name: StartTimeoutTimer
-    code: "StartTimeoutTimer()"
-    internal: true
-
-  # StopTimeoutTimer
-  - name: StopTimeoutTimer
-    code: "StopTimeoutTimer()"
-    internal: true
-
   # TimeoutTimerExpired
-  - name: TimeoutTimerExpired
-    code: "TimeoutTimerExpired()"
+  - name: OnTimeoutTimerExpired
+    code: "OnTimeoutTimerExpired()"
     internal: true
 
   # ExecuteInShell
