@@ -13,7 +13,7 @@ Attribute VB_Exposed = True
 '
 ' Wrapper WebClient and WebRequest that enables callback-style async requests
 '
-' _Note_ Windows-only and requires reference to "Microsoft WinHTTP Services, version 5.1"
+' _Note_ Windows-only and Excel-only and requires reference to "Microsoft WinHTTP Services, version 5.1"
 '
 ' Errors:
 ' 11050 / 80042b2a / -2147210454 - Client should not be changed

@@ -916,8 +916,6 @@ Public Function Base64Decode(Encoded As Variant) As String
 End Function
 
 ''
-
-''
 ' Register custom converter for converting request `Body` and response `Content`.
 ' If the `ConvertCallback` or `ParseCallback` are object methods,
 ' pass in an object instance.
