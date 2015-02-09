@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebAsyncWrapper v4.0.2
+' WebAsyncWrapper v4.0.3
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Wrapper WebClient and WebRequest that enables callback-style async requests

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebClient v4.0.2
+' WebClient v4.0.3
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Execute requests and handle responses
