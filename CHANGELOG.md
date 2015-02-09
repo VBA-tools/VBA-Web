@@ -11,6 +11,7 @@ Major Changes:
 - General API cleanup and bugfixes
 - __4.0.1__ cURL escape parameters in authenticators, url-encode UrlSegments, and add `SetHeader`
 - __4.0.2__ Add `Base64Decode`
+- __4.0.3__ Fix out-of-date workbooks
 
 Breaking Changes:
 
