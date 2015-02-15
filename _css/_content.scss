@@ -1,0 +1,14 @@
+// Content
+// ----------------------------------------------------- //
+
+.content {
+  @extend .container;
+  @extend .clearfix;
+
+  // position: absolute;
+  top: $header-height;
+
+  @include respond-to(extra-small) {
+    top: $header-height-small;
+  }
+}

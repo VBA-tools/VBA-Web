@@ -1,32 +1,52 @@
 @mixin respond-to($breakpoint) {
-  @if $breakpoint == "small" {
-    @media (min-width: $small-screen) {
-      @content  
-    }
-  }
-  @else if $breakpoint == "medium" {
-    @media (min-width: $medium-screen) {
-      @content
-    }
-  }
-  @else if $breakpoint == "large" {
-    @media (min-width: $large-screen) {
-      @content
-    }
-  }
-}
-@mixin respond-up-to($breakpoint) {
-  @if $breakpoint == "small" {
+  // extra-small (phone) is default
+  @if $breakpoint == "extra-small" {
     @media (max-width: $small-screen - 1) {
       @content
     }
   }
-  @else if $breakpoint == "medium" {
+
+  // "tablet": 768-991
+  @if $breakpoint == "small" {
+    @media (min-width: $small-screen) and (max-width: $medium-screen - 1) {
+      @content
+    }
+  }
+  @if $breakpoint == "small-plus" {
+    @media (min-width: $small-screen) {
+      @content
+    }
+  }
+  @if $breakpoint == "up-to-small" {
+    @media (max-width: $small-screen - 1) {
+      @content
+    }
+  }
+
+  // "laptop": 992-1199
+  @if $breakpoint == "medium" {
+    @media (min-width: $medium-screen) and (max-width: $large-screen - 1) {
+      @content
+    }
+  }
+  @if $breakpoint == "medium-plus" {
+    @media (min-width: $medium-screen) {
+      @content
+    }
+  }
+  @if $breakpoint == "up-to-medium" {
     @media (max-width: $medium-screen - 1) {
       @content
     }
   }
-  @else if $breakpoint == "large" {
+
+  // "desktop": 1200+
+  @if $breakpoint == "large" {
+    @media (min-width: $large-screen) {
+      @content
+    }
+  }
+  @if $breakpoint == "up-to-large" {
     @media (max-width: $large-screen - 1) {
       @content
     }

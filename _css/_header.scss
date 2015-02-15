@@ -1,0 +1,113 @@
+// Header
+// ----------------------------------------------------- //
+
+.header {
+  @extend .container;
+  @extend .clearfix;
+  margin-bottom: 8px;
+  line-height: $header-height;
+
+  @include respond-to(up-to-small) {
+    line-height: $header-height-small;
+  }
+}
+.fixed-header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  height: $header-height;
+  z-index: 1000;
+  background-color: #fff;
+  border-bottom: solid 1px #eee;
+  
+  -webkit-transition: transform 200ms linear;
+  -moz-transition: transform 200ms linear;
+  -ms-transition: transform 200ms linear;
+  transition: transform 200ms linear;
+
+  @include respond-to(up-to-small) {
+    &.headroom--pinned, &.headroom--top {
+      -webkit-transform: translateY(0%);
+      -moz-transform: translateY(0%);
+      -ms-transform: translateY(0%);
+      transform: translateY(0%);
+    }
+    &.headroom--unpinned {
+      -webkit-transform: translateY(-100%);
+      -moz-transform: translateY(-100%);
+      -ms-transform: translateY(-100%);
+      transform: translateY(-100%);
+    }
+    
+    height: $header-height-small;
+  }
+}
+
+.branding {
+  font-size: 2em;
+  margin: 0;
+  padding: 0;
+  float: left;
+
+  @include respond-to(up-to-small) {
+    font-size: 1.4em;
+  }
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+
+    &:hover {
+      border-bottom: solid 1px;
+    }
+  }
+}
+.navigation {
+  font-size: 1.2em;
+  float: right;
+
+  @include respond-to(up-to-small) {
+    font-size: 1em;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      float: left;
+      margin-left: 20px;
+
+      &:first-child {
+        margin-left: 0;
+      }
+
+      @include respond-to(up-to-small) {
+        margin-left: 10px;
+      }
+    }
+  }
+}
+.navigation-link {
+  color: black;
+  text-decoration: none;
+  border-bottom: solid 1px #aaa;
+  padding: 0 2px 1px 2px;
+
+  &:hover {
+    border-width: 2px;
+  }
+
+  .download-link > & {
+    border-color: $primary-color;
+    color: $primary-color;
+  }
+}
+
+.download-link {
+  @include respond-to(up-to-small) {
+    display: none;
+    visibility: hidden;
+  }
+}

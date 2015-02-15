@@ -1,3 +1,62 @@
+// Base
+// ----------------------------------------------------- //
+
+html {
+  color: #222;
+  font-size: 14px;
+  line-height: 1.5em;
+}
+
+body {
+  overflow-y: scroll;
+}
+
+code {
+  padding: 0.1em 0.3em;
+  margin: 0;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+pre {
+  border-left: solid 2px lighten($primary-color, 10%);
+  padding: 5px 0 5px 10px;
+  max-width: 50em;
+  line-height: 1.4em;
+
+  & > code {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border-radius: 0;
+    font-size: 90%;
+  }
+
+  .hll {
+    background-color: fade-out($primary-color, 0.93);
+    display: block;
+    margin-left: -10px;
+    padding-left: 10px;
+  }
+}
+
+.container {
+  padding: 0 10px;
+  position: relative;
+
+  @include respond-to(medium) {
+    width: 970px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  @include respond-to(large) {
+    width: $large-screen;
+    margin: 0 auto;
+    padding: 0;
+  }
+}
+
 /*
  * What follows is the result of much research on cross-browser styling.
  * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
@@ -7,12 +66,6 @@
 /* ==========================================================================
    Base styles: opinionated defaults
    ========================================================================== */
-
-html {
-    color: #222;
-    font-size: 1em;
-    line-height: 1.4;
-}
 
 /*
  * Remove text-shadow in selection highlight:

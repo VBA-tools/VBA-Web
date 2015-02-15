@@ -1,0 +1,201 @@
+// Docs
+// ----------------------------------------------------- //
+
+.toc {
+  padding: 10px 0 20px 0;
+
+  a {
+    text-decoration: none;
+    color: #000;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @include respond-to(medium-plus) {
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    width: 220px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 0.85em;
+  }
+}
+.toc-title {
+  display: block;
+  font-weight: bold;
+  margin-top: 0.5em;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+.toc-section {
+  margin: 0;
+  padding-left: 1.8em;
+
+  & > li {
+    list-style: none;
+    margin-left: -1em;
+
+    &:before {
+      content: "-";
+      margin-right: 0.5em;
+    }
+  }
+}
+.toc-subsection,
+li.toc-subsection {
+  list-style: none;
+  margin-left: -1.2em;
+  color: #888;
+  text-transform: uppercase;
+  font-size: 0.9em;
+
+  & > a {
+    color: #888;
+  }
+  li + & {
+    margin-top: 0.5em;
+  }
+
+  &:before {
+    content: "";
+    margin: 0;
+  }
+}
+
+.documentation {
+  h2 {
+    border-bottom: solid 1px #eee;
+    padding-bottom: 0.4em;
+  }
+  h3 {
+    margin: 0;
+
+    & + h4 {
+      margin-top: 0.5em;
+    }
+  }
+  h4 {
+    margin-bottom: 0.5em;
+  }
+
+  & > p,
+  & .docs-subsection > p {
+    margin-top: 0;
+    position: relative;
+  }
+
+  & a {
+    color: #000;
+    text-decoration: none;
+    border-bottom: solid 1px #ccc;
+
+    &:hover {
+      border-color: #000;
+    }
+  }
+  & > pre,
+  & .docs-subsection > pre {
+    position: relative;
+    z-index: 10;
+  }
+
+  & > ul,
+  & .docs-subsection > ul {
+    margin-top: 0;
+    padding-left: 1.2em;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Assume em inside of details is "Optional" note */
+  em {
+    font-style: normal;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    color: #666;
+    margin-right: 0.5em;
+  }
+
+  @include respond-to(medium-plus) {
+    margin: 0 0 0 240px;
+  }
+}
+.docs-title {
+
+}
+.docs-subsection {
+  margin-bottom: 10px;
+}
+.docs-subsection-title {
+  text-transform: uppercase;
+  font-weight: normal;
+  font-size: 1em;
+  color: #888;
+}
+.docs-name {
+  line-height: 1.2em;
+
+  & + code {
+    background-color: transparent;
+    color: #666;
+    font-weight: lighter;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: block;
+    line-height: 1.2em;
+    padding: 0;
+    margin-top: 1px;
+  }
+}
+.docs-code-link {
+  color: #000;
+  text-decoration: none;
+  border: none;
+
+  & > code {
+    border: solid 1px #bbb;
+  }
+}
+.docs-details {
+  @extend .clearfix;
+
+  margin: 0 0 0.5em 0.5em;
+  line-height: 1.5em;
+
+  & > dt {
+    float: left;
+    margin-right: 4px;
+    clear: both;
+
+    & > code {
+      background-color: transparent;
+    }
+    &:after {
+      content: "-";
+      margin-left: 2px;
+    }
+  }
+  & > dd {
+    -webkit-margin-start: 20px;
+
+    p {
+      margin: 0;  
+    }
+    ul {
+      margin: 0;
+      padding-left: 1em;
+    }
+  }
+}
+.docs-internal {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  color: #555;
+  font-style: normal;
+  font-weight: normal;
+}
