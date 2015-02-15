@@ -52,3 +52,20 @@
     }
   }
 }
+
+@mixin container {
+  position: relative;
+
+  @include respond-to(medium-plus) {
+    width: 970px;
+    margin: 0 auto;
+  }
+  @include respond-to(large) {
+    width: $large-screen;
+  }
+}
+
+@mixin font-size($size) {
+  font-size: ($size * 10) + px;
+  font-size: $size + rem;
+}

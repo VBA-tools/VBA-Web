@@ -1,19 +1,32 @@
 ---
 layout: blank
 ---
-<div class="fixed-header">
+<div class="header-container">
   <header class="header" role="banner">
-    <h1 class="branding"><a href="{{ site.baseurl }}/">VBA-Web</a></h1>
+    <h1 class="header-item mod-logo">
+      <a class="header-link mod-logo logo" href="{{ site.baseurl }}">VBA-Web</a>
+    </h1>
     <nav class="navigation" role="navigation">
       <ul>
-        <li class="guides-link"><a class="navigation-link" href="{{ site.baseurl }}/guides/">Guides</a></li>
-        <li class="docs-link"><a class="navigation-link" href="{{ site.baseurl }}/docs/">Docs</a></li>
-        <li class="github-link"><a class="navigation-link" target="_blank" href="{{ site.github }}">Github</a></li>
-        <li class="download-link"><a class="navigation-link" target="_blank" href="{{ site.download }}">Download</a></li>
+        <li class="header-item">
+          <a class="header-link mod-guides" href="{{ site.baseurl }}/guides/">Guides</a>
+        </li>
+        <li class="header-item">
+          <a class="header-link mod-docs" href="{{ site.baseurl }}/docs/">Docs</a>
+        </li>
+        <li class="header-item">
+          <a class="header-link mod-github" target="_blank" href="{{ site.github }}">Github</a>
+        </li>
+        <li class="header-item">
+          <a class="header-link mod-download" target="_blank" href="{{ site.download }}">Download</a>
+        </li>
       </ul>
     </nav>
   </header>
 </div>
-<main class="content" role="main">
+<div class="content-container">
   {{ content }}
-</main>
+</div>
+<div class="footer-container">
+  <footer class="footer"></footer>
+</div>

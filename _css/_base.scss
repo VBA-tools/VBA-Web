@@ -2,21 +2,35 @@
 // ----------------------------------------------------- //
 
 html {
+  font-size: 62.5%;
   color: #222;
-  font-size: 14px;
-  line-height: 1.5em;
 }
 
 body {
   overflow-y: scroll;
+
+  font-size: 14px;
+  font-size: 1.4rem;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+
+  &:hover {}
+  &:active {}
+  &:visited {}
 }
 
 code {
   padding: 0.1em 0.3em;
   margin: 0;
+
+  font-size: 0.9em;
+
   background-color: rgba(0,0,0,0.04);
   border-radius: 3px;
-  font-size: 0.9em;
 }
 
 pre {

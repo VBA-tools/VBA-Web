@@ -2,152 +2,216 @@
 title: Docs
 layout: docs
 ---
-<aside class="toc">
-  <a class="toc-title" href="#/">
+<aside class="sidebar mod-docs-toc docs-toc">
+  <a class="docs-toc-title" href="#/">
     VBA-Web <span class="version">({{ site.version }})</span>
   </a>
-  <ul class="toc-section">
-    <li><a href="https://github.com/VBA-tools/VBA-Web/" target="_blank">Github Repository</a></li>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="https://github.com/VBA-tools/VBA-Web/" target="_blank">Github Repository</a>
+    </li>
   </ul>
-  
-  <a class="toc-title" href="#/">Introduction</a>
-  <ul class="toc-section">
-    <li><a href="#/Installation">Installation</a></li>
+
+  <a class="docs-toc-title" href="#/">Introduction</a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/Installation">Installation</a>
+    </li>
   </ul>
-  
-  <a class="toc-title" href="#/WebRequest">
+
+  <a class="docs-toc-title" href="#/WebRequest">
     WebRequest
   </a>
-  <ul class="toc-section">
-    <li><a href="#/WebRequest">Introduction</a></li>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebRequest">Introduction</a>
+    </li>
 
-    <li class="toc-subsection"><a href="#/WebRequest/Properties">Properties</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebRequest/Properties">Properties</a>
+    </li>
     {% for property in site.data.docs.WebRequest.Properties %}
     {% unless property.internal %}
-    <li><a href="#/WebRequest/{{ property.name }}">{{ property.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebRequest/{{ property.name }}">{{ property.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#/WebRequest/Methods">Methods</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebRequest/Methods">Methods</a>
+    </li>
     {% for method in site.data.docs.WebRequest.Methods %}
     {% unless method.internal %}
-    <li><a href="#/WebRequest/{{ method.name }}">{{ method.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebRequest/{{ method.name }}">{{ method.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#/WebClient">
+  <a class="docs-toc-title" href="#/WebClient">
     WebClient
   </a>
-  <ul class="toc-section">
-    <li><a href="#/WebClient">Introduction</a></li>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebClient">Introduction</a>
+    </li>
 
-    <li class="toc-subsection"><a href="#/WebClient/Properties">Properties</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebClient/Properties">Properties</a>
+    </li>
     {% for property in site.data.docs.WebClient.Properties%}
     {% unless property.internal %}
-    <li><a href="#/WebClient/{{ property.name }}">{{ property.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebClient/{{ property.name }}">{{ property.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#/WebClient/Methods">Methods</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebClient/Methods">Methods</a>
+    </li>
     {% for method in site.data.docs.WebClient.Methods%}
     {% unless method.internal %}
-    <li><a href="#/WebClient/{{ method.name }}">{{ method.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebClient/{{ method.name }}">{{ method.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#/WebResponse">
+  <a class="docs-toc-title" href="#/WebResponse">
     WebResponse
   </a>
-  <ul class="toc-section">
-    <li><a href="#/WebResponse">Introduction</a></li>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebResponse">Introduction</a>
+    </li>
 
-    <li class="toc-subsection"><a href="#/WebResponse/Properties">Properties</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebResponse/Properties">Properties</a>
+    </li>
     {% for property in site.data.docs.WebResponse.Properties%}
     {% unless property.internal %}
-    <li><a href="#/WebResponse/{{ property.name }}">{{ property.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebResponse/{{ property.name }}">{{ property.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#/WebResponse/Methods">Methods</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebResponse/Methods">Methods</a>
+    </li>
     {% for method in site.data.docs.WebResponse.Methods%}
     {% unless method.internal %}
-    <li><a href="#/WebResponse/{{ method.name }}">{{ method.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebResponse/{{ method.name }}">{{ method.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#/WebHelpers">
+  <a class="docs-toc-title" href="#/WebHelpers">
     WebHelpers
   </a>
-  <ul class="toc-section">
-    <li><a href="#/WebHelpers">Introduction</a></li>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebHelpers">Introduction</a>
+    </li>
 
-    <li class="toc-subsection"><a href="#/WebHelpers/Properties">Properties</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebHelpers/Properties">Properties</a>
+    </li>
     {% for property in site.data.docs.WebHelpers.Properties%}
     {% unless property.internal %}
-    <li><a href="#/WebHelpers/{{ property.name }}">{{ property.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebHelpers/{{ property.name }}">{{ property.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#/WebHelpers/Methods">Methods</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebHelpers/Methods">Methods</a>
+    </li>
     {% for method in site.data.docs.WebHelpers.Methods%}
     {% unless method.internal %}
-    <li><a href="#/WebHelpers/{{ method.name }}">{{ method.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/WebHelpers/{{ method.name }}">{{ method.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#/IWebAuthenticator">
+  <a class="docs-toc-title" href="#/IWebAuthenticator">
     IWebAuthenticator
   </a>
-  <ul class="toc-section">
-    <li><a href="#/IWebAuthenticator">Introduction</a></li>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/IWebAuthenticator">Introduction</a>
+    </li>
 
-    <li class="toc-subsection"><a href="#/IWebAuthenticator/Methods">Methods</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/IWebAuthenticator/Methods">Methods</a>
+    </li>
     {% for method in site.data.docs.IWebAuthenticator.Methods%}
     {% unless method.internal %}
-    <li><a href="#/IWebAuthenticator/{{ method.name }}">{{ method.name }}</a></li>
+      <li class="docs-toc-item">
+        <a href="#/IWebAuthenticator/{{ method.name }}">{{ method.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
   </ul>
 
-  <a class="toc-title" href="#/WebAsyncWrapper">
+  <a class="docs-toc-title" href="#/WebAsyncWrapper">
     WebAsyncWrapper
   </a>
-  <ul class="toc-section">
-    <li><a href="#/WebAsyncWrapper">Introduction</a></li>
+  <ul class="docs-toc-section">
+    <li>
+      <a href="#/WebAsyncWrapper">Introduction</a>
+    </li>
 
-    <li class="toc-subsection"><a href="#/WebAsyncWrapper/Properties">Properties</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebAsyncWrapper/Properties">Properties</a>
+    </li>
     {% for property in site.data.docs.WebAsyncWrapper.Properties%}
     {% unless property.internal %}
-    <li><a href="#/WebAsyncWrapper/{{ property.name }}">{{ property.name }}</a></li>
+      <li>
+        <a href="#/WebAsyncWrapper/{{ property.name }}">{{ property.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
 
-    <li class="toc-subsection"><a href="#/WebAsyncWrapper/Methods">Methods</a></li>
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebAsyncWrapper/Methods">Methods</a>
+    </li>
     {% for method in site.data.docs.WebAsyncWrapper.Methods%}
     {% unless method.internal %}
-    <li><a href="#/WebAsyncWrapper/{{ method.name }}">{{ method.name }}</a></li>
+      <li>
+        <a href="#/WebAsyncWrapper/{{ method.name }}">{{ method.name }}</a>
+      </li>
     {% endunless %}
     {% endfor %}
   </ul>
 </aside>
-<article class="documentation">
-  <h2 id="/" class="docs-title anchor">Introduction</h2>
-  
-  <h4 id="/Installation" class="docs-name anchor">Installation</h4>
-  <ul>
-    <li>Download the <a href="https://github.com/VBA-tools/VBA-Web/releases">latest release (v{{ site.version }})</a></li>
-    <li>To install/upgrade in an existing file, use <code>VBA-Web - Installer.xlsm</code></li>
-    <li>To start from scratch in Excel, <code>VBA-Web - Blank.xlsm</code> has everything setup and ready to go</li>
-  </ul>
+
+<article class="content mod-with-sidebar docs-content">
+  <h2 class="docs-title" id="/">Introduction</h2>
+  <section class="docs-subsection">
+    <div class="docs-item">
+      <h4 class="docs-item-title" id="/Installation">Installation</h4>
+      <ul>
+        <li>Download the <a href="https://github.com/VBA-tools/VBA-Web/releases">latest release (v{{ site.version }})</a></li>
+        <li>To install/upgrade in an existing file, use <code>VBA-Web - Installer.xlsm</code></li>
+        <li>To start from scratch in Excel, <code>VBA-Web - Blank.xlsm</code> has everything setup and ready to go</li>
+      </ul>
+    </div>
+  </section>
 
   <!--
   WebRequest
   ====================================================================== -->
-  <h2 id="/WebRequest" class="docs-title anchor">WebRequest</h2>
+  <h2 id="/WebRequest" class="docs-title">WebRequest</h2>
   <section class="docs-subsection">
     <p>
       <code>WebRequest</code> is used to create detailed requests (including formatting, querystrings, headers, cookies, and much more).
@@ -179,60 +243,60 @@ Request.AddHeader "Authorization", "Token ..."
 {% endhighlight %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebRequest/Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebRequest/Properties" class="docs-subsection-title">Properties</h3>
     {% for property in site.data.docs.WebRequest.Properties %}
     {% unless property.internal %}
-    <h4 id="/WebRequest/{{ property.name }}" class="anchor">{{ property.name }}</h4>
-    <code>{{ property.code }}</code>
-    {% if property.details %}
-    <dl class="docs-details">
-      {% for detail in property.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if property.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if property.description %}
-    {{ property.description | markdownify }}
-    {% endif %}
-{% if property.example %}
-{% highlight VB.net %}
-{{ property.example }}
-{% endhighlight %}
-{% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebRequest/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
+  {% if property.example %}
+  {% highlight VB.net %}
+  {{ property.example }}
+  {% endhighlight %}
+  {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebRequest/Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 class="docs-subsection-title" id="/WebRequest/Methods">Methods</h3>
     {% for method in site.data.docs.WebRequest.Methods %}
     {% unless method.internal %}
-    <h4 id="/WebRequest/{{ method.name }}" class="anchor">
-      <b class="docs-name">{{ method.name }}</b>
-      <code>{{ method.code }}</code>
-    </h4>
-    {% if method.details %}
-    <dl class="docs-details">
-      {% for detail in method.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if method.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if method.description %}
-    {{ method.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebRequest/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
 {% if method.example %}
 {% highlight VB.net %}
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
@@ -240,7 +304,7 @@ Request.AddHeader "Authorization", "Token ..."
   <!--
   WebClient
   ====================================================================== -->
-  <h2 id="/WebClient" class="docs-title anchor">WebClient</h2>
+  <h2 id="/WebClient" class="docs-title">WebClient</h2>
   <section class="docs-subsection">
     <p>
       <code>WebClient</code> executes requests and handles response and is responsible for functionality shared between requests,
@@ -266,70 +330,68 @@ Set Response = Client.Execute(Request)
 {% endhighlight %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebClient/Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 class="docs-subsection-title" id="/WebClient/Properties">Properties</h3>
     {% for property in site.data.docs.WebClient.Properties %}
     {% unless property.internal %}
-    <h4 id="/WebClient/{{ property.name }}" class="anchor">
-      <b class="docs-name">{{ property.name }}</b>
-      <code>{{ property.code }}</code>
-    </h4>
-    {% if property.details %}
-    <dl class="docs-details">
-      {% for detail in property.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if property.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if property.description %}
-    {{ property.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebClient/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
 {% if property.example %}
 {% highlight VB.net %}
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebClient/Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebClient/Methods" class="docs-subsection-title">Methods</h3>
     {% for method in site.data.docs.WebClient.Methods %}
     {% unless method.internal %}
-    <h4 id="/WebClient/{{ method.name }}" class="anchor">
-      <b class="docs-name">{{ method.name }}</b>
-      <code>{{ method.code }}</code>
-    </h4>
-    {% if method.details %}
-    <dl class="docs-details">
-      {% for detail in method.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if method.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if method.description %}
-    {{ method.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebClient/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
 {% if method.example %}
 {% highlight VB.net %}
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
-  
+
   <!--
   WebResponse
   ====================================================================== -->
-  <h2 id="/WebResponse" class="docs-title anchor">WebResponse</h2>
+  <h2 id="/WebResponse" class="docs-title">WebResponse</h2>
   <section class="docs-subsection">
     <p>
       Wrapper for http/cURL responses that includes parsed <code>Data</code> based on <code>WebRequest.ResponseFormat</code>.
@@ -346,67 +408,65 @@ If Response.StatusCode = WebStatusCode.Ok Then
   ' Response.Data -> Parsed Response.Content based on Request.ResponseFormat
   ' Response.Body -> Raw response bytes
 Else
-  Debug.Print "Error: " & Response.StatusCode & " - " & Response.Content 
+  Debug.Print "Error: " & Response.StatusCode & " - " & Response.Content
 End If
 {% endhighlight %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebResponse/Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebResponse/Properties" class="docs-subsection-title">Properties</h3>
     {% for property in site.data.docs.WebResponse.Properties %}
     {% unless property.internal %}
-    <h4 id="/WebResponse/{{ property.name }}" class="anchor">
-      <b class="docs-name">{{ property.name }}</b>
-      <code>{{ property.code }}</code>
-    </h4>
-    {% if property.details %}
-    <dl class="docs-details">
-      {% for detail in property.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if property.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if property.description %}
-    {{ property.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebResponse/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
 {% if property.example %}
 {% highlight VB.net %}
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebResponse/Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebResponse/Methods" class="docs-subsection-title">Methods</h3>
     {% for method in site.data.docs.WebResponse.Methods %}
     {% unless method.internal %}
-    <h4 id="/WebResponse/{{ method.name }}" class="anchor">
-      <b class="docs-name">{{ method.name }}</b>
-      <code>{{ method.code }}</code>
-    </h4>
-    {% if method.details %}
-    <dl class="docs-details">
-      {% for detail in method.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if method.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if method.description %}
-    {{ method.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebResponse/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
 {% if method.example %}
 {% highlight VB.net %}
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
@@ -414,7 +474,7 @@ End If
   <!--
   WebHelpers
   ====================================================================== -->
-  <h2 id="/WebHelpers" class="docs-title anchor">WebHelpers</h2>
+  <h2 id="/WebHelpers" class="docs-title">WebHelpers</h2>
   <section class="docs-subsection">
     <p>
       Contains general-purpose helpers that are used throughout VBA-Web. Includes:
@@ -432,62 +492,63 @@ End If
     </ul>
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebHelpers/Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 id="/WebHelpers/Properties" class="docs-subsection-title">Properties</h3>
     {% for property in site.data.docs.WebHelpers.Properties %}
     {% unless property.internal %}
-    <h4 id="/WebHelpers/{{ property.name }}" class="anchor">
-      <b class="docs-name">{{ property.name }}</b>
-      <code>{{ property.code }}</code>
-    </h4>
-    {% if property.details %}
-    <dl class="docs-details">
-      {% for detail in property.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if property.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if property.description %}
-    {{ property.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebHelpers/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
 {% if property.example %}
 {% highlight VB.net %}
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebHelpers/Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/WebHelpers/Methods" class="docs-subsection-title">Methods</h3>
     {% for method in site.data.docs.WebHelpers.Methods %}
     {% unless method.internal %}
-    <h4 id="/WebHelpers/{{ method.name }}" class="anchor">
-      <b class="docs-name">{{ method.name }}</b>
-      <code>{{ method.code }}</code>
-    </h4>
-    {% if method.details %}
-    <dl class="docs-details">
-      {% for detail in method.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if method.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if method.description %}
-    {{ method.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebHelpers/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.internal %}
+          <p><em class="docs-internal">(Internal)</em></p>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
 {% if method.example %}
 {% highlight VB.net %}
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
@@ -495,41 +556,40 @@ End If
   <!--
   IWebAuthenticator
   ====================================================================== -->
-  <h2 id="/IWebAuthenticator" class="docs-title anchor">IWebAuthenticator</h2>
+  <h2 id="/IWebAuthenticator" class="docs-title">IWebAuthenticator</h2>
   <section class="docs-subsection">
     <p>
-      Interface for creating authenticators for WebClients. 
+      Interface for creating authenticators for WebClients.
       <code>EmptyAuthenticator</code> has everything setup for creating your own authenticators.
       See <a href="https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IWebAuthenticator">Implementing your own IWebAuthenticator</a> for a detailed guide on creating an authenticator.
     </p>
   </section>
   <section class="docs-subsection">
-    <h3 id="/IWebAuthenticator/Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 id="/IWebAuthenticator/Methods" class="docs-subsection-title">Methods</h3>
     {% for method in site.data.docs.IWebAuthenticator.Methods %}
     {% unless method.internal %}
-    <h4 id="/IWebAuthenticator/{{ method.name }}" class="anchor">
-      <b class="docs-name">{{ method.name }}</b>
-      <code>{{ method.code }}</code>
-    </h4>
-    {% if method.details %}
-    <dl class="docs-details">
-      {% for detail in method.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if method.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if method.description %}
-    {{ method.description | markdownify }}
-    {% endif %}
-{% if method.example %}
-{% highlight VB.net %}
-{{ method.example }}
-{% endhighlight %}
-{% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/IWebAuthenticator/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+  {% if method.example %}
+  {% highlight VB.net %}
+  {{ method.example }}
+  {% endhighlight %}
+  {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
@@ -537,7 +597,7 @@ End If
   <!--
   WebAsyncWrapper
   ====================================================================== -->
-  <h2 id="/WebAsyncWrapper" class="docs-title anchor">WebAsyncWrapper</h2>
+  <h2 id="/WebAsyncWrapper" class="docs-title">WebAsyncWrapper</h2>
   <section class="docs-subsection">
     <p>Wrapper WebClient and WebRequest that enables callback-style async requests
     <p><em>Note</em> Windows-only and Excel-only and requires reference to "Microsoft WinHTTP Services, version 5.1"</p>
@@ -576,62 +636,60 @@ Wrapper.ExecuteAsync Request, "Handler.WithArgs", Args
 {% endhighlight %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebAsyncWrapper/Properties" class="docs-subsection-title anchor">Properties</h3>
+    <h3 class="docs-subsection-title" id="/WebAsyncWrapper/Properties">Properties</h3>
     {% for property in site.data.docs.WebAsyncWrapper.Properties %}
     {% unless property.internal %}
-    <h4 id="/WebAsyncWrapper/{{ property.name }}" class="anchor">
-      <b class="docs-name">{{ property.name }}</b>
-      <code>{{ property.code }}</code>
-    </h4>
-    {% if property.details %}
-    <dl class="docs-details">
-      {% for detail in property.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if property.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if property.description %}
-    {{ property.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebAsyncWrapper/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
 {% if property.example %}
 {% highlight VB.net %}
 {{ property.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>
   <section class="docs-subsection">
-    <h3 id="/WebAsyncWrapper/Methods" class="docs-subsection-title anchor">Methods</h3>
+    <h3 class="docs-subsection-title" id="/WebAsyncWrapper/Methods">Methods</h3>
     {% for method in site.data.docs.WebAsyncWrapper.Methods %}
     {% unless method.internal %}
-    <h4 id="/WebAsyncWrapper/{{ method.name }}" class="anchor">
-      <b class="docs-name">{{ method.name }}</b>
-      <code>{{ method.code }}</code>
-    </h4>
-    {% if method.details %}
-    <dl class="docs-details">
-      {% for detail in method.details %}
-      <dt><code>{{ detail[0] }}</code></dt>
-      <dd>{{ detail[1] | markdownify }}</dd>
-      {% endfor %}
-    </dl>
-    {% endif %}
-    {% if method.internal %}
-    <p><em class="docs-internal">(Internal)</em></p>
-    {% endif %}
-    {% if method.description %}
-    {{ method.description | markdownify }}
-    {% endif %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebAsyncWrapper/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
 {% if method.example %}
 {% highlight VB.net %}
 {{ method.example }}
 {% endhighlight %}
 {% endif %}
+      </div>
     {% endunless %}
     {% endfor %}
   </section>

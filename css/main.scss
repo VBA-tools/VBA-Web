@@ -5,10 +5,11 @@ $primary-color: $excel-green;
 
 $small-screen: 768px;
 $medium-screen: 992px;
-$large-screen: 80em;
+$large-screen: 1200px;
 
 $header-height: 60px;
 $header-height-small: 40px;
+$sidebar-width: 240px;
 
 @import 'normalize';
 @import 'mixins';
@@ -18,5 +19,29 @@ $header-height-small: 40px;
 @import 'base';
 @import 'header';
 @import 'content';
+@import 'sidebar';
+@import 'footer';
+
 @import 'guides';
 @import 'docs';
+
+/*
+  Header
+  - Full-width (not necessarily fixed)
+  - Header (Container width)
+  -> Slightly different for home page
+
+  Content
+  - Full-width or with-sidebar
+
+  <div class="header-container">
+    <header class="header"></header>
+  </div>
+  <div class="content-container">
+    <aside class="sidebar"></aside>
+    <article class="content"></article>
+  </div>
+  <div class="footer-container">
+    <footer class="footer"></footer>
+  </div>
+*/

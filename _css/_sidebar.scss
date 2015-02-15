@@ -1,0 +1,29 @@
+// Sidebar
+// ----------------------------------------------------- //
+
+.sidebar {
+  padding-left: 10px;
+  padding-right: 10px;
+
+  &.mod-docs-toc {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+@include respond-to(medium-plus) {
+  .sidebar {
+    width: $sidebar-width - 20px;
+
+    &.mod-docs-toc {
+      position: fixed;
+      top: $header-height + 20px;
+      bottom: 20px;
+
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+
+      border: solid 1px #eee;
+    }
+  }
+}

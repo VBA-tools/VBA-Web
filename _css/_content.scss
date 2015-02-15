@@ -1,14 +1,21 @@
 // Content
 // ----------------------------------------------------- //
 
+.content-container {
+  @include container;
+}
+
 .content {
-  @extend .container;
-  @extend .clearfix;
+  padding-left: 10px;
+  padding-right: 10px;
 
-  // position: absolute;
-  top: $header-height;
+  &.mod-with-sidebar {}
+}
 
-  @include respond-to(extra-small) {
-    top: $header-height-small;
+@include respond-to(medium-plus) {
+  .content {
+    &.mod-with-sidebar {
+      margin-left: $sidebar-width + 20px;
+    }
   }
 }
