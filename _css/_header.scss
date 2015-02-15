@@ -73,7 +73,28 @@
 
 @include respond-to(extra-small) {
   .header-container {
+    position: fixed;
+    top: 0;
     height: $header-height-small;
+    z-index: 1000;
+
+    -webkit-transition: transform 200ms linear;
+    -moz-transition: transform 200ms linear;
+    -ms-transition: transform 200ms linear;
+    transition: transform 200ms linear;
+
+    &.headroom--pinned, &.headroom--top {
+      -webkit-transform: translateY(0%);
+      -moz-transform: translateY(0%);
+      -ms-transform: translateY(0%);
+      transform: translateY(0%);
+    }
+    &.headroom--unpinned {
+      -webkit-transform: translateY(-100%);
+      -moz-transform: translateY(-100%);
+      -ms-transform: translateY(-100%);
+      transform: translateY(-100%);
+    }
   }
 
   .header-link {

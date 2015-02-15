@@ -12,6 +12,12 @@
   &.mod-with-sidebar {}
 }
 
+@include respond-to(extra-small) {
+  .content-container {
+    margin-top: $header-height-small;
+  }
+}
+
 @include respond-to(medium-plus) {
   .content {
     &.mod-with-sidebar {
