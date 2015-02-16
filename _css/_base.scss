@@ -9,8 +9,7 @@ html {
 body {
   overflow-y: scroll;
 
-  font-size: 14px;
-  font-size: 1.4rem;
+  @include font-size(1.7);
   line-height: 1.5;
 }
 
@@ -40,7 +39,7 @@ code {
   padding: 0.1em 0.3em;
   margin: 0;
 
-  font-size: 0.9em;
+  font-size: 0.8em;
 
   background-color: rgba(0,0,0,0.04);
   border-radius: 3px;
@@ -57,7 +56,7 @@ pre {
     margin: 0;
     background: none;
     border-radius: 0;
-    font-size: 90%;
+    font-size: 0.8em;
   }
 
   .hll {
