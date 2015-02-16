@@ -95,7 +95,7 @@ Main
 Sub Main()
   On Error Resume Next
 
-  PrintLn "VBA-Web v4.0.4 Development"
+  PrintLn "VBA-Web v4.0.5 Development"
   
   ExcelWasOpen = OpenExcel(Excel)
 

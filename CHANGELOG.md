@@ -13,6 +13,7 @@ Major Changes:
 - __4.0.2__ Add `Base64Decode`
 - __4.0.3__ Fix out-of-date workbooks
 - __4.0.4__ Move `Application.OnTime` to `WebAsyncWrapper` and add dislaimer that it's Excel-only
+- __4.0.5__ Fix incorrect regional guard in ParseNumber in VBA-JSON (upgrade to v1.0.1)
 
 Breaking Changes:
 
