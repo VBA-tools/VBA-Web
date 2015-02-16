@@ -14,12 +14,20 @@
 
 @include respond-to(extra-small) {
   .content-container {
-    margin-top: $header-height-small;
+    margin-top: $header-height-small + 10px;
   }
 }
 
 @include respond-to(medium-plus) {
+  .content-container {
+    width: $content-width + $sidebar-width + 20px;
+  }
+
   .content {
+    width: $content-width;
+
+    margin: 0 auto;
+
     &.mod-with-sidebar {
       margin-left: $sidebar-width + 20px;
     }

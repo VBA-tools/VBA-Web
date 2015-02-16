@@ -1,22 +1,2 @@
 // Guides
 // ----------------------------------------------------- //
-
-.docs-single {
-  @include respond-to(large) {
-    width: 50em;
-    margin: 0 auto;
-  }
-}
-.docs-split {
-  @extend .clearfix;
-
-  .instructions, .code {
-    @include respond-to(medium) {
-      width: 40em;
-    }
-    @include respond-to(large) {
-      float: left;
-      width: 40em;
-    }
-  }
-}

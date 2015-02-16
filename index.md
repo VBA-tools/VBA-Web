@@ -2,5 +2,6 @@
 title: VBA-Web
 layout: default
 ---
-
-Coming soon!
+<article class="content">
+  Coming soon!
+</article>
