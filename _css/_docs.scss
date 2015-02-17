@@ -52,7 +52,7 @@
   }
 
 .docs-content {
-  @include font-size(1.5);
+  @include font-size(1.4);
 
   & pre {
 
@@ -163,5 +163,8 @@
 @include respond-to(medium-plus) {
   .docs-toc {
     @include font-size(1.2);
+  }
+  .docs-content {
+    @include font-size(1.5);
   }
 }
