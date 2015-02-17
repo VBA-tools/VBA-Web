@@ -40,6 +40,8 @@ code {
   margin: 0;
 
   font-size: 0.9em;
+  overflow-x: auto;
+  white-space: nowrap;
 
   background-color: rgba(0,0,0,0.04);
   border-radius: 3px;
@@ -54,9 +56,13 @@ pre {
   & > code {
     padding: 0;
     margin: 0;
+
+    font-size: 0.9em;
+    overflow-x: inherit;
+    white-space: inherit;
+
     background: none;
     border-radius: 0;
-    font-size: 0.9em;
   }
 
   .hll {
