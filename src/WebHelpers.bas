@@ -131,7 +131,7 @@ Const AUTOPROXY_CONFIG_URL = 2
 Const AUTOPROXY_DETECT_TYPE_DHCP = 1
 Const AUTOPROXY_DETECT_TYPE_DNS = 2
 #End If
-' ===
+' === End AutoProxy
 
 ' === VBA-JSON Headers
 ' === VBA-UTC Headers
@@ -142,25 +142,11 @@ Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" (ByVal utc_F
 Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
 Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" (ByVal utc_File As Long) As Long
 
-Private Type utc_ShellResult
-    utc_Output As String
-    utc_ExitCode As Long
-End Type
-
-#ElseIf Win32 Then
+#ElseIf VBA7 Then
 
 ' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724421.aspx
 ' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724949.aspx
 ' http://msdn.microsoft.com/en-us/library/windows/desktop/ms725485.aspx
-Private Declare Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
-    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
-Private Declare Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
-    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
-Private Declare Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
-    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
-
-#Else
-
 Private Declare PtrSafe Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
 Private Declare PtrSafe Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
@@ -168,9 +154,25 @@ Private Declare PtrSafe Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel
 Private Declare PtrSafe Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
 
+#Else
+
+Private Declare Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
+Private Declare Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
+Private Declare Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
+
 #End If
 
-#If Win32 Or Win64 Then
+#If Mac Then
+
+Private Type utc_ShellResult
+    utc_Output As String
+    utc_ExitCode As Long
+End Type
+
+#Else
 
 Private Type utc_SYSTEMTIME
     utc_wYear As Integer
@@ -194,17 +196,21 @@ Private Type utc_TIME_ZONE_INFORMATION
 End Type
 
 #End If
-' ===
+' === End VBA-UTC
 
 #If Mac Then
-#ElseIf Win64 Then
+#ElseIf VBA7 Then
+
 Private Declare PtrSafe Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (json_MemoryDestination As Any, json_MemorySource As Any, ByVal json_ByteLength As Long)
+
 #Else
+
 Private Declare Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (json_MemoryDestination As Any, json_MemorySource As Any, ByVal json_ByteLength As Long)
+    
 #End If
-' ===
+' === End VBA-JSON
 
 #If Mac Then
 Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal Command As String, ByVal mode As String) As Long
@@ -1683,7 +1689,8 @@ Public Function StringToAnsiBytes(web_Text As String) As Byte()
     StringToAnsiBytes = web_AnsiBytes
 End Function
 
-#If Win32 Or Win64 Then
+#If Mac Then
+#Else
 Private Function web_AnsiBytesToBase64(web_Bytes() As Byte)
     ' Use XML to convert to Base64
     Dim web_XmlObj As Object
@@ -1728,7 +1735,7 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
 End Function
 
 ''
-' VBA-JSON v1.0.1
+' VBA-JSON v1.0.2
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
 '
 ' JSON Converter for VBA
@@ -2335,7 +2342,7 @@ Private Function json_BufferToString(ByRef json_buffer As String, ByVal json_Buf
 #End If
 End Function
 
-#If Win64 Then
+#If VBA7 Then
 Private Function json_UnsignedAdd(json_Start As LongPtr, json_Increment As Long) As LongPtr
 #Else
 Private Function json_UnsignedAdd(json_Start As Long, json_Increment As Long) As Long
@@ -2351,7 +2358,7 @@ Private Function json_UnsignedAdd(json_Start As Long, json_Increment As Long) As
 End Function
 
 ''
-' VBA-UTC v1.0.0
+' VBA-UTC v1.0.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-UtcConverter
 '
 ' UTC/ISO 8601 Converter for VBA
