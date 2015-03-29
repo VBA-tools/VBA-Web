@@ -294,3 +294,41 @@ Public Function Specs() As SpecSuite
     InlineRunner.RunSuite Specs
 End Function
 
+Public Function OfflineSpecs() As SpecSuite
+    ' Disconnect from the internet before running these specs
+    
+    Set OfflineSpecs = New SpecSuite
+    OfflineSpecs.Description = "WebClient - Offline"
+    
+    Dim Client As New WebClient
+    Dim Request As WebRequest
+    Dim Response As WebResponse
+    
+    Client.BaseUrl = HttpbinBaseUrl
+    
+    With OfflineSpecs.It("should handle resolve errors as timeout")
+        Client.TimeoutMs = 500
+        
+        Set Request = New WebRequest
+        Request.Resource = "/get"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual 408
+        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
+    End With
+    
+    With OfflineSpecs.It("should not crash with auto-proxy resolve error")
+        Client.EnableAutoProxy = True
+        Client.TimeoutMs = 500
+        
+        Set Request = New WebRequest
+        Request.Resource = "/get"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual 408
+        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
+    End With
+    
+    InlineRunner.RunSuite OfflineSpecs
+End Function
+
