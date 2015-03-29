@@ -23,26 +23,6 @@ $sidebar-width: 240px;
 @import 'sidebar';
 @import 'footer';
 
+@import 'landing';
 @import 'guides';
 @import 'docs';
-
-/*
-  Header
-  - Full-width (not necessarily fixed)
-  - Header (Container width)
-  -> Slightly different for home page
-
-  Content
-  - Full-width or with-sidebar
-
-  <div class="header-container">
-    <header class="header"></header>
-  </div>
-  <div class="content-container">
-    <aside class="sidebar"></aside>
-    <article class="content"></article>
-  </div>
-  <div class="footer-container">
-    <footer class="footer"></footer>
-  </div>
-*/

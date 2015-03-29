@@ -4,7 +4,7 @@ baseurl: "/VBA-Web"
 url: http://vba-tools.github.io
 github: "https://github.com/VBA-tools/VBA-Web"
 download: "https://github.com/VBA-tools/VBA-Web/releases"
-description: "VBA-Web: Work with web services (Salesforce, Google, and pretty much everything on the internet) directly from VBA, Excel, Access, and more"
+description: "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web"
 version: 4.0.7
 
 defaults:

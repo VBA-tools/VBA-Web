@@ -1,7 +1,7 @@
 // Header
 // ----------------------------------------------------- //
 
-.header-container {
+.site-header-container {
   position: relative;
   width: 100%;
   height: $header-height;
@@ -14,7 +14,7 @@
   border-bottom: solid 1px #eee;
 }
 
-.header {
+.site-header {
   @include container;
 }
 
@@ -57,7 +57,7 @@
   color: $primary-color;
 }
 
-.navigation {
+.site-navigation {
   float: right;
 
   & > ul {
@@ -72,7 +72,7 @@
 }
 
 @include respond-to(extra-small) {
-  .header-container {
+  .site-header-container {
     position: fixed;
     top: 0;
     height: $header-height-small;

@@ -1,33 +1,33 @@
 // Content
 // ----------------------------------------------------- //
 
-.content-container {
+.site-content-container {
   @include container;
 }
 
-.content {
+.site-content {
   padding-left: 10px;
   padding-right: 10px;
 
-  &.mod-with-sidebar {}
+  &.with-sidebar {}
 }
 
 @include respond-to(extra-small) {
-  .content-container {
+  .site-content-container {
     margin-top: $header-height-small + 10px;
   }
 }
 
 @include respond-to(medium-plus) {
-  .content-container {
+  .site-content-container {
     width: $content-width + $sidebar-width + 20px;
   }
 
-  .content {
+  .site-content {
     width: $content-width;
     margin: 0 auto;
 
-    &.mod-with-sidebar {
+    &.with-sidebar {
       margin-left: $sidebar-width + 20px;
     }
   }

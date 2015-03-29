@@ -1,8 +1,7 @@
 ---
 title: Trello Analytics
 ---
-<article class="content">
-
+<article class="site-content">
 ## Background
 
 Engineering Inc. has set up a Kanban board in Trello for tracking an important business process. This has been a huge improvement over there existing email workflow and now they are looking to make the process even better with analytics, slow project tracking, and easy project creation.
