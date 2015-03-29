@@ -1,0 +1,32 @@
+.landing-masthead {
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 80px;
+}
+
+.landing-image {
+  background-color: #f4f4f4;
+}
+
+@include respond-to(up-to-medium) {
+  .landing-image {
+    width: 100%;
+    height: auto;
+  }
+}
+@include respond-to(medium-plus) {
+  .landing-image {
+    width: 800px;
+    height: 400px;
+  }
+}
+
+
+.tagline {
+  font-size: 1.6em;
+  color: $primary-color;
+}
+
+.landing-section {
+  border-top: solid 1px #ccc;
+}

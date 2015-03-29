@@ -32,3 +32,14 @@
     }
   }
 }
+
+.responsive-image {
+  
+}
+
+@include respond-to(up-to-medium) {
+  .responsive-image {
+    max-width: 100%;
+    height: auto;
+  }
+}

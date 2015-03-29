@@ -22,10 +22,9 @@
   margin: 0;
 
   font-size: 1em;
-
-  &.mod-logo {
-    float: left;
-  }
+}
+.logo-item {
+  float: left;
 }
 
 .header-link {
@@ -41,19 +40,20 @@
   &:hover {
     background-color: #fafafa;
   }
-
-  &.mod-logo {
-    font-size: 2.8em;
-  }
-  &.mod-guides {}
-  &.mod-docs {}
-  &.mod-github {}
-  &.mod-download {
-    color: $primary-color;
-  }
 }
 
 .logo {
+  color: $primary-color;
+}
+
+.logo-link {
+  font-size: 2.8em;
+  font-weight: normal;
+}
+.guides-link {}
+.docs-link {}
+.github-link {}
+.download-link {
   color: $primary-color;
 }
 
