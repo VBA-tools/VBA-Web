@@ -15,6 +15,7 @@ Major Changes:
 - __4.0.4__ Move `Application.OnTime` to `WebAsyncWrapper` and add dislaimer that it's Excel-only
 - __4.0.5__ Fix incorrect regional guard in ParseNumber in VBA-JSON (upgrade to v1.0.1)
 - __4.0.6__ Resolve 64-bit compilation issues in VBA-JSON
+- __4.0.7__ Handle resolve error when offline as timeout and add `EnableCustomFormatting` flag for `Application.Run` issues
 
 Breaking Changes:
 
