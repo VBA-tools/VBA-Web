@@ -262,6 +262,8 @@ Public Function Execute(Request As WebRequest) As WebResponse
         Case 5, 6, 7
             ' 5 = CURLE_COULDNT_RESOLVE_PROXY
             ' 6 = CURLE_COULDNT_RESOLVE_HOST
+            Err.Raise 208615 + vbObjectError, "WebClient.Execute", "The server name or address could not be resolved"
+        Case 7
             ' 7 = CURLE_COULDNT_CONNECT
             Err.Raise 208637 + vbObjectError, "WebClient.Execute", "A connection with the server could not be established"
         Case 12, 28
@@ -304,7 +306,7 @@ web_ErrorHandling:
     Dim web_ErrorDescription As String
     
     Select Case Err.Number - vbObjectError
-    Case 208610, 208637
+    Case 208610, 208615, 208637
         ' Return 408
         web_Response.StatusCode = WebStatusCode.RequestTimeout
         web_Response.StatusDescription = "Request Timeout"
