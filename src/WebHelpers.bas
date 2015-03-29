@@ -43,6 +43,13 @@ Option Explicit
 ' AutoProxy
 ' --------------------------------------------- '
 
+' Custom formatting uses the standard version of Application.Run,
+' which is incompatible with some Office applications (e.g. Word 2011 for Mac)
+'
+' If you have compilation errors in ParseByFormat or ConvertToFormat,
+' you can disable custom formatting by setting the following compiler flag to False
+#Const EnableCustomFormatting = True
+
 ' === AutoProxy Headers
 #If Mac Then
 #ElseIf VBA7 Then
@@ -684,6 +691,7 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
     Case WebFormat.Xml
         Set ParseByFormat = ParseXml(Value)
     Case WebFormat.Custom
+#If EnableCustomFormatting Then
         Dim web_Converter As Dictionary
         Dim web_Callback As String
         
@@ -706,6 +714,9 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
                 Set ParseByFormat = Application.Run(web_Callback, Value)
             End If
         End If
+#Else
+    LogWarning "Custom formatting is disabled. To use WebFormat.Custom, enable custom formatting with the EnableCustomFormatting flag in WebHelpers"
+#End If
     End Select
     Exit Function
     
@@ -742,6 +753,7 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
     Case WebFormat.Xml
         ConvertToFormat = ConvertToXml(Obj)
     Case WebFormat.Custom
+#If EnableCustomFormatting Then
         Dim web_Converter As Dictionary
         Dim web_Callback As String
         
@@ -755,6 +767,9 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         Else
             ConvertToFormat = Application.Run(web_Callback, Obj)
         End If
+#Else
+    LogWarning "Custom formatting is disabled. To use WebFormat.Custom, enable custom formatting with the EnableCustomFormatting flag in WebHelpers"
+#End If
     Case Else
         If VBA.VarType(Obj) = vbString Then
             ' Plain text
