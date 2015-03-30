@@ -100,13 +100,12 @@
   .header-link {
     font-size: 1.5em;
     line-height: $header-height-small;
-
-    &.mod-logo {
-      font-size: 2.4em;
-    }
-    &.mod-download {
-      display: none;
-      visibility: hidden;
-    }
+  }
+  .logo-link {
+    font-size: 2.4em;
+  }
+  .download-link {
+    display: none;
+    visibility: hidden;
   }
 }
