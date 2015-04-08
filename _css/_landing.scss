@@ -59,6 +59,8 @@
 
 @include respond-to(up-to-small) {
   .tagline {
+    height: 100px;
+    padding-top: 75px;
     font-size: 18px;
   }
 
