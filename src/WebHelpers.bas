@@ -2628,7 +2628,7 @@ End Function
 #End If
 
 ''
-' AutoProxy 1.0.0
+' AutoProxy 1.0.1
 ' (c) Damien Thirion
 '
 ' Auto configure proxy server
@@ -2781,21 +2781,28 @@ AutoProxy_TryIEFallback:
     End If
     
 AutoProxy_Cleanup:
+    On Error GoTo 0
+    
     ' Free any strings received from WinHttp APIs
     If (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl <> 0) Then
-        AutoProxy_GlobalFree (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl)
+        AutoProxy_GlobalFree AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl
+        AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl = 0
     End If
     If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxy <> 0) Then
-        AutoProxy_GlobalFree (AutoProxy_IEProxyConfig.AutoProxy_lpszProxy)
+        AutoProxy_GlobalFree AutoProxy_IEProxyConfig.AutoProxy_lpszProxy
+        AutoProxy_IEProxyConfig.AutoProxy_lpszProxy = 0
     End If
     If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass <> 0) Then
-        AutoProxy_GlobalFree (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass)
+        AutoProxy_GlobalFree AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass
+        AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass = 0
     End If
     If (AutoProxy_ProxyInfo.AutoProxy_lpszProxy <> 0) Then
-        AutoProxy_GlobalFree (AutoProxy_ProxyInfo.AutoProxy_lpszProxy)
+        AutoProxy_GlobalFree AutoProxy_ProxyInfo.AutoProxy_lpszProxy
+        AutoProxy_ProxyInfo.AutoProxy_lpszProxy = 0
     End If
     If (AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass <> 0) Then
-        AutoProxy_GlobalFree (AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass)
+        AutoProxy_GlobalFree AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass
+        AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass = 0
     End If
     
     ' Error handling
