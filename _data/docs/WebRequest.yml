@@ -359,7 +359,7 @@ Methods:
   - name: AddBodyParameter
     code: "AddBodyParameter(Key, Value)"
     details:
-      Key: "`{String}`"
+      Key: "`{Variant}`"
       Value: "`{Variant}`"
     description: |
       Add `Key-Value` to `Body`. `Body` must be a `Dictionary` (if it's an `Array` or `Collection` an error is thrown).
