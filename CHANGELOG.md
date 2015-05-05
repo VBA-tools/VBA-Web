@@ -17,6 +17,7 @@ Major Changes:
 - __4.0.6__ Resolve 64-bit compilation issues in VBA-JSON
 - __4.0.7__ Handle resolve error when offline as timeout and add `EnableCustomFormatting` flag for `Application.Run` issues
 - __4.0.8__ Fix a critical bug that caused Excel to crash if an error was thrown with AutoProxy
+- __4.0.9__ Add VBA-Dictionary to installer and fix `AddBodyParameter` bug in 64-bit Excel
 
 Breaking Changes:
 
