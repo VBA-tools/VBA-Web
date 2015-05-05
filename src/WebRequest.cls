@@ -675,11 +675,11 @@ End Sub
 ' ```
 '
 ' @method AddBodyParameter
-' @param {String} Key
+' @param {Variant} Key
 ' @param {Variant} Value
 ' @throws 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
 ''
-Public Sub AddBodyParameter(Key As String, Value As Variant)
+Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     If VBA.IsEmpty(web_pBody) Then
         Set web_pBody = New Dictionary
     ElseIf Not TypeOf web_pBody Is Dictionary Then
