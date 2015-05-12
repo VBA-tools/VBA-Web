@@ -93,7 +93,7 @@ End Type
 
 Private Declare Sub AutoProxy_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (ByVal AutoProxy_lpDest As Long, ByVal AutoProxy_lpSource As Long, ByVal AutoProxy_cbCopy As Long)
-Private Declare Function AutoProxy_SysAllocString Lib "oleaut32" Alias "GlobalFree" _
+Private Declare Function AutoProxy_SysAllocString Lib "oleaut32" Alias "SysAllocString" _
     (ByVal AutoProxy_pwsz As Long) As Long
 Private Declare Function AutoProxy_GlobalFree Lib "kernel32" Alias "GlobalFree" _
     (ByVal AutoProxy_p As Long) As Long
