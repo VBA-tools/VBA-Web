@@ -158,38 +158,34 @@ End Function
 ' @param {WebResponse} Response
 ''
 Public Sub ExtractAuthenticateInformation(Response As WebResponse)
-    Dim auth_Header As Dictionary
-    For Each auth_Header In Response.Headers
-        ' Find authentication header
-        If auth_Header("key") = "WWW-Authenticate" Then
-            ' Make sure using Digest authentication
-            If VBA.Left$(auth_Header("value"), 6) = "Digest" Then
-                Dim auth_Lines As Variant
-                auth_Lines = VBA.Split(VBA.Mid$(auth_Header("value"), 7), vbCrLf)
-                
-                Dim auth_i As Integer
-                Dim auth_Key As String
-                Dim auth_Value As String
-                For auth_i = LBound(auth_Lines) To UBound(auth_Lines)
-                    auth_Key = VBA.LCase$(VBA.Trim$(VBA.Mid$(auth_Lines(auth_i), 1, VBA.InStr(1, auth_Lines(auth_i), "=") - 1)))
-                    auth_Value = VBA.Trim$(VBA.Mid$(auth_Lines(auth_i), VBA.InStr(1, auth_Lines(auth_i), "=") + 1, VBA.Len(auth_Lines(auth_i))))
-                    
-                    ' Remove quotes and trailing comma
-                    auth_Value = VBA.Replace(auth_Value, """", "")
-                    If VBA.Right$(auth_Value, 1) = "," Then auth_Value = VBA.Left$(auth_Value, VBA.Len(auth_Value) - 1)
-                    
-                    ' Find realm, nonce, and opaque
-                    If auth_Key = "realm" Then Me.Realm = auth_Value
-                    If auth_Key = "nonce" Then Me.ServerNonce = auth_Value
-                    If auth_Key = "opaque" Then Me.Opaque = auth_Value
-                Next auth_i
-                
-                WebHelpers.LogDebug "realm=" & Me.Realm & ", nonce=" & Me.ServerNonce & ", opaque=" & Me.Opaque, "DigestAuthenticator.ExtractAuthenticateInformation"
+    Dim auth_Header As String
+    auth_Header = WebHelpers.FindInKeyValues(Response.Headers, "WWW-Authenticate")
+    
+    If auth_Header <> "" And VBA.Left$(auth_Header, 6) = "Digest" Then
+        Dim auth_Lines As Variant
+        auth_Lines = VBA.Split(VBA.Mid$(auth_Header, 7), vbCrLf)
+        
+        Dim auth_i As Integer
+        Dim auth_Key As String
+        Dim auth_Value As String
+        For auth_i = LBound(auth_Lines) To UBound(auth_Lines)
+            auth_Key = VBA.LCase$(VBA.Trim$(VBA.Mid$(auth_Lines(auth_i), 1, VBA.InStr(1, auth_Lines(auth_i), "=") - 1)))
+            auth_Value = VBA.Trim$(VBA.Mid$(auth_Lines(auth_i), VBA.InStr(1, auth_Lines(auth_i), "=") + 1, VBA.Len(auth_Lines(auth_i))))
+            
+            ' Remove quotes and trailing comma
+            auth_Value = VBA.Replace(auth_Value, """", "")
+            If VBA.Right$(auth_Value, 1) = "," Then
+                auth_Value = VBA.Left$(auth_Value, VBA.Len(auth_Value) - 1)
             End If
             
-            Exit Sub
-        End If
-    Next auth_Header
+            ' Find realm, nonce, and opaque
+            If auth_Key = "realm" Then Me.Realm = auth_Value
+            If auth_Key = "nonce" Then Me.ServerNonce = auth_Value
+            If auth_Key = "opaque" Then Me.Opaque = auth_Value
+        Next auth_i
+        
+        WebHelpers.LogDebug "realm=" & Me.Realm & ", nonce=" & Me.ServerNonce & ", opaque=" & Me.Opaque, "DigestAuthenticator.ExtractAuthenticateInformation"
+    End If
 End Sub
 
 ' ============================================= '

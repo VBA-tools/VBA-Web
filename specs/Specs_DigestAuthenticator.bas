@@ -54,13 +54,10 @@ Public Function Specs() As SpecSuite
         Dim Unauthorized As New WebResponse
         Unauthorized.StatusCode = 401
         
-        Dim UnauthorizedHeader As New Dictionary
-        UnauthorizedHeader.Add "key", "WWW-Authenticate"
-        UnauthorizedHeader.Add "value", "Digest realm=""testrealm@host.com""," & vbCrLf & _
+        Unauthorized.Headers.Add WebHelpers.CreateKeyValue("WWW-Authenticate", "Digest realm=""testrealm@host.com""," & vbCrLf & _
                             "qop=""auth,auth-int""," & vbCrLf & _
                             "nonce=""dcd98b7102dd2f0e8b11d0f600bfb0c093""," & vbCrLf & _
-                            "Opaque = ""5ccc069c403ebaf9f0171e9517f40e41"""
-        Unauthorized.Headers.Add UnauthorizedHeader
+                            "Opaque = ""5ccc069c403ebaf9f0171e9517f40e41""")
     
         Auth.Realm = ""
         Auth.ServerNonce = ""
