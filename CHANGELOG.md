@@ -19,6 +19,7 @@ Major Changes:
 - __4.0.8__ Fix a critical bug that caused Excel to crash if an error was thrown with AutoProxy
 - __4.0.9__ Add VBA-Dictionary to installer and fix `AddBodyParameter` bug in 64-bit Excel
 - __4.0.10__ Fix `SysAllocString` bug for 32-bit Excel
+- __4.0.11__ Fix extract header bug in `DigestAuthenticator`
 
 Breaking Changes:
 
