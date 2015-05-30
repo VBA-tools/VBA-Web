@@ -20,6 +20,7 @@ Major Changes:
 - __4.0.9__ Add VBA-Dictionary to installer and fix `AddBodyParameter` bug in 64-bit Excel
 - __4.0.10__ Fix `SysAllocString` bug for 32-bit Excel
 - __4.0.11__ Fix extract header bug in `DigestAuthenticator`
+- __4.0.12__ Fix revocation check bug for `Insecure`, `Split` bug in credentials, and fix Example workbook
 
 Breaking Changes:
 
