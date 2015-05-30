@@ -72,7 +72,7 @@ Properties:
   - name: Insecure
     code: "Get|Let {Boolean}"
     description: |
-      Turn off SSL validation (`False` by default).
+      Turn off SSL validation and redirect blocking.
       Useful for self-signed certificates and should only be used with trusted servers.
 
 Methods:
