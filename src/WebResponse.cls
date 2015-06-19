@@ -316,7 +316,7 @@ End Sub
 Private Function web_ExtractStatusFromCurlResponse(web_CurlResponseLines() As String) As Long
     Dim web_StatusLineParts() As String
     
-    web_StatusLineParts = VBA.Split(web_CurlResponseLines(0), " ")
+    web_StatusLineParts = VBA.Split(web_CurlResponseLines(web_FindStatusLine(web_CurlResponseLines)), " ")
     web_ExtractStatusFromCurlResponse = VBA.CLng(web_StatusLineParts(1))
 End Function
 
@@ -325,36 +325,26 @@ Private Function web_ExtractStatusTextFromCurlResponse(web_CurlResponseLines() A
     Dim web_i As Long
     Dim web_StatusText As String
     
-    web_StatusLineParts = VBA.Split(web_CurlResponseLines(0), " ")
-    For web_i = 2 To UBound(web_StatusLineParts)
-        If web_i > 2 Then: web_StatusText = web_StatusText & " "
-        web_StatusText = web_StatusText & web_StatusLineParts(web_i)
-    Next web_i
-    
-    web_ExtractStatusTextFromCurlResponse = web_StatusText
+    web_StatusLineParts = VBA.Split(web_CurlResponseLines(web_FindStatusLine(web_CurlResponseLines)), " ", 3)
+    web_ExtractStatusTextFromCurlResponse = web_StatusLineParts(2)
 End Function
 
 Private Function web_ExtractHeadersFromCurlResponse(web_CurlResponseLines() As String) As String
+    Dim web_StatusLineIndex As Long
     Dim web_BlankLineIndex As Long
-    Dim web_Line As Variant
     Dim web_HeaderLines() As String
     Dim web_WriteIndex As Long
     Dim web_ReadIndex As Long
     
-    ' Find blank line before body
-    web_BlankLineIndex = 0
-    For Each web_Line In web_CurlResponseLines
-        If VBA.Trim(web_Line) = "" Then
-            Exit For
-        End If
-        web_BlankLineIndex = web_BlankLineIndex + 1
-    Next web_Line
+    ' Find status line and blank line before body
+    web_StatusLineIndex = web_FindStatusLine(web_CurlResponseLines)
+    web_BlankLineIndex = web_FindBlankLine(web_CurlResponseLines)
     
     ' Extract headers string
-    ReDim web_HeaderLines(0 To web_BlankLineIndex - 2)
+    ReDim web_HeaderLines(0 To web_BlankLineIndex - 2 - web_StatusLineIndex)
     
     web_WriteIndex = 0
-    For web_ReadIndex = 1 To web_BlankLineIndex - 1
+    For web_ReadIndex = (web_StatusLineIndex + 1) To web_BlankLineIndex - 1
         web_HeaderLines(web_WriteIndex) = web_CurlResponseLines(web_ReadIndex)
         web_WriteIndex = web_WriteIndex + 1
     Next web_ReadIndex
@@ -364,19 +354,12 @@ End Function
 
 Private Function web_ExtractResponseTextFromCurlResponse(web_CurlResponseLines() As String) As String
     Dim web_BlankLineIndex As Long
-    Dim web_Line As Variant
     Dim web_BodyLines() As String
     Dim web_WriteIndex As Long
     Dim web_ReadIndex As Long
     
     ' Find blank line before body
-    web_BlankLineIndex = 0
-    For Each web_Line In web_CurlResponseLines
-        If VBA.Trim(web_Line) = "" Then
-            Exit For
-        End If
-        web_BlankLineIndex = web_BlankLineIndex + 1
-    Next web_Line
+    web_BlankLineIndex = web_FindBlankLine(web_CurlResponseLines)
     
     ' Extract body string
     ReDim web_BodyLines(0 To UBound(web_CurlResponseLines) - web_BlankLineIndex - 1)
@@ -388,6 +371,28 @@ Private Function web_ExtractResponseTextFromCurlResponse(web_CurlResponseLines()
     Next web_ReadIndex
     
     web_ExtractResponseTextFromCurlResponse = VBA.Join$(web_BodyLines, vbCrLf)
+End Function
+
+Private Function web_FindStatusLine(web_CurlResponseLines() As String) As Long
+    If VBA.Split(web_CurlResponseLines(0), " ")(1) = "100" Then
+        ' Special case for cURL: 100 Continue is included before final status code
+        ' -> ignore 100 and find final status code (next non-blank line)
+        For web_FindStatusLine = 1 To UBound(web_CurlResponseLines)
+            If VBA.Trim$(web_CurlResponseLines(web_FindStatusLine)) <> "" Then
+                Exit Function
+            End If
+        Next web_FindStatusLine
+    Else
+        web_FindStatusLine = 0
+    End If
+End Function
+
+Private Function web_FindBlankLine(web_CurlResponseLines() As String) As Long
+    For web_FindBlankLine = (web_FindStatusLine(web_CurlResponseLines) + 1) To UBound(web_CurlResponseLines)
+        If VBA.Trim$(web_CurlResponseLines(web_FindBlankLine)) = "" Then
+            Exit Function
+        End If
+    Next web_FindBlankLine
 End Function
 
 Private Sub Class_Initialize()

@@ -20,6 +20,7 @@ Public Function Specs() As SpecSuite
     Dim ResponseHeaders As String
     Dim Headers As Collection
     Dim Cookies As Collection
+    Dim Curl As String
     
     Client.BaseUrl = HttpbinBaseUrl
     Client.TimeoutMs = 5000
@@ -163,7 +164,30 @@ Public Function Specs() As SpecSuite
     End With
     
     ' CreateFromHttp
+    
     ' CreateFromCURL
+    ' --------------------------------------------- '
+    With Specs.It("CreateFromCURL should handle 100 Continue responses")
+        Set Client = New WebClient
+        Set Request = New WebRequest
+        Set Response = New WebResponse
+        
+        Request.Format = WebFormat.PlainText
+        Curl = "HTTP/1.1 100 Continue" & vbNewLine & _
+            vbNewLine & _
+            "HTTP/1.1 200 OK" & vbNewLine & _
+            "Set-Cookie: message=Howdy!" & vbNewLine & _
+            vbNewLine & _
+            "Text"
+        
+        Response.CreateFromCurl Client, Request, Curl
+        
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        .Expect(Response.StatusDescription).ToEqual "OK"
+        .Expect(Response.Cookies.Count).ToBeGT 0
+        .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy!"
+        .Expect(Response.Content).ToEqual "Text"
+    End With
     
     ' ExtractHeaders
     ' --------------------------------------------- '
