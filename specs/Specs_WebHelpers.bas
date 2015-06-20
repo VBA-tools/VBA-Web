@@ -29,6 +29,7 @@ Public Function Specs() As SpecSuite
     Dim XmlString As String
     Dim Parsed As Object
     Dim Obj As Object
+    Dim LocalDate As Date
     Dim Coll As Collection
     Dim Bytes() As Byte
     Dim Str As String
@@ -142,12 +143,25 @@ Public Function Specs() As SpecSuite
         Set Obj = New Dictionary
         
         Obj.Add "a", 1
-        Obj.Add "b", 3.14
-        Obj.Add "c", "Howdy!"
-        Obj.Add "d & e", "A + B"
+        Obj.Add "b", "Howdy!"
+        Obj.Add "c & d", "A + B"
         
         Encoded = WebHelpers.ConvertToUrlEncoded(Obj)
-        .Expect(Encoded).ToEqual "a=1&b=3.14&c=Howdy!&d+%26+e=A+%2B+B"
+        .Expect(Encoded).ToEqual "a=1&b=Howdy!&c+%26+d=A+%2B+B"
+    End With
+    
+    With Specs.It("should use region invariant numbers and dates")
+        Set Obj = New Dictionary
+        LocalDate = 38113.7973263889
+        
+        Obj.Add "a", 1000.123
+        Obj.Add "b", LocalDate
+        
+        Encoded = WebHelpers.ConvertToUrlEncoded(Obj)
+        
+        ' Don't test hour/minute due to UTC offset
+        .Expect(Encoded).ToMatch "a=1000.123&b=2004-05-06T"
+        .Expect(Encoded).ToMatch "%3A09.000Z"
     End With
    
     ' ParseXml

@@ -1744,6 +1744,9 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
         Else
             Value = "false"
         End If
+    Case VBA.vbDate
+        ' Use region invariant date (ISO-8601)
+        Value = WebHelpers.ConvertToIso(CDate(Value))
     Case VBA.vbDecimal, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency
         ' Use region invariant number encoding ("." for decimal separator)
         Value = VBA.Replace(VBA.CStr(Value), ",", ".")
