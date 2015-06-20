@@ -21,6 +21,7 @@ Major Changes:
 - __4.0.10__ Fix `SysAllocString` bug for 32-bit Excel
 - __4.0.11__ Fix extract header bug in `DigestAuthenticator`
 - __4.0.12__ Fix revocation check bug for `Insecure`, `Split` bug in credentials, and fix Example workbook
+- __4.0.13__ Fix 100 Continue bug for Mac, fix regional issues for url-encoded numbers and dates
 
 Breaking Changes:
 
