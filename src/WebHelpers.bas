@@ -1736,14 +1736,18 @@ End Function
 
 ' Helper for url-encoded to create key=value pair
 Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
-    ' Convert boolean to lowercase
-    If VBA.VarType(Value) = VBA.vbBoolean Then
+    Select Case VBA.VarType(Value)
+    Case VBA.vbBoolean
+        ' Convert boolean to lowercase
         If Value Then
             Value = "true"
         Else
             Value = "false"
         End If
-    End If
+    Case VBA.vbDecimal, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency
+        ' Use region invariant number encoding ("." for decimal separator)
+        Value = VBA.Replace(VBA.CStr(Value), ",", ".")
+    End Select
     
     ' Url encode key and value (using + for spaces)
     web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
