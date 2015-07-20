@@ -182,7 +182,7 @@ Public Function Specs() As SpecSuite
         
         Response.CreateFromCurl Client, Request, Curl
         
-        .Expect(Response.StatusCode).ToEqual WebStatusCode.OK
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
         .Expect(Response.StatusDescription).ToEqual "OK"
         .Expect(Response.Cookies.Count).ToBeGT 0
         .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy!"
