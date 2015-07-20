@@ -173,16 +173,16 @@ Public Function Specs() As SpecSuite
         Set Response = New WebResponse
         
         Request.Format = WebFormat.PlainText
-        Curl = "HTTP/1.1 100 Continue" & vbNewLine & _
-            vbNewLine & _
-            "HTTP/1.1 200 OK" & vbNewLine & _
-            "Set-Cookie: message=Howdy!" & vbNewLine & _
-            vbNewLine & _
+        Curl = "HTTP/1.1 100 Continue" & vbCrLf & _
+            vbCrLf & _
+            "HTTP/1.1 200 OK" & vbCrLf & _
+            "Set-Cookie: message=Howdy!" & vbCrLf & _
+            vbCrLf & _
             "Text"
         
         Response.CreateFromCurl Client, Request, Curl
         
-        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.OK
         .Expect(Response.StatusDescription).ToEqual "OK"
         .Expect(Response.Cookies.Count).ToBeGT 0
         .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy!"
