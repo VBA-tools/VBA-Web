@@ -56,7 +56,7 @@ Private web_pResponseFormat As WebFormat
 Private web_pCustomRequestFormat As String
 Private web_pCustomResponseFormat As String
 Private web_pBody As Variant
-Private web_pConvertedBody As String
+Private web_pConvertedBody As Variant
 Private web_pContentType As String
 Private web_pAccept As String
 Private web_pContentLength As Long
@@ -230,7 +230,7 @@ Public Property Let RequestFormat(Value As WebFormat)
         web_pRequestFormat = Value
     
         ' Clear cached converted body
-        web_pConvertedBody = ""
+        web_pConvertedBody = Empty
     End If
 End Property
 
@@ -266,7 +266,7 @@ Public Property Let ResponseFormat(Value As WebFormat)
         web_pResponseFormat = Value
         
         ' Clear cached converted body
-        web_pConvertedBody = ""
+        web_pConvertedBody = Empty
     End If
 End Property
 
@@ -298,7 +298,7 @@ Public Property Let CustomRequestFormat(Value As String)
         web_pCustomRequestFormat = Value
         
         ' Clear cached converted body
-        web_pConvertedBody = ""
+        web_pConvertedBody = Empty
         
         If Value <> "" Then
             web_pRequestFormat = WebFormat.Custom
@@ -334,7 +334,7 @@ Public Property Let CustomResponseFormat(Value As String)
         web_pCustomResponseFormat = Value
         
         ' Clear cached converted body
-        web_pConvertedBody = ""
+        web_pConvertedBody = Empty
         
         If Value <> "" Then
             ResponseFormat = WebFormat.Custom
@@ -461,7 +461,7 @@ Public Property Get Body() As Variant
     If Not VBA.IsEmpty(web_pBody) Then
         If VBA.VarType(web_pBody) = vbString Then
             Body = web_pBody
-        ElseIf web_pConvertedBody = "" Then
+        ElseIf IsEmpty(web_pConvertedBody) Then
             ' Convert body and cache
             Body = WebHelpers.ConvertToFormat(web_pBody, Me.RequestFormat, Me.CustomRequestFormat)
             web_pConvertedBody = Body
@@ -471,11 +471,11 @@ Public Property Get Body() As Variant
     End If
 End Property
 Public Property Let Body(Value As Variant)
-    web_pConvertedBody = ""
+    web_pConvertedBody = Empty
     web_pBody = Value
 End Property
 Public Property Set Body(Value As Variant)
-    web_pConvertedBody = ""
+    web_pConvertedBody = Empty
     Set web_pBody = Value
 End Property
 
@@ -697,7 +697,7 @@ Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     End If
 
     ' Clear cached converted body
-    web_pConvertedBody = ""
+    web_pConvertedBody = Empty
 End Sub
 
 ''

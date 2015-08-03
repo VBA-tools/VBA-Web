@@ -475,10 +475,10 @@ Public Sub LogRequest(Client As WebClient, Request As WebRequest)
             Debug.Print "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value")
         Next web_KeyValue
         
-        If Request.Body <> "" Then
-            Debug.Print vbNewLine & Request.Body
+        If Not IsEmpty(Request.Body) Then
+            Debug.Print vbNewLine & CStr(Request.Body)
         End If
-        
+
         Debug.Print
     End If
 End Sub
@@ -740,10 +740,10 @@ End Function
 ' @param {Dictionary|Collection|Variant} Obj
 ' @param {WebFormat} Format
 ' @param {String} [CustomFormat] Name of registered custom converter
-' @return {String}
+' @return {Variant}
 ' @throws 11001 - Error during conversion
 ''
-Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As String
+Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As Variant
     On Error GoTo web_ErrorHandling
 
     Select Case Format
@@ -761,9 +761,9 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         Set web_Converter = web_GetConverter(CustomFormat)
         web_Callback = web_Converter("ConvertCallback")
         
-        If web_Converter.Exists("web_Instance") Then
+        If web_Converter.Exists("Instance") Then
             Dim web_Instance As Object
-            Set web_Instance = web_Converter("web_Instance")
+            Set web_Instance = web_Converter("Instance")
             ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Obj)
         Else
             ConvertToFormat = Application.Run(web_Callback, Obj)
