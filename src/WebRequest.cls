@@ -56,7 +56,7 @@ Private web_pResponseFormat As WebFormat
 Private web_pCustomRequestFormat As String
 Private web_pCustomResponseFormat As String
 Private web_pBody As Variant
-Private web_pConvertedBody As String
+Private web_pConvertedBody As Variant
 Private web_pContentType As String
 Private web_pAccept As String
 Private web_pContentLength As Long
@@ -461,7 +461,7 @@ Public Property Get Body() As Variant
     If Not VBA.IsEmpty(web_pBody) Then
         If VBA.VarType(web_pBody) = vbString Then
             Body = web_pBody
-        ElseIf web_pConvertedBody = "" Then
+        ElseIf IsEmpty(web_pConvertedBody) Then
             ' Convert body and cache
             Body = WebHelpers.ConvertToFormat(web_pBody, Me.RequestFormat, Me.CustomRequestFormat)
             web_pConvertedBody = Body
@@ -471,11 +471,11 @@ Public Property Get Body() As Variant
     End If
 End Property
 Public Property Let Body(Value As Variant)
-    web_pConvertedBody = ""
+    web_pConvertedBody = Empty
     web_pBody = Value
 End Property
 Public Property Set Body(Value As Variant)
-    web_pConvertedBody = ""
+    web_pConvertedBody = Empty
     Set web_pBody = Value
 End Property
 
