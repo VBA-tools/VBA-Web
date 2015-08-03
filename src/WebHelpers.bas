@@ -319,7 +319,7 @@ Public Enum WebFormat
     PlainText = 0
     Json = 1
     FormUrlEncoded = 2
-    Xml = 3
+    XML = 3
     Custom = 9
 End Enum
 
@@ -474,8 +474,8 @@ Public Sub LogRequest(Client As WebClient, Request As WebRequest)
             Debug.Print "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value")
         Next web_KeyValue
         
-        If Request.Body <> "" Then
-            Debug.Print vbNewLine & Request.Body
+        If Not IsEmpty(Request.Body) Then
+            Debug.Print vbNewLine & CStr(Request.Body)
         End If
         
         Debug.Print
@@ -688,7 +688,7 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
         Set ParseByFormat = ParseJson(Value)
     Case WebFormat.FormUrlEncoded
         Set ParseByFormat = ParseUrlEncoded(Value)
-    Case WebFormat.Xml
+    Case WebFormat.XML
         Set ParseByFormat = ParseXml(Value)
     Case WebFormat.Custom
 #If EnableCustomFormatting Then
@@ -739,10 +739,10 @@ End Function
 ' @param {Dictionary|Collection|Variant} Obj
 ' @param {WebFormat} Format
 ' @param {String} [CustomFormat] Name of registered custom converter
-' @return {String}
+' @return {Variant}
 ' @throws 11001 - Error during conversion
 ''
-Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As String
+Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As Variant
     On Error GoTo web_ErrorHandling
 
     Select Case Format
@@ -750,7 +750,7 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         ConvertToFormat = ConvertToJson(Obj)
     Case WebFormat.FormUrlEncoded
         ConvertToFormat = ConvertToUrlEncoded(Obj)
-    Case WebFormat.Xml
+    Case WebFormat.XML
         ConvertToFormat = ConvertToXml(Obj)
     Case WebFormat.Custom
 #If EnableCustomFormatting Then
@@ -760,9 +760,9 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         Set web_Converter = web_GetConverter(CustomFormat)
         web_Callback = web_Converter("ConvertCallback")
         
-        If web_Converter.Exists("web_Instance") Then
+        If web_Converter.Exists("Instance") Then
             Dim web_Instance As Object
-            Set web_Instance = web_Converter("web_Instance")
+            Set web_Instance = web_Converter("Instance")
             ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Obj)
         Else
             ConvertToFormat = Application.Run(web_Callback, Obj)
@@ -1338,7 +1338,7 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
             ElseIf web_Index > KeyValues.Count Then
                 KeyValues.Add web_NewKeyValue, After:=web_Index - 1
             Else
-                KeyValues.Add web_NewKeyValue, Before:=web_Index
+                KeyValues.Add web_NewKeyValue, before:=web_Index
             End If
             Exit Sub
         End If
@@ -1368,7 +1368,7 @@ Public Function FormatToMediaType(Format As WebFormat, Optional CustomFormat As 
         FormatToMediaType = "application/x-www-form-urlencoded;charset=UTF-8"
     Case WebFormat.Json
         FormatToMediaType = "application/json"
-    Case WebFormat.Xml
+    Case WebFormat.XML
         FormatToMediaType = "application/xml"
     Case WebFormat.Custom
         FormatToMediaType = web_GetConverter(CustomFormat)("MediaType")
