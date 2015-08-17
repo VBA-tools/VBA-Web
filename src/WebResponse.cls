@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebResponse v4.0.13
+' WebResponse v4.0.14
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Wrapper for http/cURL responses that includes parsed Data based on WebRequest.ResponseFormat.
