@@ -304,6 +304,7 @@ Public Enum WebMethod
     HttpPut = 2
     HttpDelete = 3
     HttpPatch = 4
+    HttpHead = 5
 End Enum
 
 ''
@@ -1402,6 +1403,8 @@ Public Function MethodToName(Method As WebMethod) As String
         MethodToName = "POST"
     Case WebMethod.HttpGet
         MethodToName = "GET"
+    Case WebMethod.HttpHead
+        MethodToName = "HEAD"
     End Select
 End Function
 

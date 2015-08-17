@@ -657,6 +657,31 @@ Public Function Clone() As WebClient
     Set Clone.Authenticator = Me.Authenticator
 End Function
 
+''
+' Determines if a URL is a redirect
+'
+' @method IsRedirect
+' @param {String} Url
+' @param {String} Target
+' @return {Boolean}
+''
+Public Function IsRedirect(Url As String, Optional ByRef Target As String) As Boolean
+  Dim Client As New WebClient
+  Dim Request As New WebRequest
+  Dim Response As WebResponse
+
+  Client.BaseUrl = Url
+  Request.Method = WebMethod.HttpHead
+  Set Response = Client.Execute(Request)
+
+  If Response.StatusCode = 301 Or Response.StatusCode = 302 Then
+    IsRedirect = True
+    Target = WebHelpers.FindInKeyValues(Response.Headers, "Location")
+  Else
+    IsRedirect = False
+  End If
+End Function
+
 ' ============================================= '
 ' Private Methods
 ' ============================================= '
