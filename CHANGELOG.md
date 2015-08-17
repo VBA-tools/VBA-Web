@@ -22,6 +22,8 @@ Major Changes:
 - __4.0.11__ Fix extract header bug in `DigestAuthenticator`
 - __4.0.12__ Fix revocation check bug for `Insecure`, `Split` bug in credentials, and fix Example workbook
 - __4.0.13__ Fix 100 Continue bug for Mac, fix regional issues for url-encoded numbers and dates
+- __4.0.14__ Fix cached Body issue with AddBodyParameter
+- __4.0.15__ Fix cookie decoding issue
 
 Breaking Changes:
 

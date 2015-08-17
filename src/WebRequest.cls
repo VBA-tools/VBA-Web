@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebRequest v4.0.13
+' WebRequest v4.0.15
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' `WebRequest` is used to create detailed requests
@@ -695,6 +695,9 @@ Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     Else
         web_pBody(Key) = Value
     End If
+
+    ' Clear cached converted body
+    web_pConvertedBody = ""
 End Sub
 
 ''
