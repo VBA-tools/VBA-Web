@@ -450,6 +450,26 @@ Public Sub SetProxy(ProxyServer As String, _
 End Sub
 
 ''
+' If the given Request is a redirect (301, 302, or 307),
+' then get value of the "Location" header
+'
+' @param {WebRequest} Request
+' @return {String}
+''
+Public Function GetRedirectLocation(Request As WebRequest) As String
+    Dim RedirectRequest As WebRequest
+    Set RedirectRequest = Request.Clone
+    RedirectRequest.Method = WebMethod.HttpHead
+    
+    Dim Response As WebResponse
+    Set Response = Me.Execute(RedirectRequest)
+    
+    If Response.StatusCode = 301 Or Response.StatusCode = 302 Or Response.StatusCode = 307 Then
+        GetRedirectLocation = WebHelpers.FindInKeyValues(Response.Headers, "Location")
+    End If
+End Function
+
+''
 ' Get full url by joining given `WebRequest.FormattedResource` and `BaseUrl`.
 '
 ' @method GetFullUrl
