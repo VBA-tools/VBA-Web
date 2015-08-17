@@ -114,6 +114,32 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("form")("message")).ToEqual "Howdy!"
     End With
     
+    ' Header request
+    ' --------------------------------------------- '
+    With Specs.It("should make HEAD calls")
+        Set Request = New WebRequest
+        Request.Method = WebMethod.HttpHead
+                        
+        Set Response = Client.Execute(Request)
+    
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        .Expect(Response.Data).ToBeNothing
+    End With
+    
+    ' Redirect test
+    ' --------------------------------------------- '
+    With Specs.It("should check for redirects and report the redirect target")
+        Dim sourceUrl As String
+        sourceUrl = "http://httpbin.org/redirect/1"
+        Dim targetUrl As String
+        Dim result As Boolean
+        
+        result = Client.IsRedirect(sourceUrl, targetUrl)
+    
+        .Expect(result).ToEqual (True)
+        .Expect(targetUrl).ToEqual ("/get")
+    End With
+    
     ' GetJson
     ' --------------------------------------------- '
     With Specs.It("should GetJSON")
