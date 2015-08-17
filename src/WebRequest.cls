@@ -695,6 +695,9 @@ Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     Else
         web_pBody(Key) = Value
     End If
+
+    ' Clear cached converted body
+    web_pConvertedBody = ""
 End Sub
 
 ''

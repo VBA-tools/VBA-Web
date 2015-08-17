@@ -311,6 +311,18 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "{""A"":123,""B"":456}"
     End With
     
+    With Specs.It("AddBodyParameter should override cached Body")
+        Set Request = New WebRequest
+        
+        Request.AddBodyParameter "A", 123
+        
+        .Expect(Request.Body).ToEqual "{""A"":123}"
+        
+        Request.AddBodyParameter "B", 456
+        
+        .Expect(Request.Body).ToEqual "{""A"":123,""B"":456}"
+    End With
+    
     ' AddCookie
     ' --------------------------------------------- '
     With Specs.It("should AddCookie")
