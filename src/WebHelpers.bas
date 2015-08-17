@@ -853,9 +853,11 @@ End Function
 '
 ' @method UrlDecode
 ' @param {String} Encoded Text to decode
+' @param {Boolean} [PlusAsSpace = True] Decode plus as space
+'   DEPRECATED: Default = True to align with existing behavior, will be changed to False in v5
 ' @return {String} Decoded string
 ''
-Public Function UrlDecode(Encoded As String) As String
+Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = True) As String
     Dim web_StringLen As Long
     web_StringLen = VBA.Len(Encoded)
     
@@ -867,7 +869,7 @@ Public Function UrlDecode(Encoded As String) As String
         For web_i = 1 To web_StringLen
             web_Temp = VBA.Mid$(Encoded, web_i, 1)
             
-            If web_Temp = "+" Then
+            If web_Temp = "+" And PlusAsSpace Then
                 web_Temp = " "
             ElseIf web_Temp = "%" And web_StringLen >= web_i + 2 Then
                 web_Temp = VBA.Mid$(Encoded, web_i + 1, 2)

@@ -273,11 +273,17 @@ Public Function ExtractCookies(Headers As Collection) As Collection
                 web_Key = VBA.Mid$(web_Cookie, 1, VBA.InStr(1, web_Cookie, "=") - 1)
                 web_Value = VBA.Mid$(web_Cookie, VBA.InStr(1, web_Cookie, "=") + 1, VBA.Len(web_Cookie))
                 
+                ' Ignore text after semi-colon
                 If VBA.InStr(1, web_Value, ";") > 0 Then
                     web_Value = VBA.Mid$(web_Value, 1, VBA.InStr(1, web_Value, ";") - 1)
                 End If
                 
-                web_Cookies.Add WebHelpers.CreateKeyValue(web_Key, WebHelpers.UrlDecode(web_Value))
+                ' Ignore surrounding quotes
+                If VBA.Left$(web_Value, 1) = """" Then
+                    web_Value = VBA.Mid$(web_Value, 2, VBA.Len(web_Value) - 2)
+                End If
+                
+                web_Cookies.Add WebHelpers.CreateKeyValue(web_Key, WebHelpers.UrlDecode(web_Value, PlusAsSpace:=False))
             Else
                 WebHelpers.LogWarning _
                     "Unrecognized cookie format: " & web_Cookie, "WebResponse.ExtractCookies"

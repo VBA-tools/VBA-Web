@@ -245,6 +245,20 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.FindInKeyValues(Cookies, "unsigned-cookie")).ToEqual "simple-cookie"
     End With
     
+    With Specs.It("should use RFC 6265 for decoding cookies")
+        Set Response = New WebResponse
+        ResponseHeaders = "Set-Cookie: a=plus+plus" & vbCrLf & _
+            "Set-Cookie: b=""quotes""" & vbCrLf & _
+            "Set-Cookie: c=semi-colon; Path=/"
+
+        Set Headers = Response.ExtractHeaders(ResponseHeaders)
+        Set Cookies = Response.ExtractCookies(Headers)
+
+        .Expect(WebHelpers.FindInKeyValues(Cookies, "a")).ToEqual "plus+plus"
+        .Expect(WebHelpers.FindInKeyValues(Cookies, "b")).ToEqual "quotes"
+        .Expect(WebHelpers.FindInKeyValues(Cookies, "c")).ToEqual "semi-colon"
+    End With
+    
     ' ============================================= '
     ' Errors
     ' ============================================= '
