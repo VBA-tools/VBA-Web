@@ -61,7 +61,7 @@ Public Sub GetObject()
 '        Salesforce.GetObjectAsync Me.[GetObjectType], Me.[GetObjectId], "SalesforceSheet.ProcessObject"
 '    Else
         Dim Results As WebResponse
-        Set Results = Salesforce.GetObject(Me.[GetObjectType], Me.[GetObjectId])
+        Set Results = Salesforce.GetSalesforceObject(Me.[GetObjectType], Me.[GetObjectId])
         
         ProcessObject Results
 '    End If
