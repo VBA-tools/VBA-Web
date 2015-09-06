@@ -380,17 +380,15 @@ Private Function web_ExtractResponseTextFromCurlResponse(web_CurlResponseLines()
 End Function
 
 Private Function web_FindStatusLine(web_CurlResponseLines() As String) As Long
-    If VBA.Split(web_CurlResponseLines(0), " ")(1) = "100" Then
-        ' Special case for cURL: 100 Continue is included before final status code
-        ' -> ignore 100 and find final status code (next non-blank line)
-        For web_FindStatusLine = 1 To UBound(web_CurlResponseLines)
-            If VBA.Trim$(web_CurlResponseLines(web_FindStatusLine)) <> "" Then
+    ' Special case for cURL: 100 Continue is included before final status code
+    ' -> ignore 100 and find final status code (next non-100 status code)
+    For web_FindStatusLine = LBound(web_CurlResponseLines) To UBound(web_CurlResponseLines)
+        If VBA.Trim$(web_CurlResponseLines(web_FindStatusLine)) <> "" Then
+            If VBA.Split(web_CurlResponseLines(web_FindStatusLine), " ")(1) <> "100" Then
                 Exit Function
             End If
-        Next web_FindStatusLine
-    Else
-        web_FindStatusLine = 0
-    End If
+        End If
+    Next web_FindStatusLine
 End Function
 
 Private Function web_FindBlankLine(web_CurlResponseLines() As String) As Long
