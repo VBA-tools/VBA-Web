@@ -88,6 +88,22 @@ Public Function Specs() As SpecSuite
         Client.Insecure = False
     End With
     
+    ' FollowRedirects
+    ' --------------------------------------------- '
+    With Specs.It(" should FollowRedirects")
+        Set Request = New WebRequest
+        Request.Resource = "redirect/5"
+        Request.Format = WebFormat.PlainText
+        
+        Client.FollowRedirects = True
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Client.FollowRedirects = False
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual 302
+    End With
+    
     ' ============================================= '
     ' Public Methods
     ' ============================================= '
@@ -241,18 +257,6 @@ Public Function Specs() As SpecSuite
     End With
     
     ' SetProxy
-    
-    ' GetRedirectLocation
-    ' --------------------------------------------- '
-    With Specs.It("should GetRedirectLocation of Request")
-        Set Request = New WebRequest
-        Request.Resource = "redirect/1"
-        
-        Dim RedirectLocation As String
-        RedirectLocation = Client.GetRedirectLocation(Request)
-        
-        .Expect(RedirectLocation).ToEqual "/get"
-    End With
     
     ' GetFullUrl
     ' --------------------------------------------- '
