@@ -258,18 +258,6 @@ Public Function Specs() As SpecSuite
     
     ' SetProxy
     
-    ' GetRedirectLocation
-    ' --------------------------------------------- '
-    With Specs.It("should GetRedirectLocation of Request")
-        Set Request = New WebRequest
-        Request.Resource = "redirect/1"
-        
-        Dim RedirectLocation As String
-        RedirectLocation = Client.GetRedirectLocation(Request)
-        
-        .Expect(RedirectLocation).ToEqual "/get"
-    End With
-    
     ' GetFullUrl
     ' --------------------------------------------- '
     With Specs.It("should GetFullUrl of Request")
