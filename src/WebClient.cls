@@ -184,6 +184,15 @@ Public EnableAutoProxy As Boolean
 Public Insecure As Boolean
 
 ''
+' Follow redirects (301, 302, 307) using Location header
+'
+' @property FollowRedirects
+' @type Boolean
+' @default True
+''
+Public FollowRedirects As Boolean
+
+''
 ' Proxy server to pass requests through (except for those that match `ProxyBypassList`).
 '
 ' @property ProxyServer
@@ -535,23 +544,22 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
         '   Invalid common name (CN), 0x1000
         '   Invalid date or certificate expired, 0x2000
         '   = 0x3300 = 13056
-        ' - Enable redirects
         ' - Enable https-to-http redirects
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = False
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 13056
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = True
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = True
     Else
         ' By default:
         ' - Enable certificate revocation check (especially useful after HeartBleed)
         ' - Ignore no SLL erros
-        ' - Disable redirects (matches cURL behavior)
         ' - Disable https-to-http redirects
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = True
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 0
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = False
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = False
     End If
+    
+    ' Setup redirects
+    web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = Me.FollowRedirects
     
     ' Set headers on http request (after open)
     For Each web_KeyValue In Request.Headers
@@ -621,6 +629,11 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     ' Setup security
     If Me.Insecure Then
         web_Curl = web_Curl & " --insecure"
+    End If
+    
+    ' Setup redirects
+    If Me.FollowRedirects Then
+        web_Curl = web_Curl & " --location"
     End If
     
     ' Set headers and cookies
@@ -734,4 +747,5 @@ Private Sub Class_Initialize()
     Me.TimeoutMs = web_DefaultTimeoutMs
     Me.EnableAutoProxy = False
     Me.Insecure = False
+    Me.FollowRedirects = True
 End Sub

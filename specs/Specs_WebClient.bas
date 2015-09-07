@@ -88,6 +88,22 @@ Public Function Specs() As SpecSuite
         Client.Insecure = False
     End With
     
+    ' FollowRedirects
+    ' --------------------------------------------- '
+    With Specs.It(" should FollowRedirects")
+        Set Request = New WebRequest
+        Request.Resource = "redirect/5"
+        Request.Format = WebFormat.PlainText
+        
+        Client.FollowRedirects = True
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Client.FollowRedirects = False
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual 302
+    End With
+    
     ' ============================================= '
     ' Public Methods
     ' ============================================= '
