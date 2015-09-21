@@ -20,6 +20,13 @@ To upgrade from Excel-REST to VBA-Web, follow the [Upgrading Guide](https://gith
 Note: XML support has been temporarily removed from VBA-Web while parser issues for Mac are resolved.
 XML support is still possible on Windows, follow [these instructions](https://github.com/VBA-tools/VBA-Web/wiki/XML-Support-in-4.0) to use a custom formatter.
 
+Notes
+---
+
+- Authentication support is built-in, with suppory for HTTP Basic, OAuth 1.0, OAuth 2.0, Windows, Digest, Google, and more. See [Authentication](https://github.com/VBA-tools/VBA-Web/wiki/Authentication) for more information
+- For proxy environments, `Client.EnabledAutoProxy = True` will automatically load proxy settings
+- Support for custom request and response formats. See [RegisterConverter](http://vba-tools.github.io/VBA-Web/docs/#/WebHelpers/RegisterConverter)
+
 Examples
 -------
 
