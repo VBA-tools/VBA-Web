@@ -1672,6 +1672,7 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     web_Str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
     web_Result = ""
     
+    VBA.Randomize
     For web_Count = 1 To NonceLength
         web_Random = VBA.Int(((VBA.Len(web_Str) - 1) * VBA.Rnd) + 1)
         web_Result = web_Result & VBA.Mid$(web_Str, web_Random, 1)
