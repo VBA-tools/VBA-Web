@@ -25,7 +25,7 @@ Public Function Specs() As SpecSuite
     
     Client.BaseUrl = HttpbinBaseUrl
     Client.TimeoutMs = 5000
-    
+
     ' --------------------------------------------- '
     ' Properties
     ' --------------------------------------------- '
@@ -46,42 +46,62 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("[Windows-only] Insecure should set options in WinHttpRequest")
 #If Mac Then
-    ' (Windows-only)
-    .Expect(True).ToEqual True
+        ' (Windows-only)
+        .Expect(True).ToEqual True
 #Else
-    Dim Http As Object
-    Set Request = New WebRequest
-    
-    ' WinHttpRequestOption_EnableCertificateRevocationCheck = 18
-    ' WinHttpRequestOption_SslErrorIgnoreFlags = 4
-    
-    Set Http = Client.PrepareHttpRequest(Request)
-    .Expect(Http.Option(18)).ToEqual True
-    .Expect(Http.Option(4)).ToEqual 0
-    
-    Client.Insecure = True
-    
-    Set Http = Client.PrepareHttpRequest(Request)
-    .Expect(Http.Option(18)).ToEqual False
-    .Expect(Http.Option(4)).ToEqual 13056
+        Dim Http As Object
+        Set Request = New WebRequest
+        
+        ' WinHttpRequestOption_EnableCertificateRevocationCheck = 18
+        ' WinHttpRequestOption_SslErrorIgnoreFlags = 4
+        
+        Set Http = Client.PrepareHttpRequest(Request)
+        .Expect(Http.Option(18)).ToEqual True
+        .Expect(Http.Option(4)).ToEqual 0
+        
+        Client.Insecure = True
+        
+        Set Http = Client.PrepareHttpRequest(Request)
+        .Expect(Http.Option(18)).ToEqual False
+        .Expect(Http.Option(4)).ToEqual 13056
 #End If
+
+        Client.Insecure = False
     End With
     
     With Specs.It("[Mac-only] Insecure should set --insecure flag in cURL")
 #If Mac Then
-    Set Request = New WebRequest
-    
-    Curl = Client.PrepareCurlRequest(Request)
-    .Expect(Curl).ToNotMatch "--insecure"
-    
-    Client.Insecure = True
-    
-    Curl = Client.PrepareCurlRequest(Request)
-    .Expect(Curl).ToMatch "--insecure"
+        Set Request = New WebRequest
+        
+        Curl = Client.PrepareCurlRequest(Request)
+        .Expect(Curl).ToNotMatch "--insecure"
+        
+        Client.Insecure = True
+        
+        Curl = Client.PrepareCurlRequest(Request)
+        .Expect(Curl).ToMatch "--insecure"
 #Else
-    ' (Mac-only)
-    .Expect(True).ToEqual True
+        ' (Mac-only)
+        .Expect(True).ToEqual True
 #End If
+
+        Client.Insecure = False
+    End With
+    
+    ' FollowRedirects
+    ' --------------------------------------------- '
+    With Specs.It(" should FollowRedirects")
+        Set Request = New WebRequest
+        Request.Resource = "redirect/5"
+        Request.Format = WebFormat.PlainText
+        
+        Client.FollowRedirects = True
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Client.FollowRedirects = False
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual 302
     End With
     
     ' ============================================= '
@@ -112,6 +132,46 @@ Public Function Specs() As SpecSuite
         .Expect(Response.Data("headers")("Accept")).ToMatch WebHelpers.FormatToMediaType(WebFormat.Json)
         .Expect(Response.Data("headers")("Cookie")).ToMatch "abc=123"
         .Expect(Response.Data("form")("message")).ToEqual "Howdy!"
+    End With
+
+    With Specs.It("Execute should work with each method")
+        Set Request = New WebRequest
+        
+        Request.Method = WebMethod.HttpGet
+        Request.Resource = "get"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Request.Method = WebMethod.HttpPost
+        Request.Resource = "post"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Request.Method = WebMethod.HttpPatch
+        Request.Resource = "patch"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Request.Method = WebMethod.HttpPut
+        Request.Resource = "put"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Request.Method = WebMethod.HttpDelete
+        Request.Resource = "delete"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
+        
+        Request.Method = WebMethod.HttpHead
+        Request.Resource = "get"
+        
+        Set Response = Client.Execute(Request)
+        .Expect(Response.StatusCode).ToEqual WebStatusCode.Ok
     End With
     
     ' GetJson

@@ -175,6 +175,8 @@ Public Function Specs() As SpecSuite
         Request.Format = WebFormat.PlainText
         Curl = "HTTP/1.1 100 Continue" & vbCrLf & _
             vbCrLf & _
+            "HTTP/1.1 100 Continue" & vbCrLf & _
+            vbCrLf & _
             "HTTP/1.1 200 OK" & vbCrLf & _
             "Set-Cookie: message=Howdy!" & vbCrLf & _
             vbCrLf & _

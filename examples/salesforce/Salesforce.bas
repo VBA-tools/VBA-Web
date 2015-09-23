@@ -34,14 +34,14 @@ End Property
 ''
 ' Get generic object (async and sync)
 ' --------------------------------------- '
-'Public Sub GetObjectAsync(ObjectName As String, ObjectId As String, _
+'Public Sub GetSalesforceObjectAsync(ObjectName As String, ObjectId As String, _
 '    Callback As String, ParamArray CallbackArgs() As Variant)
 '
 '    Call Client.ExecuteAsync(ObjectRequest(ObjectName, ObjectId), Callback, CallbackArgs)
 'End Sub
 
-Public Function GetObject(ObjectName As String, ObjectId As String) As WebResponse
-    Set GetObject = Client.Execute(ObjectRequest(ObjectName, ObjectId))
+Public Function GetSalesforceObject(ObjectName As String, ObjectId As String) As WebResponse
+    Set GetSalesforceObject = Client.Execute(ObjectRequest(ObjectName, ObjectId))
 End Function
 
 ''
@@ -73,11 +73,11 @@ End Function
 ''
 ' Get overview info for the specified object
 ' --------------------------------------- '
-Public Function GetObjectInfo(ObjectName As String) As WebResponse
+Public Function GetSalesforceObjectInfo(ObjectName As String) As WebResponse
     Dim Request As WebRequest
     Set Request = ObjectRequest(ObjectName, "describe")
     
-    Set GetObjectInfo = Client.Execute(Request)
+    Set GetSalesforceObjectInfo = Client.Execute(Request)
 End Function
 
 ''
