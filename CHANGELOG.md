@@ -26,6 +26,7 @@ Major Changes:
 - __4.0.15__ Fix cookie decoding issue
 - __4.0.16__ Add Access support to installer and fix installer bugs (long paths on Mac, check if files exist, password protected)
 - __4.0.17__ Add `FollowRedirects` and follow redirects by default, convert stored body to Variant, fix multiple 100 Continue bug
+- __4.0.18__ Add `VBA.Randomize` to `CreateNonce` and add `TodoistAuthenticator`
 
 Breaking Changes:
 
