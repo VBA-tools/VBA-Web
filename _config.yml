@@ -1,9 +1,9 @@
 name: VBA-Web
 baseurl: "/VBA-Web"
 
-url: http://vba-tools.github.io
-github: "https://github.com/VBA-tools/VBA-Web"
-download: "https://github.com/VBA-tools/VBA-Web/releases"
+url: http://vba-tools.github.io/VBA-Web/
+github: https://github.com/VBA-tools/VBA-Web
+download: https://github.com/VBA-tools/VBA-Web/releases
 description: "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web"
 version: 4.0.18
 
@@ -22,6 +22,11 @@ defaults:
     type: "pages"
   values:
     layout: "docs"
+
+collections:
+  guides:
+    output: true
+    permalink: /guides/:path/
 
 exclude:
 - Gemfile
