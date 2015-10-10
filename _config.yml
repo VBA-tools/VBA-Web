@@ -11,22 +11,28 @@ defaults:
 - scope:
     path: ""
   values:
-    layout: "default"
+    layout: default
 - scope:
-    path: "guides"
-    type: "pages"
+    path: guides
+    type: pages
   values:
-    layout: "guides"
+    layout: guides
 - scope:
-    path: "docs"
-    type: "pages"
+    path: guides
+    type: guides
   values:
-    layout: "docs"
+    layout: guides
+- scope:
+    path: docs
+    type: pages
+  values:
+    layout: docs
 
 collections:
   guides:
     output: true
     permalink: /guides/:path/
+    layout: guides
 
 exclude:
 - Gemfile
