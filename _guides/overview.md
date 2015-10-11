@@ -2,66 +2,60 @@
 title: Overview
 ---
 
-# WebClient
+VBA-Web consists of three primary components:
 
-`WebClient` executes requests and handles responses and is responsible for functionality shared between requests, such as authentication, proxy configuration, and security.
+__WebClient__ executes requests and handles responses and is responsible for functionality shared between requests, such as authentication, proxy configuration, and security.
+It is designed to be long-lived, maintaining state (e.g. authentication tokens) between requests.
 
-```VB.net
-Dim Client As New WebClient
-Client.BaseUrl = "https://www.example.com/api/"
+__WebRequest__ is used to create detailed requests, including automatic formatting, querystrings, headers, cookies, and much more.
 
-Dim Auth As New HttpBasicAuthenticator
-Auth.Setup Username, Password
-Set Client.Authenticator = Auth
+__WebResponse__ wraps http/cURL responses and includes automatically parsed data.
 
-Dim Request As New WebRequest
-Dim Response As WebResponse
-' Setup WebRequest...
+The following example is the standard form for a VBA-Web module:
 
-Set Response = Client.Execute(Request)
-' -> Uses Http Basic authentication and appends Request.Resource to BaseUrl
-```
-
-# WebRequest
-
-`WebRequest` is used to create detailed requests (including formatting, querystrings, headers, cookies, and much more).
+1. A long-lived `WebClient` that maintains authentication state between requests. The example uses HTTP Basic authentication with the `HttpBasicAuthenticator`, which can be installed with the VBA-Web installer or from the `authenticators` folder
+2. A detailed `WebRequest` that sets `Method` and `Format` (or `RequestFormat` and `ResponseFormat` if different formats are needed) and uses url-formatting with `AddUrlSegment` and automatic body conversion from `Dictionary` or `Collection` based on the set request format
+3. The response includes the `StatusCode`, `Content` (raw response string), `Data` (converted response based on response format), and status description, body (bytes), headers, and cookies
 
 ```VB.net
-Dim Request As New WebRequest
-Request.Resource = "users/{Id}"
+' Long-lived client, maintains state between requests
+Private ClientInstance As WebClient
+Public Property Get Client() As WebClient
+    If ClientInstance Is Nothing Then
+        ' Set base url shared by all requests and use HTTP Basic authentication
+        Set ClientInstance = New WebClient
+        ClientInstance.BaseUrl = "https://www.example.com/api/"
 
-Request.Method = WebMethod.HttpPut
-Request.RequestFormat = WebFormat.UrlEncoded
-Request.ResponseFormat = WebFormat.Json
+        Dim Auth As New HttpBasicAuthenticator
+        Auth.Setup "username", "password"
+        Set ClientInstance.Authenticator = Auth
+    End If
 
-Dim Body As New Dictionary
-Body.Add "name", "Tim"
-Body.Add "project", "VBA-Web"
-Set Request.Body = Body
+    Set Client = ClientInstance
+End Property
 
-Request.AddUrlSegment "Id", 123
-Request.AddQuerystringParam "api_key", "abcd"
-Request.AddHeader "Authorization", "Token ..."
+Public Sub UpdateProject(Project As Dictionary)
+    ' Use PUT, format url, and automatically convert Dictionary to json
+    Dim Request As New WebRequest
+    Request.Resource = "projects/{id}"
+    Request.Method = WebMethod.HttpPut
+    Request.Format = WebFormat.Json
 
-' -> PUT (Client.BaseUrl)users/123?api_key=abcd
-'    Authorization: Token ...
-'
-'    name=Tim&project=VBA-Web
-```
+    Request.AddUrlSegment "id", Project("id")
+    Set Request.Body = Project
 
-# WebResponse
+    Dim Response As WebResponse
+    Set Response = Client.Execute(Request)
 
-`WebResponse` wraps http/cURL responses and includes parsed `Data` based on `Request.ResponseFormat`.
+    ' -> PUT https://www.example.com/api/projects/123
+    '    Authorization: Basic ...(set from Authenticator)
+    '
+    '    {"id":123,"name":"Project Name"}
 
-```VB.net
-Dim Response As WebResponse
-Set Response = Client.Execute(Request)
+    ' <- HTTP/1.1 204 No Content
 
-If Response.StatusCode = WebStatusCode.Ok Then
-  ' Response.Headers, Response.Cookies
-  ' Response.Data -> Parsed Response.Content based on Request.ResponseFormat
-  ' Response.Body -> Raw response bytes
-Else
-  Debug.Print "Error: " & Response.StatusCode & " - " & Response.Content
-End If
+    If Response.StatusCode <> WebStatus.NoContent Then
+        Err.Raise Response.StatusCode, "UpdateProject", Response.Content
+    End If
+End Function
 ```
