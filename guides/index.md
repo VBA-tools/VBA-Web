@@ -12,6 +12,12 @@ title: Getting Started
 # Guides
 
 - [Overview]({{ site.baseurl }}/guides/overview/)
+- [GET Request]({{ site.baseurl }}/guides/get/)
+
+<!--
+- [POST Request]({{ site.baseurl }}/guides/post/)
+- [URL Handling]({{ site.baseurl }}/guides/url/)
+-->
 
 More guides and tutorials are coming soon.
 

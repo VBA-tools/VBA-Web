@@ -2,6 +2,8 @@
 title: Overview
 ---
 
+# Overview
+
 VBA-Web consists of three primary components:
 
 __WebClient__ executes requests and handles responses and is responsible for functionality shared between requests, such as authentication, proxy configuration, and security.
@@ -13,49 +15,44 @@ __WebResponse__ wraps http/cURL responses and includes automatically parsed data
 
 The following example is the standard form for a VBA-Web module:
 
-1. A long-lived `WebClient` that maintains authentication state between requests. The example uses HTTP Basic authentication with the `HttpBasicAuthenticator`, which can be installed with the VBA-Web installer or from the `authenticators` folder
-2. A detailed `WebRequest` that sets `Method` and `Format` (or `RequestFormat` and `ResponseFormat` if different formats are needed) and uses url-formatting with `AddUrlSegment` and automatic body conversion from `Dictionary` or `Collection` based on the set request format
-3. The response includes the `StatusCode`, `Content` (raw response string), `Data` (converted response based on response format), and status description, body (bytes), headers, and cookies
+1. A long-lived `WebClient` that sets the base url shared by all requests
+2. A detailed `WebRequest` (that sets `Resource`, `Method`, and `Format`)
+3. A wrapped response that includes automatically converted `Data` based on `Request.Format`
 
 ```VB.net
 ' Long-lived client, maintains state between requests
 Private ClientInstance As WebClient
 Public Property Get Client() As WebClient
     If ClientInstance Is Nothing Then
-        ' Set base url shared by all requests and use HTTP Basic authentication
+        ' Set base url shared by all requests
         Set ClientInstance = New WebClient
         ClientInstance.BaseUrl = "https://www.example.com/api/"
-
-        Dim Auth As New HttpBasicAuthenticator
-        Auth.Setup "username", "password"
-        Set ClientInstance.Authenticator = Auth
     End If
 
     Set Client = ClientInstance
 End Property
 
-Public Sub UpdateProject(Project As Dictionary)
-    ' Use PUT, format url, and automatically convert Dictionary to json
+Public Function GetProjects() As Collection
+    ' Use GET and json (for request and response)
     Dim Request As New WebRequest
-    Request.Resource = "projects/{id}"
-    Request.Method = WebMethod.HttpPut
+    Request.Resource = "projects"
+    Request.Method = WebMethod.HttpGet
     Request.Format = WebFormat.Json
-
-    Request.AddUrlSegment "id", Project("id")
-    Set Request.Body = Project
 
     Dim Response As WebResponse
     Set Response = Client.Execute(Request)
 
-    ' -> PUT https://www.example.com/api/projects/123
-    '    Authorization: Basic ...(set from Authenticator)
+    ' -> GET https://www.example.com/api/projects
     '
-    '    {"id":123,"name":"Project Name"}
+    ' <- HTTP/1.1 200 OK
+    '    ...
+    '    {"data":[{"id":1,"name":"Project 1"},{"id":2,"name":"Project 2"}]}
 
-    ' <- HTTP/1.1 204 No Content
-
-    If Response.StatusCode <> WebStatus.NoContent Then
+    If Response.StatusCode <> WebStatus.Ok Then
         Err.Raise Response.StatusCode, "UpdateProject", Response.Content
+    Else
+        ' Response is automatically converted to Dictionary/Collection by Request.Format
+        Set GetProjects = Response.Data("data")
     End If
 End Function
 ```
