@@ -133,7 +133,7 @@ End Type
 ' Constants for dwFlags of AUTOPROXY_OPTIONS
 Const AUTOPROXY_AUTO_DETECT = 1
 Const AUTOPROXY_CONFIG_URL = 2
- 
+
 ' Constants for dwAutoDetectFlags
 Const AUTOPROXY_DETECT_TYPE_DHCP = 1
 Const AUTOPROXY_DETECT_TYPE_DNS = 2
@@ -144,10 +144,14 @@ Const AUTOPROXY_DETECT_TYPE_DNS = 2
 ' === VBA-UTC Headers
 #If Mac Then
 
-Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
-Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" (ByVal utc_File As Long) As Long
-Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
-Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" (ByVal utc_File As Long) As Long
+Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" _
+    (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
+Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+    (ByVal utc_File As Long) As Long
+Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" _
+    (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
+Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" _
+    (ByVal utc_File As Long) As Long
 
 #ElseIf VBA7 Then
 
@@ -215,7 +219,7 @@ Private Declare PtrSafe Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory"
 
 Private Declare Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (json_MemoryDestination As Any, json_MemorySource As Any, ByVal json_ByteLength As Long)
-    
+
 #End If
 ' === End VBA-JSON
 
@@ -443,14 +447,14 @@ Public Sub LogError(Message As String, Optional From As String = "VBA-Web", Opti
     Dim web_ErrorValue As String
     If ErrNumber <> 0 Then
         web_ErrorValue = ErrNumber
-    
+
         If ErrNumber < 0 Then
             web_ErrorValue = web_ErrorValue & " (" & (ErrNumber - vbObjectError) & " / " & VBA.LCase$(VBA.Hex$(ErrNumber)) & ")"
         End If
-        
+
         web_ErrorValue = web_ErrorValue & ", "
     End If
-    
+
     Debug.Print "ERROR - " & From & ": " & web_ErrorValue & Message
 End Sub
 
@@ -465,16 +469,16 @@ Public Sub LogRequest(Client As WebClient, Request As WebRequest)
     If EnableLogging Then
         Debug.Print "--> Request - " & Format(Now, "Long Time")
         Debug.Print MethodToName(Request.Method) & " " & Client.GetFullUrl(Request)
-        
+
         Dim web_KeyValue As Dictionary
         For Each web_KeyValue In Request.Headers
             Debug.Print web_KeyValue("Key") & ": " & web_KeyValue("Value")
         Next web_KeyValue
-        
+
         For Each web_KeyValue In Request.Cookies
             Debug.Print "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value")
         Next web_KeyValue
-        
+
         If Not IsEmpty(Request.Body) Then
             Debug.Print vbNewLine & CStr(Request.Body)
         End If
@@ -494,18 +498,18 @@ End Sub
 Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As WebResponse)
     If EnableLogging Then
         Dim web_KeyValue As Dictionary
-        
+
         Debug.Print "<-- Response - " & Format(Now, "Long Time")
         Debug.Print Response.StatusCode & " " & Response.StatusDescription
-        
+
         For Each web_KeyValue In Response.Headers
             Debug.Print web_KeyValue("Key") & ": " & web_KeyValue("Value")
         Next web_KeyValue
-        
+
         For Each web_KeyValue In Response.Cookies
             Debug.Print "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value")
         Next web_KeyValue
-        
+
         Debug.Print vbNewLine & Response.Content & vbNewLine
     End If
 End Sub
@@ -566,20 +570,20 @@ Public Function ParseUrlEncoded(Encoded As String) As Dictionary
     Dim web_Key As String
     Dim web_Value As Variant
     Dim web_Parsed As New Dictionary
-    
+
     web_Items = VBA.Split(Encoded, "&")
     For web_i = LBound(web_Items) To UBound(web_Items)
         web_Parts = VBA.Split(web_Items(web_i), "=")
-        
+
         If UBound(web_Parts) - LBound(web_Parts) >= 1 Then
             ' TODO: Handle numbers, arrays, and object better here
             web_Key = UrlDecode(VBA.CStr(web_Parts(LBound(web_Parts))))
             web_Value = UrlDecode(VBA.CStr(web_Parts(LBound(web_Parts) + 1)))
-            
+
             web_Parsed(web_Key) = web_Value
         End If
     Next web_i
-    
+
     Set ParseUrlEncoded = web_Parsed
 End Function
 
@@ -595,20 +599,20 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
 
     If TypeOf Obj Is Collection Then
         Dim web_KeyValue As Dictionary
-        
+
         For Each web_KeyValue In Obj
             If VBA.Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
             web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_KeyValue("Key"), web_KeyValue("Value"))
         Next web_KeyValue
     Else
         Dim web_Key As Variant
-        
+
         For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
             web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
         Next web_Key
     End If
-    
+
     ConvertToUrlEncoded = web_Encoded
 End Function
 
@@ -627,7 +631,7 @@ End Function
 ''
 Public Function ParseXml(Encoded As String) As Object
     Dim web_ErrorMsg As String
-    
+
     web_ErrorMsg = "XML is not currently supported (An updated parser is being created that supports Mac and Windows)." & vbNewLine & _
         "To use XML parsing for Windows currently, use the instructions found here:" & vbNewLine & _
         vbNewLine & _
@@ -652,7 +656,7 @@ End Function
 ''
 Public Function ConvertToXml(Obj As Variant) As String
     Dim web_ErrorMsg As String
-    
+
     web_ErrorMsg = "XML is not currently supported (An updated parser is being created that supports Mac and Windows)." & vbNewLine & _
         "To use XML parsing for Windows currently, use the instructions found here:" & vbNewLine & _
         vbNewLine & _
@@ -676,14 +680,14 @@ End Function
 ''
 Public Function ParseByFormat(Value As String, Format As WebFormat, _
     Optional CustomFormat As String = "", Optional Bytes As Variant) As Object
-    
+
     On Error GoTo web_ErrorHandling
-    
+
     ' Don't attempt to parse blank values
     If Value = "" And CustomFormat = "" Then
         Exit Function
     End If
-    
+
     Select Case Format
     Case WebFormat.Json
         Set ParseByFormat = ParseJson(Value)
@@ -695,14 +699,14 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
 #If EnableCustomFormatting Then
         Dim web_Converter As Dictionary
         Dim web_Callback As String
-        
+
         Set web_Converter = web_GetConverter(CustomFormat)
         web_Callback = web_Converter("ParseCallback")
-        
+
         If web_Converter.Exists("Instance") Then
             Dim web_Instance As Object
             Set web_Instance = web_Converter("Instance")
-            
+
             If web_Converter("ParseType") = "Binary" Then
                 Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Bytes)
             Else
@@ -720,13 +724,13 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
 #End If
     End Select
     Exit Function
-    
+
 web_ErrorHandling:
-    
+
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred during parsing" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
-        
+
     LogError web_ErrorDescription, "WebHelpers.ParseByFormat", 11000
     Err.Raise 11000, "WebHelpers.ParseByFormat", web_ErrorDescription
 End Function
@@ -757,10 +761,10 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
 #If EnableCustomFormatting Then
         Dim web_Converter As Dictionary
         Dim web_Callback As String
-        
+
         Set web_Converter = web_GetConverter(CustomFormat)
         web_Callback = web_Converter("ConvertCallback")
-        
+
         If web_Converter.Exists("Instance") Then
             Dim web_Instance As Object
             Set web_Instance = web_Converter("Instance")
@@ -778,13 +782,13 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         End If
     End Select
     Exit Function
-    
+
 web_ErrorHandling:
 
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred during conversion" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
-        
+
     LogError web_ErrorDescription, "WebHelpers.ConvertToFormat", 11001
     Err.Raise 11001, "WebHelpers.ConvertToFormat", web_ErrorDescription
 End Function
@@ -803,10 +807,10 @@ End Function
 Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False, Optional EncodeUnsafe As Boolean = True) As String
     Dim web_UrlVal As String
     Dim web_StringLen As Long
-    
+
     web_UrlVal = VBA.CStr(Text)
     web_StringLen = VBA.Len(web_UrlVal)
-    
+
     If web_StringLen > 0 Then
         Dim web_Result() As String
         Dim web_i As Long
@@ -814,20 +818,20 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
         Dim web_Char As String
         Dim web_Space As String
         ReDim web_Result(web_StringLen)
-        
+
         ' Set space value
         If SpaceAsPlus Then
             web_Space = "+"
         Else
             web_Space = "%20"
         End If
-        
+
         ' Loop through string characters
         For web_i = 1 To web_StringLen
             ' Get character and ascii code
             web_Char = VBA.Mid$(web_UrlVal, web_i, 1)
             web_CharCode = VBA.Asc(web_Char)
-            
+
             Select Case web_CharCode
             Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
                 ' Reserved characters
@@ -861,27 +865,27 @@ End Function
 Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = True) As String
     Dim web_StringLen As Long
     web_StringLen = VBA.Len(Encoded)
-    
+
     If web_StringLen > 0 Then
         Dim web_i As Long
         Dim web_Result As String
         Dim web_Temp As String
-        
+
         For web_i = 1 To web_StringLen
             web_Temp = VBA.Mid$(Encoded, web_i, 1)
-            
+
             If web_Temp = "+" And PlusAsSpace Then
                 web_Temp = " "
             ElseIf web_Temp = "%" And web_StringLen >= web_i + 2 Then
                 web_Temp = VBA.Mid$(Encoded, web_i + 1, 2)
                 web_Temp = VBA.Chr(VBA.CInt("&H" & web_Temp))
-                
+
                 web_i = web_i + 2
             End If
-                
+
             web_Result = web_Result & web_Temp
         Next web_i
-        
+
         UrlDecode = web_Result
     End If
 End Function
@@ -899,7 +903,7 @@ Public Function Base64Encode(Text As String) As String
     Base64Encode = ExecuteInShell(web_Command).Output
 #Else
     Dim web_Bytes() As Byte
-    
+
     web_Bytes = VBA.StrConv(Text, vbFromUnicode)
     Base64Encode = web_AnsiBytesToBase64(web_Bytes)
 #End If
@@ -926,10 +930,10 @@ Public Function Base64Decode(Encoded As Variant) As String
 #Else
     Dim web_XmlObj As Object
     Dim web_Node As Object
-    
+
     Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
     Set web_Node = web_XmlObj.createElement("b64")
-    
+
     web_Node.DataType = "bin.base64"
     web_Node.Text = Encoded
     Base64Decode = VBA.StrConv(web_Node.nodeTypedValue, vbUnicode)
@@ -1009,11 +1013,11 @@ Public Sub RegisterConverter( _
     web_Converter("ConvertCallback") = ConvertCallback
     web_Converter("ParseCallback") = ParseCallback
     web_Converter("ParseType") = ParseType
-    
+
     If Not Instance Is Nothing Then
         Set web_Converter("Instance") = Instance
     End If
-    
+
     If web_pConverters Is Nothing Then: Set web_pConverters = New Dictionary
     Set web_pConverters(Name) = web_Converter
 End Sub
@@ -1058,7 +1062,7 @@ Public Function JoinUrl(LeftSide As String, RightSide As String) As String
     If Right(LeftSide, 1) = "/" Then
         LeftSide = Left(LeftSide, Len(LeftSide) - 1)
     End If
-    
+
     If LeftSide <> "" And RightSide <> "" Then
         JoinUrl = LeftSide & "/" & RightSide
     Else
@@ -1097,12 +1101,12 @@ End Function
 ''
 Public Function GetUrlParts(Url As String) As Dictionary
     Dim web_Parts As New Dictionary
-    
+
     On Error GoTo web_ErrorHandling
-    
+
 #If Mac Then
     ' Run perl script to parse url
-    
+
     Dim web_AddedProtocol As Boolean
     Dim web_Command As String
     Dim web_Results As Variant
@@ -1110,7 +1114,7 @@ Public Function GetUrlParts(Url As String) As Dictionary
     Dim web_EqualsIndex As Long
     Dim web_Key As String
     Dim web_Value As String
-    
+
     ' Add Protocol if missing
     If InStr(1, Url, "://") <= 0 Then
         web_AddedProtocol = True
@@ -1120,7 +1124,7 @@ Public Function GetUrlParts(Url As String) As Dictionary
             Url = "http://" & Url
         End If
     End If
-    
+
     web_Command = "perl -e '{use URI::URL;" & vbNewLine & _
         "$url = new URI::URL """ & Url & """;" & vbNewLine & _
         "print ""Protocol="" . $url->scheme;" & vbNewLine & _
@@ -1135,12 +1139,12 @@ Public Function GetUrlParts(Url As String) As Dictionary
         web_EqualsIndex = InStr(1, web_ResultPart, "=")
         web_Key = Trim(VBA.Mid$(web_ResultPart, 1, web_EqualsIndex - 1))
         web_Value = Trim(VBA.Mid$(web_ResultPart, web_EqualsIndex + 1))
-        
+
         If web_Key = "FullPath" Then
             ' For properly escaped path and querystring, need to use full_path
             ' But, need to split FullPath into Path...?Querystring
             Dim QueryIndex As Integer
-            
+
             QueryIndex = InStr(1, web_Value, "?")
             If QueryIndex > 0 Then
                 web_Parts.Add "Path", Mid$(web_Value, 1, QueryIndex - 1)
@@ -1153,7 +1157,7 @@ Public Function GetUrlParts(Url As String) As Dictionary
             web_Parts.Add web_Key, web_Value
         End If
     Next web_ResultPart
-    
+
     If web_AddedProtocol And web_Parts.Exists("Protocol") Then
         web_Parts("Protocol") = ""
     End If
@@ -1163,7 +1167,7 @@ Public Function GetUrlParts(Url As String) As Dictionary
         Set web_pDocumentHelper = CreateObject("htmlfile")
         Set web_pElHelper = web_pDocumentHelper.createElement("a")
     End If
-    
+
     web_pElHelper.href = Url
     web_Parts.Add "Protocol", Replace(web_pElHelper.Protocol, ":", "", Count:=1)
     web_Parts.Add "Host", web_pElHelper.hostname
@@ -1177,7 +1181,7 @@ Public Function GetUrlParts(Url As String) As Dictionary
         ' localhost:port/... was passed in without protocol
         Dim PathParts As Variant
         PathParts = Split(web_Parts("Path"), "/")
-        
+
         web_Parts("Port") = PathParts(0)
         web_Parts("Protocol") = ""
         web_Parts("Host") = "localhost"
@@ -1189,13 +1193,13 @@ Public Function GetUrlParts(Url As String) As Dictionary
 
     Set GetUrlParts = web_Parts
     Exit Function
-    
+
 web_ErrorHandling:
-    
+
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred while getting url parts" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
-    
+
     LogError web_ErrorDescription, "WebHelpers.GetUrlParts", 11003
     Err.Raise 11003, "WebHelpers.GetUrlParts", web_ErrorDescription
 End Function
@@ -1214,7 +1218,7 @@ End Function
 ''
 Public Function CloneDictionary(Original As Dictionary) As Dictionary
     Dim web_Key As Variant
-    
+
     Set CloneDictionary = New Dictionary
     For Each web_Key In Original.Keys
         CloneDictionary.Add VBA.CStr(web_Key), Original(web_Key)
@@ -1233,7 +1237,7 @@ End Function
 ''
 Public Function CloneCollection(Original As Collection) As Collection
     Dim web_Item As Variant
-    
+
     Set CloneCollection = New Collection
     For Each web_Item In Original
         CloneCollection.Add web_Item
@@ -1257,7 +1261,7 @@ End Function
 ''
 Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
     Dim web_KeyValue As New Dictionary
-    
+
     web_KeyValue("Key") = Key
     web_KeyValue("Value") = Value
     Set CreateKeyValue = web_KeyValue
@@ -1285,7 +1289,7 @@ End Function
 ''
 Public Function FindInKeyValues(KeyValues As Collection, Key As Variant) As Variant
     Dim web_KeyValue As Dictionary
-    
+
     For Each web_KeyValue In KeyValues
         If web_KeyValue("Key") = Key Then
             FindInKeyValues = web_KeyValue("Value")
@@ -1327,15 +1331,15 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
     Dim web_KeyValue As Dictionary
     Dim web_Index As Long
     Dim web_NewKeyValue As Dictionary
-    
+
     Set web_NewKeyValue = CreateKeyValue(CStr(Key), Value)
-    
+
     web_Index = 1
     For Each web_KeyValue In KeyValues
         If web_KeyValue("Key") = Key Then
             ' Replace existing
             KeyValues.Remove web_Index
-            
+
             If KeyValues.Count = 0 Then
                 KeyValues.Add web_NewKeyValue
             ElseIf web_Index > KeyValues.Count Then
@@ -1345,10 +1349,10 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
             End If
             Exit Sub
         End If
-        
+
         web_Index = web_Index + 1
     Next web_KeyValue
-    
+
     ' Add
     KeyValues.Add web_NewKeyValue
 End Sub
@@ -1448,16 +1452,16 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
     Dim web_File As Long
     Dim web_Chunk As String
     Dim web_Read As Long
-    
+
     On Error GoTo web_Cleanup
-    
+
     web_File = web_popen(web_Command, "r")
-    
+
     If web_File = 0 Then
         ' TODO Investigate why this could happen and what should be done if it happens
         Exit Function
     End If
-    
+
     Do While web_feof(web_File) = 0
         web_Chunk = VBA.Space$(50)
         web_Read = web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File)
@@ -1491,13 +1495,13 @@ Public Function PrepareTextForShell(ByVal web_Text As String) As String
     web_Text = VBA.Replace(web_Text, "$", "\$")
     web_Text = VBA.Replace(web_Text, "%", "\%")
     web_Text = VBA.Replace(web_Text, """", "\""")
-    
+
     ' Wrap in quotes
     web_Text = """" & web_Text & """"
-    
+
     ' Escape !
     web_Text = VBA.Replace(web_Text, "!", """'!'""")
-    
+
     ' Guard for ! at beginning or end (""'!'"..." or "..."'!'"" -> '!'"..." or "..."'!')
     If VBA.Left$(web_Text, 3) = """""'" Then
         web_Text = VBA.Right$(web_Text, VBA.Len(web_Text) - 2)
@@ -1505,7 +1509,7 @@ Public Function PrepareTextForShell(ByVal web_Text As String) As String
     If VBA.Right$(web_Text, 3) = "'""""" Then
         web_Text = VBA.Left$(web_Text, VBA.Len(web_Text) - 2)
     End If
-    
+
     PrepareTextForShell = web_Text
 End Function
 
@@ -1535,25 +1539,25 @@ Public Function HMACSHA1(Text As String, Secret As String, Optional Format As St
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
-    
+
     If Format = "Base64" Then
         web_Command = web_Command & " -binary | openssl enc -base64"
     End If
-    
+
     HMACSHA1 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_TextBytes() As Byte
     Dim web_SecretBytes() As Byte
     Dim web_Bytes() As Byte
-    
+
     web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
     web_SecretBytes = VBA.StrConv(Secret, vbFromUnicode)
-    
+
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA1")
     web_Crypto.Key = web_SecretBytes
     web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
-    
+
     Select Case Format
     Case "Base64"
         HMACSHA1 = web_AnsiBytesToBase64(web_Bytes)
@@ -1582,25 +1586,25 @@ Public Function HMACSHA256(Text As String, Secret As String, Optional Format As 
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
-    
+
     If Format = "Base64" Then
         web_Command = web_Command & " -binary | openssl enc -base64"
     End If
-    
+
     HMACSHA256 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_TextBytes() As Byte
     Dim web_SecretBytes() As Byte
     Dim web_Bytes() As Byte
-    
+
     web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
     web_SecretBytes = VBA.StrConv(Secret, vbFromUnicode)
-    
+
     Set web_Crypto = CreateObject("System.Security.Cryptography.HMACSHA256")
     web_Crypto.Key = web_SecretBytes
     web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
-    
+
     Select Case Format
     Case "Base64"
         HMACSHA256 = web_AnsiBytesToBase64(web_Bytes)
@@ -1631,22 +1635,22 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
-    
+
     If Format = "Base64" Then
         web_Command = web_Command & " -binary | openssl enc -base64"
     End If
-    
+
     MD5 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, "")
 #Else
     Dim web_Crypto As Object
     Dim web_TextBytes() As Byte
     Dim web_Bytes() As Byte
-    
+
     web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
-    
+
     Set web_Crypto = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
     web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
-    
+
     Select Case Format
     Case "Base64"
         MD5 = web_AnsiBytesToBase64(web_Bytes)
@@ -1668,10 +1672,10 @@ Public Function CreateNonce(Optional NonceLength As Integer = 32) As String
     Dim web_Count As Integer
     Dim web_Result As String
     Dim web_Random As Integer
-    
+
     web_Str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ"
     web_Result = ""
-    
+
     VBA.Randomize
     For web_Count = 1 To NonceLength
         web_Random = VBA.Int(((VBA.Len(web_Str) - 1) * VBA.Rnd) + 1)
@@ -1693,20 +1697,20 @@ Public Function StringToAnsiBytes(web_Text As String) As Byte()
     Dim web_AnsiBytes() As Byte
     Dim web_ByteIndex As Long
     Dim web_AnsiIndex As Long
-    
+
     If VBA.Len(web_Text) > 0 Then
         ' Take first byte from unicode bytes
         ' VBA.Int is used for floor instead of round
         web_Bytes = web_Text
         ReDim web_AnsiBytes(VBA.Int(UBound(web_Bytes) / 2))
-        
+
         web_AnsiIndex = LBound(web_Bytes)
         For web_ByteIndex = LBound(web_Bytes) To UBound(web_Bytes) Step 2
             web_AnsiBytes(web_AnsiIndex) = web_Bytes(web_ByteIndex)
             web_AnsiIndex = web_AnsiIndex + 1
         Next web_ByteIndex
     End If
-    
+
     StringToAnsiBytes = web_AnsiBytes
 End Function
 
@@ -1716,10 +1720,10 @@ Private Function web_AnsiBytesToBase64(web_Bytes() As Byte)
     ' Use XML to convert to Base64
     Dim web_XmlObj As Object
     Dim web_Node As Object
-    
+
     Set web_XmlObj = CreateObject("MSXML2.DOMDocument")
     Set web_Node = web_XmlObj.createElement("b64")
-    
+
     web_Node.DataType = "bin.base64"
     web_Node.nodeTypedValue = web_Bytes
     web_AnsiBytesToBase64 = web_Node.Text
@@ -1757,13 +1761,13 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
         ' Use region invariant number encoding ("." for decimal separator)
         Value = VBA.Replace(VBA.CStr(Value), ",", ".")
     End Select
-    
+
     ' Url encode key and value (using + for spaces)
     web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
 End Function
 
 ''
-' VBA-JSON v1.0.3
+' VBA-JSON v2.0.0
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
 '
 ' JSON Converter for VBA
@@ -1809,6 +1813,23 @@ End Function
 
 ' (Declarations moved to top)
 
+Private Type json_Options
+    ' VBA only stores 15 significant digits, so any numbers larger than that are truncated
+    ' This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
+    ' See: http://support.microsoft.com/kb/269370
+    '
+    ' By default, VBA-JSON will use String for numbers longer than 15 characters that contain only digits
+    ' to override set `JsonConverter.JsonOptions.UseDoubleForLargeNumbers = True`
+    UseDoubleForLargeNumbers As Boolean
+
+    ' The JSON standard requires object keys to be quoted (" or '), use this option to allow unquoted keys
+    AllowUnquotedKeys As Boolean
+
+    ' The solidus (/) is not required to be escaped, use this option to escape them as \/ in ConvertToJson
+    EscapeSolidus As Boolean
+End Type
+Public JsonOptions As json_Options
+
 ' ============================================= '
 ' Public Methods
 ' ============================================= '
@@ -1821,19 +1842,19 @@ End Function
 ' @return {Object} (Dictionary or Collection)
 ' @throws 10001 - JSON parse error
 ''
-Public Function ParseJson(ByVal json_String As String, Optional json_ConvertLargeNumbersToString As Boolean = True) As Object
+Public Function ParseJson(ByVal json_String As String) As Object
     Dim json_Index As Long
     json_Index = 1
-    
+
     ' Remove vbCr, vbLf, and vbTab from json_String
     json_String = VBA.Replace(VBA.Replace(VBA.Replace(json_String, VBA.vbCr, ""), VBA.vbLf, ""), VBA.vbTab, "")
-    
+
     json_SkipSpaces json_String, json_Index
     Select Case VBA.Mid$(json_String, json_Index, 1)
     Case "{"
-        Set ParseJson = json_ParseObject(json_String, json_Index, json_ConvertLargeNumbersToString)
+        Set ParseJson = json_ParseObject(json_String, json_Index)
     Case "["
-        Set ParseJson = json_ParseArray(json_String, json_Index, json_ConvertLargeNumbersToString)
+        Set ParseJson = json_ParseArray(json_String, json_Index)
     Case Else
         ' Error: Invalid JSON string
         Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '{' or '['")
@@ -1847,7 +1868,7 @@ End Function
 ' @param {Variant} json_DictionaryCollectionOrArray (Dictionary, Collection, or Array)
 ' @return {String}
 ''
-Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant, Optional json_ConvertLargeNumbersFromString As Boolean = True) As String
+Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant) As String
     Dim json_buffer As String
     Dim json_BufferPosition As Long
     Dim json_BufferLength As Long
@@ -1862,7 +1883,7 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
     Dim json_Key As Variant
     Dim json_Value As Variant
     Dim json_DateStr As String
-    
+
     json_LBound = -1
     json_UBound = -1
     json_IsFirstItem = True
@@ -1876,11 +1897,11 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
     Case VBA.vbDate
         ' Date
         json_DateStr = ConvertToIso(VBA.CDate(json_DictionaryCollectionOrArray))
-        
+
         ConvertToJson = """" & json_DateStr & """"
     Case VBA.vbString
         ' String (or large number encoded as string)
-        If json_ConvertLargeNumbersFromString And json_StringIsLargeNumber(json_DictionaryCollectionOrArray) Then
+        If Not JsonConverter.JsonOptions.UseDoubleForLargeNumbers And json_StringIsLargeNumber(json_DictionaryCollectionOrArray) Then
             ConvertToJson = json_DictionaryCollectionOrArray
         Else
             ConvertToJson = """" & json_Encode(json_DictionaryCollectionOrArray) & """"
@@ -1894,14 +1915,14 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
     Case VBA.vbArray To VBA.vbArray + VBA.vbByte
         ' Array
         json_BufferAppend json_buffer, "[", json_BufferPosition, json_BufferLength
-        
+
         On Error Resume Next
-        
+
         json_LBound = LBound(json_DictionaryCollectionOrArray, 1)
         json_UBound = UBound(json_DictionaryCollectionOrArray, 1)
         json_LBound2D = LBound(json_DictionaryCollectionOrArray, 2)
         json_UBound2D = UBound(json_DictionaryCollectionOrArray, 2)
-        
+
         If json_LBound >= 0 And json_UBound >= 0 Then
             For json_Index = json_LBound To json_UBound
                 If json_IsFirstItem Then
@@ -1909,40 +1930,38 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
                 Else
                     json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
                 End If
-            
+
                 If json_LBound2D >= 0 And json_UBound2D >= 0 Then
                     json_BufferAppend json_buffer, "[", json_BufferPosition, json_BufferLength
-                
+
                     For json_Index2D = json_LBound2D To json_UBound2D
                         If json_IsFirstItem2D Then
                             json_IsFirstItem2D = False
                         Else
                             json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
                         End If
-                        
+
                         json_BufferAppend json_buffer, _
-                            ConvertToJson(json_DictionaryCollectionOrArray(json_Index, json_Index2D), _
-                                json_ConvertLargeNumbersFromString), _
+                            ConvertToJson(json_DictionaryCollectionOrArray(json_Index, json_Index2D)), _
                             json_BufferPosition, json_BufferLength
                     Next json_Index2D
-                    
+
                     json_BufferAppend json_buffer, "]", json_BufferPosition, json_BufferLength
                     json_IsFirstItem2D = True
                 Else
                     json_BufferAppend json_buffer, _
-                        ConvertToJson(json_DictionaryCollectionOrArray(json_Index), _
-                            json_ConvertLargeNumbersFromString), _
+                        ConvertToJson(json_DictionaryCollectionOrArray(json_Index)), _
                         json_BufferPosition, json_BufferLength
                 End If
             Next json_Index
         End If
-        
+
         On Error GoTo 0
-        
+
         json_BufferAppend json_buffer, "]", json_BufferPosition, json_BufferLength
-        
+
         ConvertToJson = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
-    
+
     ' Dictionary or Collection
     Case VBA.vbObject
         ' Dictionary
@@ -1954,13 +1973,13 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
                 Else
                     json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
                 End If
-            
+
                 json_BufferAppend json_buffer, _
-                    """" & json_Key & """:" & ConvertToJson(json_DictionaryCollectionOrArray(json_Key), json_ConvertLargeNumbersFromString), _
+                    """" & json_Key & """:" & ConvertToJson(json_DictionaryCollectionOrArray(json_Key)), _
                     json_BufferPosition, json_BufferLength
             Next json_Key
             json_BufferAppend json_buffer, "}", json_BufferPosition, json_BufferLength
-        
+
         ' Collection
         ElseIf VBA.TypeName(json_DictionaryCollectionOrArray) = "Collection" Then
             json_BufferAppend json_buffer, "[", json_BufferPosition, json_BufferLength
@@ -1970,14 +1989,14 @@ Public Function ConvertToJson(ByVal json_DictionaryCollectionOrArray As Variant,
                 Else
                     json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
                 End If
-            
+
                 json_BufferAppend json_buffer, _
-                    ConvertToJson(json_Value, json_ConvertLargeNumbersFromString), _
+                    ConvertToJson(json_Value), _
                     json_BufferPosition, json_BufferLength
             Next json_Value
             json_BufferAppend json_buffer, "]", json_BufferPosition, json_BufferLength
         End If
-        
+
         ConvertToJson = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
     Case Else
         ' Number
@@ -1991,17 +2010,17 @@ End Function
 ' Private Functions
 ' ============================================= '
 
-Private Function json_ParseObject(json_String As String, ByRef json_Index As Long, Optional json_ConvertLargeNumbersToString As Boolean = True) As Dictionary
+Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Dictionary
     Dim json_Key As String
     Dim json_NextChar As String
-    
+
     Set json_ParseObject = New Dictionary
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> "{" Then
         Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '{'")
     Else
         json_Index = json_Index + 1
-        
+
         Do
             json_SkipSpaces json_String, json_Index
             If VBA.Mid$(json_String, json_Index, 1) = "}" Then
@@ -2011,27 +2030,27 @@ Private Function json_ParseObject(json_String As String, ByRef json_Index As Lon
                 json_Index = json_Index + 1
                 json_SkipSpaces json_String, json_Index
             End If
-            
+
             json_Key = json_ParseKey(json_String, json_Index)
             json_NextChar = json_Peek(json_String, json_Index)
             If json_NextChar = "[" Or json_NextChar = "{" Then
-                Set json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index, json_ConvertLargeNumbersToString)
+                Set json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
             Else
-                json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index, json_ConvertLargeNumbersToString)
+                json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
             End If
         Loop
     End If
 End Function
 
-Private Function json_ParseArray(json_String As String, ByRef json_Index As Long, Optional json_ConvertLargeNumbersToString As Boolean = True) As Collection
+Private Function json_ParseArray(json_String As String, ByRef json_Index As Long) As Collection
     Set json_ParseArray = New Collection
-    
+
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> "[" Then
         Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '['")
     Else
         json_Index = json_Index + 1
-        
+
         Do
             json_SkipSpaces json_String, json_Index
             If VBA.Mid$(json_String, json_Index, 1) = "]" Then
@@ -2041,13 +2060,13 @@ Private Function json_ParseArray(json_String As String, ByRef json_Index As Long
                 json_Index = json_Index + 1
                 json_SkipSpaces json_String, json_Index
             End If
-            
-            json_ParseArray.Add json_ParseValue(json_String, json_Index, json_ConvertLargeNumbersToString)
+
+            json_ParseArray.Add json_ParseValue(json_String, json_Index)
         Loop
     End If
 End Function
 
-Private Function json_ParseValue(json_String As String, ByRef json_Index As Long, Optional json_ConvertLargeNumbersToString As Boolean = True) As Variant
+Private Function json_ParseValue(json_String As String, ByRef json_Index As Long) As Variant
     json_SkipSpaces json_String, json_Index
     Select Case VBA.Mid$(json_String, json_Index, 1)
     Case "{"
@@ -2067,7 +2086,7 @@ Private Function json_ParseValue(json_String As String, ByRef json_Index As Long
             json_ParseValue = Null
             json_Index = json_Index + 4
         ElseIf VBA.InStr("+-0123456789", VBA.Mid$(json_String, json_Index, 1)) Then
-            json_ParseValue = json_ParseNumber(json_String, json_Index, json_ConvertLargeNumbersToString)
+            json_ParseValue = json_ParseNumber(json_String, json_Index)
         Else
             Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
         End If
@@ -2081,22 +2100,22 @@ Private Function json_ParseString(json_String As String, ByRef json_Index As Lon
     Dim json_buffer As String
     Dim json_BufferPosition As Long
     Dim json_BufferLength As Long
-    
+
     json_SkipSpaces json_String, json_Index
-    
+
     ' Store opening quote to look for matching closing quote
     json_Quote = VBA.Mid$(json_String, json_Index, 1)
     json_Index = json_Index + 1
-    
+
     Do While json_Index > 0 And json_Index <= Len(json_String)
         json_Char = VBA.Mid$(json_String, json_Index, 1)
-        
+
         Select Case json_Char
         Case "\"
             ' Escaped string, \\, or \/
             json_Index = json_Index + 1
             json_Char = VBA.Mid$(json_String, json_Index, 1)
-            
+
             Select Case json_Char
             Case """", "\", "/", "'"
                 json_BufferAppend json_buffer, json_Char, json_BufferPosition, json_BufferLength
@@ -2134,15 +2153,15 @@ Private Function json_ParseString(json_String As String, ByRef json_Index As Lon
     Loop
 End Function
 
-Private Function json_ParseNumber(json_String As String, ByRef json_Index As Long, Optional json_ConvertLargeNumbersToString As Boolean = True) As Variant
+Private Function json_ParseNumber(json_String As String, ByRef json_Index As Long) As Variant
     Dim json_Char As String
     Dim json_Value As String
-    
+
     json_SkipSpaces json_String, json_Index
-    
+
     Do While json_Index > 0 And json_Index <= Len(json_String)
         json_Char = VBA.Mid$(json_String, json_Index, 1)
-        
+
         If VBA.InStr("+-0123456789.eE", json_Char) Then
             ' Unlikely to have massive number, so use simple append rather than buffer here
             json_Value = json_Value & json_Char
@@ -2153,7 +2172,7 @@ Private Function json_ParseNumber(json_String As String, ByRef json_Index As Lon
             ' See: http://support.microsoft.com/kb/269370
             '
             ' Fix: Parse -> String, Convert -> String longer than 15 characters containing only numbers and decimal points -> Number
-            If json_ConvertLargeNumbersToString And Len(json_Value) >= 16 Then
+            If Not JsonConverter.JsonOptions.UseDoubleForLargeNumbers And Len(json_Value) >= 16 Then
                 json_ParseNumber = json_Value
             Else
                 ' VBA.Val does not use regional settings, so guard for comma is not needed
@@ -2166,8 +2185,23 @@ End Function
 
 Private Function json_ParseKey(json_String As String, ByRef json_Index As Long) As String
     ' Parse key with single or double quotes
-    json_ParseKey = json_ParseString(json_String, json_Index)
-    
+    If VBA.Mid$(json_String, json_Index, 1) = """" Or VBA.Mid$(json_String, json_Index, 1) = "'" Then
+        json_ParseKey = json_ParseString(json_String, json_Index)
+    ElseIf JsonConverter.JsonOptions.AllowUnquotedKeys Then
+        Dim json_Char As String
+        Do While json_Index > 0 And json_Index <= Len(json_String)
+            json_Char = VBA.Mid$(json_String, json_Index, 1)
+            If (json_Char <> " ") And (json_Char <> ":") Then
+                json_ParseKey = json_ParseKey & json_Char
+                json_Index = json_Index + 1
+            Else
+                Exit Do
+            End If
+        Loop
+    Else
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '""' or '''")
+    End If
+
     ' Check for colon and skip if present or throw if not present
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> ":" Then
@@ -2186,7 +2220,7 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
     Dim json_buffer As String
     Dim json_BufferPosition As Long
     Dim json_BufferLength As Long
-    
+
     For json_Index = 1 To VBA.Len(json_Text)
         json_Char = VBA.Mid$(json_Text, json_Index, 1)
         json_AscCode = VBA.AscW(json_Char)
@@ -2197,40 +2231,44 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
         If json_AscCode < 0 Then
             json_AscCode = json_AscCode + 65536
         End If
-        
+
+        ' From spec, ", \, and control characters must be escaped (solidus is optional)
+
         Select Case json_AscCode
-        ' " -> 34 -> \"
         Case 34
+            ' " -> 34 -> \"
             json_Char = "\"""
-        ' \ -> 92 -> \\
         Case 92
+            ' \ -> 92 -> \\
             json_Char = "\\"
-        ' / -> 47 -> \/
         Case 47
-            json_Char = "\/"
-        ' backspace -> 8 -> \b
+            ' / -> 47 -> \/ (optional)
+            If JsonConverter.JsonOptions.EscapeSolidus Then
+                json_Char = "\/"
+            End If
         Case 8
+            ' backspace -> 8 -> \b
             json_Char = "\b"
-        ' form feed -> 12 -> \f
         Case 12
+            ' form feed -> 12 -> \f
             json_Char = "\f"
-        ' line feed -> 10 -> \n
         Case 10
+            ' line feed -> 10 -> \n
             json_Char = "\n"
-        ' carriage return -> 13 -> \r
         Case 13
+            ' carriage return -> 13 -> \r
             json_Char = "\r"
-        ' tab -> 9 -> \t
         Case 9
+            ' tab -> 9 -> \t
             json_Char = "\t"
-        ' Non-ascii characters -> convert to 4-digit hex
         Case 0 To 31, 127 To 65535
+            ' Non-ascii characters -> convert to 4-digit hex
             json_Char = "\u" & VBA.Right$("0000" & VBA.Hex$(json_AscCode), 4)
         End Select
-            
+
         json_BufferAppend json_buffer, json_Char, json_BufferPosition, json_BufferLength
     Next json_Index
-    
+
     json_Encode = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
 End Function
 
@@ -2250,18 +2288,18 @@ End Sub
 Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
     ' Check if the given string is considered a "large number"
     ' (See json_ParseNumber)
-    
+
     Dim json_Length As Long
     Dim json_CharIndex As Long
     json_Length = VBA.Len(json_String)
-    
+
     ' Length with be at least 16 characters and assume will be less than 100 characters
     If json_Length >= 16 And json_Length <= 100 Then
         Dim json_CharCode As String
         Dim json_Index As Long
-        
+
         json_StringIsLargeNumber = True
-        
+
         For json_CharIndex = 1 To json_Length
             json_CharCode = VBA.Asc(VBA.Mid$(json_String, json_CharIndex, 1))
             Select Case json_CharCode
@@ -2284,10 +2322,10 @@ Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index 
     ' {"abcde":True}
     '          ^
     ' Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['
-    
+
     Dim json_StartIndex As Long
     Dim json_StopIndex As Long
-    
+
     ' Include 10 characters before and after error (if possible)
     json_StartIndex = json_Index - 10
     json_StopIndex = json_Index + 10
@@ -2332,14 +2370,14 @@ Private Sub json_BufferAppend(ByRef json_buffer As String, _
 
     Dim json_AppendLength As Long
     Dim json_LengthPlusPosition As Long
-    
+
     json_AppendLength = VBA.LenB(json_Append)
     json_LengthPlusPosition = json_AppendLength + json_BufferPosition
-    
+
     If json_LengthPlusPosition > json_BufferLength Then
         ' Appending would overflow buffer, add chunks until buffer is long enough
         Dim json_TemporaryLength As Long
-        
+
         json_TemporaryLength = json_BufferLength
         Do While json_TemporaryLength < json_LengthPlusPosition
             ' Initially, initialize string with 255 characters,
@@ -2352,17 +2390,17 @@ Private Sub json_BufferAppend(ByRef json_buffer As String, _
                 json_TemporaryLength = json_TemporaryLength + 16384
             End If
         Loop
-        
+
         json_buffer = json_buffer & VBA.Space$((json_TemporaryLength - json_BufferLength) \ 2)
         json_BufferLength = json_TemporaryLength
     End If
-    
+
     ' Copy memory from append to buffer at buffer position
     json_CopyMemory ByVal json_UnsignedAdd(StrPtr(json_buffer), _
                     json_BufferPosition), _
                     ByVal StrPtr(json_Append), _
                     json_AppendLength
-    
+
     json_BufferPosition = json_BufferPosition + json_AppendLength
 #End If
 End Sub
@@ -2425,16 +2463,16 @@ End Function
 ''
 Public Function ParseUtc(utc_UtcDate As Date) As Date
     On Error GoTo utc_ErrorHandling
-    
+
 #If Mac Then
     ParseUtc = utc_ConvertDate(utc_UtcDate)
 #Else
     Dim utc_TimeZoneInfo As utc_TIME_ZONE_INFORMATION
     Dim utc_LocalDate As utc_SYSTEMTIME
-    
+
     utc_GetTimeZoneInformation utc_TimeZoneInfo
     utc_SystemTimeToTzSpecificLocalTime utc_TimeZoneInfo, utc_DateToSystemTime(utc_UtcDate), utc_LocalDate
-    
+
     ParseUtc = utc_SystemTimeToDate(utc_LocalDate)
 #End If
 
@@ -2454,21 +2492,21 @@ End Function
 ''
 Public Function ConvertToUtc(utc_LocalDate As Date) As Date
     On Error GoTo utc_ErrorHandling
-    
+
 #If Mac Then
     ConvertToUtc = utc_ConvertDate(utc_LocalDate, utc_ConvertToUtc:=True)
 #Else
     Dim utc_TimeZoneInfo As utc_TIME_ZONE_INFORMATION
     Dim utc_UtcDate As utc_SYSTEMTIME
-    
+
     utc_GetTimeZoneInformation utc_TimeZoneInfo
     utc_TzSpecificLocalTimeToSystemTime utc_TimeZoneInfo, utc_DateToSystemTime(utc_LocalDate), utc_UtcDate
-    
+
     ConvertToUtc = utc_SystemTimeToDate(utc_UtcDate)
 #End If
-    
+
     Exit Function
-    
+
 utc_ErrorHandling:
     Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
 End Function
@@ -2483,7 +2521,7 @@ End Function
 ''
 Public Function ParseIso(utc_IsoString As String) As Date
     On Error GoTo utc_ErrorHandling
-    
+
     Dim utc_Parts() As String
     Dim utc_DateParts() As String
     Dim utc_TimeParts() As String
@@ -2492,11 +2530,11 @@ Public Function ParseIso(utc_IsoString As String) As Date
     Dim utc_NegativeOffset As Boolean
     Dim utc_OffsetParts() As String
     Dim utc_Offset As Date
-    
+
     utc_Parts = VBA.Split(utc_IsoString, "T")
     utc_DateParts = VBA.Split(utc_Parts(0), "-")
     ParseIso = VBA.DateSerial(VBA.CInt(utc_DateParts(0)), VBA.CInt(utc_DateParts(1)), VBA.CInt(utc_DateParts(2)))
-    
+
     If UBound(utc_Parts) > 0 Then
         If VBA.InStr(utc_Parts(1), "Z") Then
             utc_TimeParts = VBA.Split(VBA.Replace(utc_Parts(1), "Z", ""), ":")
@@ -2506,12 +2544,12 @@ Public Function ParseIso(utc_IsoString As String) As Date
                 utc_NegativeOffset = True
                 utc_OffsetIndex = VBA.InStr(1, utc_Parts(1), "-")
             End If
-            
+
             If utc_OffsetIndex > 0 Then
                 utc_HasOffset = True
                 utc_TimeParts = VBA.Split(VBA.Left$(utc_Parts(1), utc_OffsetIndex - 1), ":")
                 utc_OffsetParts = VBA.Split(VBA.Right$(utc_Parts(1), Len(utc_Parts(1)) - utc_OffsetIndex), ":")
-                
+
                 Select Case UBound(utc_OffsetParts)
                 Case 0
                     utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), 0, 0)
@@ -2520,13 +2558,13 @@ Public Function ParseIso(utc_IsoString As String) As Date
                 Case 2
                     utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), VBA.CInt(utc_OffsetParts(1)), VBA.CInt(utc_OffsetParts(2)))
                 End Select
-                
+
                 If utc_NegativeOffset Then: utc_Offset = -utc_Offset
             Else
                 utc_TimeParts = VBA.Split(utc_Parts(1), ":")
             End If
         End If
-        
+
         Select Case UBound(utc_TimeParts)
         Case 0
             ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), 0, 0)
@@ -2535,16 +2573,16 @@ Public Function ParseIso(utc_IsoString As String) As Date
         Case 2
             ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), VBA.CInt(utc_TimeParts(1)), VBA.CInt(utc_TimeParts(2)))
         End Select
-        
+
         If utc_HasOffset Then
             ParseIso = ParseIso + utc_Offset
         Else
             ParseIso = ParseUtc(ParseIso)
         End If
     End If
-    
+
     Exit Function
-    
+
 utc_ErrorHandling:
     Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
 End Function
@@ -2559,11 +2597,11 @@ End Function
 ''
 Public Function ConvertToIso(utc_LocalDate As Date) As String
     On Error GoTo utc_ErrorHandling
-    
+
     ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
-    
+
     Exit Function
-    
+
 utc_ErrorHandling:
     Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
 End Function
@@ -2580,7 +2618,7 @@ Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As
     Dim utc_Parts() As String
     Dim utc_DateParts() As String
     Dim utc_TimeParts() As String
-    
+
     If utc_ConvertToUtc Then
         utc_ShellCommand = "date -ur `date -jf '%Y-%m-%d %H:%M:%S' " & _
             "'" & VBA.Format$(utc_Value, "yyyy-mm-dd HH:mm:ss") & "' " & _
@@ -2590,16 +2628,16 @@ Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As
             "'" & VBA.Format$(utc_Value, "yyyy-mm-dd HH:mm:ss") & " +0000' " & _
             "+'%Y-%m-%d %H:%M:%S'"
     End If
-    
+
     utc_Result = utc_ExecuteInShell(utc_ShellCommand)
-    
+
     If utc_Result.utc_Output = "" Then
         Err.Raise 10015, "UtcConverter.utc_ConvertDate", "'date' command failed"
     Else
         utc_Parts = Split(utc_Result.utc_Output, " ")
         utc_DateParts = Split(utc_Parts(0), "-")
         utc_TimeParts = Split(utc_Parts(1), ":")
-        
+
         utc_ConvertDate = DateSerial(utc_DateParts(0), utc_DateParts(1), utc_DateParts(2)) + _
             TimeSerial(utc_TimeParts(0), utc_TimeParts(1), utc_TimeParts(2))
     End If
@@ -2609,12 +2647,12 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
     Dim utc_File As Long
     Dim utc_Chunk As String
     Dim utc_Read As Long
-    
+
     On Error GoTo utc_ErrorHandling
     utc_File = utc_popen(utc_ShellCommand, "r")
-    
+
     If utc_File = 0 Then: Exit Function
-    
+
     Do While utc_feof(utc_File) = 0
         utc_Chunk = VBA.Space$(50)
         utc_Read = utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File)
@@ -2696,16 +2734,16 @@ Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef 
     Dim AutoProxy_doAutoProxy As Boolean
     Dim AutoProxy_Error As Long
     Dim AutoProxy_ErrorMsg As String
-    
+
     AutoProxy_AutoProxyOptions.AutoProxy_fAutoLogonIfChallenged = 1
     ProxyServer = ""
     ProxyBypass = ""
-    
+
     ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
     If Url = "" Then Url = " "
-    
+
     On Error GoTo AutoProxy_Cleanup
-    
+
     ' Check IE's proxy configuration
     If (AutoProxy_GetIEProxy(AutoProxy_IEProxyConfig) > 0) Then
         ' If IE is configured to auto-detect, then we will too.
@@ -2715,7 +2753,7 @@ Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef 
                 AUTOPROXY_DETECT_TYPE_DHCP + AUTOPROXY_DETECT_TYPE_DNS
             AutoProxy_doAutoProxy = True
         End If
-     
+
         ' If IE is configured to use an auto-config script, then
         ' we will use it too
         If (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl <> 0) Then
@@ -2732,19 +2770,19 @@ Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef 
             AUTOPROXY_DETECT_TYPE_DHCP + AUTOPROXY_DETECT_TYPE_DNS
         AutoProxy_doAutoProxy = True
     End If
-    
+
     If AutoProxy_doAutoProxy Then
         On Error GoTo AutoProxy_TryIEFallback
-        
+
         ' Need to create a temporary WinHttp session handle
         ' Note: Performance of this GetProxyInfoForUrl function can be
         '       improved by saving this AutoProxy_hSession handle across calls
         '       instead of creating a new handle each time
         AutoProxy_hSession = AutoProxy_HttpOpen(0, 1, 0, 0, 0)
-     
+
         If (AutoProxy_GetProxyForUrl( _
             AutoProxy_hSession, StrPtr(Url), AutoProxy_AutoProxyOptions, AutoProxy_ProxyInfo) > 0) Then
-            
+
             AutoProxy_ProxyStringPtr = AutoProxy_ProxyInfo.AutoProxy_lpszProxy
         Else
             AutoProxy_Error = Err.LastDllError
@@ -2769,40 +2807,40 @@ Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef 
                 AutoProxy_Error = 10020
             End Select
         End If
-     
+
         AutoProxy_HttpClose AutoProxy_hSession
         AutoProxy_hSession = 0
     End If
-    
+
 AutoProxy_TryIEFallback:
     On Error GoTo AutoProxy_Cleanup
-       
+
     ' If we don't have a proxy server from WinHttpGetProxyForUrl,
     ' then pick one up from the IE proxy config (if given)
     If (AutoProxy_ProxyStringPtr = 0) Then
         AutoProxy_ProxyStringPtr = AutoProxy_IEProxyConfig.AutoProxy_lpszProxy
     End If
-    
+
     ' If there's a proxy string, convert it to a Basic string
     If (AutoProxy_ProxyStringPtr <> 0) Then
         AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_ProxyStringPtr)
         AutoProxy_CopyMemory VarPtr(ProxyServer), VarPtr(AutoProxy_ptr), 4
     End If
-    
+
     ' Pick up any bypass string from the IEProxyConfig
     If (AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass <> 0) Then
         AutoProxy_ptr = AutoProxy_SysAllocString(AutoProxy_IEProxyConfig.AutoProxy_lpszProxyBypass)
         AutoProxy_CopyMemory VarPtr(ProxyBypass), VarPtr(AutoProxy_ptr), 4
     End If
-    
+
     ' Ensure WinHttp session is closed, an error might have occurred
     If (AutoProxy_hSession <> 0) Then
         AutoProxy_HttpClose AutoProxy_hSession
     End If
-    
+
 AutoProxy_Cleanup:
     On Error GoTo 0
-    
+
     ' Free any strings received from WinHttp APIs
     If (AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl <> 0) Then
         AutoProxy_GlobalFree AutoProxy_IEProxyConfig.AutoProxy_lpszAutoConfigUrl
@@ -2824,7 +2862,7 @@ AutoProxy_Cleanup:
         AutoProxy_GlobalFree AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass
         AutoProxy_ProxyInfo.AutoProxy_lpszProxyBypass = 0
     End If
-    
+
     ' Error handling
     If Err.Number <> 0 Then
         ' Unmanaged error
