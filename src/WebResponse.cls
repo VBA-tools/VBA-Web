@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebResponse v4.0.19
+' WebResponse v4.0.20
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Wrapper for http/cURL responses that includes parsed Data based on WebRequest.ResponseFormat.
@@ -133,14 +133,14 @@ End Sub
 ''
 Public Sub CreateFromHttp(Client As WebClient, Request As WebRequest, Http As Object)
     On Error GoTo web_ErrorHandling
-    
+
     Me.StatusCode = Http.Status
     Me.StatusDescription = Http.StatusText
     Me.Content = Http.ResponseText
     Me.Body = Http.ResponseBody
-    
+
     web_LoadValues Http.GetAllResponseHeaders, Me.Content, Me.Body, Request
-    
+
     Exit Sub
 
 web_ErrorHandling:
@@ -165,26 +165,26 @@ End Sub
 ''
 Public Sub CreateFromCurl(Client As WebClient, Request As WebRequest, Result As String)
     On Error GoTo web_ErrorHandling
-    
+
     Dim web_Lines() As String
-    
+
     web_Lines = VBA.Split(Result, vbCrLf)
-    
+
     Me.StatusCode = web_ExtractStatusFromCurlResponse(web_Lines)
     Me.StatusDescription = web_ExtractStatusTextFromCurlResponse(web_Lines)
     Me.Content = web_ExtractResponseTextFromCurlResponse(web_Lines)
     Me.Body = WebHelpers.StringToAnsiBytes(Me.Content)
-    
+
     web_LoadValues web_ExtractHeadersFromCurlResponse(web_Lines), Me.Content, Me.Body, Request
-    
+
     Exit Sub
-    
+
 web_ErrorHandling:
-    
+
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred while creating response from cURL" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
-    
+
     WebHelpers.LogError web_ErrorDescription, "WebResponse.CreateFromCurl", 11031 + vbObjectError
     Err.Raise 11031 + vbObjectError, "WebResponse.CreateFromCurl", web_ErrorDescription
 End Sub
@@ -200,16 +200,16 @@ End Sub
 ''
 Public Function ExtractHeaders(ResponseHeaders As String) As Collection
     On Error GoTo web_ErrorHandling
-    
+
     Dim web_Lines As Variant
     Dim web_i As Integer
     Dim web_Headers As New Collection
     Dim web_Header As Dictionary
     Dim web_ColonPosition As Long
     Dim web_Multiline As Boolean
-    
+
     web_Lines = VBA.Split(ResponseHeaders, vbCrLf)
-    
+
     For web_i = LBound(web_Lines) To (UBound(web_Lines) + 1)
         If web_i > UBound(web_Lines) Then
             web_Headers.Add web_Header
@@ -226,7 +226,7 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
                 ' Add previous header
                 web_Headers.Add web_Header
             End If
-            
+
             If Not web_Multiline Then
                 Set web_Header = WebHelpers.CreateKeyValue( _
                     Key:=VBA.Trim(VBA.Mid$(web_Lines(web_i), 1, web_ColonPosition - 1)), _
@@ -237,16 +237,16 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
             End If
         End If
     Next web_i
-    
+
     Set ExtractHeaders = web_Headers
     Exit Function
-    
+
 web_ErrorHandling:
-    
+
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred while extracting headers" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
-    
+
     WebHelpers.LogError web_ErrorDescription, "WebResponse.CreateFromCurl", 11032 + vbObjectError
     Err.Raise 11032 + vbObjectError, "WebResponse.CreateFromCurl", web_ErrorDescription
 End Function
@@ -265,24 +265,24 @@ Public Function ExtractCookies(Headers As Collection) As Collection
     Dim web_Key As String
     Dim web_Value As String
     Dim web_Cookies As New Collection
-    
+
     For Each web_Header In Headers
         If web_Header("Key") = "Set-Cookie" Then
             web_Cookie = web_Header("Value")
             If VBA.InStr(1, web_Cookie, "=") > 0 Then
                 web_Key = VBA.Mid$(web_Cookie, 1, VBA.InStr(1, web_Cookie, "=") - 1)
                 web_Value = VBA.Mid$(web_Cookie, VBA.InStr(1, web_Cookie, "=") + 1, VBA.Len(web_Cookie))
-                
+
                 ' Ignore text after semi-colon
                 If VBA.InStr(1, web_Value, ";") > 0 Then
                     web_Value = VBA.Mid$(web_Value, 1, VBA.InStr(1, web_Value, ";") - 1)
                 End If
-                
+
                 ' Ignore surrounding quotes
                 If VBA.Left$(web_Value, 1) = """" Then
                     web_Value = VBA.Mid$(web_Value, 2, VBA.Len(web_Value) - 2)
                 End If
-                
+
                 web_Cookies.Add WebHelpers.CreateKeyValue(web_Key, WebHelpers.UrlDecode(web_Value, PlusAsSpace:=False))
             Else
                 WebHelpers.LogWarning _
@@ -290,7 +290,7 @@ Public Function ExtractCookies(Headers As Collection) As Collection
             End If
         End If
     Next web_Header
-    
+
     Set ExtractCookies = web_Cookies
 End Function
 
@@ -304,24 +304,24 @@ Private Sub web_LoadValues(web_Headers As String, web_Content As String, web_Bod
         On Error Resume Next
         Set Me.Data = _
             WebHelpers.ParseByFormat(web_Content, web_Request.ResponseFormat, web_Request.CustomResponseFormat, web_Body)
-        
+
         If Err.Number <> 0 Then
             WebHelpers.LogError Err.Description, Err.Source, Err.Number
             Err.Clear
         End If
         On Error GoTo 0
     End If
-    
+
     ' Extract headers
     Set Me.Headers = ExtractHeaders(web_Headers)
-    
+
     ' Extract cookies
     Set Me.Cookies = ExtractCookies(Me.Headers)
 End Sub
 
 Private Function web_ExtractStatusFromCurlResponse(web_CurlResponseLines() As String) As Long
     Dim web_StatusLineParts() As String
-    
+
     web_StatusLineParts = VBA.Split(web_CurlResponseLines(web_FindStatusLine(web_CurlResponseLines)), " ")
     web_ExtractStatusFromCurlResponse = VBA.CLng(web_StatusLineParts(1))
 End Function
@@ -330,7 +330,7 @@ Private Function web_ExtractStatusTextFromCurlResponse(web_CurlResponseLines() A
     Dim web_StatusLineParts() As String
     Dim web_i As Long
     Dim web_StatusText As String
-    
+
     web_StatusLineParts = VBA.Split(web_CurlResponseLines(web_FindStatusLine(web_CurlResponseLines)), " ", 3)
     web_ExtractStatusTextFromCurlResponse = web_StatusLineParts(2)
 End Function
@@ -341,20 +341,20 @@ Private Function web_ExtractHeadersFromCurlResponse(web_CurlResponseLines() As S
     Dim web_HeaderLines() As String
     Dim web_WriteIndex As Long
     Dim web_ReadIndex As Long
-    
+
     ' Find status line and blank line before body
     web_StatusLineIndex = web_FindStatusLine(web_CurlResponseLines)
     web_BlankLineIndex = web_FindBlankLine(web_CurlResponseLines)
-    
+
     ' Extract headers string
     ReDim web_HeaderLines(0 To web_BlankLineIndex - 2 - web_StatusLineIndex)
-    
+
     web_WriteIndex = 0
     For web_ReadIndex = (web_StatusLineIndex + 1) To web_BlankLineIndex - 1
         web_HeaderLines(web_WriteIndex) = web_CurlResponseLines(web_ReadIndex)
         web_WriteIndex = web_WriteIndex + 1
     Next web_ReadIndex
-    
+
     web_ExtractHeadersFromCurlResponse = VBA.Join$(web_HeaderLines, vbCrLf)
 End Function
 
@@ -363,19 +363,19 @@ Private Function web_ExtractResponseTextFromCurlResponse(web_CurlResponseLines()
     Dim web_BodyLines() As String
     Dim web_WriteIndex As Long
     Dim web_ReadIndex As Long
-    
+
     ' Find blank line before body
     web_BlankLineIndex = web_FindBlankLine(web_CurlResponseLines)
-    
+
     ' Extract body string
     ReDim web_BodyLines(0 To UBound(web_CurlResponseLines) - web_BlankLineIndex - 1)
-    
+
     web_WriteIndex = 0
     For web_ReadIndex = web_BlankLineIndex + 1 To UBound(web_CurlResponseLines)
         web_BodyLines(web_WriteIndex) = web_CurlResponseLines(web_ReadIndex)
         web_WriteIndex = web_WriteIndex + 1
     Next web_ReadIndex
-    
+
     web_ExtractResponseTextFromCurlResponse = VBA.Join$(web_BodyLines, vbCrLf)
 End Function
 

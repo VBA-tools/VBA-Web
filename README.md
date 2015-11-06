@@ -6,7 +6,7 @@ VBA-Web (formerly Excel-REST) makes working with complex webservices and APIs ea
 Getting started
 ---------------
 
-- Download the [latest release (v4.0.19)](https://github.com/VBA-tools/VBA-Web/releases)
+- Download the [latest release (v4.0.20)](https://github.com/VBA-tools/VBA-Web/releases)
 - To install/upgrade in an existing file, use `VBA-Web - Installer.xlsm`
 - To start from scratch in Excel, `VBA-Web - Blank.xlsm` has everything setup and ready to go
 
@@ -39,19 +39,19 @@ Function GetDirections(Origin As String, Destination As String) As String
     ' and set a base url that all requests will be appended to
     Dim MapsClient As New WebClient
     MapsClient.BaseUrl = "https://maps.googleapis.com/maps/api/"
-    
+
     ' Use GetJSON helper to execute simple request and work with response
     Dim Resource As String
     Dim Response As WebResponse
-    
+
     Resource = "directions/json?" & _
         "origin=" & Origin & _
         "&destination=" & Destination & _
         "&sensor=false"
     Set Response = MapsClient.GetJSON(Resource)
-    
+
     ' => GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false
-    
+
     ProcessDirections Response
 End Function
 
@@ -70,13 +70,13 @@ Public Sub ProcessDirections(Response As WebResponse)
 End Sub
 ```
 
-There are 3 primary components in VBA-Web: 
+There are 3 primary components in VBA-Web:
 
 1. `WebRequest` for defining complex requests
 2. `WebClient` for executing requests
-3. `WebResponse` for dealing with responses. 
- 
-In the above example, the request is fairly simple, so we can skip creating a `WebRequest` and instead use the `Client.GetJSON` helper to GET json from a specific url. In processing the response, we can look at the `StatusCode` to make sure the request succeeded and then use the parsed json in the `Data` parameter to extract complex information from the response. 
+3. `WebResponse` for dealing with responses.
+
+In the above example, the request is fairly simple, so we can skip creating a `WebRequest` and instead use the `Client.GetJSON` helper to GET json from a specific url. In processing the response, we can look at the `StatusCode` to make sure the request succeeded and then use the parsed json in the `Data` parameter to extract complex information from the response.
 
 ### WebRequest Example
 
@@ -86,30 +86,30 @@ If you wish to have more control over the request, the following example uses `W
 Function GetDirections(Origin As String, Destination As String) As String
     Dim MapsClient As New WebClient
     MapsClient.BaseUrl = "https://maps.googleapis.com/maps/api/"
-    
+
     ' Create a WebRequest for getting directions
     Dim DirectionsRequest As New WebRequest
     DirectionsRequest.Resource = "directions/{format}"
     DirectionsRequest.Method = WebMethod.HttpGet
-    
-    ' Set the request format 
+
+    ' Set the request format
     ' -> Sets content-type and accept headers and parses the response
     DirectionsRequest.Format = WebFormat.Json
-    
+
     ' Replace {format} segment
     DirectionsRequest.AddUrlSegment "format", "json"
-    
+
     ' Add querystring to the request
     DirectionsRequest.AddQuerystringParam "origin", Origin
     DirectionsRequest.AddQuerystringParam "destination", Destination
     DirectionsRequest.AddQuerystringParam "sensor", "false"
-    
+
     ' => GET https://maps.../api/directions/json?origin=...&destination=...&sensor=false
-    
+
     ' Execute the request and work with the response
     Dim Response As WebResponse
     Set Response = MapsClient.Execute(DirectionsRequest)
-    
+
     ProcessDirections Response
 End Function
 
@@ -138,14 +138,14 @@ The following example demonstrates using an authenticator with VBA-Web to query 
 Function QueryTwitter(Query As String) As WebResponse
     Dim TwitterClient As New WebClient
     TwitterClient.BaseUrl = "https://api.twitter.com/1.1/"
-    
+
     ' Setup authenticator
     Dim TwitterAuth As New TwitterAuthenticator
     TwitterAuth.Setup _
         ConsumerKey:="Your consumer key", _
         ConsumerSecret:="Your consumer secret"
     Set TwitterClient.Authenticator = TwitterAuth
-    
+
     ' Setup query request
     Dim Request As New WebRequest
     Request.Resource = "search/tweets.json"
@@ -154,10 +154,10 @@ Function QueryTwitter(Query As String) As WebResponse
     Request.AddParameter "q", Query
     Request.AddParameter "lang", "en"
     Request.AddParameter "count", 20
-    
+
     ' => GET https://api.twitter.com/1.1/search/tweets.json?q=...&lang=en&count=20
     '    Authorization Bearer Token... (received and added automatically via TwitterAuthenticator)
-    
+
     Set QueryTwitter = TwitterClient.Execute(Request)
 End Function
 ```

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebClient v4.0.19
+' WebClient v4.0.20
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' `WebClient` executes requests and handles response and is responsible for functionality shared between requests,
@@ -242,22 +242,22 @@ End Property
 Public Function Execute(Request As WebRequest) As WebResponse
     Dim web_Http As Object
     Dim web_Response As New WebResponse
-    
+
     On Error GoTo web_ErrorHandling
-    
+
 #If Mac Then
     Dim web_Curl As String
     Dim web_Result As ShellResult
-    
+
     web_Curl = Me.PrepareCurlRequest(Request)
     web_Result = WebHelpers.ExecuteInShell(web_Curl)
-    
+
     ' Handle cURL errors
     If web_Result.ExitCode > 0 Then
         Dim web_ErrorNumber As Long
         Dim web_ErrorMessage As String
         web_ErrorNumber = web_Result.ExitCode / 256
-        
+
         Select Case web_ErrorNumber
         Case 1
             ' 1 = CURLE_UNSUPPORTED_PROTOCOL
@@ -284,42 +284,42 @@ Public Function Execute(Request As WebRequest) As WebResponse
                 "Find details at http://curl.haxx.se/libcurl/c/libcurl-errors.html"
         End Select
     End If
-    
+
     web_Response.CreateFromCurl Me, Request, web_Result.Output
 
 #Else
     Set web_Http = Me.PrepareHttpRequest(Request)
-    
+
     web_Http.Send Request.Body
     Do While Not web_Http.WaitForResponse(25)
         VBA.DoEvents
     Loop
-    
+
     web_Response.CreateFromHttp Me, Request, web_Http
-    
+
 #End If
 
     WebHelpers.LogResponse Me, Request, web_Response
-    
+
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.AfterExecute Me, Request, web_Response
     End If
-    
+
     Set web_Http = Nothing
     Set Execute = web_Response
     Exit Function
-    
+
 web_ErrorHandling:
 
     Set web_Http = Nothing
     Dim web_ErrorDescription As String
-    
+
     Select Case Err.Number - vbObjectError
     Case 208610, 208615, 208637
         ' Return 408
         web_Response.StatusCode = WebStatusCode.RequestTimeout
         web_Response.StatusDescription = "Request Timeout"
-        
+
         WebHelpers.LogResponse Me, Request, web_Response
         Set Execute = web_Response
         Err.Clear
@@ -327,7 +327,7 @@ web_ErrorHandling:
         ' Error
         web_ErrorDescription = "An error occurred during execute" & vbNewLine & _
             Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
-        
+
         WebHelpers.LogError web_ErrorDescription, "WebClient.Execute", 11011 + vbObjectError
         Err.Raise 11011 + vbObjectError, "WebClient.Execute", web_ErrorDescription
     End Select
@@ -370,7 +370,7 @@ Public Function GetJson(Url As String, Optional Options As Dictionary) As WebRes
     web_Request.Resource = Url
     web_Request.Format = WebFormat.Json
     web_Request.Method = WebMethod.HttpGet
-    
+
     Set GetJson = Me.Execute(web_Request)
 End Function
 
@@ -422,7 +422,7 @@ Public Function PostJson(Url As String, Body As Variant, Optional Options As Dic
     Else
         web_Request.Body = Body
     End If
-    
+
     Set PostJson = Me.Execute(web_Request)
 End Function
 
@@ -451,7 +451,7 @@ End Function
 ''
 Public Sub SetProxy(ProxyServer As String, _
     Optional Username As String = "", Optional Password As String = "", Optional BypassList As String = "")
-    
+
     Me.ProxyServer = ProxyServer
     Me.ProxyUsername = Username
     Me.ProxyPassword = Password
@@ -481,31 +481,31 @@ End Function
 Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Boolean = True) As Object
     Dim web_Http As Object
     Dim web_KeyValue As Dictionary
-    
+
     On Error GoTo web_ErrorHandling
-    
+
     Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
-    
+
     ' Prepare request (before open)
     web_BeforeExecute Request
-    
+
     ' Open http request
     web_Http.Open WebHelpers.MethodToName(Request.Method), Me.GetFullUrl(Request), Async
-    
+
     ' Set timeouts
     web_Http.SetTimeouts Me.TimeoutMs, Me.TimeoutMs, Me.TimeoutMs, Me.TimeoutMs
-    
+
     ' Load auto-proxy (if needed)
     If Me.EnableAutoProxy Then
         web_LoadAutoProxy Request
     End If
-    
+
     ' Setup proxy
     ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
     If Me.ProxyServer <> "" Then
         WebHelpers.LogDebug "SetProxy: " & Me.ProxyServer, "WebClient.PrepareHttpRequest"
         web_Http.SetProxy web_HttpRequest_ProxySetting_Proxy, Me.ProxyServer, Me.ProxyBypassList
-        
+
         If Me.ProxyUsername <> "" Then
             WebHelpers.LogDebug "SetProxyCredentials: " & Me.ProxyUsername & ", " & WebHelpers.Obfuscate(Me.ProxyPassword), "WebClient.PrepareHttpRequest"
             web_Http.SetCredentials Me.ProxyUsername, Me.ProxyPassword, web_HttpRequest_SetCredentials_ForProxy
@@ -514,7 +514,7 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
         ' Attempt to get proxy setup with Proxycfg.exe, otherwise direct
         web_Http.SetProxy web_HttpRequest_ProxySetting_PreConfig
     End If
-    
+
     ' Setup security
     If Me.Insecure Then
         ' - Disable certifcate revocation check
@@ -537,29 +537,29 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 0
         web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = False
     End If
-    
+
     ' Setup redirects
     web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = Me.FollowRedirects
-    
+
     ' Set headers on http request (after open)
     For Each web_KeyValue In Request.Headers
         web_Http.SetRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
     Next web_KeyValue
-    
+
     For Each web_KeyValue In Request.Cookies
         web_Http.SetRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
     Next web_KeyValue
-    
+
     ' Give authenticator opportunity to update Http
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.PrepareHttp Me, Request, web_Http
     End If
-    
+
     ' Log request and return
     WebHelpers.LogRequest Me, Request
     Set PrepareHttpRequest = web_Http
     Exit Function
-    
+
 web_ErrorHandling:
 
     Set web_Http = Nothing
@@ -581,23 +581,23 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     Dim web_Curl As String
     Dim web_KeyValue As Dictionary
     Dim web_CookieString As String
-    
+
     On Error GoTo web_ErrorHandling
-    
+
     web_Curl = "curl -i"
-    
+
     ' Setup authenticator
     web_BeforeExecute Request
-    
+
     ' Set timeouts
     ' (max time = resolve + sent + receive)
     web_Curl = web_Curl & " --connect-timeout " & Me.TimeoutMs / 1000
     web_Curl = web_Curl & " --max-time " & 3 * Me.TimeoutMs / 1000
-    
+
     ' Setup proxy
     If Me.ProxyServer <> "" Then
         web_Curl = web_Curl & " --proxy " & Me.ProxyServer
-        
+
         If Me.ProxyBypassList <> "" Then
             web_Curl = web_Curl & " --noproxy " & Me.ProxyBypassList
         End If
@@ -605,44 +605,44 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
             web_Curl = web_Curl & " --proxy-user " & Me.ProxyUsername & ":" & Me.ProxyPassword
         End If
     End If
-    
+
     ' Setup security
     If Me.Insecure Then
         web_Curl = web_Curl & " --insecure"
     End If
-    
+
     ' Setup redirects
     If Me.FollowRedirects Then
         web_Curl = web_Curl & " --location"
     End If
-    
+
     ' Set headers and cookies
     For Each web_KeyValue In Request.Headers
         web_Curl = web_Curl & " -H '" & web_KeyValue("Key") & ": " & web_KeyValue("Value") & "'"
     Next web_KeyValue
-    
+
     For Each web_KeyValue In Request.Cookies
         web_CookieString = web_CookieString & web_KeyValue("Key") & "=" & web_KeyValue("Value") & ";"
     Next web_KeyValue
     If web_CookieString <> "" Then
         web_Curl = web_Curl & " --cookie '" & web_CookieString & "'"
     End If
-    
+
     ' Add method, data, and url
     web_Curl = web_Curl & " -X " & WebHelpers.MethodToName(Request.Method)
     web_Curl = web_Curl & " -d '" & Request.Body & "'"
     web_Curl = web_Curl & " '" & Me.GetFullUrl(Request) & "'"
-    
+
     ' Give authenticator opportunity to update cURL
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.PrepareCurl Me, Request, web_Curl
     End If
-    
+
     ' Log request and return
     WebHelpers.LogRequest Me, Request
     PrepareCurlRequest = web_Curl
     Exit Function
-    
+
 web_ErrorHandling:
 
     Err.Raise 11013 + vbObjectError, "WebClient.PrepareCURLRequest", _
@@ -678,7 +678,7 @@ Private Sub web_BeforeExecute(web_Request As WebRequest)
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.BeforeExecute Me, web_Request
     End If
-    
+
     ' Preparing request includes adding headers
     ' -> Needs to happen after BeforeExecute in case headers were changed
     web_Request.Prepare
@@ -687,7 +687,7 @@ End Sub
 Private Sub web_LoadAutoProxy(web_Request As WebRequest)
 #If Win32 Or Win64 Then
     On Error GoTo web_ErrorHandling
-    
+
     Dim web_Parts As Dictionary
     Dim web_Domain As String
     Dim web_ProxyServer As String
@@ -696,27 +696,27 @@ Private Sub web_LoadAutoProxy(web_Request As WebRequest)
     Set web_Parts = WebHelpers.GetUrlParts(Me.GetFullUrl(web_Request))
     web_Domain = VBA.IIf(web_Parts("Protocol") <> "", web_Parts("Protocol") & "://", "") & _
         web_Parts("Host") & ":" & web_Parts("Port")
-      
+
     ' Cache auto-proxy by domain
     If web_Domain <> web_pAutoProxyDomain Then
         ' Cache first to store error as no proxy
         web_pAutoProxyDomain = web_Domain
-        
+
         WebHelpers.GetAutoProxy web_Domain, web_ProxyServer, web_ProxyBypassList
-        
+
         WebHelpers.LogDebug "Loaded auto-proxy for " & web_Domain & ":" & vbNewLine & _
             "Server = " & web_ProxyServer & vbNewLine & _
             "Bypass List = " & web_ProxyBypassList
-        
+
         ' Store proxy server in underlying to avoid turning off auto-proxy
         web_pProxyServer = web_ProxyServer
         Me.ProxyBypassList = web_ProxyBypassList
     End If
-       
+
     Exit Sub
-     
+
 web_ErrorHandling:
-    
+
     LogError "An error occurred while loading auto-proxy" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description, _
         "WebClient.LoadAutoProxy", Err.Number

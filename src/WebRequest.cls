@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebRequest v4.0.19
+' WebRequest v4.0.20
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' `WebRequest` is used to create detailed requests
@@ -228,7 +228,7 @@ End Property
 Public Property Let RequestFormat(Value As WebFormat)
     If Value <> web_pRequestFormat Then
         web_pRequestFormat = Value
-    
+
         ' Clear cached converted body
         web_pConvertedBody = Empty
     End If
@@ -264,7 +264,7 @@ End Property
 Public Property Let ResponseFormat(Value As WebFormat)
     If Value <> web_pResponseFormat Then
         web_pResponseFormat = Value
-        
+
         ' Clear cached converted body
         web_pConvertedBody = Empty
     End If
@@ -296,10 +296,10 @@ End Property
 Public Property Let CustomRequestFormat(Value As String)
     If Value <> web_pCustomRequestFormat Then
         web_pCustomRequestFormat = Value
-        
+
         ' Clear cached converted body
         web_pConvertedBody = Empty
-        
+
         If Value <> "" Then
             web_pRequestFormat = WebFormat.Custom
         End If
@@ -332,10 +332,10 @@ End Property
 Public Property Let CustomResponseFormat(Value As String)
     If Value <> web_pCustomResponseFormat Then
         web_pCustomResponseFormat = Value
-        
+
         ' Clear cached converted body
         web_pConvertedBody = Empty
-        
+
         If Value <> "" Then
             ResponseFormat = WebFormat.Custom
         End If
@@ -497,14 +497,14 @@ End Property
 ''
 Public Property Get FormattedResource() As String
     Dim web_Segment As Variant
-    
+
     FormattedResource = Me.Resource
-    
+
     ' Replace url segments
     For Each web_Segment In Me.UrlSegments.Keys
         FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", WebHelpers.UrlEncode(Me.UrlSegments(web_Segment)))
     Next web_Segment
-    
+
     ' Add querystring
     If Me.QuerystringParams.Count > 0 Then
         If VBA.InStr(FormattedResource, "?") <= 0 Then
@@ -512,7 +512,7 @@ Public Property Get FormattedResource() As String
         Else
             FormattedResource = FormattedResource & "&"
         End If
-        
+
         FormattedResource = FormattedResource & WebHelpers.ConvertToUrlEncoded(Me.QuerystringParams)
     End If
 End Property
@@ -685,11 +685,11 @@ Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     ElseIf Not TypeOf web_pBody Is Dictionary Then
         Dim web_ErrorDescription As String
         web_ErrorDescription = "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)"
-    
+
         WebHelpers.LogError web_ErrorDescription, "WebRequest.AddBodyParameter", 11020 + vbObjectError
         Err.Raise 11020 + vbObjectError, "WebRequest.AddBodyParameter", web_ErrorDescription
     End If
-    
+
     If VBA.IsObject(Value) Then
         Set web_pBody(Key) = Value
     Else
@@ -723,7 +723,7 @@ End Sub
 ''
 Public Function Clone() As WebRequest
     Set Clone = New WebRequest
-    
+
     ' Note: Clone underlying for properties with default values
     Clone.Resource = Me.Resource
     Clone.Method = Me.Method
@@ -734,12 +734,12 @@ Public Function Clone() As WebRequest
     Clone.ResponseFormat = Me.ResponseFormat
     Clone.CustomRequestFormat = Me.CustomRequestFormat
     Clone.CustomResponseFormat = Me.CustomResponseFormat
-    
+
     Set Clone.Headers = WebHelpers.CloneCollection(Me.Headers)
     Set Clone.QuerystringParams = WebHelpers.CloneCollection(Me.QuerystringParams)
     Set Clone.UrlSegments = WebHelpers.CloneDictionary(Me.UrlSegments)
     Set Clone.Cookies = WebHelpers.CloneCollection(Me.Cookies)
-    
+
     If VBA.IsObject(web_pBody) Then
         Set Clone.Body = web_pBody
     Else
@@ -782,7 +782,7 @@ Private Sub Class_Initialize()
     ' Set default values
     Me.RequestFormat = WebFormat.Json
     Me.ResponseFormat = WebFormat.Json
-    
+
     Set Me.Headers = New Collection
     Set Me.QuerystringParams = New Collection
     Set Me.UrlSegments = New Dictionary

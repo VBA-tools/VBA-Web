@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebAsyncWrapper v4.0.19
+' WebAsyncWrapper v4.0.20
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Wrapper WebClient and WebRequest that enables callback-style async requests
@@ -84,7 +84,7 @@ Public Property Set Client(Value As WebClient)
         Dim web_ErrorDescription As String
         web_ErrorDescription = "The Client for a WebAsyncWrapper should not be changed as it may affect any currently executing Requests. " & _
             "A new WebAsyncWrapper should be created for each WebClient."
-        
+
         WebHelpers.LogError web_ErrorDescription, "WebAsyncWrapper.Client", vbObjectError + 11050
         Err.Raise vbObjectError + 11050, "WebAsyncWrapper.Client", web_ErrorDescription
     End If
@@ -107,7 +107,7 @@ Public Sub ExecuteAsync(Request As WebRequest, Callback As String, Optional ByVa
     ' - AsyncWrapper can only watch one WinHttpRequest's events
     ' - Callback + CallbackArgs would need to be stored per Request
     Dim web_Async As WebAsyncWrapper
-    
+
     Set web_Async = Me.Clone
     web_Async.PrepareAndExecuteRequest Request, Callback, CallbackArgs
 End Sub
@@ -138,19 +138,19 @@ Public Sub PrepareAndExecuteRequest(Request As WebRequest, Callback As String, O
 
     Me.Callback = Callback
     Me.CallbackArgs = CallbackArgs
-    
+
     Set Me.Request = Request.Clone
     Set Me.Http = Me.Client.PrepareHttpRequest(Request)
 
     web_StartTimeoutTimer
     Me.Http.Send Request.Body
     Exit Sub
-    
+
 web_ErrorHandling:
-    
+
     Set Me.Http = Nothing
     Set Me.Request = Nothing
-    
+
     ' Rethrow error
     Err.Raise Err.Number, Err.Source, Err.Description
 End Sub
@@ -163,10 +163,10 @@ End Sub
 ''
 Public Sub TimedOut()
     Dim web_Response As New WebResponse
-    
+
     web_StopTimeoutTimer
     WebHelpers.LogDebug "Timed out", "WebAsyncWrapper.TimedOut"
-    
+
     ' Callback
     web_Response.StatusCode = WebStatusCode.RequestTimeout
     web_Response.StatusDescription = "Request Timeout"
@@ -191,9 +191,9 @@ Private Sub web_RunCallback(web_Response As WebResponse)
     '         Debug.Print args(i) & " was passed into async execute"
     '     Next i
     ' End Function
-    
+
     WebHelpers.LogResponse Me.Client, Me.Request, web_Response
-    
+
     If Not Me.Client.Authenticator Is Nothing Then
         Me.Client.Authenticator.AfterExecute Me.Client, Me.Request, web_Response
     End If
@@ -205,7 +205,7 @@ Private Sub web_RunCallback(web_Response As WebResponse)
             Application.Run Me.Callback, web_Response
         End If
     End If
-    
+
     Set Me.Http = Nothing
     Set Me.Request = Nothing
 End Sub
@@ -215,13 +215,13 @@ Private Sub web_StartTimeoutTimer()
     Dim web_TimeoutS As Long
 
     If WebHelpers.AsyncRequests Is Nothing Then: Set WebHelpers.AsyncRequests = New Dictionary
-    
+
     ' Round ms to seconds with minimum of 1 second if ms > 0
     web_TimeoutS = Round(Me.Client.TimeoutMs / 1000, 0)
     If Me.Client.TimeoutMs > 0 And web_TimeoutS = 0 Then
         web_TimeoutS = 1
     End If
-    
+
     WebHelpers.AsyncRequests.Add Me.Request.Id, Me
     Application.OnTime Now + TimeValue("00:00:" & web_TimeoutS), "'WebHelpers.OnTimeoutTimerExpired """ & Me.Request.Id & """'"
 End Sub
@@ -238,9 +238,9 @@ End Sub
 ' Process asynchronous requests
 Private Sub Http_OnResponseFinished()
     Dim web_Response As New WebResponse
-    
+
     web_StopTimeoutTimer
-    
+
     ' Callback
     web_Response.CreateFromHttp Me.Client, Me.Request, Me.Http
     web_RunCallback web_Response

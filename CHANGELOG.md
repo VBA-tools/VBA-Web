@@ -28,6 +28,7 @@ Major Changes:
 - __4.0.17__ Add `FollowRedirects` and follow redirects by default, convert stored body to Variant, fix multiple 100 Continue bug
 - __4.0.18__ Add `VBA.Randomize` to `CreateNonce` and add `TodoistAuthenticator`
 - __4.0.19__ Fix installer and update VBA-JSON to v1.0.3
+- __4.0.20__ Update VBA-JSON to v2.0.1 (Note: Breaking change in VBA-JSON, Solidus is no longer escaped by default)
 
 Breaking Changes:
 
