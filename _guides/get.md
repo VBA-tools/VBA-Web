@@ -48,7 +48,7 @@ Public Function GetProject2(Id As Long) As Dictionary
     Set Response = Client.GetJson("projects/" & Id)
 
     If Response.StatusCode = WebStatus.Ok Then
-        Set GetProject = Response.Data("data")
+        Set GetProject2 = Response.Data("data")
     End If
 End Function
 ```
