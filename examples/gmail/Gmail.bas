@@ -10,7 +10,7 @@ Private Property Get GmailClient() As WebClient
         ' Use the pre-made GoogleAuthenticator found in authenticators/ folder
         ' - Automatically uses Google's OAuth approach including login screen
         ' - Get API client id and secret from https://console.developers.google.com/
-        ' - https://github.com/timhall/Excel-REST/wiki/Google-APIs for more info
+        ' - https://github.com/VBA-tools/VBA-Web/wiki/Google-APIs for more info
         Dim Auth As New GoogleAuthenticator
         Auth.Setup CStr(Credentials.Values("Google")("id")), CStr(Credentials.Values("Google")("secret"))
         Auth.AddScope "https://www.googleapis.com/auth/gmail.readonly"
