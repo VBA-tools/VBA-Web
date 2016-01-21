@@ -22,6 +22,9 @@ Public Function Specs() As SpecSuite
     Dim Cookies As Collection
     Dim Curl As String
     
+    Dim web_CrLf As String
+    web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)
+    
     Client.BaseUrl = HttpbinBaseUrl
     Client.TimeoutMs = 5000
     
@@ -173,13 +176,13 @@ Public Function Specs() As SpecSuite
         Set Response = New WebResponse
         
         Request.Format = WebFormat.PlainText
-        Curl = "HTTP/1.1 100 Continue" & vbCrLf & _
-            vbCrLf & _
-            "HTTP/1.1 100 Continue" & vbCrLf & _
-            vbCrLf & _
-            "HTTP/1.1 200 OK" & vbCrLf & _
-            "Set-Cookie: message=Howdy!" & vbCrLf & _
-            vbCrLf & _
+        Curl = "HTTP/1.1 100 Continue" & web_CrLf & _
+            web_CrLf & _
+            "HTTP/1.1 100 Continue" & web_CrLf & _
+            web_CrLf & _
+            "HTTP/1.1 200 OK" & web_CrLf & _
+            "Set-Cookie: message=Howdy!" & web_CrLf & _
+            web_CrLf & _
             "Text"
         
         Response.CreateFromCurl Client, Request, Curl
@@ -195,10 +198,10 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("ExtractHeaders should extract headers from response headers")
         Set Response = New WebResponse
-        ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
-            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
-            "Content-Length: 2" & vbCrLf & _
-            "Content-Type: text/plain" & vbCrLf & _
+        ResponseHeaders = "Connection: keep -alive" & web_CrLf & _
+            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & web_CrLf & _
+            "Content-Length: 2" & web_CrLf & _
+            "Content-Type: text/plain" & web_CrLf & _
             "Set-Cookie: cookie=simple-cookie; Path=/"
 
         Set Headers = Response.ExtractHeaders(ResponseHeaders)
@@ -210,20 +213,20 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("ExtractHeaders should extract multi-line headers from response headers")
         Set Response = New WebResponse
-        ResponseHeaders = "Connection: keep-alive" & vbCrLf & _
-            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
-            "WWW-Authenticate: Digest realm=""abc@host.com""" & vbCrLf & _
-            "nonce=""abc""" & vbCrLf & _
-            "qop=auth" & vbCrLf & _
-            "opaque=""abc""" & vbCrLf & _
+        ResponseHeaders = "Connection: keep-alive" & web_CrLf & _
+            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & web_CrLf & _
+            "WWW-Authenticate: Digest realm=""abc@host.com""" & web_CrLf & _
+            "nonce=""abc""" & web_CrLf & _
+            "qop=auth" & web_CrLf & _
+            "opaque=""abc""" & web_CrLf & _
             "Set-Cookie: cookie=simple-cookie; Path=/"
 
         Set Headers = Response.ExtractHeaders(ResponseHeaders)
         .Expect(Headers.Count).ToEqual 4
         .Expect(Headers.Item(3)("Key")).ToEqual "WWW-Authenticate"
-        .Expect(Headers.Item(3)("Value")).ToEqual "Digest realm=""abc@host.com""" & vbCrLf & _
-            "nonce=""abc""" & vbCrLf & _
-            "qop=auth" & vbCrLf & _
+        .Expect(Headers.Item(3)("Value")).ToEqual "Digest realm=""abc@host.com""" & web_CrLf & _
+            "nonce=""abc""" & web_CrLf & _
+            "qop=auth" & web_CrLf & _
             "opaque=""abc"""
     End With
     
@@ -231,14 +234,14 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("should extract cookies from response headers")
         Set Response = New WebResponse
-        ResponseHeaders = "Connection: keep -alive" & vbCrLf & _
-            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & vbCrLf & _
-            "Content-Length: 2" & vbCrLf & _
-            "Content-Type: text/plain" & vbCrLf & _
-            "Set-Cookie: unsigned-cookie=simple-cookie; Path=/" & vbCrLf & _
-            "Set-Cookie: signed-cookie=s%3Aspecial-cookie.1Ghgw2qpDY93QdYjGFPDLAsa3%2FI0FCtO%2FvlxoHkzF%2BY; Path=/" & vbCrLf & _
-            "Set-Cookie: duplicate-cookie=A; Path=/" & vbCrLf & _
-            "Set-Cookie: duplicate-cookie=B" & vbCrLf & _
+        ResponseHeaders = "Connection: keep -alive" & web_CrLf & _
+            "Date: Tue, 18 Feb 2014 15:00:26 GMT" & web_CrLf & _
+            "Content-Length: 2" & web_CrLf & _
+            "Content-Type: text/plain" & web_CrLf & _
+            "Set-Cookie: unsigned-cookie=simple-cookie; Path=/" & web_CrLf & _
+            "Set-Cookie: signed-cookie=s%3Aspecial-cookie.1Ghgw2qpDY93QdYjGFPDLAsa3%2FI0FCtO%2FvlxoHkzF%2BY; Path=/" & web_CrLf & _
+            "Set-Cookie: duplicate-cookie=A; Path=/" & web_CrLf & _
+            "Set-Cookie: duplicate-cookie=B" & web_CrLf & _
             "X-Powered-By: Express"
 
         Set Headers = Response.ExtractHeaders(ResponseHeaders)
@@ -249,8 +252,8 @@ Public Function Specs() As SpecSuite
     
     With Specs.It("should use RFC 6265 for decoding cookies")
         Set Response = New WebResponse
-        ResponseHeaders = "Set-Cookie: a=plus+plus" & vbCrLf & _
-            "Set-Cookie: b=""quotes""" & vbCrLf & _
+        ResponseHeaders = "Set-Cookie: a=plus+plus" & web_CrLf & _
+            "Set-Cookie: b=""quotes""" & web_CrLf & _
             "Set-Cookie: c=semi-colon; Path=/"
 
         Set Headers = Response.ExtractHeaders(ResponseHeaders)

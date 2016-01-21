@@ -38,6 +38,8 @@ Attribute VB_Exposed = True
 '' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
+Private web_CrLf As String
+
 ' --------------------------------------------- '
 ' Properties
 ' --------------------------------------------- '
@@ -168,7 +170,7 @@ Public Sub CreateFromCurl(Client As WebClient, Request As WebRequest, Result As 
 
     Dim web_Lines() As String
 
-    web_Lines = VBA.Split(Result, vbCrLf)
+    web_Lines = VBA.Split(Result, web_CrLf)
 
     Me.StatusCode = web_ExtractStatusFromCurlResponse(web_Lines)
     Me.StatusDescription = web_ExtractStatusTextFromCurlResponse(web_Lines)
@@ -208,7 +210,7 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
     Dim web_ColonPosition As Long
     Dim web_Multiline As Boolean
 
-    web_Lines = VBA.Split(ResponseHeaders, vbCrLf)
+    web_Lines = VBA.Split(ResponseHeaders, web_CrLf)
 
     For web_i = LBound(web_Lines) To (UBound(web_Lines) + 1)
         If web_i > UBound(web_Lines) Then
@@ -233,7 +235,7 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
                     Value:=VBA.Trim(VBA.Mid$(web_Lines(web_i), web_ColonPosition + 1, VBA.Len(web_Lines(web_i)))) _
                 )
             Else
-                web_Header("Value") = web_Header("Value") & vbCrLf & web_Lines(web_i)
+                web_Header("Value") = web_Header("Value") & web_CrLf & web_Lines(web_i)
             End If
         End If
     Next web_i
@@ -355,7 +357,7 @@ Private Function web_ExtractHeadersFromCurlResponse(web_CurlResponseLines() As S
         web_WriteIndex = web_WriteIndex + 1
     Next web_ReadIndex
 
-    web_ExtractHeadersFromCurlResponse = VBA.Join$(web_HeaderLines, vbCrLf)
+    web_ExtractHeadersFromCurlResponse = VBA.Join$(web_HeaderLines, web_CrLf)
 End Function
 
 Private Function web_ExtractResponseTextFromCurlResponse(web_CurlResponseLines() As String) As String
@@ -376,7 +378,7 @@ Private Function web_ExtractResponseTextFromCurlResponse(web_CurlResponseLines()
         web_WriteIndex = web_WriteIndex + 1
     Next web_ReadIndex
 
-    web_ExtractResponseTextFromCurlResponse = VBA.Join$(web_BodyLines, vbCrLf)
+    web_ExtractResponseTextFromCurlResponse = VBA.Join$(web_BodyLines, web_CrLf)
 End Function
 
 Private Function web_FindStatusLine(web_CurlResponseLines() As String) As Long
@@ -400,6 +402,8 @@ Private Function web_FindBlankLine(web_CurlResponseLines() As String) As Long
 End Function
 
 Private Sub Class_Initialize()
+    web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)
+
     Set Headers = New Collection
     Set Cookies = New Collection
 End Sub

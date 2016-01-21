@@ -159,11 +159,14 @@ End Function
 ''
 Public Sub ExtractAuthenticateInformation(Response As WebResponse)
     Dim auth_Header As String
+    Dim web_CrLf As String
+    
     auth_Header = WebHelpers.FindInKeyValues(Response.Headers, "WWW-Authenticate")
+    web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)
     
     If auth_Header <> "" And VBA.Left$(auth_Header, 6) = "Digest" Then
         Dim auth_Lines As Variant
-        auth_Lines = VBA.Split(VBA.Mid$(auth_Header, 7), vbCrLf)
+        auth_Lines = VBA.Split(VBA.Mid$(auth_Header, 7), web_CrLf)
         
         Dim auth_i As Integer
         Dim auth_Key As String
