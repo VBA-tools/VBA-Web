@@ -717,7 +717,7 @@ Private Sub web_LoadAutoProxy(web_Request As WebRequest)
 
 web_ErrorHandling:
 
-    LogError "An error occurred while loading auto-proxy" & vbNewLine & _
+    WebHelpers.LogError "An error occurred while loading auto-proxy" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description, _
         "WebClient.LoadAutoProxy", Err.Number
 #End If
