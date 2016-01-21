@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "DigestAuthenticator"
     
+    Dim web_CrLf As String
+    web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)
+    
     Dim Auth As New DigestAuthenticator
     Auth.Setup "Mufasa", "Circle Of Life"
     Auth.Realm = "testrealm@host.com"
@@ -54,9 +57,9 @@ Public Function Specs() As SpecSuite
         Dim Unauthorized As New WebResponse
         Unauthorized.StatusCode = 401
         
-        Unauthorized.Headers.Add WebHelpers.CreateKeyValue("WWW-Authenticate", "Digest realm=""testrealm@host.com""," & vbCrLf & _
-                            "qop=""auth,auth-int""," & vbCrLf & _
-                            "nonce=""dcd98b7102dd2f0e8b11d0f600bfb0c093""," & vbCrLf & _
+        Unauthorized.Headers.Add WebHelpers.CreateKeyValue("WWW-Authenticate", "Digest realm=""testrealm@host.com""," & web_CrLf & _
+                            "qop=""auth,auth-int""," & web_CrLf & _
+                            "nonce=""dcd98b7102dd2f0e8b11d0f600bfb0c093""," & web_CrLf & _
                             "Opaque = ""5ccc069c403ebaf9f0171e9517f40e41""")
     
         Auth.Realm = ""
