@@ -1,7 +1,7 @@
 Attribute VB_Name = "Specs_WebAsyncWrapper"
 ''
 ' Specs_WebAsyncWrapper
-' (c) Tim Hall - https://github.com/timhall/Excel-REST
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Specs for WebAsyncWrapper
 '

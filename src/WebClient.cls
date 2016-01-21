@@ -347,7 +347,7 @@ End Function
 ' Set Response = Client.GetJson(Url)
 '
 ' Dim Headers As New Collection
-' Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+' Headers.Add WebHelpers.CreateKeyValue("Authorization", "Bearer ...")
 '
 ' Dim Options As New Dictionary
 ' Options.Add "Headers", Headers
@@ -393,7 +393,7 @@ End Function
 ' Set Response = Client.PostJson(Url, Body)
 '
 ' Dim Headers As New Collection
-' Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+' Headers.Add WebHelpers.CreateKeyValue("Authorization", "Bearer ...")
 '
 ' Dim Options As New Dictionary
 ' Options.Add "Headers", Headers
