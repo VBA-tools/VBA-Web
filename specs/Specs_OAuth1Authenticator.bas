@@ -85,8 +85,8 @@ Public Function Specs() As SpecSuite
     Auth.Timestamp = "123456789"
     
     ExpectedBaseString = "GET" & "&" & _
-        UrlEncode("http://localhost:3000/testing") & "&" & _
-        UrlEncode("a=123&b=456" & _
+        WebHelpers.UrlEncode("http://localhost:3000/testing") & "&" & _
+        WebHelpers.UrlEncode("a=123&b=456" & _
             "&oauth_consumer_key=" & ConsumerKey & _
             "&oauth_nonce=1234&oauth_signature_method=HMAC-SHA1&oauth_timestamp=123456789" & _
             "&oauth_token=" & Token & _

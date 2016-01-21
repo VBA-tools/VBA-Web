@@ -347,7 +347,7 @@ End Function
 ' Set Response = Client.GetJson(Url)
 '
 ' Dim Headers As New Collection
-' Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+' Headers.Add WebHelpers.CreateKeyValue("Authorization", "Bearer ...")
 '
 ' Dim Options As New Dictionary
 ' Options.Add "Headers", Headers
@@ -393,7 +393,7 @@ End Function
 ' Set Response = Client.PostJson(Url, Body)
 '
 ' Dim Headers As New Collection
-' Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+' Headers.Add WebHelpers.CreateKeyValue("Authorization", "Bearer ...")
 '
 ' Dim Options As New Dictionary
 ' Options.Add "Headers", Headers
@@ -717,7 +717,7 @@ Private Sub web_LoadAutoProxy(web_Request As WebRequest)
 
 web_ErrorHandling:
 
-    LogError "An error occurred while loading auto-proxy" & vbNewLine & _
+    WebHelpers.LogError "An error occurred while loading auto-proxy" & vbNewLine & _
         Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description, _
         "WebClient.LoadAutoProxy", Err.Number
 #End If
