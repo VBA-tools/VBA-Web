@@ -1,6 +1,32 @@
 Attribute VB_Name = "Gmail"
-' Setup client and authenticator (cached between requests)
+Private pGmailClientId As String
+Private pGmailClientSecret As String
 Private pGmailClient As WebClient
+
+Private Property Get GmailClientId() As String
+    If pGmailClientId = "" Then
+        If Credentials.Loaded Then
+            pGmailClientId = Credentials.Values("Google")("id")
+        Else
+            pGmailClientId = InputBox("Please Enter Google API Client Id")
+        End If
+    End If
+    
+    GmailClientId = pGmailClientId
+End Property
+Private Property Get GmailClientSecret() As String
+    If pGmailClientSecret = "" Then
+        If Credentials.Loaded Then
+            pGmailClientSecret = Credentials.Values("Google")("secret")
+        Else
+            pGmailClientSecret = InputBox("Please Enter Google API Client Secret")
+        End If
+    End If
+    
+    GmailClientSecret = pGmailClientSecret
+End Property
+
+' Setup client and authenticator (cached between requests)
 Private Property Get GmailClient() As WebClient
     If pGmailClient Is Nothing Then
         ' Create client with base url that is appended to all requests
@@ -12,7 +38,7 @@ Private Property Get GmailClient() As WebClient
         ' - Get API client id and secret from https://console.developers.google.com/
         ' - https://github.com/VBA-tools/VBA-Web/wiki/Google-APIs for more info
         Dim Auth As New GoogleAuthenticator
-        Auth.Setup CStr(Credentials.Values("Google")("id")), CStr(Credentials.Values("Google")("secret"))
+        Auth.Setup CStr(GmailClientId), CStr(GmailClientSecret)
         Auth.AddScope "https://www.googleapis.com/auth/gmail.readonly"
         Auth.Login
         Set pGmailClient.Authenticator = Auth
