@@ -172,19 +172,53 @@ End Function
 Public Function CreateBaseString(auth_Nonce As String, auth_Timestamp As String, auth_Client As WebClient, auth_Request As WebRequest) As String
     Dim auth_Base As String
     Dim auth_Parameters As String
-    
-    ' Check for parameters and add to auth_Base if present
+    Dim arr_AuthParameters() As String
+    Dim arr_AuthLength As Integer
+        
+    ' Check for parameters and split by '&' if exists
     auth_Parameters = GetRequestParameters(auth_Client, auth_Request)
+    
     If auth_Parameters <> "" Then
-        auth_Base = auth_Parameters & "&"
+        arr_AuthParameters() = VBA.Split(auth_Parameters, "&")
+        arr_AuthLength = UBound(arr_AuthParameters)
+        ReDim Preserve arr_AuthParameters(arr_AuthLength + 6)
+    Else
+        arr_AuthLength = 0
+        ReDim Preserve arr_AuthParameters(0 To 5)
     End If
     
-    auth_Base = auth_Base & "oauth_consumer_key" & "=" & Me.ConsumerKey
-    auth_Base = auth_Base & "&" & "oauth_nonce" & "=" & auth_Nonce
-    auth_Base = auth_Base & "&" & "oauth_signature_method" & "=" & auth_SignatureMethod
-    auth_Base = auth_Base & "&" & "oauth_timestamp" & "=" & auth_Timestamp
-    auth_Base = auth_Base & "&" & "oauth_token" & "=" & Me.Token
-    auth_Base = auth_Base & "&" & "oauth_version=1.0"
+    ' Add oauth parameters to array
+    arr_AuthParameters(UBound(arr_AuthParameters)) = "oauth_version=1.0"
+    arr_AuthParameters(UBound(arr_AuthParameters) - 1) = "oauth_token" & "=" & Me.Token
+    arr_AuthParameters(UBound(arr_AuthParameters) - 2) = "oauth_timestamp" & "=" & auth_Timestamp
+    arr_AuthParameters(UBound(arr_AuthParameters) - 3) = "oauth_signature_method" & "=" & auth_SignatureMethod
+    arr_AuthParameters(UBound(arr_AuthParameters) - 4) = "oauth_nonce" & "=" & auth_Nonce
+    arr_AuthParameters(UBound(arr_AuthParameters) - 5) = "oauth_consumer_key" & "=" & Me.ConsumerKey
+    
+    ' Sort array in alphabetical order
+    Dim x As Long, y As Long
+    Dim str_Temp1 As String
+    Dim str_Temp2 As String
+    
+    For x = LBound(arr_AuthParameters) To UBound(arr_AuthParameters)
+        For y = x To UBound(arr_AuthParameters)
+            If UCase(arr_AuthParameters(y)) < UCase(arr_AuthParameters(x)) Then
+                str_Temp1 = arr_AuthParameters(x)
+                str_Temp2 = arr_AuthParameters(y)
+                arr_AuthParameters(x) = str_Temp2
+                arr_AuthParameters(y) = str_Temp1
+            End If
+        Next y
+    Next x
+                
+    ' Construct auth_base string from array
+    For Each arrItem In arr_AuthParameters
+        If auth_Base <> "" Then
+            auth_Base = auth_Base & "&" & arrItem
+        Else
+            auth_Base = arrItem
+        End If
+    Next arrItem
     
     CreateBaseString = WebHelpers.MethodToName(auth_Request.Method) & "&" & _
         WebHelpers.UrlEncode(GetRequestUrl(auth_Client, auth_Request), EncodeUnsafe:=False) & "&" & _
