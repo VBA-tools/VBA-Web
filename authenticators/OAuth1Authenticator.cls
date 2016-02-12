@@ -171,20 +171,21 @@ End Function
 ''
 Public Function CreateBaseString(auth_Nonce As String, auth_Timestamp As String, auth_Client As WebClient, auth_Request As WebRequest) As String
     Dim auth_Base As String
-    Dim auth_Parameters As String
+    Dim auth_Parameters() As String
     
-    ' Check for parameters and add to auth_Base if present
-    auth_Parameters = GetRequestParameters(auth_Client, auth_Request)
-    If auth_Parameters <> "" Then
-        auth_Base = auth_Parameters & "&"
-    End If
+    ' Add and sort parameters
+    auth_Parameters = VBA.Split(GetRequestParameters(auth_Client, auth_Request), "&")
+    ReDim Preserve auth_Parameters(UBound(auth_Parameters) + 6)
     
-    auth_Base = auth_Base & "oauth_consumer_key" & "=" & Me.ConsumerKey
-    auth_Base = auth_Base & "&" & "oauth_nonce" & "=" & auth_Nonce
-    auth_Base = auth_Base & "&" & "oauth_signature_method" & "=" & auth_SignatureMethod
-    auth_Base = auth_Base & "&" & "oauth_timestamp" & "=" & auth_Timestamp
-    auth_Base = auth_Base & "&" & "oauth_token" & "=" & Me.Token
-    auth_Base = auth_Base & "&" & "oauth_version=1.0"
+    auth_Parameters(UBound(auth_Parameters) - 5) = "oauth_consumer_key=" & Me.ConsumerKey
+    auth_Parameters(UBound(auth_Parameters) - 4) = "oauth_nonce=" & auth_Nonce
+    auth_Parameters(UBound(auth_Parameters) - 3) = "oauth_signature_method=" & auth_SignatureMethod
+    auth_Parameters(UBound(auth_Parameters) - 2) = "oauth_timestamp=" & auth_Timestamp
+    auth_Parameters(UBound(auth_Parameters) - 1) = "oauth_token=" & Me.Token
+    auth_Parameters(UBound(auth_Parameters)) = "oauth_version=1.0"
+    
+    auth_Parameters = SortParameters(auth_Parameters)
+    auth_Base = VBA.Join(auth_Parameters, "&")
     
     CreateBaseString = WebHelpers.MethodToName(auth_Request.Method) & "&" & _
         WebHelpers.UrlEncode(GetRequestUrl(auth_Client, auth_Request), EncodeUnsafe:=False) & "&" & _
@@ -251,16 +252,38 @@ End Function
 ' @return {String}
 ''
 Public Function GetRequestParameters(auth_Client As WebClient, auth_Request As WebRequest) As String
-    ' TODO Sort parameters by key then value
-    
     Dim auth_Parts As Dictionary
     Set auth_Parts = WebHelpers.GetUrlParts(auth_Client.GetFullUrl(auth_Request))
     
-    ' Remove leading ?
-    GetRequestParameters = auth_Parts("Querystring")
-    
     ' Replace + for spaces with %20
-    GetRequestParameters = Replace(GetRequestParameters, "+", "%20")
+    GetRequestParameters = VBA.Replace(auth_Parts("Querystring"), "+", "%20")
+End Function
+
+''
+' Sort parameters (by value then key)
+'
+' @internal
+' @param {Variant} Parameters
+' @return {Variant}
+''
+Public Function SortParameters(auth_Parameters As Variant) As Variant
+    ' Sort by key then value = sort by combined key-value
+    ' (shouldn't be too many parameters, use naive selection sort
+    Dim auth_Temp As String
+    Dim auth_i As Long
+    Dim auth_j As Long
+    
+    For auth_i = LBound(auth_Parameters) To UBound(auth_Parameters)
+        For auth_j = auth_i To UBound(auth_Parameters)
+            If auth_Parameters(auth_j) < auth_Parameters(auth_i) Then
+                auth_Temp = auth_Parameters(auth_i)
+                auth_Parameters(auth_i) = auth_Parameters(auth_j)
+                auth_Parameters(auth_j) = auth_Temp
+            End If
+        Next auth_j
+    Next auth_i
+    
+    SortParameters = auth_Parameters
 End Function
 
 ' ============================================= '
