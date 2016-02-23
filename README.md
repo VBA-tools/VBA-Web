@@ -151,9 +151,9 @@ Function QueryTwitter(Query As String) As WebResponse
     Request.Resource = "search/tweets.json"
     Request.Format = WebFormat.Json
     Request.Method = WebMethod.HttpGet
-    Request.AddParameter "q", Query
-    Request.AddParameter "lang", "en"
-    Request.AddParameter "count", 20
+    Request.AddQuerystringParam "q", Query
+    Request.AddQuerystringParam "lang", "en"
+    Request.AddQuerystringParam "count", 20
 
     ' => GET https://api.twitter.com/1.1/search/tweets.json?q=...&lang=en&count=20
     '    Authorization Bearer Token... (received and added automatically via TwitterAuthenticator)
