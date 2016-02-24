@@ -268,7 +268,7 @@ Private Sub Class_Terminate()
         If WebHelpers.AsyncRequests.Exists(Me.Request.Id) Then
             Me.Http.Abort
             WebHelpers.AsyncRequests.Remove Me.Request.Id
-            WebHelpers.LogDebug "Class Terminate" & Reason, "WebAsyncWrapper.Cancel"
+            WebHelpers.LogDebug "Aborted - Class Terminated", "WebAsyncWrapper.Cancel"
         End If
     End If
     Set Me.Client = Nothing
