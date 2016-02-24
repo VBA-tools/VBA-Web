@@ -91,7 +91,9 @@ End Sub
 ' Login to Google
 ''
 Public Sub Login()
-    On Error GoTo auth_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo auth_ErrorHandling
+    End If
     
     ' No need to login if API key, authorization code, or token have been set
     If Me.ApiKey <> "" Or Me.AuthorizationCode <> "" Or Me.Token <> "" Then
@@ -127,7 +129,9 @@ Public Sub Login()
 #Else
 
     ' Windows login uses IE to automate retrieving authorization code for user
-    On Error GoTo auth_Cleanup
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo auth_Cleanup
+    End If
     
     Dim auth_IE As Object
     auth_Completed = False
@@ -287,7 +291,9 @@ End Sub
 ' @return {String}
 ''
 Public Function GetToken(Client As WebClient) As String
-    On Error GoTo auth_Cleanup
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo auth_Cleanup
+    End If
     
     Dim auth_TokenClient As WebClient
     Dim auth_Request As New WebRequest

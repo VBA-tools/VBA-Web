@@ -134,7 +134,9 @@ End Function
 ' @param {Variant} [CallbackArgs]
 ''
 Public Sub PrepareAndExecuteRequest(Request As WebRequest, Callback As String, Optional ByVal CallbackArgs As Variant)
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     Me.Callback = Callback
     Me.CallbackArgs = CallbackArgs

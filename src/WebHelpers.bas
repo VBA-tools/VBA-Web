@@ -50,6 +50,10 @@ Option Explicit
 ' you can disable custom formatting by setting the following compiler flag to False
 #Const EnableCustomFormatting = True
 
+' Setting WebDebug to True disables all On Error statements which goto error handlers
+' enabling debugging of VBA-Web code.
+Public WebDebug As Boolean
+
 ' === AutoProxy Headers
 #If Mac Then
 #ElseIf VBA7 Then
@@ -765,7 +769,9 @@ End Function
 ' @throws 11001 - Error during conversion
 ''
 Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional CustomFormat As String = "") As Variant
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     Select Case Format
     Case WebFormat.Json
@@ -1119,7 +1125,9 @@ End Function
 Public Function GetUrlParts(Url As String) As Dictionary
     Dim web_Parts As New Dictionary
 
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
 #If Mac Then
     ' Run perl script to parse url
@@ -1470,7 +1478,9 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
     Dim web_Chunk As String
     Dim web_Read As Long
 
-    On Error GoTo web_Cleanup
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_Cleanup
+    End If
 
     web_File = web_popen(web_Command, "r")
 
@@ -2462,7 +2472,9 @@ End Function
 ' @throws 10011 - UTC parsing error
 ''
 Public Function ParseUtc(utc_UtcDate As Date) As Date
-    On Error GoTo utc_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo utc_ErrorHandling
+    End If
 
 #If Mac Then
     ParseUtc = utc_ConvertDate(utc_UtcDate)
@@ -2491,7 +2503,9 @@ End Function
 ' @throws 10012 - UTC conversion error
 ''
 Public Function ConvertToUtc(utc_LocalDate As Date) As Date
-    On Error GoTo utc_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo utc_ErrorHandling
+    End If
 
 #If Mac Then
     ConvertToUtc = utc_ConvertDate(utc_LocalDate, utc_ConvertToUtc:=True)
@@ -2596,7 +2610,9 @@ End Function
 ' @throws 10014 - ISO 8601 conversion error
 ''
 Public Function ConvertToIso(utc_LocalDate As Date) As String
-    On Error GoTo utc_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo utc_ErrorHandling
+    End If
 
     ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
 
@@ -2648,7 +2664,9 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
     Dim utc_Chunk As String
     Dim utc_Read As Long
 
-    On Error GoTo utc_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo utc_ErrorHandling
+    End If
     utc_File = utc_popen(utc_ShellCommand, "r")
 
     If utc_File = 0 Then: Exit Function
@@ -2742,7 +2760,9 @@ Public Sub GetAutoProxy(ByVal Url As String, ByRef ProxyServer As String, ByRef 
     ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
     If Url = "" Then Url = " "
 
-    On Error GoTo AutoProxy_Cleanup
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo AutoProxy_Cleanup
+    End If
 
     ' Check IE's proxy configuration
     If (AutoProxy_GetIEProxy(AutoProxy_IEProxyConfig) > 0) Then

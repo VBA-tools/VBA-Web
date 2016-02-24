@@ -243,7 +243,9 @@ Public Function Execute(Request As WebRequest) As WebResponse
     Dim web_Http As Object
     Dim web_Response As New WebResponse
 
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
 #If Mac Then
     Dim web_Curl As String
@@ -482,7 +484,9 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     Dim web_Http As Object
     Dim web_KeyValue As Dictionary
 
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
 
@@ -582,7 +586,9 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     Dim web_KeyValue As Dictionary
     Dim web_CookieString As String
 
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     web_Curl = "curl -i"
 
@@ -686,7 +692,9 @@ End Sub
 
 Private Sub web_LoadAutoProxy(web_Request As WebRequest)
 #If Win32 Or Win64 Then
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+       GoTo web_ErrorHandling
+    End If
 
     Dim web_Parts As Dictionary
     Dim web_Domain As String
