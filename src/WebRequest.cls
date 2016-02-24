@@ -502,7 +502,7 @@ Public Property Get FormattedResource() As String
 
     ' Replace url segments
     For Each web_Segment In Me.UrlSegments.Keys
-        FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", WebHelpers.UrlEncode(Me.UrlSegments(web_Segment)))
+        FormattedResource = VBA.Replace(FormattedResource, "{" & web_Segment & "}", WebHelpers.UrlEncode(Me.UrlSegments.Item(web_Segment)))
     Next web_Segment
 
     ' Add querystring
@@ -691,9 +691,9 @@ Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     End If
 
     If VBA.IsObject(Value) Then
-        Set web_pBody(Key) = Value
+        Set web_pBody.Item(Key) = Value
     Else
-        web_pBody(Key) = Value
+        web_pBody.Item(Key) = Value
     End If
 
     ' Clear cached converted body
