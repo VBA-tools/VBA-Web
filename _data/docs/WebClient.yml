@@ -72,8 +72,14 @@ Properties:
   - name: Insecure
     code: "Get|Let {Boolean}"
     description: |
-      Turn off SSL validation and redirect blocking.
+      Turn off SSL validation (`False` by default).
       Useful for self-signed certificates and should only be used with trusted servers.
+
+  # FollowRedirects
+  - name: FollowRedirects
+    code: "Get|Let {Boolean}"
+    description: |
+      Follow redirects (301, 302, 307) using Location header (`True` by default).
 
 Methods:
   # Execute
