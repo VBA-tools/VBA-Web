@@ -219,7 +219,7 @@ layout: docs
     <p>
       Usage:
     </p>
-{% highlight VB.net %}
+{% highlight vb %}
 Dim Request As New WebRequest
 Request.Resource = "users/{Id}"
 
@@ -263,9 +263,7 @@ Request.AddHeader "Authorization", "Token ..."
           {{ property.description | markdownify }}
         {% endif %}
   {% if property.example %}
-  {% highlight VB.net %}
-  {{ property.example }}
-  {% endhighlight %}
+  {% highlight vb %}{{ property.example }}{% endhighlight %}
   {% endif %}
       </div>
     {% endunless %}
@@ -292,9 +290,7 @@ Request.AddHeader "Authorization", "Token ..."
           {{ method.description | markdownify }}
         {% endif %}
 {% if method.example %}
-{% highlight VB.net %}
-{{ method.example }}
-{% endhighlight %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -313,7 +309,7 @@ Request.AddHeader "Authorization", "Token ..."
     <p>
       Usage:
     </p>
-{% highlight VB.net %}
+{% highlight vb %}
 Dim Client As New WebClient
 Client.BaseUrl = "https://www.example.com/api/"
 
@@ -350,9 +346,7 @@ Set Response = Client.Execute(Request)
           {{ property.description | markdownify }}
         {% endif %}
 {% if property.example %}
-{% highlight VB.net %}
-{{ property.example }}
-{% endhighlight %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -379,9 +373,7 @@ Set Response = Client.Execute(Request)
           {{ method.description | markdownify }}
         {% endif %}
 {% if method.example %}
-{% highlight VB.net %}
-{{ method.example }}
-{% endhighlight %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -399,7 +391,7 @@ Set Response = Client.Execute(Request)
     <p>
       Usage:
     </p>
-{% highlight VB.net %}
+{% highlight vb %}
 Dim Response As WebResponse
 Set Response = Client.Execute(Request)
 
@@ -433,9 +425,7 @@ End If
           {{ property.description | markdownify }}
         {% endif %}
 {% if property.example %}
-{% highlight VB.net %}
-{{ property.example }}
-{% endhighlight %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -462,9 +452,7 @@ End If
           {{ method.description | markdownify }}
         {% endif %}
 {% if method.example %}
-{% highlight VB.net %}
-{{ method.example }}
-{% endhighlight %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -512,9 +500,7 @@ End If
           {{ property.description | markdownify }}
         {% endif %}
 {% if property.example %}
-{% highlight VB.net %}
-{{ property.example }}
-{% endhighlight %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -544,9 +530,7 @@ End If
           {{ method.description | markdownify }}
         {% endif %}
 {% if method.example %}
-{% highlight VB.net %}
-{{ method.example }}
-{% endhighlight %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -585,9 +569,7 @@ End If
           {{ method.description | markdownify }}
         {% endif %}
   {% if method.example %}
-  {% highlight VB.net %}
-  {{ method.example }}
-  {% endhighlight %}
+  {% highlight vb %}{{ method.example }}{% endhighlight %}
   {% endif %}
       </div>
     {% endunless %}
@@ -603,7 +585,7 @@ End If
     <p><em>Note</em> Windows-only and Excel-only and requires reference to "Microsoft WinHTTP Services, version 5.1"</p>
 
     <p>Usage:</p>
-{% highlight VB.net %}
+{% highlight vb %}
 ' Module: Handler
 Public Sub Simple(Response As WebResponse)
   ' ...
@@ -656,9 +638,7 @@ Wrapper.ExecuteAsync Request, "Handler.WithArgs", Args
           {{ property.description | markdownify }}
         {% endif %}
 {% if property.example %}
-{% highlight VB.net %}
-{{ property.example }}
-{% endhighlight %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}
@@ -685,9 +665,7 @@ Wrapper.ExecuteAsync Request, "Handler.WithArgs", Args
           {{ method.description | markdownify }}
         {% endif %}
 {% if method.example %}
-{% highlight VB.net %}
-{{ method.example }}
-{% endhighlight %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
 {% endif %}
       </div>
     {% endunless %}

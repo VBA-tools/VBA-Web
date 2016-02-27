@@ -19,7 +19,7 @@ The following example is the standard form for a VBA-Web module:
 2. A detailed `WebRequest` (that sets `Resource`, `Method`, and `Format`)
 3. A wrapped response that includes automatically converted `Data` based on `Request.Format`
 
-```VB.net
+```vb
 ' Long-lived client, maintains state between requests
 Private ClientInstance As WebClient
 Public Property Get Client() As WebClient

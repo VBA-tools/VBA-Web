@@ -17,7 +17,7 @@ Engineering Inc. has set up a Kanban board in Trello for tracking an important b
 
 An Excel Workbook has already been set up with analytics functionality and new project form, we just need to integrate Trello. The following functions need to be completed:
 
-```VB.net
+```vb
 Public Function LoadProjects() As Collection
   ' TODO
 End Function
@@ -57,7 +57,7 @@ Add a temporary `GetBoard` method to the `Trello` module. The `BoardId` value ca
 2. `WebRequest` is used to create detailed requests (including formatting, querystrings, headers, cookies, and much more). VBA-Web aims to make every part of the request configurable, so there are helpers to avoid building strings for URLs or Body values by hand and other tedious and potentially error-prone methods of creating requests.
 3. `WebResponse` wraps http and cURL repsonses and includes parsed `Data` based on `WebRequest.ResponseFormat`.
 
-```VB.net
+```vb
 ' Trello.bas
 Private Const ApplicationKey As String = "key..."
 Private Const UserToken As String = "token..."
@@ -95,7 +95,7 @@ Hopefully, the above test went smoothly, but if there were issues, how do you de
 
 Enable logging with `WebHelpers.EnableLogging = True` and open the Immediate Window (`View > Immediate Window` or `ctrl+g`) to view the raw request that was sent and response recieved.
 
-```VB.net
+```vb
 Sub GetBoard()
   WebHelpers.EnableLogging = True
   ' ...
@@ -116,13 +116,13 @@ End Sub
 
 With the `GetBoard` test successful, we're ready to start work on the `LoadProjects` method. First, let's check out what we need for the `KanbanProject` class.
 
-```VB.net
+```vb
 ...
 ```
 
 Examining Trello's API docs, we can get this information with...
 
-```VB.net
+```vb
 ' Trello.bas
 Private Const ApplicationKey As String = "key..."
 Private Const UserToken As String = "token..."

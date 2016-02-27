@@ -10,7 +10,7 @@ The following demonstrates a simple GET request:
 2. `Request.Method` uses the `WebMethod` enum to set the request method (`GET`, `POST`, `PUT`, `PATCH`, and `HEAD` are available)
 3. `Client.GetJson` is a shortcut for executing standard `GET` + `json` requests
 
-```VB.net
+```vb
 ' (Use Client from Overview)
 
 Public Function GetProject(Id As Long) As Dictionary

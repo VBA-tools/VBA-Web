@@ -65,6 +65,10 @@ pre {
   }
 }
 
+figure.highlight {
+  margin-left: 0;
+}
+
 @include respond-to(extra-small) {
   body {
     @include font-size(1.4);

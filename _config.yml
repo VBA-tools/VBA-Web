@@ -2,7 +2,7 @@ name: VBA-Web
 baseurl: "/VBA-Web"
 
 url: http://vba-tools.github.io/VBA-Web/
-github: https://github.com/VBA-tools/VBA-Web
+github_url: https://github.com/VBA-tools/VBA-Web
 download: https://github.com/VBA-tools/VBA-Web/releases
 description: "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web"
 version: 4.0.21
@@ -39,12 +39,21 @@ exclude:
 - Gemfile.lock
 - readme.md
 
-relative_permalinks: true
-highlighter: pygments
-markdown: redcarpet
-redcarpet:
-  extensions:
-  - fenced_code_blocks
 sass:
   style: :compressed
   sass_dir: _css
+
+# Default github-pages configuation
+kramdown:
+  input: GFM
+  hard_wrap: false
+gems:
+  - jekyll-coffeescript
+  - jekyll-paginate
+
+# Unchangable github-pages configuration
+lsi: false
+safe: true
+highlighter: rouge
+gist:
+ noscript: false

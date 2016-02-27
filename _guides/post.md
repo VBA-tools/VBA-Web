@@ -5,7 +5,7 @@ draft: true
 
 # POST Request
 
-```VB.net
+```vb
 ' (Use Client from Overview)
 
 Public Function CreateProject(Project As Dictionary) As Long
