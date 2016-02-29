@@ -850,20 +850,21 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
             web_CharCode = VBA.Asc(web_Char)
 
             Select Case web_CharCode
-            Case 36, 38, 43, 44, 47, 58, 59, 61, 63, 64
-                ' Reserved characters
-                web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-            Case 32
-                web_Result(web_i) = web_Space
-            Case 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
-                ' Unsafe characters
-                If EncodeUnsafe Then
-                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                Else
+                Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
                     web_Result(web_i) = web_Char
-                End If
-            Case Else
-                web_Result(web_i) = web_Char
+                Case 32
+                    web_Result(web_i) = web_Space
+                Case 0 To 15
+                    web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
+                Case 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
+                    ' Unsafe characters
+                    If EncodeUnsafe Then
+                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                    Else
+                        web_Result(web_i) = web_Char
+                    End If
+                Case Else
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
             End Select
         Next web_i
         UrlEncode = VBA.Join$(web_Result, "")
