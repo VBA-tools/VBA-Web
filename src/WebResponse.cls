@@ -134,7 +134,9 @@ End Sub
 ' @throws 11030 / 80042b16 / -2147210474 - Error creating from http
 ''
 Public Sub CreateFromHttp(Client As WebClient, Request As WebRequest, Http As Object)
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     Me.StatusCode = Http.Status
     Me.StatusDescription = Http.StatusText
@@ -166,7 +168,9 @@ End Sub
 ' @throws 11031 / 80042b17 / -2147210473 - Error creating from cURL
 ''
 Public Sub CreateFromCurl(Client As WebClient, Request As WebRequest, Result As String)
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     Dim web_Lines() As String
 
@@ -201,7 +205,9 @@ End Sub
 ' @throws 11032 / 80042b18 / -2147210472 - Error extracting headers
 ''
 Public Function ExtractHeaders(ResponseHeaders As String) As Collection
-    On Error GoTo web_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo web_ErrorHandling
+    End If
 
     Dim web_Lines As Variant
     Dim web_i As Integer

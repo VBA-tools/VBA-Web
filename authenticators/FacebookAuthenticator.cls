@@ -82,7 +82,9 @@ End Sub
 ' Login to Facebook
 ''
 Public Sub Login()
-    On Error GoTo auth_ErrorHandling
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo auth_ErrorHandling
+    End If
     
     Dim auth_Completed As Boolean
 

@@ -114,7 +114,9 @@ Public Function GetToken(auth_Client As WebClient) As String
     ' TODO Generalize flow
     ' [Digging Deeper into OAuth 2.0 on Force.com](http://wiki.developerforce.com/page/Digging_Deeper_into_OAuth_2.0_at_Salesforce.com)
     
-    On Error GoTo auth_Cleanup
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo auth_Cleanup
+    End If
     
     Dim auth_TokenClient As WebClient
     Dim auth_Request As New WebRequest

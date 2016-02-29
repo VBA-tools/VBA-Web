@@ -111,7 +111,9 @@ End Sub
 ' @return {String}
 ''
 Public Function GetToken(auth_Client As WebClient) As String
-    On Error GoTo auth_Cleanup
+    If Not WebHelpers.WebDebug Then
+        On Error GoTo auth_Cleanup
+    End If
     
     Dim auth_TokenClient As WebClient
     Dim auth_Request As New WebRequest
