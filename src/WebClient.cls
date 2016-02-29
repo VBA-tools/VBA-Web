@@ -543,11 +543,11 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
 
     ' Set headers on http request (after open)
     For Each web_KeyValue In Request.Headers
-        web_Http.SetRequestHeader web_KeyValue("Key"), web_KeyValue("Value")
+        web_Http.SetRequestHeader web_KeyValue.Item("Key"), web_KeyValue.Item("Value")
     Next web_KeyValue
 
     For Each web_KeyValue In Request.Cookies
-        web_Http.SetRequestHeader "Cookie", web_KeyValue("Key") & "=" & web_KeyValue("Value")
+        web_Http.SetRequestHeader "Cookie", web_KeyValue.Item("Key") & "=" & web_KeyValue.Item("Value")
     Next web_KeyValue
 
     ' Give authenticator opportunity to update Http

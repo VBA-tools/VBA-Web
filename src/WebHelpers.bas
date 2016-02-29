@@ -626,7 +626,7 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
 
         For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj.Item(web_Key))
         Next web_Key
     End If
 
@@ -1239,7 +1239,7 @@ Public Function CloneDictionary(Original As Dictionary) As Dictionary
 
     Set CloneDictionary = New Dictionary
     For Each web_Key In Original.Keys
-        CloneDictionary.Add VBA.CStr(web_Key), Original(web_Key)
+        CloneDictionary.Add VBA.CStr(web_Key), Original.Item(web_Key)
     Next web_Key
 End Function
 
@@ -1280,8 +1280,8 @@ End Function
 Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
     Dim web_KeyValue As New Dictionary
 
-    web_KeyValue("Key") = Key
-    web_KeyValue("Value") = Value
+    web_KeyValue.Item("Key") = Key
+    web_KeyValue.Item("Value") = Value
     Set CreateKeyValue = web_KeyValue
 End Function
 
@@ -1354,7 +1354,7 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
 
     web_Index = 1
     For Each web_KeyValue In KeyValues
-        If web_KeyValue("Key") = Key Then
+        If web_KeyValue.Item("Key") = Key Then
             ' Replace existing
             KeyValues.Remove web_Index
 
