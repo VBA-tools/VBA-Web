@@ -1,6 +1,32 @@
 Attribute VB_Name = "Gmail"
 ' Setup client and authenticator (cached between requests)
 Private pGmailClient As WebClient
+Private pstrGClientId As String
+Private pstrGClientSecret As String
+
+Private Property Get GClientId() As String
+    If pstrGClientId = "" Then
+        If Credentials.Loaded Then
+            pstrGClientId = Credentials.Values("Google")("id")
+        Else
+            pstrGClientId = InputBox("Please Enter Google API Client Id")
+        End If
+    End If
+    
+    GClientId = pstrGClientId
+End Property
+Private Property Get GClientSecret() As String
+    If pstrGClientSecret = "" Then
+        If Credentials.Loaded Then
+            pstrGClientSecret = Credentials.Values("Google")("secret")
+        Else
+            pstrGClientSecret = InputBox("Please Enter Google API Client Secret")
+        End If
+    End If
+    
+    GClientSecret = pstrGClientSecret
+End Property
+
 Private Property Get GmailClient() As WebClient
     If pGmailClient Is Nothing Then
         ' Create client with base url that is appended to all requests
@@ -11,8 +37,9 @@ Private Property Get GmailClient() As WebClient
         ' - Automatically uses Google's OAuth approach including login screen
         ' - Get API client id and secret from https://console.developers.google.com/
         ' - https://github.com/VBA-tools/VBA-Web/wiki/Google-APIs for more info
-        Dim Auth As New GoogleAuthenticator
-        Auth.Setup CStr(Credentials.Values("Google")("id")), CStr(Credentials.Values("Google")("secret"))
+        Dim Auth As GoogleAuthenticator
+        Set Auth = New GoogleAuthenticator
+         Auth.Setup GClientId, GClientSecret
         Auth.AddScope "https://www.googleapis.com/auth/gmail.readonly"
         Auth.Login
         Set pGmailClient.Authenticator = Auth
@@ -80,6 +107,10 @@ End Function
 
 Sub Test()
     Dim Message As Dictionary
+    
+    pstrGClientId = "<Your App Client Id>"
+    pstrGClientSecret = "<Yout App Secret>"
+    
     For Each Message In LoadInbox
         Debug.Print "From: " & Message("from") & ", Subject: " & Message("subject")
         Debug.Print Message("snippet") & vbNewLine
