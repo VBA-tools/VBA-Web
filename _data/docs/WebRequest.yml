@@ -384,10 +384,10 @@ Methods:
     code: "CreateFromOptions(Options)"
     details:
       Options: "`{Dictionary}`"
-      Options.Headers: "`{Collection}` _Optional_ Collection of `KeyValue`"
-      Options.Cookies: "`{Collection}` _Optional_ Collection of `KeyValue`"
-      Options.QuerystringParams: "`{Collection}` _Optional_ Collection of `KeyValue`"
-      Options.UrlSegments: "`{Dictionary}` _Optional_"
+      Options("Headers"): "`{Collection}` _Optional_ Collection of `KeyValue`"
+      Options("Cookies"): "`{Collection}` _Optional_ Collection of `KeyValue`"
+      Options("QuerystringParams"): "`{Collection}` _Optional_ Collection of `KeyValue`"
+      Options("UrlSegments"): "`{Dictionary}` _Optional_"
 
   # Clone
   - name: Clone 
