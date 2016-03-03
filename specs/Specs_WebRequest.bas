@@ -271,6 +271,7 @@ Public Function Specs() As SpecSuite
         .Expect(Request.FormattedResource).ToEqual "?A+B=%24%26%2B%2C%2F%3A%3B%3D%3F%40"
     End With
     
+    ' UserAgent
     ' Cookies
     ' Headers
     ' QuerystringParams

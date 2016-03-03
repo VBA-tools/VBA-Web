@@ -177,6 +177,23 @@ Public UrlSegments As Dictionary
 Public Cookies As Collection
 
 ''
+' User agent to use with request
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.UserAgent = "Mozilla/5.0"
+'
+' ' -> (Header) User-Agent: Mozilla/5.0
+' ```
+'
+' @property UserAgent
+' @type String
+' @default "VBA-Web v#.#.# (https://github.com/VBA-tools/VBA-Web)"
+''
+Public UserAgent As String
+
+''
 ' Set `RequestFormat`, `ResponseFormat`, and `Content-Type` and `Accept`
 ' headers for the `WebRequest`
 '
@@ -708,7 +725,7 @@ End Sub
 ''
 Public Sub Prepare()
     ' Add/replace general headers for request
-    SetHeader "User-Agent", WebUserAgent
+    SetHeader "User-Agent", Me.UserAgent
     SetHeader "Content-Type", Me.ContentType
     SetHeader "Accept", Me.Accept
     SetHeader "Content-Length", VBA.CStr(Me.ContentLength)
@@ -727,6 +744,7 @@ Public Function Clone() As WebRequest
     ' Note: Clone underlying for properties with default values
     Clone.Resource = Me.Resource
     Clone.Method = Me.Method
+    Clone.UserAgent = Me.UserAgent
     Clone.Accept = web_pAccept
     Clone.ContentType = web_pContentType
     Clone.ContentLength = web_pContentLength
@@ -782,6 +800,7 @@ Private Sub Class_Initialize()
     ' Set default values
     Me.RequestFormat = WebFormat.Json
     Me.ResponseFormat = WebFormat.Json
+    Me.UserAgent = WebUserAgent
 
     Set Me.Headers = New Collection
     Set Me.QuerystringParams = New Collection
