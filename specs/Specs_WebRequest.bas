@@ -228,9 +228,9 @@ Public Function Specs() As SpecSuite
         Set Request = New WebRequest
         
         Request.Resource = "{segment}"
-        Request.AddUrlSegment "segment", "$&+,/:;=?@"
+        Request.AddUrlSegment "segment", "&/:;=?@"
         
-        .Expect(Request.FormattedResource).ToEqual "%24%26%2B%2C%2F%3A%3B%3D%3F%40"
+        .Expect(Request.FormattedResource).ToEqual "%26%2F%3A%3B%3D%3F%40"
     End With
     
     With Specs.It("FormattedResource should include querystring parameters")
@@ -266,9 +266,9 @@ Public Function Specs() As SpecSuite
     With Specs.It("FormattedResource should URL encode querystring")
         Set Request = New WebRequest
     
-        Request.AddQuerystringParam "A B", "$&+,/:;=?@"
+        Request.AddQuerystringParam "A B", "&/:;=?@"
         
-        .Expect(Request.FormattedResource).ToEqual "?A+B=%24%26%2B%2C%2F%3A%3B%3D%3F%40"
+        .Expect(Request.FormattedResource).ToEqual "?A+B=%26%2F%3A%3B%3D%3F%40"
     End With
     
     ' UserAgent

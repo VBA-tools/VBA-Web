@@ -194,9 +194,10 @@ Public Function Specs() As SpecSuite
     ' UrlEncode
     ' --------------------------------------------- '
     With Specs.It("should url-encode string (with space as plus and encode unsafe options)")
-        .Expect(WebHelpers.UrlEncode("$&+,/:;=?@", EncodeUnsafe:=False)).ToEqual "%24%26%2B%2C%2F%3A%3B%3D%3F%40"
+        .Expect(WebHelpers.UrlEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$-_.+!*'(),")).ToEqual "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$-_.+!*'(),"
+        .Expect(WebHelpers.UrlEncode("&/:;=?@")).ToEqual "%26%2F%3A%3B%3D%3F%40"
         .Expect(WebHelpers.UrlEncode(" ""<>#%{}|\^~[]`")).ToEqual "%20%22%3C%3E%23%25%7B%7D%7C%5C%5E%7E%5B%5D%60"
-        .Expect(WebHelpers.UrlEncode("A + B")).ToEqual "A%20%2B%20B"
+        .Expect(WebHelpers.UrlEncode("A + B")).ToEqual "A%20+%20B"
         .Expect(WebHelpers.UrlEncode("A + B", SpaceAsPlus:=True)).ToEqual "A+%2B+B"
     End With
     
