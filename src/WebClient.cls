@@ -311,18 +311,23 @@ Public Function Execute(Request As WebRequest) As WebResponse
 
 web_ErrorHandling:
 
-    Set web_Http = Nothing
     Dim web_ErrorDescription As String
 
-    Select Case Err.Number - vbObjectError
-    Case 208610, 208615, 208637
+    web_Response.StatusCode = Err.Number - vbObjectError
+    web_Response.StatusDescription = Err.Description
+    Select Case web_Response.StatusCode
+    Case 208615
+        ' DNS resolution failed
+        web_Response.StatusCode = 12007
+    Case 208760
+        ' Server returned an invalid or unrecognized response
+        web_Response.StatusCode = 12152
+    Case 208610
+        web_Response.StatusCode = WebStatusCode.RequestTimeout
+    Case 208637
         ' Return 408
         web_Response.StatusCode = WebStatusCode.RequestTimeout
         web_Response.StatusDescription = "Request Timeout"
-
-        WebHelpers.LogResponse Me, Request, web_Response
-        Set Execute = web_Response
-        Err.Clear
     Case Else
         ' Error
         web_ErrorDescription = "An error occurred during execute" & vbNewLine & _
@@ -331,6 +336,12 @@ web_ErrorHandling:
         WebHelpers.LogError web_ErrorDescription, "WebClient.Execute", 11011 + vbObjectError
         Err.Raise 11011 + vbObjectError, "WebClient.Execute", web_ErrorDescription
     End Select
+    
+    WebHelpers.LogResponse Me, Request, web_Response
+    Set Execute = web_Response
+    
+    Err.Clear
+    Set web_Http = Nothing
 End Function
 
 ''
