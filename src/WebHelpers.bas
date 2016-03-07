@@ -875,14 +875,6 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
                     Else
                         web_Result(web_i) = web_Char
                     End If
-                Case 43
-                    ' + is considered safe special character
-                    ' but in space-as-plus cases, it's encoded to differentiate with space
-                    If EncodeUnsafe And SpaceAsPlus Then
-                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                    Else
-                        web_Result(web_i) = web_Char
-                    End If
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
                 Case Else
