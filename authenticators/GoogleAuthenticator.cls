@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' Google Authenticator v3.0.0
+' Google Authenticator v3.0.8
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for "installed application" authentication for Google APIs

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' OAuth2 Authenticator v3.0.0
+' OAuth2 Authenticator v3.0.5
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' OAuth2 authenticator

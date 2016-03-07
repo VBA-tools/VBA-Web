@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' Facebook Authenticator v3.0.0
+' Facebook Authenticator v3.0.6
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for Facebook

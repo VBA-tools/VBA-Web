@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Twitter Authenticator v3.0.0
+' Twitter Authenticator v3.0.5
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for application-only authentication in Twitter's V1.1 REST API

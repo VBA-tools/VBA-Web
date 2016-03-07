@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 ''
-' Digest Authenticator v3.0.0
+' Digest Authenticator v3.0.8
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for Digest Authentication

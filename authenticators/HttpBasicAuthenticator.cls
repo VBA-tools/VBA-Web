@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' Http Basic Authenticator v3.0.0
+' Http Basic Authenticator v3.0.5
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Custom IWebAuthenticator for Http Basic Authenticator
