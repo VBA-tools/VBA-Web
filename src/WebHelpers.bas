@@ -831,7 +831,13 @@ End Function
 Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False, Optional EncodeUnsafe As Boolean = True) As String
     Dim web_UrlVal As String
     Dim web_StringLen As Long
-
+    Dim web_HighAscii() as String
+    web_HighAscii = Array( _
+        "%E2%82%AC", "%81", "%E2%80%9A", "%C6%92", "%E2%80%9E", "%E2%80%A6", "%E2%80%A0", "%E2%80%A1", _
+        "%CB%86", "%E2%80%B0", "%C5%A0", "%E2%80%B9", "%C5%92", "%C5%8D", "%C5%BD", "%8F", _
+        "%C2%90", "%E2%80%98", "%E2%80%99", "%E2%80%9C", "%E2%80%9D", "%E2%80%A2", "%E2%80%93", "%E2%80%94", _
+        "%CB%9C", "%E2%84", "%C5%A1", "%E2%80", "%C5%93", "%9D", "%C5%BE", "%C5%B8" _
+    )
     web_UrlVal = VBA.CStr(Text)
     web_StringLen = VBA.Len(web_UrlVal)
 
@@ -877,6 +883,12 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
                     End If
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
+                Case 128 To 159
+                    web_Result(web_i) = web_HighAscii(web_Charcode - 128)
+                Case 160 To 191
+                    web_Result(web_i) = "%C2%" & VBA.Hex(web_CharCode)
+                Case 192 To 255
+                    web_Result(web_i) = "%C3%" & VBA.Hex(web_CharCode-64)
                 Case Else
                     web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
             End Select
