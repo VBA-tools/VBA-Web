@@ -913,9 +913,18 @@ Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = T
     web_StringLen = VBA.Len(Encoded)
 
     If web_StringLen > 0 Then
-        Dim web_i As Long
+        Dim web_i As Long, web_j As Long
         Dim web_Result As String
         Dim web_Temp As String
+
+        If IsEmpty(web_HighAscii) Then
+            web_HighAscii = Array( _
+                "%E2%82%AC", "%81", "%E2%80%9A", "%C6%92", "%E2%80%9E", "%E2%80%A6", "%E2%80%A0", "%E2%80%A1", _
+                "%CB%86", "%E2%80%B0", "%C5%A0", "%E2%80%B9", "%C5%92", "%C5%8D", "%C5%BD", "%8F", _
+                "%C2%90", "%E2%80%98", "%E2%80%99", "%E2%80%9C", "%E2%80%9D", "%E2%80%A2", "%E2%80%93", "%E2%80%94", _
+                "%CB%9C", "%E2%84", "%C5%A1", "%E2%80", "%C5%93", "%9D", "%C5%BE", "%C5%B8" _
+            )
+        End If
 
         For web_i = 1 To web_StringLen
             web_Temp = VBA.Mid$(Encoded, web_i, 1)
@@ -923,10 +932,33 @@ Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = T
             If web_Temp = "+" And PlusAsSpace Then
                 web_Temp = " "
             ElseIf web_Temp = "%" And web_StringLen >= web_i + 2 Then
-                web_Temp = VBA.Mid$(Encoded, web_i + 1, 2)
-                web_Temp = VBA.Chr(VBA.CInt("&H" & web_Temp))
-
-                web_i = web_i + 2
+                web_Temp = VBA.Mid$(Encoded, web_i + 1, 4)
+                Select Case web_Temp
+                    Case "C2%A", "C2%B"
+                        web_Temp = VBA.Chr(VBA.CInt("&H" & VBA.Mid$(Encoded, web_i + 4, 2)))
+                    Case "C3%8", "C3%9", "C3%A", "C3%B"
+                        web_Temp = VBA.Chr(VBA.CInt("&H" & VBA.Mid$(Encoded, web_i + 4, 2)) + 64)
+                    Case Else
+                        If VBA.CInt("&H" & VBA.Mid$(Encoded, web_i + 1, 1)) <= 7 Then
+                            web_Temp = VBA.Chr(VBA.CInt("&H" & VBA.Mid$(Encoded, web_i + 1, 2)))
+                            web_i = web_i + 2
+                        Else
+                            web_Temp = UCase(VBA.Mid$(Encoded, web_i, 9))
+                            If VBA.Mid$(web_Temp, 7, 1) <> "%" Then _
+                                web_Temp = VBA.Left$(web_Temp, 6)
+                            If VBA.Mid$(web_Temp, 4, 1) <> "%" Then _
+                                web_Temp = VBA.Left$(web_Temp, 3)
+                            web_i = web_i + 2
+                            For web_j = 0 To 31
+                                If web_HighAscii(web_j) = web_Temp Then
+                                    web_i = web_i + Len(web_Temp) - 3
+                                    web_Temp = VBA.Chr(web_j + 128)
+                                    Exit For
+                                End If
+                                If web_j = 31 Then web_Temp = VBA.Left$(web_Temp, 3)
+                            Next web_j
+                        End If
+                End Select
             End If
 
             web_Result = web_Result & web_Temp
