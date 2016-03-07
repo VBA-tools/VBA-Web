@@ -514,6 +514,7 @@ End Property
 ''
 Public Property Get FormattedResource() As String
     Dim web_Segment As Variant
+    Dim SpaceAsPlus As Boolean
 
     FormattedResource = Me.Resource
 
@@ -530,7 +531,8 @@ Public Property Get FormattedResource() As String
             FormattedResource = FormattedResource & "&"
         End If
 
-        FormattedResource = FormattedResource & WebHelpers.ConvertToUrlEncoded(Me.QuerystringParams)
+        SpaceAsPlus = Me.RequestFormat = FormUrlEncoded
+        FormattedResource = FormattedResource & WebHelpers.ConvertToUrlEncoded(Me.QuerystringParams, SpaceAsPlus:=SpaceAsPlus)
     End If
 End Property
 

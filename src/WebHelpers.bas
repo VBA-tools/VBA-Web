@@ -611,7 +611,7 @@ End Function
 ' @param {Dictionary|Collection|Variant} Obj Value to convert to Url-Encoded string
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
 ''
-Public Function ConvertToUrlEncoded(Obj As Variant) As String
+Public Function ConvertToUrlEncoded(Obj As Variant, Optional SpaceAsPlus As Boolean = True) As String
     Dim web_Encoded As String
 
     If TypeOf Obj Is Collection Then
@@ -626,7 +626,7 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
 
         For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key), SpaceAsPlus:=SpaceAsPlus)
         Next web_Key
     End If
 
@@ -1785,7 +1785,11 @@ End Function
 ' ============================================= '
 
 ' Helper for url-encoded to create key=value pair
-Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
+Private Function web_GetUrlEncodedKeyValue( _
+        Key As Variant, _
+        Value As Variant, _
+        Optional SpaceAsPlus As Boolean = True _
+        ) As String
     Select Case VBA.VarType(Value)
     Case VBA.vbBoolean
         ' Convert boolean to lowercase
@@ -1802,8 +1806,8 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
         Value = VBA.Replace(VBA.CStr(Value), ",", ".")
     End Select
 
-    ' Url encode key and value (using + for spaces)
-    web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
+    ' Url encode key and value - should use + for spaces if RequestFormat=FormUrlEncode otherwise use %20
+    web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=SpaceAsPlus) & "=" & UrlEncode(Value, SpaceAsPlus:=SpaceAsPlus)
 End Function
 
 ''
