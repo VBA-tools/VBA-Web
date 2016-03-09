@@ -259,6 +259,8 @@ Private web_pDocumentHelper As Object
 Private web_pElHelper As Object
 Private web_pConverters As Dictionary
 
+Private web_HighAscii As Variant
+
 ' --------------------------------------------- '
 ' Types and Properties
 ' --------------------------------------------- '
@@ -611,7 +613,7 @@ End Function
 ' @param {Dictionary|Collection|Variant} Obj Value to convert to Url-Encoded string
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
 ''
-Public Function ConvertToUrlEncoded(Obj As Variant) As String
+Public Function ConvertToUrlEncoded(Obj As Variant, Optional SpaceAsPlus As Boolean = True) As String
     Dim web_Encoded As String
 
     If TypeOf Obj Is Collection Then
@@ -626,7 +628,7 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
 
         For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key), SpaceAsPlus:=SpaceAsPlus)
         Next web_Key
     End If
 
@@ -831,7 +833,14 @@ End Function
 Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = False, Optional EncodeUnsafe As Boolean = True) As String
     Dim web_UrlVal As String
     Dim web_StringLen As Long
-
+    If IsEmpty(web_HighAscii) Then
+        web_HighAscii = Array( _
+            "%E2%82%AC", "%81", "%E2%80%9A", "%C6%92", "%E2%80%9E", "%E2%80%A6", "%E2%80%A0", "%E2%80%A1", _
+            "%CB%86", "%E2%80%B0", "%C5%A0", "%E2%80%B9", "%C5%92", "%C5%8D", "%C5%BD", "%8F", _
+            "%C2%90", "%E2%80%98", "%E2%80%99", "%E2%80%9C", "%E2%80%9D", "%E2%80%A2", "%E2%80%93", "%E2%80%94", _
+            "%CB%9C", "%E2%84", "%C5%A1", "%E2%80", "%C5%93", "%9D", "%C5%BE", "%C5%B8" _
+        )
+    End If
     web_UrlVal = VBA.CStr(Text)
     web_StringLen = VBA.Len(web_UrlVal)
 
@@ -875,16 +884,14 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
                     Else
                         web_Result(web_i) = web_Char
                     End If
-                Case 43
-                    ' + is considered safe special character
-                    ' but in space-as-plus cases, it's encoded to differentiate with space
-                    If EncodeUnsafe And SpaceAsPlus Then
-                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                    Else
-                        web_Result(web_i) = web_Char
-                    End If
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
+                Case 128 To 159
+                    web_Result(web_i) = web_HighAscii(web_CharCode - 128)
+                Case 160 To 191
+                    web_Result(web_i) = "%C2%" & VBA.Hex(web_CharCode)
+                Case 192 To 255
+                    web_Result(web_i) = "%C3%" & VBA.Hex(web_CharCode - 64)
                 Case Else
                     web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
             End Select
@@ -901,26 +908,60 @@ End Function
 ' @param {Boolean} [PlusAsSpace = True] Decode plus as space
 '   DEPRECATED: Default = True to align with existing behavior, will be changed to False in v5
 ' @return {String} Decoded string
-''
+'
 Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = True) As String
     Dim web_StringLen As Long
     web_StringLen = VBA.Len(Encoded)
 
     If web_StringLen > 0 Then
-        Dim web_i As Long
+        Dim web_i As Long, web_j As Long
         Dim web_Result As String
         Dim web_Temp As String
+        Dim web_Test As String
+
+        If IsEmpty(web_HighAscii) Then
+            web_HighAscii = Array( _
+                "%E2%82%AC", "%81", "%E2%80%9A", "%C6%92", "%E2%80%9E", "%E2%80%A6", "%E2%80%A0", "%E2%80%A1", _
+                "%CB%86", "%E2%80%B0", "%C5%A0", "%E2%80%B9", "%C5%92", "%C5%8D", "%C5%BD", "%8F", _
+                "%C2%90", "%E2%80%98", "%E2%80%99", "%E2%80%9C", "%E2%80%9D", "%E2%80%A2", "%E2%80%93", "%E2%80%94", _
+                "%CB%9C", "%E2%84", "%C5%A1", "%E2%80", "%C5%93", "%9D", "%C5%BE", "%C5%B8" _
+            )
+        End If
 
         For web_i = 1 To web_StringLen
             web_Temp = VBA.Mid$(Encoded, web_i, 1)
 
             If web_Temp = "+" And PlusAsSpace Then
                 web_Temp = " "
-            ElseIf web_Temp = "%" And web_StringLen >= web_i + 2 Then
-                web_Temp = VBA.Mid$(Encoded, web_i + 1, 2)
-                web_Temp = VBA.Chr(VBA.CInt("&H" & web_Temp))
-
-                web_i = web_i + 2
+            ElseIf web_Temp = "%" _
+            And VBA.Mid$(Encoded, web_1 + 1, 2) Like "[0-9A-Fa-f][0-9A-Fa-f]" Then
+                web_Temp = VBA.Mid$(Encoded, web_i + 1, 5)
+                Select Case True
+                    Case web_Temp Like "C2%[ABab][0-9A-Fa-f]"
+                        web_Temp = VBA.Chr(VBA.CInt("&H" & VBA.Mid$(web_Temp, 4, 2)))
+                        web_i = web_i + 5
+                    Case web_Temp Like "C3%[89ABab][0-9A-Fa-f]"
+                        web_Temp = VBA.Chr(VBA.CInt("&H" & VBA.Mid$(web_Temp, 4, 2)) + 64)
+                        web_i = web_i + 5
+                    Case web_Temp Like "[0-7][0-9A-Fa-f]*"
+                        web_Temp = VBA.Chr(VBA.CInt("&H" & VBA.Left$(web_Temp, 2)) + 64)
+                        web_i = web_i + 2
+                    Case Else
+                        web_Temp = VBA.Mid$(Encoded, web_i, 9)
+                        For web_j = 0 To 31
+                            web_Test = web_HighAscii(web_j)
+                            If web_Test = UCase(Left(web_Temp, Len(web_Test))) Then
+                                web_Temp = VBA.Chr(web_j + 128)
+                                web_i = web_i + Len(web_Test) - 1
+                                Exit For
+                            End If
+                            ' Not a known encoding so leave as literal
+                            If web_j = 31 Then
+                                web_Temp = web_Temp = VBA.Mid$(Encoded, web_i, 3)
+                                web_i = web_i + 2
+                            End If
+                        Next web_j
+                End Select
             End If
 
             web_Result = web_Result & web_Temp
@@ -1785,7 +1826,11 @@ End Function
 ' ============================================= '
 
 ' Helper for url-encoded to create key=value pair
-Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As String
+Private Function web_GetUrlEncodedKeyValue( _
+        Key As Variant, _
+        Value As Variant, _
+        Optional SpaceAsPlus As Boolean = True _
+        ) As String
     Select Case VBA.VarType(Value)
     Case VBA.vbBoolean
         ' Convert boolean to lowercase
@@ -1802,8 +1847,8 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant) As 
         Value = VBA.Replace(VBA.CStr(Value), ",", ".")
     End Select
 
-    ' Url encode key and value (using + for spaces)
-    web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=True) & "=" & UrlEncode(Value, SpaceAsPlus:=True)
+    ' Url encode key and value - should use + for spaces if RequestFormat=FormUrlEncode otherwise use %20
+    web_GetUrlEncodedKeyValue = UrlEncode(Key, SpaceAsPlus:=SpaceAsPlus) & "=" & UrlEncode(Value, SpaceAsPlus:=SpaceAsPlus)
 End Function
 
 ''
@@ -2657,9 +2702,9 @@ Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As
     If utc_Result.utc_Output = "" Then
         Err.Raise 10015, "UtcConverter.utc_ConvertDate", "'date' command failed"
     Else
-        utc_Parts = Split(utc_Result.utc_Output, " ")
-        utc_DateParts = Split(utc_Parts(0), "-")
-        utc_TimeParts = Split(utc_Parts(1), ":")
+        utc_Parts = VBA.Split(utc_Result.utc_Output, " ")
+        utc_DateParts = VBA.Split(utc_Parts(0), "-")
+        utc_TimeParts = VBA.Split(utc_Parts(1), ":")
 
         utc_ConvertDate = DateSerial(utc_DateParts(0), utc_DateParts(1), utc_DateParts(2)) + _
             TimeSerial(utc_TimeParts(0), utc_TimeParts(1), utc_TimeParts(2))
