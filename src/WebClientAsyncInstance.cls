@@ -6,7 +6,7 @@ Attribute VB_Name = "WebClientAsyncInstance"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 ''
 ' WebClientAsyncInstance v4.0.21
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
@@ -97,8 +97,8 @@ Public Sub Abort(Optional Reason As String = "")
     WebHelpers.LogDebug "Ended", "WebAsyncRequestInstance.Abort"
 End Sub
 Public Sub Http_OnError(ByVal ErrNo As Long, ByVal ErrDesc As String)
-    WebHelpers.LogError "WinHttpRequest error" & ErrNo & ": " & ErrDesc, "WebClientAsyncInstance.Http_OnError"
-    Delegate.Delegate_AsyncError Me.nonce, ErrNo, ErrDesc, Me.RequestRef
+    WebHelpers.LogError "WinHttpRequest error " & (ErrNo And 65535) & ": " & ErrDesc, "WebClientAsyncInstance.Http_OnError"
+    Delegate.Delegate_AsyncError Me.nonce, ErrNo And 65535, ErrDesc, Me.RequestRef
 End Sub
 Public Sub Delegate_AsyncError(ByVal nonce As String, ByVal ErrNo As Long, ByVal ErrDesc As String, RequestRef As Variant)
     RaiseEvent AsyncError(nonce, ErrNo, ErrDesc, RequestRef)
