@@ -956,8 +956,10 @@ Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = T
                                 Exit For
                             End If
                             ' Not a known encoding so leave as literal
-                            If web_j = 31 Then web_Temp = web_Temp = VBA.Mid$(Encoded, web_i, 3)
-                            web_i = web_i + 2
+                            If web_j = 31 Then
+                                web_Temp = web_Temp = VBA.Mid$(Encoded, web_i, 3)
+                                web_i = web_i + 2
+                            End If
                         Next web_j
                 End Select
             End If
