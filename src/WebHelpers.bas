@@ -380,6 +380,24 @@ End Enum
 ''
 Public EnableLogging As Boolean
 
+' @property EnableFileLogging
+' @type Boolean
+' @default False
+''
+Public EnableFileLogging As Boolean
+
+' @property LogFile
+' @type String
+' @default ""
+''
+Public LogFile As String
+
+' @property LogFileNumber
+' @type Integer
+' @default 0
+''
+Private LogFileNumber As Integer
+
 ''
 ' Store currently running async requests
 '
@@ -414,6 +432,9 @@ Public Sub LogDebug(Message As String, Optional From As String = "VBA-Web")
     If EnableLogging Then
         Debug.Print From & ": " & Message
     End If
+    If EnableLogging Or EnableFileLogging Then
+        LogWrite "D", Message, From
+    End If
 End Sub
 
 ''
@@ -436,6 +457,7 @@ End Sub
 ''
 Public Sub LogWarning(Message As String, Optional From As String = "VBA-Web")
     Debug.Print "WARNING - " & From & ": " & Message
+    LogWrite "W", Message, From
 End Sub
 
 ''
@@ -473,6 +495,7 @@ Public Sub LogError(Message As String, Optional From As String = "VBA-Web", Opti
     End If
 
     Debug.Print "ERROR - " & From & ": " & web_ErrorValue & Message
+    LogWrite "E", web_ErrorValue & Message, From
 End Sub
 
 ''
@@ -483,24 +506,31 @@ End Sub
 ' @param {WebRequest} Request
 ''
 Public Sub LogRequest(Client As WebClient, Request As WebRequest)
-    If EnableLogging Then
-        Debug.Print "--> Request - " & Format(Now, "Long Time")
-        Debug.Print MethodToName(Request.Method) & " " & Client.GetFullUrl(Request)
+    If EnableLogging Or EnableFileLogging Then
+        Dim msg As String
+        msg = "--> Request - " & Format(Now, "Long Time") & vbNewLine
+        msg = msg & MethodToName(Request.Method) & " " & Client.GetFullUrl(Request) & vbNewLine
 
         Dim web_KeyValue As Dictionary
         For Each web_KeyValue In Request.Headers
-            Debug.Print web_KeyValue("Key") & ": " & web_KeyValue("Value")
+            msg = msg & web_KeyValue("Key") & ": " & web_KeyValue("Value") & vbNewLine
         Next web_KeyValue
 
         For Each web_KeyValue In Request.Cookies
-            Debug.Print "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value")
+            msg = msg & "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value") & vbNewLine
         Next web_KeyValue
 
         If Not IsEmpty(Request.Body) Then
-            Debug.Print vbNewLine & CStr(Request.Body)
+            msg = msg & vbNewLine & CStr(Request.Body) & vbNewLine
         End If
 
-        Debug.Print
+        msg = msg & vbNewLine
+    End If
+    If EnableLogging Then
+        Debug.Print msg
+    End If
+    If EnableLogging Or EnableFileLogging Then
+        LogWrite "D", msg, "WebHelpers.LogRequest"
     End If
 End Sub
 
@@ -513,22 +543,77 @@ End Sub
 ' @param {WebResponse} Response
 ''
 Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As WebResponse)
-    If EnableLogging Then
+    If EnableLogging Or EnableFileLogging Then
+        Dim msg As String
+        msg = "<-- Response - " & Format(Now, "Long Time") & vbNewLine
+        msg = msg & Response.StatusCode & " " & Response.StatusDescription & vbNewLine
+
         Dim web_KeyValue As Dictionary
-
-        Debug.Print "<-- Response - " & Format(Now, "Long Time")
-        Debug.Print Response.StatusCode & " " & Response.StatusDescription
-
         For Each web_KeyValue In Response.Headers
-            Debug.Print web_KeyValue("Key") & ": " & web_KeyValue("Value")
+            msg = msg & web_KeyValue("Key") & ": " & web_KeyValue("Value") & vbNewLine
         Next web_KeyValue
 
         For Each web_KeyValue In Response.Cookies
-            Debug.Print "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value")
+            msg = msg & "Cookie: " & web_KeyValue("Key") & "=" & web_KeyValue("Value") * vbNewLine
         Next web_KeyValue
 
-        Debug.Print vbNewLine & Response.Content & vbNewLine
+        msg = msg & vbNewLine & Response.Content & vbNewLine
     End If
+    If EnableLogging Then
+        Debug.Print msg
+    End If
+    If EnableLogging Or EnableFileLogging Then
+        LogWrite "D", msg, "WebHelpers.LogResponse"
+    End If
+End Sub
+
+''
+' Log a message to a log file if specified.
+'
+' @param {String} LogType (E=Error, W=Warning, D=Debug)
+' @param {String} Message
+' @param {String} From
+' @return {String}
+''
+Private Sub LogWrite(ByVal LogType As String, ByVal Message As String, ByVal From As String)
+    If LogFile <> "" Then
+        If LogFileNumber < 0 Then
+            LogFileNumber = LogFileNumber + 1
+            Exit Sub
+        End If
+
+        If LogFileNumber = 0 Then
+            On Error GoTo FileOpenError
+            LogFileNumber = FreeFile
+            Open LogFile For Append Access Write Lock Write As #LogFileNumber
+            On Error GoTo 0
+        End If
+
+        Dim Lines() As String
+        Dim msg As Variant
+        Lines = split(Message, vbNewLine)
+        On Error GoTo FileWriteError
+        For Each msg In Lines
+            msg = Replace(msg, """", "'")
+            If Trim(msg) <> "" Then _
+                Write #LogFileNumber, LogType, Format(Now, "General Date"), From, Trim(msg)
+        Next msg
+    End If
+    Exit Sub
+
+FileOpenError:
+    Debug.Print "ERROR: Unable to open logfile '" & LogFile & "' for Append Write: Error " & Err.Number & ": " & Err.Description
+    LogFileNumber = -100
+    Err.Clear
+    Exit Sub
+
+FileWriteError:
+    Debug.Print "ERROR: Unable to write to logfile '" & LogFile & "': Error " & Err.Number & ": " & Err.Description
+    Close #LogFileNumber
+    LogFileNumber = 0
+    Err.Clear
+    Exit Sub
+
 End Sub
 
 ''
