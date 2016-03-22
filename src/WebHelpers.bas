@@ -568,6 +568,17 @@ Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As W
 End Sub
 
 ''
+' Close the log file if open.
+'
+''
+Public Sub LogClose()
+    If LogFile <> "" And LogFileNumber > 0 Then
+        Close #LogFileNumber
+        LogFileNumber = 0
+    End If
+End Sub
+
+''
 ' Log a message to a log file if specified.
 '
 ' @param {String} LogType (E=Error, W=Warning, D=Debug)
