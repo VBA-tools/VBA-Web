@@ -571,7 +571,7 @@ End Sub
 ' Close the log file if open.
 '
 ''
-Public Sub LogClose()
+Public Sub LogClose(Optional ByVal Dummy as Boolean)
     If LogFile <> "" And LogFileNumber > 0 Then
         Close #LogFileNumber
         LogFileNumber = 0
