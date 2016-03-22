@@ -584,7 +584,6 @@ End Sub
 ' @param {String} LogType (E=Error, W=Warning, D=Debug)
 ' @param {String} Message
 ' @param {String} From
-' @return {String}
 ''
 Private Sub LogWrite(ByVal LogType As String, ByVal Message As String, ByVal From As String)
     If LogFile <> "" Then
