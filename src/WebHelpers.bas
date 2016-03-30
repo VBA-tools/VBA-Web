@@ -427,9 +427,10 @@ Public AsyncRequests As Dictionary
 ' @method LogDebug
 ' @param {String} Message
 ' @param {String} [From="VBA-Web"]
+' @param {Boolean} ForcePrint
 ''
-Public Sub LogDebug(Message As String, Optional From As String = "VBA-Web")
-    If EnableLogging Then
+Public Sub LogDebug(Message As String, Optional From As String = "VBA-Web", Optional ForcePrint as Boolean)
+    If EnableLogging Or ForcePrint Then
         Debug.Print From & ": " & Message
     End If
     If EnableLogging Or EnableFileLogging Then
