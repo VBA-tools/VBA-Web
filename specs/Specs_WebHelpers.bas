@@ -147,7 +147,7 @@ Public Function Specs() As SpecSuite
         Obj.Add "c & d", "A + B"
         
         Encoded = WebHelpers.ConvertToUrlEncoded(Obj)
-        .Expect(Encoded).ToEqual "a=1&b=Howdy!&c+%26+d=A+%2B+B"
+        .Expect(Encoded).ToEqual "a=1&b=Howdy%21&c+%26+d=A+%2B+B"
     End With
     
     With Specs.It("should use region invariant numbers and dates")
@@ -193,13 +193,53 @@ Public Function Specs() As SpecSuite
     
     ' UrlEncode
     ' --------------------------------------------- '
-    With Specs.It("should url-encode string (with space as plus and encode unsafe options)")
-        .Expect(WebHelpers.UrlEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$-_.+!*'(),")).ToEqual "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$-_.+!*'(),"
-        .Expect(WebHelpers.UrlEncode("&/:;=?@")).ToEqual "%26%2F%3A%3B%3D%3F%40"
-        .Expect(WebHelpers.UrlEncode(" ""<>#%{}|\^~[]`")).ToEqual "%20%22%3C%3E%23%25%7B%7D%7C%5C%5E%7E%5B%5D%60"
-        .Expect(WebHelpers.UrlEncode("A + B")).ToEqual "A%20+%20B"
-        .Expect(WebHelpers.UrlEncode("A + B", SpaceAsPlus:=True)).ToEqual "A+%2B+B"
+    With Specs.It("should url-encode (Default = StrictUrlEncoding)")
+        .Expect(WebHelpers.UrlEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZ")).ToEqual "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        .Expect(WebHelpers.UrlEncode("abcdefghijklmnopqrstuvwxyz")).ToEqual "abcdefghijklmnopqrstuvwxyz"
+        .Expect(WebHelpers.UrlEncode("1234567890")).ToEqual "1234567890"
+        
+        .Expect(WebHelpers.UrlEncode("-")).ToEqual "-"
+        .Expect(WebHelpers.UrlEncode(".")).ToEqual "."
+        .Expect(WebHelpers.UrlEncode("_")).ToEqual "_"
+        .Expect(WebHelpers.UrlEncode("~")).ToEqual "~"
+        
+        .Expect(WebHelpers.UrlEncode("%")).ToEqual "%25"
+
+        .Expect(WebHelpers.UrlEncode("!")).ToEqual "%21"
+        .Expect(WebHelpers.UrlEncode("#")).ToEqual "%23"
+        .Expect(WebHelpers.UrlEncode("$")).ToEqual "%24"
+        .Expect(WebHelpers.UrlEncode("&")).ToEqual "%26"
+        .Expect(WebHelpers.UrlEncode("'")).ToEqual "%27"
+        .Expect(WebHelpers.UrlEncode("(")).ToEqual "%28"
+        .Expect(WebHelpers.UrlEncode(")")).ToEqual "%29"
+        .Expect(WebHelpers.UrlEncode("*")).ToEqual "%2A"
+        .Expect(WebHelpers.UrlEncode("+")).ToEqual "%2B"
+        .Expect(WebHelpers.UrlEncode(",")).ToEqual "%2C"
+        .Expect(WebHelpers.UrlEncode("/")).ToEqual "%2F"
+        .Expect(WebHelpers.UrlEncode(":")).ToEqual "%3A"
+        .Expect(WebHelpers.UrlEncode(";")).ToEqual "%3B"
+        .Expect(WebHelpers.UrlEncode("=")).ToEqual "%3D"
+        .Expect(WebHelpers.UrlEncode("?")).ToEqual "%3F"
+        .Expect(WebHelpers.UrlEncode("@")).ToEqual "%40"
+        .Expect(WebHelpers.UrlEncode("[")).ToEqual "%5B"
+        .Expect(WebHelpers.UrlEncode("]")).ToEqual "%5D"
     End With
+    
+'    With Specs.It("should url-encode (FormUrlEncoding)")
+'
+'    End With
+'
+'    With Specs.It("should url-encode (QueryUrlEncoding)")
+'
+'    End With
+'
+'    With Specs.It("should url-encode (CookieUrlEncoding)")
+'
+'    End With
+'
+'    With Specs.It("should url-encode (PathUrlEncoding)")
+'
+'    End With
     
     ' UrlDecode
     ' --------------------------------------------- '

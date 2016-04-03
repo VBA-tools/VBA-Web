@@ -857,32 +857,48 @@ Public Function UrlEncode(Text As Variant, Optional SpaceAsPlus As Boolean = Fal
             web_CharCode = VBA.Asc(web_Char)
 
             Select Case web_CharCode
-                Case 33, 36, 39, 40, 41, 42, 44, 45, 46, 48 To 57, 65 To 90, 95, 97 To 122
-                    ' Unencoded:
-                    ' alphanumeric - 48-57, 65-90, 97-122
-                    ' $-_.!*'(), - 33, 36, 39, 40, 41, 42, 43, 44, 45, 46, 95
+                Case 65 To 90, 97 To 122
+                    ' ALPHA
                     web_Result(web_i) = web_Char
-                Case 34, 35, 37, 60, 62, 91 To 94, 96, 123 To 126
-                    ' Unsafe characters: <>"#%{}|\^~[]`
-                    If EncodeUnsafe Then
-                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                    Else
-                        web_Result(web_i) = web_Char
-                    End If
+                Case 48 To 57
+                    ' DIGIT
+                    web_Result(web_i) = web_Char
+                Case 45, 46, 95
+                    ' "-" / "." / "_"
+                    web_Result(web_i) = web_Char
+                
                 Case 32
-                    If EncodeUnsafe Then
-                        web_Result(web_i) = web_Space
-                    Else
-                        web_Result(web_i) = web_Char
-                    End If
-                Case 43
-                    ' + is considered safe special character
-                    ' but in space-as-plus cases, it's encoded to differentiate with space
-                    If EncodeUnsafe And SpaceAsPlus Then
-                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                    Else
-                        web_Result(web_i) = web_Char
-                    End If
+                    ' (space)
+                    ' FormUrlEncoding -> "+"
+                    ' Else -> "%20"
+                    web_Result(web_i) = web_Space
+                
+                Case 33, 36, 38, 39, 43
+                    ' "!" / "$" / "&" / "'" / "+"
+                    ' PathUrlEncoding, CookieUrlEncoding -> Unencoded
+                    ' Else -> Percent-encoded
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                Case 35, 94, 96, 124
+                    ' "#" / "^" / "`" / "|"
+                    ' CookieUrlEncoding -> Unencoded
+                    ' Else -> Percent-encoded
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                Case 40, 41, 44, 58, 59, 61, 64
+                    ' "(" / ")" / "," / ":" / ";" / "=" / "@"
+                    ' PathUrlEncoding -> Unencoded
+                    ' Else -> Percent-encoded
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                Case 42
+                    ' "*"
+                    ' FormUrlEncoding -> "*"
+                    ' Else -> "%2A"
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                Case 126
+                    ' "~"
+                    ' FormUrlEncoding, QueryUrlEncoding -> "%7E"
+                    ' Else -> "~"
+                    web_Result(web_i) = web_Char
+                
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
                 Case Else
