@@ -79,7 +79,7 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Body).ToEqual "{""A"":123,""B"":""Howdy!""}"
         
         Request.Format = WebFormat.FormUrlEncoded
-        .Expect(Request.Body).ToEqual "A=123&B=Howdy!"
+        .Expect(Request.Body).ToEqual "A=123&B=Howdy%21"
     End With
     
     With Specs.It("Body should be formatted by CustomRequestFormat")

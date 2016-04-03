@@ -60,7 +60,7 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "c", "Howdy!"
         Request.AddQuerystringParam "d", 789
         
-        .Expect(Auth.GetRequestParameters(Client, Request)).ToEqual "a=123&b=456&c=Howdy!&d=789"
+        .Expect(Auth.GetRequestParameters(Client, Request)).ToEqual "a=123&b=456&c=Howdy%21&d=789"
     End With
     
     With Specs.It("should handle spaces in parameters correctly")

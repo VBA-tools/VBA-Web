@@ -829,26 +829,38 @@ End Function
 
 ''
 ' Encode string for URLs
-' Reference:
-' - http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
-' - https://www.ietf.org/rfc/rfc1738.txt
 '
-' From RFC 1738:
-' > Thus, only alphanumerics, the special characters "$-_.+!*'(),", and
-' reserved characters used for their reserved purposes may be used
-' unencoded within a URL.
+' See https://github.com/VBA-tools/VBA-Web/wiki/Url-Encoding for details
+'
+' References:
+' - RFC 3986, https://tools.ietf.org/html/rfc3986
+' - form-urlencoded encoding algorithm,
+'   https://www.w3.org/TR/html5/forms.html#application/x-www-form-urlencoded-encoding-algorithm
+' - RFC 6265 (Cookies), https://tools.ietf.org/html/rfc6265
 '
 ' @method UrlEncode
 ' @param {Variant} Text Text to encode
 ' @param {Boolean} [SpaceAsPlus = False] `%20` if `False` / `+` if `True`
+'   DEPRECATED Use EncodingMode:=FormUrlEncoding
 ' @param {Boolean} [EncodeUnsafe = True] Encode characters that could be misunderstood within URLs.
 '   (``SPACE, ", <, >, #, %, {, }, |, \, ^, ~, `, [, ]``)
+'   DEPRECATED This was based on an outdated URI spec and has since been removed.
+'     EncodingMode:=CookieUrlEncoding is the closest approximation of this behavior
 ' @param {UrlEncodingMode} [EncodingMode = StrictUrlEncoding]
 ' @return {String} Encoded string
 ''
 Public Function UrlEncode(Text As Variant, _
     Optional SpaceAsPlus As Boolean = False, Optional EncodeUnsafe As Boolean = True, _
     Optional EncodingMode As UrlEncodingMode = UrlEncodingMode.StrictUrlEncoding) As String
+    
+    If SpaceAsPlus = True Then
+        LogWarning "SpaceAsPlus is deprecated and will be removed in VBA-Web v5. " & _
+            "Use EncodingMode:=FormUrlEncoding instead", "WebHelpers.UrlEncode"
+    End If
+    If EncodeUnsafe = False Then
+        LogWarning "EncodeUnsafe has been removed as it was based on an outdated url encoding specification. " & _
+            "Use EncodingMode:=CookieUrlEncoding to approximate this behavior", "WebHelpers.UrlEncode"
+    End If
     
     Dim web_UrlVal As String
     Dim web_StringLen As Long

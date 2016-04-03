@@ -332,7 +332,7 @@ Public Function Specs() As SpecSuite
         
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 408
-        .Expect(Response.StatusDescription).ToEqual "Request Timeout"
+        .Expect(Response.StatusDescription).ToMatch "Request Timeout"
     End With
     
     ' ============================================= '

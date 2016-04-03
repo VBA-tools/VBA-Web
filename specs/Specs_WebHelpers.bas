@@ -373,6 +373,10 @@ Public Function Specs() As SpecSuite
         .Expect(WebHelpers.UrlEncode("|", EncodingMode:=UrlEncodingMode.PathUrlEncoding)).ToEqual "%7C"
     End With
     
+    With Specs.It("DEPRECATED should url-encode with SpaceAsPlus")
+        .Expect(WebHelpers.UrlEncode("A + B", SpaceAsPlus:=True)).ToEqual "A+%2B+B"
+    End With
+    
     ' UrlDecode
     ' --------------------------------------------- '
     With Specs.It("should url-decode string")
