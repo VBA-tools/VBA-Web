@@ -135,12 +135,12 @@ Public Function Specs() As SpecSuite
     With Specs.It("should extract cookies from response")
         Set Request = New WebRequest
         Request.Resource = "response-headers"
-        Request.AddQuerystringParam "Set-Cookie", "message=Howdy!"
+        Request.AddQuerystringParam "Set-Cookie", "message=Howdy 1+1!"
         
         Set Response = Client.Execute(Request)
         
         .Expect(Response.Cookies.Count).ToBeGT 0
-        .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy!"
+        .Expect(WebHelpers.FindInKeyValues(Response.Cookies, "message")).ToEqual "Howdy 1+1!"
     End With
     
     ' ============================================= '

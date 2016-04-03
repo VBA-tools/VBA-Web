@@ -334,7 +334,7 @@ Public Function Specs() As SpecSuite
         
         .Expect(Request.Cookies.Count).ToEqual 2
         .Expect(Request.Cookies(1)("Key")).ToEqual "A"
-        .Expect(Request.Cookies(2)("Value")).ToEqual "cookie 2"
+        .Expect(Request.Cookies(2)("Value")).ToEqual "cookie%202"
     End With
     
     ' AddHeader

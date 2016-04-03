@@ -666,7 +666,10 @@ End Sub
 ' @param {Variant} Value
 ''
 Public Sub AddCookie(Key As String, Value As Variant)
-    Me.Cookies.Add WebHelpers.CreateKeyValue(Key, Value)
+    Me.Cookies.Add WebHelpers.CreateKeyValue( _
+        WebHelpers.UrlEncode(Key, EncodingMode:=UrlEncodingMode.CookieUrlEncoding), _
+        WebHelpers.UrlEncode(Value, EncodingMode:=UrlEncodingMode.CookieUrlEncoding) _
+    )
 End Sub
 
 ''
