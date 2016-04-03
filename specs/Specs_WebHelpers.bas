@@ -379,10 +379,26 @@ Public Function Specs() As SpecSuite
     
     ' UrlDecode
     ' --------------------------------------------- '
-    With Specs.It("should url-decode string")
-        .Expect(WebHelpers.UrlDecode("+%20%21%22%23%24%25%26%27")).ToEqual "  !""#$%&'"
-        .Expect(WebHelpers.UrlDecode("A%20%2B%20B")).ToEqual "A + B"
-        .Expect(WebHelpers.UrlDecode("A+%2B+B")).ToEqual "A + B"
+    With Specs.It("should url-decode string (Default = StrictUrlEncoding)")
+        .Expect(WebHelpers.UrlDecode("ABCDEFGHIJKLMNOPQRSTUVWXYZ")).ToEqual "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        .Expect(WebHelpers.UrlDecode("abcdefghijklmnopqrstuvwxyz")).ToEqual "abcdefghijklmnopqrstuvwxyz"
+        .Expect(WebHelpers.UrlDecode("1234567890")).ToEqual "1234567890"
+        
+        .Expect(WebHelpers.UrlDecode("%0A")).ToEqual vbLf
+        .Expect(WebHelpers.UrlDecode("%25")).ToEqual "%"
+        .Expect(WebHelpers.UrlDecode("%7E")).ToEqual "~"
+    End With
+    
+    With Specs.It("should url-decode string (FormUrlEncoding)")
+        .Expect(WebHelpers.UrlDecode("1%20+%202", EncodingMode:=UrlEncodingMode.FormUrlEncoding)).ToEqual "1   2"
+    End With
+    
+    With Specs.It("should url-decode string (QueryUrlEncoding)")
+        .Expect(WebHelpers.UrlDecode("1%20+%202", EncodingMode:=UrlEncodingMode.FormUrlEncoding)).ToEqual "1   2"
+    End With
+    
+    With Specs.It("DEPRECATED should url-decode with PlusAsSpace as default")
+        .Expect(WebHelpers.UrlDecode("1%20+%202")).ToEqual "1   2"
     End With
     
     ' Base64Encode

@@ -988,10 +988,14 @@ End Function
 ' @method UrlDecode
 ' @param {String} Encoded Text to decode
 ' @param {Boolean} [PlusAsSpace = True] Decode plus as space
-'   DEPRECATED: Default = True to align with existing behavior, will be changed to False in v5
+'   DEPRECATED Use EncodingMode:=FormUrlEncoding Or QueryUrlEncoding
+' @param {UrlEncodingMode} [EncodingMode = StrictUrlEncoding]
 ' @return {String} Decoded string
 ''
-Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = True) As String
+Public Function UrlDecode(Encoded As String, _
+    Optional PlusAsSpace As Boolean = True, _
+    Optional EncodingMode As UrlEncodingMode = UrlEncodingMode.StrictUrlEncoding) As String
+
     Dim web_StringLen As Long
     web_StringLen = VBA.Len(Encoded)
 
@@ -1003,7 +1007,11 @@ Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = T
         For web_i = 1 To web_StringLen
             web_Temp = VBA.Mid$(Encoded, web_i, 1)
 
-            If web_Temp = "+" And PlusAsSpace Then
+            If web_Temp = "+" And _
+                (PlusAsSpace _
+                 Or EncodingMode = UrlEncodingMode.FormUrlEncoding _
+                 Or EncodingMode = UrlEncodingMode.QueryUrlEncoding) Then
+                
                 web_Temp = " "
             ElseIf web_Temp = "%" And web_StringLen >= web_i + 2 Then
                 web_Temp = VBA.Mid$(Encoded, web_i + 1, 2)
@@ -1011,6 +1019,8 @@ Public Function UrlDecode(Encoded As String, Optional PlusAsSpace As Boolean = T
 
                 web_i = web_i + 2
             End If
+            
+            ' TODO Handle non-ASCII characters
 
             web_Result = web_Result & web_Temp
         Next web_i
