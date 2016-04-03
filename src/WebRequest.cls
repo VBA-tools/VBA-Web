@@ -514,6 +514,7 @@ End Property
 ''
 Public Property Get FormattedResource() As String
     Dim web_Segment As Variant
+    Dim web_Encoding As UrlEncodingMode
 
     FormattedResource = Me.Resource
 
@@ -530,7 +531,17 @@ Public Property Get FormattedResource() As String
             FormattedResource = FormattedResource & "&"
         End If
 
-        FormattedResource = FormattedResource & WebHelpers.ConvertToUrlEncoded(Me.QuerystringParams)
+        ' For querystrings, W3C defines form-urlencoded as the required encoding,
+        ' but the treatment of space -> "+" (rather than "%20") can cause issues
+        '
+        ' If the request format is explicitly form-urlencoded, use FormUrlEncoding (space -> "+")
+        ' otherwise, use subset of RFC 3986 and form-urlencoded that should work for both cases (space -> "%20")
+        If Me.RequestFormat = WebFormat.FormUrlEncoded Then
+            web_Encoding = UrlEncodingMode.FormUrlEncoding
+        Else
+            web_Encoding = UrlEncodingMode.QueryUrlEncoding
+        End If
+        FormattedResource = FormattedResource & WebHelpers.ConvertToUrlEncoded(Me.QuerystringParams, EncodingMode:=web_Encoding)
     End If
 End Property
 

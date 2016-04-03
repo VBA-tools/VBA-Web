@@ -628,7 +628,7 @@ End Function
 ' @param {Dictionary|Collection|Variant} Obj Value to convert to Url-Encoded string
 ' @return {String} UrlEncoded string (e.g. a=123&b=456&...)
 ''
-Public Function ConvertToUrlEncoded(Obj As Variant) As String
+Public Function ConvertToUrlEncoded(Obj As Variant, Optional EncodingMode As UrlEncodingMode = UrlEncodingMode.FormUrlEncoding) As String
     Dim web_Encoded As String
 
     If TypeOf Obj Is Collection Then
@@ -636,14 +636,14 @@ Public Function ConvertToUrlEncoded(Obj As Variant) As String
 
         For Each web_KeyValue In Obj
             If VBA.Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_KeyValue("Key"), web_KeyValue("Value"))
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_KeyValue("Key"), web_KeyValue("Value"), EncodingMode)
         Next web_KeyValue
     Else
         Dim web_Key As Variant
 
         For Each web_Key In Obj.Keys()
             If Len(web_Encoded) > 0 Then: web_Encoded = web_Encoded & "&"
-            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key))
+            web_Encoded = web_Encoded & web_GetUrlEncodedKeyValue(web_Key, Obj(web_Key), EncodingMode)
         Next web_Key
     End If
 

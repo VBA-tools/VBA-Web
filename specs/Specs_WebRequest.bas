@@ -263,12 +263,21 @@ Public Function Specs() As SpecSuite
         .Expect(Request.FormattedResource).ToEqual "?A=123&B=456"
     End With
 
-    With Specs.It("FormattedResource should URL encode querystring")
+    With Specs.It("FormattedResource should URL encode querystring with QueryUrlEncoding for non-form-urlencoded")
         Set Request = New WebRequest
     
-        Request.AddQuerystringParam "A B", "&/:;=?@"
+        Request.AddQuerystringParam "A + B", "*~"
         
-        .Expect(Request.FormattedResource).ToEqual "?A+B=%26%2F%3A%3B%3D%3F%40"
+        .Expect(Request.FormattedResource).ToEqual "?A%20%2B%20B=%2A%7E"
+    End With
+    
+    With Specs.It("FormattedResource should URL encode querystring with FormUrlEncoding for form-urlencoded")
+        Set Request = New WebRequest
+        
+        Request.RequestFormat = WebFormat.FormUrlEncoded
+        Request.AddQuerystringParam "A + B", "*~"
+        
+        .Expect(Request.FormattedResource).ToEqual "?A+%2B+B=*%7E"
     End With
     
     ' UserAgent
