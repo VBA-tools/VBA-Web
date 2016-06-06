@@ -6,9 +6,9 @@ Attribute VB_Name = "TodoistAuthenticator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 ''
-' Todoist Authenticator
+' Todoist Authenticator v3.0.8
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '     Mauricio Souza (mauriciojxs@yahoo.com.br)
 '
@@ -100,7 +100,7 @@ Public Sub Login()
     If Me.AuthorizationCode <> "" Or Me.Token <> "" Then
         Exit Sub
     End If
-    
+
     Dim auth_Completed As Boolean
     If Me.State = "" Then
         Me.State = WebHelpers.CreateNonce
@@ -110,15 +110,15 @@ Public Sub Login()
     ' User retrieves and pastes token for Mac login
     Dim auth_Response As String
     auth_Completed = True
-    
+
     auth_Response = VBA.InputBox("To login to Todoist, insert your API token from" & vbNewLine & _
         "todoist.com > Settings > Todoist Settings > Account > API token", _
         Title:="Insert Todoist API Token")
-    
+
     If auth_Response = "" Then
         Err.Raise 11040 + vbObjectError, "OAuthDialog", "Login was cancelled"
     End If
-    
+
     ' Success!
     Me.Token = auth_Response
 #Else
@@ -133,7 +133,7 @@ Public Sub Login()
     auth_IE.AddressBar = False
     auth_IE.Navigate Me.GetLoginUrl
     auth_IE.Visible = True
-    
+
     Do While Not auth_LoginIsComplete(auth_IE)
         DoEvents
     Loop
@@ -163,7 +163,7 @@ auth_Cleanup:
 auth_ErrorHandling:
 
     Dim auth_ErrorDescription As String
-    
+
     auth_ErrorDescription = "An error occurred while logging in." & vbNewLine
     If Err.Number <> 0 Then
         If Err.Number - vbObjectError <> 11040 Then
@@ -197,11 +197,11 @@ Public Function GetLoginUrl() As String
     ' Use Request for Url helpers
     Dim auth_Request As New WebRequest
     auth_Request.Resource = auth_AuthorizationUrl
-    
+
     auth_Request.AddQuerystringParam "client_id", Me.ClientId
     auth_Request.AddQuerystringParam "scope", Me.Scope
     auth_Request.AddQuerystringParam "state", Me.State
-    
+
     GetLoginUrl = auth_Request.FormattedResource
     Set auth_Request = Nothing
 End Function
@@ -217,10 +217,10 @@ Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Req
         If Me.AuthorizationCode = "" Then
             Me.Login
         End If
-        
+
         Me.Token = Me.GetToken(Client)
     End If
-    
+
     ' Add token as querystring param
     Request.AddQuerystringParam "token", Me.Token
 End Sub
@@ -267,55 +267,55 @@ End Sub
 ''
 Public Function GetToken(Client As WebClient) As String
     On Error GoTo auth_Cleanup
-    
+
     Dim auth_TokenClient As WebClient
     Dim auth_Request As New WebRequest
     Dim auth_Body As New Dictionary
     Dim auth_Response As WebResponse
     Dim auth_Cookie As Variant
-    
+
     ' Clone client (to avoid accidental interactions)
     Set auth_TokenClient = Client.Clone
     Set auth_TokenClient.Authenticator = Nothing
     auth_TokenClient.BaseUrl = auth_BaseUrl
-    
+
     ' Prepare token request
     auth_Request.Resource = auth_TokenResource
     auth_Request.Method = WebMethod.HttpPost
     auth_Request.RequestFormat = WebFormat.FormUrlEncoded
     auth_Request.ResponseFormat = WebFormat.Json
-    
+
     auth_Body.Add "code", Me.AuthorizationCode
     auth_Body.Add "client_id", Me.ClientId
     auth_Body.Add "client_secret", Me.ClientSecret
     Set auth_Request.Body = auth_Body
-    
+
     Set auth_Response = auth_TokenClient.Execute(auth_Request)
-    
+
     If auth_Response.StatusCode = WebStatusCode.Ok Then
         GetToken = auth_Response.Data(auth_TokenResource)
     Else
         Err.Raise 11041 + vbObjectError, "TodoistAuthenticator.GetToken", _
             auth_Response.StatusCode & ": " & auth_Response.Content
     End If
-    
+
 auth_Cleanup:
-    
+
     Set auth_TokenClient = Nothing
     Set auth_Request = Nothing
     Set auth_Response = Nothing
-    
+
     ' Rethrow error
     If Err.Number <> 0 Then
         Dim auth_ErrorDescription As String
-        
+
         auth_ErrorDescription = "An error occurred while retrieving token." & vbNewLine
         If Err.Number - vbObjectError <> 11041 Then
             auth_ErrorDescription = auth_ErrorDescription & _
                 Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": "
         End If
         auth_ErrorDescription = auth_ErrorDescription & Err.Description
-    
+
         WebHelpers.LogError auth_ErrorDescription, "TodoistAuthenticator.GetToken", 11041 + vbObjectError
         Err.Raise 11041 + vbObjectError, "TodoistAuthenticator.GetToken", auth_ErrorDescription
     End If
@@ -345,7 +345,7 @@ Private Function auth_LoginIsDenied(auth_IE As Object) As Boolean
     Dim auth_Querystring As Dictionary
     Set auth_UrlParts = WebHelpers.GetUrlParts(auth_IE.LocationURL)
     Set auth_Querystring = WebHelpers.ParseUrlEncoded(auth_UrlParts("Querystring"))
-    
+
     If auth_Querystring.Exists("error") Then
         If auth_Querystring("error") = "access_denied" Then
             auth_LoginIsDenied = True
