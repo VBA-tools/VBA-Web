@@ -70,7 +70,7 @@ Public Function Specs() As SpecSuite
         Request.AddQuerystringParam "a", "a b"
         
         .Expect(Auth.GetRequestParameters(Client, Request)).ToEqual "a=a%20b"
-        .Expect(Client.GetFullUrl(Request)).ToEqual "http://localhost:3000/testing?a=a+b"
+        .Expect(Client.GetFullUrl(Request)).ToEqual "http://localhost:3000/testing?a=a%20b"
     End With
     
     With Specs.It("should sort querystring parameters")
