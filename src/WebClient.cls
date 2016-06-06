@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebClient v4.0.22
+' WebClient v4.1.0
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' `WebClient` executes requests and handles response and is responsible for functionality shared between requests,
@@ -283,7 +283,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
             Else
                 web_ErrorDetails = "(6: CURLE_COULDNT_RESOLVE_HOST)"
             End If
-            
+
             Err.Raise 12007 + &H30000 + vbObjectError, "WebClient.Execute", "The server name or address could not be resolved " & web_ErrorDetails
         Case 7
             ' 7 = CURLE_COULDNT_CONNECT

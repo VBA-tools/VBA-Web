@@ -1,3 +1,14 @@
+# 4.1.0
+
+- Update `UrlEncode` behavior to target different encoding RFCs based on `UrlEncodingMode`
+- Add `UrlEncodingMode` with support for `Strict`, `Form`, `Query`, `Cookie`, and `Path`
+- `UrlEncodingMode.StrictUrlEncoding` uses [RFC 3986](https://tools.ietf.org/html/rfc3986) and is the default
+- `UrlEncodingMode.FormUrlEncoding` uses HTML5 form url-encoding and is used with `WebFormat.FormUrlEncoded`
+- `UrlEncodingMode.QueryUrlEncoding` uses subset of `Strict` and `Form` for default querystring encoding
+- `UrlEncodingMode.CookieUrlEncoding` uses [RFC 6265](https://tools.ietf.org/html/rfc6265)
+- `UrlEncodingMode.PathUrlEncoding` uses "pchar" from [RFC 3986](https://tools.ietf.org/html/rfc3986) and is the default
+- Update VBA-JSON to v2.2.2
+
 # 4.0.0
 
 Major Changes:
