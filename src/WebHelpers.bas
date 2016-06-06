@@ -1902,7 +1902,7 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant, Opt
 End Function
 
 ''
-' VBA-JSON v2.2.1
+' VBA-JSON v2.2.2
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
 '
 ' JSON Converter for VBA
@@ -2459,7 +2459,7 @@ Private Function json_IsUndefined(ByVal json_Value As Variant) As Boolean
     Case VBA.vbEmpty
         json_IsUndefined = True
     Case VBA.vbObject
-        Select Case VBA.TypeName(JsonValue)
+        Select Case VBA.TypeName(json_Value)
         Case "Empty", "Nothing"
             json_IsUndefined = True
         End Select
