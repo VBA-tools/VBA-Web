@@ -107,7 +107,7 @@ Public Function Specs() As SpecSuite
         Obj.Add "g", Null
         
         JsonString = WebHelpers.ConvertToJson(Obj)
-        .Expect(JsonString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""f"":null,""g"":null}"
+        .Expect(JsonString).ToEqual "{""a"":1,""b"":3.14,""c"":""Howdy!"",""d"":true,""e"":[1,2],""g"":null}"
         
         Set Obj = New Dictionary
         Obj.Add "a", "Howdy!"
