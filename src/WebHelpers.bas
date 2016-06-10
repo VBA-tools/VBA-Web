@@ -347,7 +347,8 @@ End Enum
 ' @param FormUrlEncoding ALPHA / DIGIT / "-" / "." / "_" / "*", (space) -> "+", &...; UTF-8 encoding
 ' @param QueryUrlEncoding Subset of strict and form that should be suitable for non-form-urlencoded query strings
 '   ALPHA / DIGIT / "-" / "." / "_"
-' @param CookieUrlEncoding strict / "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "^" / "`" / "|"
+' @param CookieUrlEncoding strict / "!" / "#" / "$" / "&" / "'" / "(" / ")" / "*" / "+" /
+'   "/" / ":" / "<" / "=" / ">" / "?" / "@" / "[" / "]" / "^" / "`" / "{" / "|" / "}"
 ' @param PathUrlEncoding strict / "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "=" / ":" / "@"
 ''
 Public Enum UrlEncodingMode
@@ -833,6 +834,7 @@ End Function
 ' - form-urlencoded encoding algorithm,
 '   https://www.w3.org/TR/html5/forms.html#application/x-www-form-urlencoded-encoding-algorithm
 ' - RFC 6265 (Cookies), https://tools.ietf.org/html/rfc6265
+'   Note: "%" is allowed in spec, but is currently excluded due to parsing issues
 '
 ' @method UrlEncode
 ' @param {Variant} Text Text to encode
@@ -875,7 +877,8 @@ Public Function UrlEncode(Text As Variant, _
         ' StrictUrlEncoding - ALPHA / DIGIT / "-" / "." / "_" / "~"
         ' FormUrlEncoding   - ALPHA / DIGIT / "-" / "." / "_" / "*" / (space) -> "+"
         ' QueryUrlEncoding  - ALPHA / DIGIT / "-" / "." / "_"
-        ' CookieUrlEncoding - strict / "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "^" / "`" / "|"
+        ' CookieUrlEncoding - strict / "!" / "#" / "$" / "&" / "'" / "(" / ")" / "*" / "+" /
+        '   "/" / ":" / "<" / "=" / ">" / "?" / "@" / "[" / "]" / "^" / "`" / "{" / "|" / "}"
         ' PathUrlEncoding   - strict / "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "=" / ":" / "@"
 
         ' Set space value
@@ -908,8 +911,8 @@ Public Function UrlEncode(Text As Variant, _
                     ' Else -> "%20"
                     web_Result(web_i) = web_Space
 
-                Case 33, 36, 38, 39, 43
-                    ' "!" / "$" / "&" / "'" / "+"
+                Case 33, 36, 38, 39, 40, 41, 43, 58, 61, 64
+                    ' "!" / "$" / "&" / "'" / "(" / ")" / "+" / ":" / "=" / "@"
                     ' PathUrlEncoding, CookieUrlEncoding -> Unencoded
                     ' Else -> Percent-encoded
                     If EncodingMode = UrlEncodingMode.PathUrlEncoding Or EncodingMode = UrlEncodingMode.CookieUrlEncoding Then
@@ -917,8 +920,9 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                     End If
-                Case 35, 94, 96, 124
-                    ' "#" / "^" / "`" / "|"
+                
+                Case 35, 45, 46, 47, 60, 62, 63, 91, 93, 94, 95, 96, 123, 124, 125
+                    ' "#" / "-" / "." / "/" / "<" / ">" / "?" / "[" / "]" / "^" / "_" / "`" / "{" / "|" / "}"
                     ' CookieUrlEncoding -> Unencoded
                     ' Else -> Percent-encoded
                     If EncodingMode = UrlEncodingMode.CookieUrlEncoding Then
@@ -926,15 +930,7 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                     End If
-                Case 40, 41, 44, 58, 59, 61, 64
-                    ' "(" / ")" / "," / ":" / ";" / "=" / "@"
-                    ' PathUrlEncoding -> Unencoded
-                    ' Else -> Percent-encoded
-                    If EncodingMode = UrlEncodingMode.PathUrlEncoding Then
-                        web_Result(web_i) = web_Char
-                    Else
-                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
-                    End If
+                
                 Case 42
                     ' "*"
                     ' FormUrlEncoding, PathUrlEncoding, CookieUrlEncoding -> "*"
@@ -947,6 +943,17 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                     End If
+                
+                Case 44, 59
+                    ' "," / ";"
+                    ' PathUrlEncoding -> Unencoded
+                    ' Else -> Percent-encoded
+                    If EncodingMode = UrlEncodingMode.PathUrlEncoding Then
+                        web_Result(web_i) = web_Char
+                    Else
+                        web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                    End If
+
                 Case 126
                     ' "~"
                     ' FormUrlEncoding, QueryUrlEncoding -> "%7E"
@@ -956,6 +963,7 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = web_Char
                     End If
+                
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
                 Case Else

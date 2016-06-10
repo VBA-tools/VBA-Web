@@ -678,7 +678,7 @@ End Sub
 ''
 Public Sub AddCookie(Key As String, Value As Variant)
     Me.Cookies.Add WebHelpers.CreateKeyValue( _
-        WebHelpers.UrlEncode(Key, EncodingMode:=UrlEncodingMode.CookieUrlEncoding), _
+        Key, _
         WebHelpers.UrlEncode(Value, EncodingMode:=UrlEncodingMode.CookieUrlEncoding) _
     )
 End Sub
