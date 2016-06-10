@@ -8,6 +8,7 @@
 - `UrlEncodingMode.CookieUrlEncoding` uses [RFC 6265](https://tools.ietf.org/html/rfc6265)
 - `UrlEncodingMode.PathUrlEncoding` uses "pchar" from [RFC 3986](https://tools.ietf.org/html/rfc3986) and is the default
 - Update VBA-JSON to v2.2.2
+- __4.1.1__ Adjust `CookieUrlEncoding` mode to match value encoding in RFC 6265 (rather than name encoding)
 
 # 4.0.0
 

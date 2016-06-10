@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebRequest v4.1.0
+' WebRequest v4.1.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' `WebRequest` is used to create detailed requests
@@ -847,14 +847,14 @@ Private Function web_EncodeCookieName(web_CookieName As Variant) As String
                 Case 33, 35, 36, 38, 39, 42, 43, 45, 46, 94, 95, 96, 124, 126
                     ' "!" / "#" / "$" / "&" / "'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
                     web_Result(web_i) = web_Char
-                
+
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
                 Case Else
                     web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
             End Select
         Next web_i
-        
+
         web_EncodeCookieName = VBA.Join$(web_Result, "")
     End If
 End Function

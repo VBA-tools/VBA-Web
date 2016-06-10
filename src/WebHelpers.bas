@@ -1,6 +1,6 @@
 Attribute VB_Name = "WebHelpers"
 ''
-' WebHelpers v4.1.0
+' WebHelpers v4.1.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' Contains general-purpose helpers that are used throughout VBA-Web. Includes:
@@ -243,7 +243,7 @@ Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal outStr 
 Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal File As Long) As Long
 #End If
 
-Public Const WebUserAgent As String = "VBA-Web v4.1.0 (https://github.com/VBA-tools/VBA-Web)"
+Public Const WebUserAgent As String = "VBA-Web v4.1.1 (https://github.com/VBA-tools/VBA-Web)"
 
 ' @internal
 Public Type ShellResult
@@ -920,7 +920,7 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                     End If
-                
+
                 Case 35, 45, 46, 47, 60, 62, 63, 91, 93, 94, 95, 96, 123, 124, 125
                     ' "#" / "-" / "." / "/" / "<" / ">" / "?" / "[" / "]" / "^" / "_" / "`" / "{" / "|" / "}"
                     ' CookieUrlEncoding -> Unencoded
@@ -930,7 +930,7 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                     End If
-                
+
                 Case 42
                     ' "*"
                     ' FormUrlEncoding, PathUrlEncoding, CookieUrlEncoding -> "*"
@@ -943,7 +943,7 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
                     End If
-                
+
                 Case 44, 59
                     ' "," / ";"
                     ' PathUrlEncoding -> Unencoded
@@ -963,7 +963,7 @@ Public Function UrlEncode(Text As Variant, _
                     Else
                         web_Result(web_i) = web_Char
                     End If
-                
+
                 Case 0 To 15
                     web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
                 Case Else
