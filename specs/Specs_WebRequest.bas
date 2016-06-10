@@ -338,11 +338,11 @@ Public Function Specs() As SpecSuite
     With Specs.It("should AddCookie")
         Set Request = New WebRequest
         
-        Request.AddCookie "A", "cookie"
+        Request.AddCookie "A[1]", "cookie"
         Request.AddCookie "B", "cookie 2"
         
         .Expect(Request.Cookies.Count).ToEqual 2
-        .Expect(Request.Cookies(1)("Key")).ToEqual "A"
+        .Expect(Request.Cookies(1)("Key")).ToEqual "A%5B1%5D"
         .Expect(Request.Cookies(2)("Value")).ToEqual "cookie%202"
     End With
     
