@@ -678,7 +678,7 @@ End Sub
 ''
 Public Sub AddCookie(Key As String, Value As Variant)
     Me.Cookies.Add WebHelpers.CreateKeyValue( _
-        Key, _
+        web_EncodeCookieName(Key), _
         WebHelpers.UrlEncode(Value, EncodingMode:=UrlEncodingMode.CookieUrlEncoding) _
     )
 End Sub
@@ -809,6 +809,55 @@ End Sub
 ' ============================================= '
 ' Private Functions
 ' ============================================= '
+
+' Encode cookie name
+'
+' References:
+' - RFC 6265 https://tools.ietf.org/html/rfc6265
+Private Function web_EncodeCookieName(web_CookieName As Variant) As String
+    Dim web_CookieVal As String
+    Dim web_StringLen As Long
+
+    web_CookieVal = VBA.CStr(web_CookieName)
+    web_StringLen = VBA.Len(web_CookieVal)
+
+    If web_StringLen > 0 Then
+        Dim web_Result() As String
+        Dim web_i As Long
+        Dim web_CharCode As Integer
+        Dim web_Char As String
+        ReDim web_Result(web_StringLen)
+
+        ' ALPHA / DIGIT / "!" / "#" / "$" / "&" / "'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+        ' Note: "%" is allowed in spec, but is currently excluded due to parsing issues
+
+        ' Loop through string characters
+        For web_i = 1 To web_StringLen
+            ' Get character and ascii code
+            web_Char = VBA.Mid$(web_CookieVal, web_i, 1)
+            web_CharCode = VBA.Asc(web_Char)
+
+            Select Case web_CharCode
+                Case 65 To 90, 97 To 122
+                    ' ALPHA
+                    web_Result(web_i) = web_Char
+                Case 48 To 57
+                    ' DIGIT
+                    web_Result(web_i) = web_Char
+                Case 33, 35, 36, 38, 39, 42, 43, 45, 46, 94, 95, 96, 124, 126
+                    ' "!" / "#" / "$" / "&" / "'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+                    web_Result(web_i) = web_Char
+                
+                Case 0 To 15
+                    web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
+                Case Else
+                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+            End Select
+        Next web_i
+        
+        web_EncodeCookieName = VBA.Join$(web_Result, "")
+    End If
+End Function
 
 Private Sub Class_Initialize()
     ' Set default values
