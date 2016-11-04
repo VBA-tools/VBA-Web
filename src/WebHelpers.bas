@@ -709,23 +709,23 @@ End Function
 ' @return {Dictionary|Collection|Object}
 ' @throws 11000 - Error during parsing
 ''
-Public Function ParseByFormat(Value As String, Format As WebFormat, _
+Public Function ParseByFormat(value As String, Format As WebFormat, _
     Optional CustomFormat As String = "", Optional Bytes As Variant) As Object
 
     On Error GoTo web_ErrorHandling
 
     ' Don't attempt to parse blank values
-    If Value = "" And CustomFormat = "" Then
+    If value = "" And CustomFormat = "" Then
         Exit Function
     End If
 
     Select Case Format
     Case WebFormat.Json
-        Set ParseByFormat = ParseJson(Value)
+        Set ParseByFormat = ParseJson(value)
     Case WebFormat.FormUrlEncoded
-        Set ParseByFormat = ParseUrlEncoded(Value)
+        Set ParseByFormat = ParseUrlEncoded(value)
     Case WebFormat.Xml
-        Set ParseByFormat = ParseXml(Value)
+        Set ParseByFormat = ParseXml(value)
     Case WebFormat.Custom
 #If EnableCustomFormatting Then
         Dim web_Converter As Dictionary
@@ -739,15 +739,15 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
             Set web_Instance = web_Converter("Instance")
 
             If web_Converter("ParseType") = "Binary" Then
-                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Bytes)
+                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.VbMethod, Bytes)
             Else
-                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Value)
+                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.VbMethod, value)
             End If
         Else
             If web_Converter("ParseType") = "Binary" Then
                 Set ParseByFormat = Application.Run(web_Callback, Bytes)
             Else
-                Set ParseByFormat = Application.Run(web_Callback, Value)
+                Set ParseByFormat = Application.Run(web_Callback, value)
             End If
         End If
 #Else
@@ -799,7 +799,7 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         If web_Converter.Exists("Instance") Then
             Dim web_Instance As Object
             Set web_Instance = web_Converter("Instance")
-            ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Obj)
+            ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.VbMethod, Obj)
         Else
             ConvertToFormat = Application.Run(web_Callback, Obj)
         End If
@@ -1046,8 +1046,8 @@ Public Function Base64Encode(Text As String) As String
     Base64Encode = ExecuteInShell(web_Command).Output
 #Else
     Dim web_Bytes() As Byte
-
-    web_Bytes = VBA.StrConv(Text, vbFromUnicode)
+    
+    web_Bytes = StringConverter.Utf8BytesFromString(Text)
     Base64Encode = web_AnsiBytesToBase64(web_Bytes)
 #End If
 
@@ -1402,11 +1402,11 @@ End Function
 ' @param {Variant} Value
 ' @return {Dictionary}
 ''
-Public Function CreateKeyValue(Key As String, Value As Variant) As Dictionary
+Public Function CreateKeyValue(Key As String, value As Variant) As Dictionary
     Dim web_KeyValue As New Dictionary
 
     web_KeyValue("Key") = Key
-    web_KeyValue("Value") = Value
+    web_KeyValue("Value") = value
     Set CreateKeyValue = web_KeyValue
 End Function
 
@@ -1470,12 +1470,12 @@ End Function
 ' @param {Variant} Value
 ' @return {Variant}
 ''
-Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Value As Variant)
+Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, value As Variant)
     Dim web_KeyValue As Dictionary
     Dim web_Index As Long
     Dim web_NewKeyValue As Dictionary
 
-    Set web_NewKeyValue = CreateKeyValue(CStr(Key), Value)
+    Set web_NewKeyValue = CreateKeyValue(CStr(Key), value)
 
     web_Index = 1
     For Each web_KeyValue In KeyValues
@@ -1888,25 +1888,25 @@ End Function
 ' ============================================= '
 
 ' Helper for url-encoded to create key=value pair
-Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant, Optional EncodingMode As UrlEncodingMode = UrlEncodingMode.FormUrlEncoding) As String
-    Select Case VBA.VarType(Value)
+Private Function web_GetUrlEncodedKeyValue(Key As Variant, value As Variant, Optional EncodingMode As UrlEncodingMode = UrlEncodingMode.FormUrlEncoding) As String
+    Select Case VBA.VarType(value)
     Case VBA.vbBoolean
         ' Convert boolean to lowercase
-        If Value Then
-            Value = "true"
+        If value Then
+            value = "true"
         Else
-            Value = "false"
+            value = "false"
         End If
     Case VBA.vbDate
         ' Use region invariant date (ISO-8601)
-        Value = WebHelpers.ConvertToIso(CDate(Value))
+        value = WebHelpers.ConvertToIso(CDate(value))
     Case VBA.vbDecimal, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency
         ' Use region invariant number encoding ("." for decimal separator)
-        Value = VBA.Replace(VBA.CStr(Value), ",", ".")
+        value = VBA.Replace(VBA.CStr(value), ",", ".")
     End Select
 
     ' Url encode key and value (using + for spaces)
-    web_GetUrlEncodedKeyValue = UrlEncode(Key, EncodingMode:=EncodingMode) & "=" & UrlEncode(Value, EncodingMode:=EncodingMode)
+    web_GetUrlEncodedKeyValue = UrlEncode(Key, EncodingMode:=EncodingMode) & "=" & UrlEncode(value, EncodingMode:=EncodingMode)
 End Function
 
 ''
