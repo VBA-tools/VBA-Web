@@ -1,5 +1,6 @@
 name: VBA-Web
 baseurl: "/VBA-Web"
+repository: VBA-tools/VBA-Web
 
 url: http://vba-tools.github.io/VBA-Web/
 github_url: https://github.com/VBA-tools/VBA-Web
@@ -56,4 +57,6 @@ lsi: false
 safe: true
 highlighter: rouge
 gist:
- noscript: false
+  noscript: false
+kramdown:
+  math_engine: mathjax
