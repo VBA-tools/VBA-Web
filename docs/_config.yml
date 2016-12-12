@@ -6,7 +6,7 @@ url: http://vba-tools.github.io/VBA-Web/
 github_url: https://github.com/VBA-tools/VBA-Web
 download: https://github.com/VBA-tools/VBA-Web/releases
 description: "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web"
-version: 4.1.0
+version: 4.1.1
 
 defaults:
 - scope:
