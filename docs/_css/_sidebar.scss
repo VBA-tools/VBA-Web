@@ -1,0 +1,29 @@
+// Sidebar
+// ----------------------------------------------------- //
+
+.sidebar {
+  padding-left: 10px;
+  padding-right: 10px;
+
+  &.is-fixed {}
+}
+
+@include respond-to(medium-plus) {
+  .sidebar {
+    float: left;
+    width: $sidebar-width - 20px;
+
+    &.is-fixed {
+      position: fixed;
+      top: $header-height + 20px;
+      bottom: 20px;
+
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-top: 10px;
+      padding-bottom: 10px;
+
+      border: solid 1px #eee;
+    }
+  }
+}

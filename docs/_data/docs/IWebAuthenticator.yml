@@ -1,0 +1,43 @@
+Methods:
+  # BeforeExecute
+  - name: BeforeExecute
+    code: "BeforeExecute(Client, Request)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`ByRef {WebRequest}` The request about to be executed"
+    description: |
+      Hook for taking action before a request is executed.
+      Useful for adding headers (e.g. "Authorization"), cookies, etc.
+
+  # AfterExecute
+  - name: AfterExecute
+    code: "AfterExecute(Client, Request, Response)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`{WebRequest}` The request that was just executed"
+      Response: "`ByRef {WebResponse}`"
+    description: |
+      Hook for taking action after a request has been executed.
+      Useful for handling `401 Unauthorized` or other issues.
+
+  # PrepareHttp
+  - name: PrepareHttp
+    code: "PrepareHttp(Client, Request, Http)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`{WebRequest}`"
+      Http: "`{WinHttpRequest}`"
+    description: |
+      Hook for updating http before send.
+      Useful for setting internal http options ([WinHttpRequest Docs](https://msdn.microsoft.com/en-us/library/windows/desktop/aa384106)).
+
+  # PrepareCurl
+  - name: PrepareCurl
+    code: "PrepareCurl(Client, Request, Curl)"
+    details:
+      Client: "`{WebClient}`"
+      Request: "`{WebRequest}`"
+      Curl: "`{String}`"
+    description: |
+      Hook for update cURL command before send.
+      Useful for setting internal cURL options ([cURL Docs](http://curl.haxx.se/docs/manpage.html))

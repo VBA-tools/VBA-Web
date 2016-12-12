@@ -1,0 +1,35 @@
+<!doctype html>
+<html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ page.title }} | VBA-Web</title>
+    <meta name="description" content="{{ site.description }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{{ site.baseurl }}/css/main.css">
+  </head>
+  <body id="/">
+    {{ content }}
+
+    <script src="{{ site.baseurl }}/js/vendor/headroom.min.js"></script>
+    <script type="text/javascript">
+      var header = document.querySelector('.site-header-container');
+      var headroom = new Headroom(header, {
+        offset: 60,
+        tolerance: {
+          down: 10,
+          up: 20
+        }
+      }).init();
+    </script>
+    <script>
+      (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+      function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+      e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+      e.src='//www.google-analytics.com/analytics.js';
+      r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+      ga('create','UA-38523419-3','auto');ga('send','pageview');
+    </script>
+  </body>
+</html>

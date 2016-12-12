@@ -1,0 +1,216 @@
+Properties:
+  # BaseUrl
+  - name: BaseUrl
+    code: "Get|Let {String}"
+    description: |
+      Set the base url that is shared by all requests 
+      and that the request `Resource` is appended to.
+    example: |
+      ' Desired URLs
+      ' https://api.example.com/v1/messages
+      ' https://api.example.com/v1/users/id
+      '                BaseUrl <- ^ -> Resource
+
+      Dim Client As New WebClient
+      Client.BaseUrl = "https://api.example.com/v1/"
+
+      Dim Request As New WebRequest
+      Request.Resource = "messages"
+      Request.Resource = "users/{id}"
+
+  # Authenticator
+  - name: Authenticator
+    code: "Get|Set {IWebAuthenticator}"
+    description: |
+      Attach an authenticator to the client for authentication requests.
+    example: |
+      Dim Client As New WebClient
+      Dim Auth As New OAuth1Authenticator
+      Auth.Setup ...
+
+      Set Client.Authenticator = Auth
+      ' -> All requests use Auth to add "Authorization" header
+
+  # TimeoutMs
+  - name: TimeoutMs
+    code: "Get|Let {Long}"
+    description: |
+      Timeout (in milliseconds) to wait for timeout in each request phase 
+      (Resolve, Connect, Send, Receive).
+
+  # ProxyServer
+  - name: ProxyServer
+    code: "Get|Let {String}"
+    description: |
+      Proxy server to pass requests through (except for those that match `ProxyBypassList`).
+
+  # ProxyBypassList
+  - name: ProxyBypassList
+    code: "Get|Let {String}"
+    description: |
+      Comma separated list of domains to bypass the proxy.
+
+  # ProxyUsername
+  - name: ProxyUsername
+    code: "Get|Let {String}"
+    description: |
+      Username for proxy.
+
+  # ProxyPassword
+  - name: ProxyPassword
+    code: "Get|Let {String}"
+    description: |
+      Password for proxy.
+
+  # EnableAutoProxy
+  - name: EnableAutoProxy
+    code: "Get|Let {Boolean}"
+    description: |
+      Load proxy server and bypass list automatically (`False` by default).
+
+  # Insecure
+  - name: Insecure
+    code: "Get|Let {Boolean}"
+    description: |
+      Turn off SSL validation (`False` by default).
+      Useful for self-signed certificates and should only be used with trusted servers.
+
+  # FollowRedirects
+  - name: FollowRedirects
+    code: "Get|Let {Boolean}"
+    description: |
+      Follow redirects (301, 302, 307) using Location header (`True` by default).
+
+Methods:
+  # Execute
+  - name: Execute
+    code: "Execute(Request) {WebResponse}"
+    details:
+      Request: "`{WebRequest}`"
+    description: |
+      Execute the given request 
+      (append the request's `FormattedResource` to the `BaseUrl`) 
+      and return the response.
+    example: |
+      Dim Client As New WebClient
+      Client.BaseUrl = "https://api.example.com/v1/"
+
+      Dim Request As New WebRequest
+      Request.Resource = "messages/{id}"
+      Request.AddUrlSegment "id", 123
+
+      ' Add querystring, body, headers, cookies, etc. for request
+      
+      Dim Response As WebResponse
+      Set Response = Client.Execute(Request)
+      
+      ' -> GET https://api.example/com/v1/messages/123
+      '    headers, cookies, and body...
+
+  # GetJson
+  - name: GetJson
+    code: "GetJson(Url, [Options]) {WebResponse}"
+    details:
+      Url: "`{String}`"
+      Options: |
+        `{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments
+
+        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#/WebHelpers/CreateKeyValue))
+        - `UrlSegments`: `Dictionary`
+    description: |
+      Get JSON from the given URL (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
+    example: |
+      Dim Client As New WebClient
+      Dim Url As String
+      Url = "https://api.example.com/v1/messages/1"
+      
+      Dim Response As WebResponse
+      Set Response = Client.GetJson(Url)
+      
+      Dim Headers As New Collection
+      Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+      
+      Dim Options As New Dictionary
+      Options.Add "Headers", Headers
+      
+      Set Response = Client.GetJson(Url, Options)
+
+  # PostJson
+  - name: PostJson
+    code: "PostJson(Url, Body, [Options]) {WebResponse}"
+    details:
+      Url: "`{String}`"
+      Body: "`{Variant}` `Array`, `Collection`, or `Dictionary` to post"
+      Options: |
+        `{Dictionary}` _Optional_ Headers, Cookies, QuerystringParams, and UrlSegments
+
+        - `Headers`, `Cookies`, `QuerystringParams`: `Collection` of `KeyValue` (Create with [`WebHelpers.CreateKeyValue`](#/WebHelpers/CreateKeyValue))
+        - `UrlSegments`: `Dictionary`
+    description: |
+      Post JSON Body (`Array`, `Collection`, `Dictionary`) to the given URL 
+      (with options for Headers, Cookies, QuerystringParams, and UrlSegments).
+    example: |
+      Dim Client As New WebClient
+      Dim Url As String
+      Url = "https://api.example.com/v1/messages/1"
+      
+      ' Body
+      ' Array, Collection, or Dictionary
+      Dim Body As New Dictionary
+      Body.Add "message", "Howdy!"
+      
+      Dim Response As WebResponse
+      Set Response = Client.PostJson(Url, Body)
+      
+      Dim Headers As New Collection
+      Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+      
+      Dim Options As New Dictionary
+      Options.Add "Headers", Headers
+      
+      Set Response = Client.PostJson(Url, Body, Options)
+
+  # SetProxy
+  - name: SetProxy
+    code: "SetProxy(Server, [Username], [Password], [BypassList])"
+    details:
+      Server: "`{String}` Proxy server to pass requests through"
+      Username: "`{String}` _Optional_ Username for proxy"
+      Password: "`{String}` _Optional_ Password for proxy"
+      BypassList: "`{String}` _Optional_ Comma-separated list of servers that should bypass proxy"
+    description: |
+      Helper for setting proxy values.
+    example: |
+      Dim Client As New RestClient
+
+      ' Just Server
+      Client.SetProxy "proxy_server:80"
+
+      ' Server + Username and Password
+      Client.SetProxy "proxy_server:80", "Tim", "Password"
+
+      ' Server + Username and Password + BypassList
+      Client.SetProxy "proxy_server:80", "Tim", "Password", "<local>,*.bypass.com"
+
+  # GetFullUrl
+  - name: GetFullUrl
+    code: "GetFullUrl(Request) {String}"
+    details:
+      Request: "`{WebRequest}`"
+    description:
+      Get full url by joining given `WebRequest.FormattedResource` and `BaseUrl`.
+
+  # PrepareHttpRequest
+  - name: PrepareHttpRequest
+    code: "PrepareHttpRequest(Request[Async]) {WinHttpRequest}"
+    internal: true
+
+  # PrepareCURL
+  - name: PrepareCURL
+    code: "PrepareCURLRequest(Request) {String}"
+    internal: true
+
+  # Clone
+  - name: Clone
+    code: "Clone() {WebClient}"
+    internal: true

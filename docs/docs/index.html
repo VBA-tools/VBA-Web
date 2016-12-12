@@ -1,0 +1,674 @@
+---
+title: Docs
+layout: docs
+---
+<aside class="sidebar is-fixed docs-toc">
+  <a class="docs-toc-title" href="#/">
+    VBA-Web <span class="version">({{ site.version }})</span>
+  </a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="https://github.com/VBA-tools/VBA-Web/" target="_blank">Github Repository</a>
+    </li>
+  </ul>
+
+  <a class="docs-toc-title" href="#/">Introduction</a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/Installation">Installation</a>
+    </li>
+  </ul>
+
+  <a class="docs-toc-title" href="#/WebRequest">
+    WebRequest
+  </a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebRequest">Introduction</a>
+    </li>
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebRequest/Properties">Properties</a>
+    </li>
+    {% for property in site.data.docs.WebRequest.Properties %}
+    {% unless property.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebRequest/{{ property.name }}">{{ property.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebRequest/Methods">Methods</a>
+    </li>
+    {% for method in site.data.docs.WebRequest.Methods %}
+    {% unless method.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebRequest/{{ method.name }}">{{ method.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+  </ul>
+
+  <a class="docs-toc-title" href="#/WebClient">
+    WebClient
+  </a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebClient">Introduction</a>
+    </li>
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebClient/Properties">Properties</a>
+    </li>
+    {% for property in site.data.docs.WebClient.Properties%}
+    {% unless property.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebClient/{{ property.name }}">{{ property.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebClient/Methods">Methods</a>
+    </li>
+    {% for method in site.data.docs.WebClient.Methods%}
+    {% unless method.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebClient/{{ method.name }}">{{ method.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+  </ul>
+
+  <a class="docs-toc-title" href="#/WebResponse">
+    WebResponse
+  </a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebResponse">Introduction</a>
+    </li>
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebResponse/Properties">Properties</a>
+    </li>
+    {% for property in site.data.docs.WebResponse.Properties%}
+    {% unless property.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebResponse/{{ property.name }}">{{ property.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebResponse/Methods">Methods</a>
+    </li>
+    {% for method in site.data.docs.WebResponse.Methods%}
+    {% unless method.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebResponse/{{ method.name }}">{{ method.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+  </ul>
+
+  <a class="docs-toc-title" href="#/WebHelpers">
+    WebHelpers
+  </a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/WebHelpers">Introduction</a>
+    </li>
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebHelpers/Properties">Properties</a>
+    </li>
+    {% for property in site.data.docs.WebHelpers.Properties%}
+    {% unless property.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebHelpers/{{ property.name }}">{{ property.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebHelpers/Methods">Methods</a>
+    </li>
+    {% for method in site.data.docs.WebHelpers.Methods%}
+    {% unless method.internal %}
+      <li class="docs-toc-item">
+        <a href="#/WebHelpers/{{ method.name }}">{{ method.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+  </ul>
+
+  <a class="docs-toc-title" href="#/IWebAuthenticator">
+    IWebAuthenticator
+  </a>
+  <ul class="docs-toc-section">
+    <li class="docs-toc-item">
+      <a href="#/IWebAuthenticator">Introduction</a>
+    </li>
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/IWebAuthenticator/Methods">Methods</a>
+    </li>
+    {% for method in site.data.docs.IWebAuthenticator.Methods%}
+    {% unless method.internal %}
+      <li class="docs-toc-item">
+        <a href="#/IWebAuthenticator/{{ method.name }}">{{ method.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+  </ul>
+
+  <a class="docs-toc-title" href="#/WebAsyncWrapper">
+    WebAsyncWrapper
+  </a>
+  <ul class="docs-toc-section">
+    <li>
+      <a href="#/WebAsyncWrapper">Introduction</a>
+    </li>
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebAsyncWrapper/Properties">Properties</a>
+    </li>
+    {% for property in site.data.docs.WebAsyncWrapper.Properties%}
+    {% unless property.internal %}
+      <li>
+        <a href="#/WebAsyncWrapper/{{ property.name }}">{{ property.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+
+    <li class="docs-toc-item mod-subsection">
+      <a href="#/WebAsyncWrapper/Methods">Methods</a>
+    </li>
+    {% for method in site.data.docs.WebAsyncWrapper.Methods%}
+    {% unless method.internal %}
+      <li>
+        <a href="#/WebAsyncWrapper/{{ method.name }}">{{ method.name }}</a>
+      </li>
+    {% endunless %}
+    {% endfor %}
+  </ul>
+</aside>
+
+<article class="site-content with-sidebar docs-content">
+  <h2 class="docs-title">Introduction</h2>
+  <section class="docs-subsection">
+    <div class="docs-item">
+      <h4 class="docs-item-title" id="/Installation">Installation</h4>
+      <ul>
+        <li>Download the <a href="https://github.com/VBA-tools/VBA-Web/releases">latest release (v{{ site.version }})</a></li>
+        <li>To install/upgrade in an existing file, use <code>VBA-Web - Installer.xlsm</code></li>
+        <li>To start from scratch in Excel, <code>VBA-Web - Blank.xlsm</code> has everything setup and ready to go</li>
+      </ul>
+    </div>
+  </section>
+
+  <!--
+  WebRequest
+  ====================================================================== -->
+  <h2 id="/WebRequest" class="docs-title">WebRequest</h2>
+  <section class="docs-subsection">
+    <p>
+      <code>WebRequest</code> is used to create detailed requests (including formatting, querystrings, headers, cookies, and much more).
+    </p>
+    <p>
+      Usage:
+    </p>
+{% highlight vb %}
+Dim Request As New WebRequest
+Request.Resource = "users/{Id}"
+
+Request.Method = WebMethod.HttpPut
+Request.RequestFormat = WebFormat.UrlEncoded
+Request.ResponseFormat = WebFormat.Json
+
+Dim Body As New Dictionary
+Body.Add "name", "Tim"
+Body.Add "project", "VBA-Web"
+Set Request.Body = Body
+
+Request.AddUrlSegment "Id", 123
+Request.AddQuerystringParam "api_key", "abcd"
+Request.AddHeader "Authorization", "Token ..."
+
+' -> PUT (Client.BaseUrl)users/123?api_key=abcd
+'    Authorization: Token ...
+'
+'    name=Tim&project=VBA-Web
+{% endhighlight %}
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/WebRequest/Properties" class="docs-subsection-title">Properties</h3>
+    {% for property in site.data.docs.WebRequest.Properties %}
+    {% unless property.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebRequest/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
+  {% if property.example %}
+  {% highlight vb %}{{ property.example }}{% endhighlight %}
+  {% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+  <section class="docs-subsection">
+    <h3 class="docs-subsection-title" id="/WebRequest/Methods">Methods</h3>
+    {% for method in site.data.docs.WebRequest.Methods %}
+    {% unless method.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebRequest/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+{% if method.example %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+
+  <!--
+  WebClient
+  ====================================================================== -->
+  <h2 id="/WebClient" class="docs-title">WebClient</h2>
+  <section class="docs-subsection">
+    <p>
+      <code>WebClient</code> executes requests and handles response and is responsible for functionality shared between requests,
+      such as authentication, proxy configuration, and security.
+    </p>
+    <p>
+      Usage:
+    </p>
+{% highlight vb %}
+Dim Client As New WebClient
+Client.BaseUrl = "https://www.example.com/api/"
+
+Dim Auth As New HttpBasicAuthenticator
+Auth.Setup Username, Password
+Set Client.Authenticator = Auth
+
+Dim Request As New WebRequest
+Dim Response As WebResponse
+' Setup WebRequest...
+
+Set Response = Client.Execute(Request)
+' -> Uses Http Basic authentication and appends Request.Resource to BaseUrl
+{% endhighlight %}
+  </section>
+  <section class="docs-subsection">
+    <h3 class="docs-subsection-title" id="/WebClient/Properties">Properties</h3>
+    {% for property in site.data.docs.WebClient.Properties %}
+    {% unless property.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebClient/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
+{% if property.example %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/WebClient/Methods" class="docs-subsection-title">Methods</h3>
+    {% for method in site.data.docs.WebClient.Methods %}
+    {% unless method.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebClient/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+{% if method.example %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+
+  <!--
+  WebResponse
+  ====================================================================== -->
+  <h2 id="/WebResponse" class="docs-title">WebResponse</h2>
+  <section class="docs-subsection">
+    <p>
+      Wrapper for http/cURL responses that includes parsed <code>Data</code> based on <code>WebRequest.ResponseFormat</code>.
+    </p>
+    <p>
+      Usage:
+    </p>
+{% highlight vb %}
+Dim Response As WebResponse
+Set Response = Client.Execute(Request)
+
+If Response.StatusCode = WebStatusCode.Ok Then
+  ' Response.Headers, Response.Cookies
+  ' Response.Data -> Parsed Response.Content based on Request.ResponseFormat
+  ' Response.Body -> Raw response bytes
+Else
+  Debug.Print "Error: " & Response.StatusCode & " - " & Response.Content
+End If
+{% endhighlight %}
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/WebResponse/Properties" class="docs-subsection-title">Properties</h3>
+    {% for property in site.data.docs.WebResponse.Properties %}
+    {% unless property.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebResponse/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
+{% if property.example %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/WebResponse/Methods" class="docs-subsection-title">Methods</h3>
+    {% for method in site.data.docs.WebResponse.Methods %}
+    {% unless method.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebResponse/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+{% if method.example %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+
+  <!--
+  WebHelpers
+  ====================================================================== -->
+  <h2 id="/WebHelpers" class="docs-title">WebHelpers</h2>
+  <section class="docs-subsection">
+    <p>
+      Contains general-purpose helpers that are used throughout VBA-Web. Includes:
+    </p>
+    <ul>
+      <li>Logging</li>
+      <li>Converters and encoding</li>
+      <li>Url handling</li>
+      <li>Object/Dictionary/Collection/Array helpers</li>
+      <li>Request preparation / handling</li>
+      <li>Timing</li>
+      <li>Mac</li>
+      <li>Cryptography</li>
+      <li>Converters (JSON, XML, Url-Encoded)</li>
+    </ul>
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/WebHelpers/Properties" class="docs-subsection-title">Properties</h3>
+    {% for property in site.data.docs.WebHelpers.Properties %}
+    {% unless property.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebHelpers/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
+{% if property.example %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/WebHelpers/Methods" class="docs-subsection-title">Methods</h3>
+    {% for method in site.data.docs.WebHelpers.Methods %}
+    {% unless method.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebHelpers/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.internal %}
+          <p><em class="docs-internal">(Internal)</em></p>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+{% if method.example %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+
+  <!--
+  IWebAuthenticator
+  ====================================================================== -->
+  <h2 id="/IWebAuthenticator" class="docs-title">IWebAuthenticator</h2>
+  <section class="docs-subsection">
+    <p>
+      Interface for creating authenticators for WebClients.
+      <code>EmptyAuthenticator</code> has everything setup for creating your own authenticators.
+      See <a href="https://github.com/VBA-tools/VBA-Web/wiki/Implementing-your-own-IWebAuthenticator">Implementing your own IWebAuthenticator</a> for a detailed guide on creating an authenticator.
+    </p>
+  </section>
+  <section class="docs-subsection">
+    <h3 id="/IWebAuthenticator/Methods" class="docs-subsection-title">Methods</h3>
+    {% for method in site.data.docs.IWebAuthenticator.Methods %}
+    {% unless method.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/IWebAuthenticator/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+  {% if method.example %}
+  {% highlight vb %}{{ method.example }}{% endhighlight %}
+  {% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+
+  <!--
+  WebAsyncWrapper
+  ====================================================================== -->
+  <h2 id="/WebAsyncWrapper" class="docs-title">WebAsyncWrapper</h2>
+  <section class="docs-subsection">
+    <p>Wrapper WebClient and WebRequest that enables callback-style async requests
+    <p><em>Note</em> Windows-only and Excel-only and requires reference to "Microsoft WinHTTP Services, version 5.1"</p>
+
+    <p>Usage:</p>
+{% highlight vb %}
+' Module: Handler
+Public Sub Simple(Response As WebResponse)
+  ' ...
+End Sub
+Public Sub WithArgs(Response As WebResponse, Args As Variant)
+  ' ...
+End Sub
+
+Dim Client As New WebClient
+Client.BaseUrl = "https://api.example.com/v1/"
+
+' Wrapper needs Client to execute requests
+Dim Wrapper As New WebAsyncWrapper
+Set Wrapper.Client = Client
+
+Dim Request As New WebRequest
+Request.Resource = "messages"
+
+Wrapper.ExecuteAsync Request, "Handler.Simple"
+
+' -> Simple called later with response
+
+' If you need to pass state to callback, use CallbackArgs
+Dim Args As Variant
+Args = Array("abc", 123)
+
+Wrapper.ExecuteAsync Request, "Handler.WithArgs", Args
+
+' -> WithArgs called later with response and args
+{% endhighlight %}
+  </section>
+  <section class="docs-subsection">
+    <h3 class="docs-subsection-title" id="/WebAsyncWrapper/Properties">Properties</h3>
+    {% for property in site.data.docs.WebAsyncWrapper.Properties %}
+    {% unless property.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebAsyncWrapper/{{ property.name }}">
+          <b class="docs-item-name">{{ property.name }}</b>
+          <code>{{ property.code }}</code>
+        </h4>
+        {% if property.details %}
+          <dl class="docs-details">
+            {% for detail in property.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if property.description %}
+          {{ property.description | markdownify }}
+        {% endif %}
+{% if property.example %}
+{% highlight vb %}{{ property.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+  <section class="docs-subsection">
+    <h3 class="docs-subsection-title" id="/WebAsyncWrapper/Methods">Methods</h3>
+    {% for method in site.data.docs.WebAsyncWrapper.Methods %}
+    {% unless method.internal %}
+      <div class="docs-item">
+        <h4 class="docs-item-title" id="/WebAsyncWrapper/{{ method.name }}">
+          <b class="docs-item-name">{{ method.name }}</b>
+          <code>{{ method.code }}</code>
+        </h4>
+        {% if method.details %}
+          <dl class="docs-details">
+            {% for detail in method.details %}
+              <dt><code>{{ detail[0] }}</code></dt>
+              <dd>{{ detail[1] | markdownify }}</dd>
+            {% endfor %}
+          </dl>
+        {% endif %}
+        {% if method.description %}
+          {{ method.description | markdownify }}
+        {% endif %}
+{% if method.example %}
+{% highlight vb %}{{ method.example }}{% endhighlight %}
+{% endif %}
+      </div>
+    {% endunless %}
+    {% endfor %}
+  </section>
+</article>

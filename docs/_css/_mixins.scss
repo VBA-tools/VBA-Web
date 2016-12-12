@@ -1,0 +1,71 @@
+@mixin respond-to($breakpoint) {
+  // extra-small (phone) is default
+  @if $breakpoint == "extra-small" {
+    @media (max-width: $small-screen - 1) {
+      @content
+    }
+  }
+
+  // "tablet": 768-991
+  @if $breakpoint == "small" {
+    @media (min-width: $small-screen) and (max-width: $medium-screen - 1) {
+      @content
+    }
+  }
+  @if $breakpoint == "small-plus" {
+    @media (min-width: $small-screen) {
+      @content
+    }
+  }
+  @if $breakpoint == "up-to-small" {
+    @media (max-width: $small-screen - 1) {
+      @content
+    }
+  }
+
+  // "laptop": 992-1199
+  @if $breakpoint == "medium" {
+    @media (min-width: $medium-screen) and (max-width: $large-screen - 1) {
+      @content
+    }
+  }
+  @if $breakpoint == "medium-plus" {
+    @media (min-width: $medium-screen) {
+      @content
+    }
+  }
+  @if $breakpoint == "up-to-medium" {
+    @media (max-width: $medium-screen - 1) {
+      @content
+    }
+  }
+
+  // "desktop": 1200+
+  @if $breakpoint == "large" {
+    @media (min-width: $large-screen) {
+      @content
+    }
+  }
+  @if $breakpoint == "up-to-large" {
+    @media (max-width: $large-screen - 1) {
+      @content
+    }
+  }
+}
+
+@mixin container {
+  position: relative;
+
+  @include respond-to(medium-plus) {
+    width: 970px;
+    margin: 0 auto;
+  }
+  @include respond-to(large) {
+    width: $large-screen;
+  }
+}
+
+@mixin font-size($size) {
+  font-size: ($size * 10) + px;
+  font-size: $size + rem;
+}

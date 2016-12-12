@@ -1,0 +1,58 @@
+Properties:
+  # Client
+  - name: Client
+    code: "Get|Set {WebClient}"
+    description: |
+      Client to use for executing requests.
+
+  # Request
+  - name: Request
+    code: "Get|Set {WebRequest}"
+    internal: true
+
+  # Callback
+  - name: Callback
+    code: "Get|Let {String}"
+    internal: true
+
+  # CallbackArgs
+  - name: CallbackArgs
+    code: "Get|Let {Variant}"
+    internal: true
+
+  # Http
+  - name: Http
+    code: "Get|Set {WinHttpRequest}"
+    internal: true
+
+Methods:
+  # ExecuteAsync
+  - name: ExecuteAsync
+    code: "ExecuteAsync(Request, Callback, [CallbackArgs])"
+    details:
+      Request: "`{WebRequest}`"
+      Callback: "`{String}`"
+      CallbackArgs: "`{Variant}` _Optional_"
+    description: |
+      Execute the given `WebRequest` asynchronously,
+      passing the response (and `CallbackArgs` if given) to the `Callback`.
+
+  # Clone
+  - name: Clone
+    code: "Clone() {WebAsyncWrapper}"
+    internal: true
+
+  # PrepareAndExecuteRequest
+  - name: PrepareAndExecuteRequest
+    code: "PrepareAndExecuteRequest(Request, Callback, [CallbackArgs])"
+    internal: true
+
+  # TimedOut
+  - name: TimedOut
+    code: "TimedOut()"
+    internal: true
+
+  # RunCallback
+  - name: RunCallback
+    code: "RunCallback(Response)"
+    internal: true

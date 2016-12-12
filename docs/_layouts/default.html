@@ -1,0 +1,32 @@
+---
+layout: blank
+---
+<div class="site-header-container">
+  <header class="site-header" role="banner">
+    <h1 class="header-item logo-item">
+      <a class="header-link logo-link logo" href="{{ site.baseurl }}/">VBA-Web</a>
+    </h1>
+    <nav class="site-navigation" role="navigation">
+      <ul>
+        <li class="header-item">
+          <a class="header-link guides-link" href="{{ site.baseurl }}/guides/">Guides</a>
+        </li>
+        <li class="header-item">
+          <a class="header-link docs-link" href="{{ site.baseurl }}/docs/">Docs</a>
+        </li>
+        <li class="header-item">
+          <a class="header-link github-link" target="_blank" href="{{ site.github_url }}">Github</a>
+        </li>
+        <li class="header-item">
+          <a class="header-link download-link" target="_blank" href="{{ site.download }}">Download</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+</div>
+<div class="site-content-container">
+  {{ content }}
+</div>
+<div class="site-footer-container">
+  <footer class="site-footer"></footer>
+</div>

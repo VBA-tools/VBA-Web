@@ -1,0 +1,89 @@
+.landing-masthead {
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 80px;
+}
+
+.tagline {
+  height: 160px;
+  padding-top: 120px;
+  font-size: 28px;
+  line-height: 1.5;
+  color: $primary-color;
+}
+
+.animated-text-container {
+  position: relative;
+  display: inline-block;
+  text-align: center;
+
+  &.is-source {
+    width: 4em;
+  }
+  &.is-destination {
+    width: 7em;
+  }
+}
+
+.animated-text {
+  position: absolute;
+  top: -1em;
+  left: 0;
+  width: inherit;
+  transition: top 500ms ease;
+
+  span {
+    height: 40px;
+    display: block;
+    color: #bbb;
+    transition: color 500ms ease;
+
+    &.is-active {
+      color: $primary-color;
+    }
+  }
+
+  &.position-0 {
+    top: -1em;
+  }
+  &.position-1 {
+    top: -69px; 
+  }
+  &.position-2 {
+    top: -110px;
+  }
+  &.position-3 {
+    top: -151px;
+  }
+}
+
+@include respond-to(up-to-small) {
+  .tagline {
+    height: 100px;
+    padding-top: 75px;
+    font-size: 18px;
+  }
+
+  .animated-text {
+    span {
+      height: 26px;
+    }
+
+    &.position-0 {
+      top: -1em;
+    }
+    &.position-1 {
+      top: -45px; 
+    }
+    &.position-2 {
+      top: -71px;
+    }
+    &.position-3 {
+      top: -97px;
+    }
+  }
+}
+
+.landing-section {
+  border-top: solid 1px #ccc;
+}

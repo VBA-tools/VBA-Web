@@ -1,0 +1,73 @@
+Properties:
+  # StatusCode
+  - name: StatusCode
+    code: "Get|Let {WebStatusCode}"
+    description: |
+      Status code that the server returned (e.g. 200).
+
+  # StatusDescription
+  - name: StatusDescription
+    code: "Get|Let {String}"
+    description: |
+      Status string that the server returned
+      (e.g. `404 -> "Not Found"`).
+
+  # Content
+  - name: Content
+    code: "Get|Let {String}"
+    description: |
+      Content string that the server returned.
+
+  # Data
+  - name: Data
+    code: "Get|Set {Object}"
+    description: |
+      Parsed `Content` or `Body` based on the `WebRequest.ResponseFormat`.
+
+  # Body
+  - name: Body
+    code: "Get|Let {Variant}"
+    description: |
+      Raw bytes for the response.
+
+  # Headers
+  - name: Headers
+    code: "Get|Set {Collection}"
+    description: |
+      Headers that were included with the response (`Collection` of `KeyValue`).
+
+  # Cookies
+  - name: Cookies
+    code: "Get|Set {Collection}"
+    description: |
+      Cookies that were included with the response (`Collection` of `KeyValue`).
+
+Methods:
+  # Update
+  - name: Update
+    code: "Update(Updated)"
+    details:
+      Updated: "`{WebResponse}`"
+    description: |
+      Helper for updating the response with the given updated response values.
+      Useful for `ByRef` cases to update response in place.
+
+  # CreateFromHttp
+  - name: CreateFromHttp
+    code: "CreateFromHttp()"
+    internal: true
+
+  # CreateFromCurl
+  - name: CreateFromCurl
+    code: "CreateFromCurl()"
+    internal: true
+
+  # ExtractHeaders
+  - name: ExtractHeaders
+    code: "ExtractHeaders()"
+    internal: true
+
+  # ExtractCookies
+  - name: ExtractCookies
+    code: "ExtractCookies()"
+    internal: true

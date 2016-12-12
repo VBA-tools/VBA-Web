@@ -1,0 +1,16 @@
+# node_modules should be installed with npm install
+specs/node_modules
+
+# Ignore temporary Excel files
+*/~$*
+
+# Ignore credentials (don't check in sensitive data)
+credentials.txt
+
+# Ignore scratch work and other files
+_scratch
+.DS_Store
+
+# gh-pages files
+.sass-cache
+_site

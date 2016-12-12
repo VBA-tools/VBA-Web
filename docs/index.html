@@ -1,0 +1,82 @@
+---
+title: VBA-Web
+layout: default
+---
+<article class="site-content" role="main">
+  <main class="landing-masthead" style="text-align: center;">
+    <p class="tagline">
+      <span style="display: inline-block;">Connect</span> <span class="js-source animated-text-container is-source"><span class="animated-text position-0" data-position="0">
+        <span class="is-active">VBA</span>
+        <span>Excel</span>
+        <span>Access</span>
+        <span>Office</span>
+      </span></span> to <span class="js-destination animated-text-container is-destination"><span class="animated-text position-0" data-position="0">
+        <span class="is-active">the Web</span>
+        <span>Web Services</span>
+        <span>Google</span>
+        <span>Salesforce</span>
+      </span></span>
+    </p>
+  </main>
+  <div class="landing-section">
+    <p style="text-align: center;">
+      Guides and tutorials are coming soon, in the meantime please check out the <a href="{{ site.baseurl }}/docs/">Docs</a>, <a href="https://github.com/VBA-tools/VBA-Web#vba-web">Readme</a>, or <a href="https://github.com/VBA-tools/VBA-Web/wiki">Wiki</a>.
+    </p>
+  </div>
+</article>
+
+<script type="text/javascript">
+(function(global) {
+  try {
+    var source = $('.js-source .animated-text')[0];
+    var source_children = $('.js-source .animated-text span');
+    var source_count = 4;
+    var destination = $('.js-destination .animated-text')[0];
+    var destination_children = $('.js-destination .animated-text span');
+    var destination_count = 4;
+
+    setInterval(function updateTagline() {
+      var current_source_position = parseInt(source.dataset.position);
+      var current_destination_position = parseInt(destination.dataset.position);
+      var new_source_position = Math.round(Math.random() * (source_count - 1));
+      var new_destination_position = Math.round(Math.random() * (destination_count - 1));
+
+      removeClass(source, 'position-' + current_source_position);
+      removeClass(destination, 'position-' + current_destination_position);
+      removeClass(source_children, 'is-active');
+      removeClass(destination_children, 'is-active');
+
+      source.dataset.position = new_source_position;
+      destination.dataset.position = new_destination_position;
+      addClass(source, 'position-' + new_source_position);
+      addClass(destination, 'position-' + new_destination_position);
+      addClass(source_children[new_source_position], 'is-active');
+      addClass(destination_children[new_destination_position], 'is-active');
+    }, 2500);
+  } catch (ex) {
+    console.log(ex);
+  }
+
+  function $(selector) {
+    return Array.prototype.slice.call(document.querySelectorAll(selector));
+  }
+
+  function addClass(elements, className) {
+    if (!Array.isArray(elements))
+      elements = [elements];
+
+    elements.forEach(function(element) {
+      element.classList.add(className);
+    });
+  }
+
+  function removeClass(elements, className) {
+    if (!Array.isArray(elements))
+      elements = [elements];
+
+    elements.forEach(function(element) {
+      element.classList.remove(className);  
+    });
+  }
+})(this);
+</script>

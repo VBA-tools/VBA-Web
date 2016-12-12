@@ -1,0 +1,111 @@
+// Header
+// ----------------------------------------------------- //
+
+.site-header-container {
+  position: relative;
+  width: 100%;
+  height: $header-height;
+
+  margin-bottom: 10px;
+
+  @include font-size(1);
+
+  background-color: #fff;
+  border-bottom: solid 1px #eee;
+}
+
+.site-header {
+  @include container;
+}
+
+.header-item {
+  margin: 0;
+
+  font-size: 1em;
+}
+.logo-item {
+  float: left;
+}
+
+.header-link {
+  display: inline-block;
+
+  padding: 0 10px;
+
+  font-size: 1.7em;
+  line-height: $header-height + 2px;
+  color: black;
+  text-decoration: none;
+
+  &:hover {
+    background-color: #fafafa;
+  }
+}
+
+.logo {
+  color: $primary-color;
+}
+
+.logo-link {
+  font-size: 2.8em;
+  font-weight: normal;
+}
+.guides-link {}
+.docs-link {}
+.github-link {}
+.download-link {
+  color: $primary-color;
+}
+
+.site-navigation {
+  float: right;
+
+  & > ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    & > li {
+      float: left;
+    }
+  }
+}
+
+@include respond-to(extra-small) {
+  .site-header-container {
+    position: fixed;
+    top: 0;
+    height: $header-height-small;
+    z-index: 1000;
+
+    -webkit-transition: transform 200ms linear;
+    -moz-transition: transform 200ms linear;
+    -ms-transition: transform 200ms linear;
+    transition: transform 200ms linear;
+
+    &.headroom--pinned, &.headroom--top {
+      -webkit-transform: translateY(0%);
+      -moz-transform: translateY(0%);
+      -ms-transform: translateY(0%);
+      transform: translateY(0%);
+    }
+    &.headroom--unpinned {
+      -webkit-transform: translateY(-100%);
+      -moz-transform: translateY(-100%);
+      -ms-transform: translateY(-100%);
+      transform: translateY(-100%);
+    }
+  }
+
+  .header-link {
+    font-size: 1.5em;
+    line-height: $header-height-small;
+  }
+  .logo-link {
+    font-size: 2.4em;
+  }
+  .download-link {
+    display: none;
+    visibility: hidden;
+  }
+}

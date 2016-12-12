@@ -1,0 +1,59 @@
+name: VBA-Web
+baseurl: "/VBA-Web"
+
+url: http://vba-tools.github.io/VBA-Web/
+github_url: https://github.com/VBA-tools/VBA-Web
+download: https://github.com/VBA-tools/VBA-Web/releases
+description: "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web"
+version: 4.1.0
+
+defaults:
+- scope:
+    path: ""
+  values:
+    layout: default
+- scope:
+    path: guides
+    type: pages
+  values:
+    layout: guides
+- scope:
+    path: guides
+    type: guides
+  values:
+    layout: guides
+- scope:
+    path: docs
+    type: pages
+  values:
+    layout: docs
+
+collections:
+  guides:
+    output: true
+    permalink: /guides/:path/
+    layout: guides
+
+exclude:
+- Gemfile
+- Gemfile.lock
+- readme.md
+
+sass:
+  style: :compressed
+  sass_dir: _css
+
+# Default github-pages configuation
+kramdown:
+  input: GFM
+  hard_wrap: false
+gems:
+  - jekyll-coffeescript
+  - jekyll-paginate
+
+# Unchangable github-pages configuration
+lsi: false
+safe: true
+highlighter: rouge
+gist:
+ noscript: false

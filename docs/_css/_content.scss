@@ -1,0 +1,45 @@
+// Content
+// ----------------------------------------------------- //
+
+.site-content-container {
+  @include container;
+}
+
+.site-content {
+  padding-left: 10px;
+  padding-right: 10px;
+
+  &.with-sidebar {}
+}
+
+@include respond-to(extra-small) {
+  .site-content-container {
+    margin-top: $header-height-small + 10px;
+  }
+}
+
+@include respond-to(medium-plus) {
+  .site-content-container {
+    width: $content-width + $sidebar-width + 20px;
+  }
+
+  .site-content {
+    width: $content-width;
+    margin: 0 auto;
+
+    &.with-sidebar {
+      margin-left: $sidebar-width + 20px;
+    }
+  }
+}
+
+.responsive-image {
+  
+}
+
+@include respond-to(up-to-medium) {
+  .responsive-image {
+    max-width: 100%;
+    height: auto;
+  }
+}
