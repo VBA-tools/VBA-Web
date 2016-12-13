@@ -1,5 +1,5 @@
 - Start Date: 2016-12-12
-- RFC PR: (leave this empty)
+- RFC PR: https://github.com/VBA-tools/VBA-Web/pull/266
 - VBA-Web Issue: (leave this empty)
 
 # Summary
@@ -11,6 +11,8 @@ Currently, VBA-Web has a two mechanisms for extension: Authenticators and Custom
 The event system could provide the foundation for the two existing extension types and be used for more advanced functionality, all while simplifying the core code. `IWebAuthenticator` could be removed with Authenticators using events, more advanced Custom Formatters could be added for things other than just converting the request/response body, and it would be straightforward to add async functionality in the future.
 
 # Detailed design
+
+## Events
 
 The request lifecycle for VBA-Web is as follows:
 
@@ -32,8 +34,8 @@ The following events can be added in between each stage:
 Client.Execute()
 |
 Setup http/curl
-| -> a) PrepareHttp
-| -> b) BeforeRequest
+| -> a) BeforeRequest
+| -> b) PrepareHttp
 | -> c) PrepareCurl
 Execute request
 | -> d) Execute
@@ -43,29 +45,142 @@ Receive response
 Return response
 ```
 
-### a) `PrepareHttp(ByRef Request As WebRequest, ByRef Http As WinHttpRequest)` (Windows)
-
-Called after the `WinHttpRequest` has been prepared, this event can be used to interact with the `WinHttpRequest` directly (e.g. setting options, authentication, etc.).
-
-### b) `BeforeRequest(ByRef Request As WebRequest)`
+#### a) `Client_BeforeRequest(ByRef Request As WebRequest)`
 
 This event is called before the request is generated from the `WebReqest`, so that changes can be made to `WebRequest` before it is parsed and executed (e.g. setting authentication headers, custom parsing, etc.).
 
-### c) `PrepareCurl(ByRef Request As WebReqest, ByRef Curl As String)` (Mac)
+#### b) `Client_PrepareHttp(Request As WebRequest, ByRef Http As WinHttpRequest)` (Windows)
+
+Called after the `WinHttpRequest` has been prepared, this event can be used to interact with the `WinHttpRequest` directly (e.g. setting options, authentication, etc.).
+
+#### c) `Client_PrepareCurl(Request As WebReqest, ByRef Curl As String)` (Mac)
 
 Called after the curl command has been prepared (occurs after `BeforeRequest` since the request is parsed for the curl command), this event can be used to interact with the curl command directly (e.g. adding flags).
 
-### d) `Execute(Request As WebRequest)`
+#### d) `Client_Execute(Request As WebRequest)`
 
 This event occurs when the request is sent, before a response has been received.
 
-### e) `Parse(ByRef Request As WebRequest, ByRef Response As WebResponse)`
+#### e) `Client_Parse(Request As WebRequest, ByRef Response As WebResponse)`
 
 This event occurs after the response has been initially parsed, but before it has been returned, and can be used to perform any custom parsing / response handling.
 
-### f) `Response(Request As WebRequest, Response As WebResponse)`
+#### f) `Client_Response(Request As WebRequest, Response As WebResponse)`
 
 This event occurs after the entire request lifecycle is complete and the response parsing is finalized.
+
+## Usage
+
+The event system is designed to be used primarily for extensions, but may be built off for future core functionality. Below is an example of converting the existing HttpBasicAuthenticator to events
+
+Before:
+
+```vb
+' HttpBasicAuthenticator.cls
+Implements IWebAuthenticator
+
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER = 0
+
+Public Username As String
+Public Password As String
+
+Private Sub IWebAuthenticator_BeforeExecute(ByVal Client As WebClient, ByRef Request As WebRequest)
+    Request.SetHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+End Sub
+
+Private Sub IWebAuthenticator_AfterExecute(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Response As WebResponse)
+    ' e.g. Handle 401 Unauthorized or other issues
+End Sub
+
+Private Sub IWebAuthenticator_PrepareHttp(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Http As Object)
+    Http.SetCredentials Me.Username, Me.Password, web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER
+End Sub
+
+Private Sub IWebAuthenticator_PrepareCurl(ByVal Client As WebClient, ByVal Request As WebRequest, ByRef Curl As String)
+    Curl = Curl & " --basic --user " & WebHelpers.PrepareTextForShell(Me.Username) & ":" & WebHelpers.PrepareTextForShell(Me.Password)
+End Sub
+```
+
+```vb
+' Api.bas
+Dim Client As New WebClient
+Dim Authenticator As New HttpBasicAuthenticator
+
+Authenticator.Username = "Tim"
+Authenticator.Password = "password"
+Set Client.Authenticator = Authenticator
+```
+
+After:
+
+```vb
+' HttpBasicAuthenticator.cls
+Private WithEvents pClient As WebClient
+
+Private Const web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER = 0
+
+Public Username As String
+Public Password As String
+
+Public Sub ConnectTo(Client As WebClient)
+  Set pClient = Client
+End Sub
+
+Private Sub pClient_BeforeExecute(ByRef Request As WebRequest)
+    Request.SetHeader "Authorization", "Basic " & WebHelpers.Base64Encode(Me.Username & ":" & Me.Password)
+End Sub
+
+Private Sub pClient_PrepareHttp(Request As WebRequest, ByRef Http As Object)
+    Http.SetCredentials Me.Username, Me.Password, web_HTTPREQUEST_SETCREDENTIALS_FOR_SERVER
+End Sub
+
+Private Sub pClient_PrepareCurl(Request As WebRequest, ByRef Curl As String)
+    Curl = Curl & " --basic --user " & WebHelpers.PrepareTextForShell(Me.Username) & ":" & WebHelpers.PrepareTextForShell(Me.Password)
+End Sub
+```
+
+```vb
+' Api.bas
+Dim Client As New WebClient
+Dim Authenticator As New HttpBasicAuthenticator
+
+Authenticator.Username = "Tim"
+Authenticator.Password = "password"
+Authenticator.ConnectTo Client
+```
+
+The following is an example of adding custom functionality (a "CookieJar") to VBA-Web without having to directly extend any of the core functionality:
+
+```vb
+' CookieJar.cls
+Private WithEvents pClient As WebClient
+
+Public Cookies As Collection
+
+Public Sub ConnectTo(Client As WebClient)
+  Set pClient = Client
+End Sub
+
+Private Sub pClient_BeforeExecute(ByRef Request As WebRequest)
+  ' -> Add cookies to request
+End Sub
+
+Private Sub pClient_Response(Request As WebRequest, Response As WebResponse)
+  ' <- Get cookies from response
+End Sub
+
+Private Sub Class_Initialize()
+  Set Me.Cookies = New Collection
+End Sub
+```
+
+```vb
+' Api.bas
+Dim Client As New WebClient
+Dim Jar As New CookieJar
+
+Jar.ConnectTo Client
+```
 
 # How We Teach This
 
