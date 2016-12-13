@@ -53,7 +53,7 @@ This event is called before the request is generated from the `WebReqest`, so th
 
 Called after the `WinHttpRequest` has been prepared, this event can be used to interact with the `WinHttpRequest` directly (e.g. setting options, authentication, etc.).
 
-#### c) `Client_PrepareCurl(Request As WebReqest, ByRef Curl As String)` (Mac)
+#### c) `Client_PrepareCurl(Request As WebRequest, ByRef Curl As String)` (Mac)
 
 Called after the curl command has been prepared (occurs after `BeforeRequest` since the request is parsed for the curl command), this event can be used to interact with the curl command directly (e.g. adding flags).
 
@@ -198,4 +198,4 @@ An alternative would be to expand `IWebAuthenticator` to a more general `IWebExt
 
 # Unresolved questions
 
-None.
+This can be added in a backwards-compatible way for v4, with the expectation that `Client.Authenticator` and `IAuthenticator` will be deprecated. The custom formatter system includes content-type and custom functionality that occurs during parsing so removing that would lose quite a bit of functionality. It's recommended to keep that system in place, but there is room to investigate it being redesigned to be built off the Event system.
