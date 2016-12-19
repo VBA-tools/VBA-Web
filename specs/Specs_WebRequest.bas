@@ -11,6 +11,10 @@ Attribute VB_Name = "Specs_WebRequest"
 
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
+    Specs.Description = "WebRequest"
+    
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
     
     Dim Request As WebRequest
     Dim Body As Object
@@ -18,8 +22,6 @@ Public Function Specs() As SpecSuite
     Dim NumHeaders As Long
     
     WebHelpers.RegisterConverter "csv", "text/csv", "Specs_WebHelpers.SimpleConverter", "Specs_WebHelpers.SimpleParser"
-    
-    Specs.Description = "WebRequest"
     
     ' --------------------------------------------- '
     ' Properties
@@ -540,8 +542,6 @@ Public Function Specs() As SpecSuite
         
         .Expect(Err.Number).ToEqual 11020 + vbObjectError
     End With
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 

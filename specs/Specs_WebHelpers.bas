@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "WebHelpers"
     
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+    
     ' Contents:
     ' 1. Logging
     ' 2. Converters and encoding
@@ -682,8 +685,6 @@ Public Function Specs() As SpecSuite
     ' Errors
     ' ============================================= '
     On Error Resume Next
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 Function SimpleConverter(Body As Variant) As String

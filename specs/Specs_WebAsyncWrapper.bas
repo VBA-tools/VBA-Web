@@ -12,8 +12,8 @@ Attribute VB_Name = "Specs_WebAsyncWrapper"
 
 Private Declare Sub Sleep Lib "kernel32" (ByVal Milliseconds As Long)
 Private Declare Function GetTickCount Lib "kernel32" () As Long
-Dim AsyncResponse As WebResponse
-Dim AsyncArgs As Variant
+
+Private Fixture As New AsyncFixture
 
 Public Property Get HttpbinBaseUrl() As String
     HttpbinBaseUrl = "http://httpbin.org"
@@ -22,7 +22,10 @@ End Property
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "WebAsyncWrapper"
-    Specs.BeforeEach "Specs_WebAsyncWrapper.Reset"
+    
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+    Fixture.ListenTo Specs
     
     On Error Resume Next
     
@@ -66,7 +69,7 @@ Public Function Specs() As SpecSuite
         
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait WaitTime * 2
-        .Expect(AsyncResponse).ToNotBeUndefined
+        .Expect(Fixture.Response).ToNotBeUndefined
     End With
     
     With Specs.It("ExecuteAsync should pass arguments to callback")
@@ -75,13 +78,13 @@ Public Function Specs() As SpecSuite
         
         AsyncWrapper.ExecuteAsync Request, ComplexCallback, Array("A", "B", "C")
         Wait WaitTime
-        .Expect(AsyncResponse).ToNotBeUndefined
-        If UBound(AsyncArgs) > 1 Then
-            .Expect(AsyncArgs(0)).ToEqual "A"
-            .Expect(AsyncArgs(1)).ToEqual "B"
-            .Expect(AsyncArgs(2)).ToEqual "C"
+        .Expect(Fixture.Response).ToNotBeUndefined
+        If UBound(Fixture.Args) > 1 Then
+            .Expect(Fixture.Args(0)).ToEqual "A"
+            .Expect(Fixture.Args(1)).ToEqual "B"
+            .Expect(Fixture.Args(2)).ToEqual "C"
         Else
-            .Expect(UBound(AsyncArgs)).ToBeGreaterThan 1
+            .Expect(UBound(Fixture.Args)).ToBeGreaterThan 1
         End If
     End With
     
@@ -107,30 +110,23 @@ Public Function Specs() As SpecSuite
         Client.TimeoutMs = 100
         AsyncWrapper.ExecuteAsync Request, SimpleCallback
         Wait 2000
-        .Expect(AsyncResponse).ToNotBeUndefined
-        If Not AsyncResponse Is Nothing Then
-            .Expect(AsyncResponse.StatusCode).ToEqual 408
-            .Expect(AsyncResponse.StatusDescription).ToEqual "Request Timeout"
+        .Expect(Fixture.Response).ToNotBeUndefined
+        If Not Fixture.Response Is Nothing Then
+            .Expect(Fixture.Response.StatusCode).ToEqual 408
+            .Expect(Fixture.Response.StatusDescription).ToEqual "Request Timeout"
         End If
         .Expect(AsyncWrapper.Http).ToBeUndefined
         Client.TimeoutMs = 2000
     End With
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 Public Sub SimpleCallback(Response As WebResponse)
-    Set AsyncResponse = Response
+    Set Fixture.Response = Response
 End Sub
 
 Public Sub ComplexCallback(Response As WebResponse, Args As Variant)
-    Set AsyncResponse = Response
-    AsyncArgs = Args
-End Sub
-
-Public Sub Reset()
-    Set AsyncResponse = New WebResponse
-    AsyncArgs = Array()
+    Set Fixture.Response = Response
+    Fixture.Args = Args
 End Sub
 
 Public Sub Wait(Milliseconds As Integer)

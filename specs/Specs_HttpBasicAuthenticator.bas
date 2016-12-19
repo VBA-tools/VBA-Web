@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "HttpBasicAuthenticator"
     
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+    
     Dim Auth As New HttpBasicAuthenticator
     
     Dim Client As New WebClient
@@ -54,7 +57,5 @@ Public Function Specs() As SpecSuite
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data("authenticated")).ToEqual True
     End With
-    
-    InlineRunner.RunSuite Specs
 End Function
 

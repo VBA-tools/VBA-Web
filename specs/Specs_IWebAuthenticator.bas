@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "IWebAuthenticator"
     
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+    
     Dim Client As New WebClient
     Dim Request As WebRequest
     Dim Response As WebResponse
@@ -85,8 +88,6 @@ Public Function Specs() As SpecSuite
 '    End With
     
     Set Client = Nothing
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 

@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "GoogleAuthenticator"
     
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+    
     Dim Auth As New GoogleAuthenticator
     Dim Id As String
     Dim Secret As String
@@ -49,6 +52,4 @@ Public Function Specs() As SpecSuite
         Scope = Mid$(Scope, InStr(1, Scope, "scope") + 6)
         .Expect(Scope).ToEqual "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/analytics http://new_scope"
     End With
-    
-    InlineRunner.RunSuite Specs
 End Function

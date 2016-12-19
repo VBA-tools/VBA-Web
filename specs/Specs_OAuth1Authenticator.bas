@@ -12,6 +12,9 @@ Attribute VB_Name = "Specs_OAuth1Authenticator"
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "OAuth1Authenticator"
+    
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
         
     Dim Client As New WebClient
     Dim Request As New WebRequest
@@ -111,14 +114,15 @@ Public Function Specs() As SpecSuite
     With Specs.It("should create signature from base and secrets with proper hashing")
         .Expect(Auth.CreateSignature(ExpectedBaseString, ConsumerSecret & "&" & TokenSecret)).ToEqual ExpectedSignature
     End With
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 ' LinkedIn Specific
 ' ----------------- '
 Sub LinkedInSpecs()
     Dim Specs As New SpecSuite
+    
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
     
     Dim Client As New WebClient
     Client.BaseUrl = "http://api.linkedin.com/v1/"
@@ -171,6 +175,4 @@ Sub LinkedInSpecs()
         .Expect(Response.StatusCode).ToEqual 200
         .Expect(Response.Data("companies")).ToNotBeUndefined
     End With
-    
-    InlineRunner.RunSuite Specs
 End Sub

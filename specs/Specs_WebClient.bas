@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "WebClient"
     
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+
     Dim Client As New WebClient
     Dim Request As WebRequest
     Dim Response As WebResponse
@@ -350,8 +353,6 @@ Public Function Specs() As SpecSuite
     End With
     
     Set Client = Nothing
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 Public Function OfflineSpecs() As SpecSuite
@@ -359,6 +360,9 @@ Public Function OfflineSpecs() As SpecSuite
     
     Set OfflineSpecs = New SpecSuite
     OfflineSpecs.Description = "WebClient - Offline"
+    
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
     
     Dim Client As New WebClient
     Dim Request As WebRequest
@@ -388,7 +392,5 @@ Public Function OfflineSpecs() As SpecSuite
         .Expect(Response.StatusCode).ToEqual 408
         .Expect(Response.StatusDescription).ToEqual "Request Timeout"
     End With
-    
-    InlineRunner.RunSuite OfflineSpecs
 End Function
 

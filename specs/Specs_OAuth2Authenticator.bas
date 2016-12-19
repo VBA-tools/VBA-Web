@@ -12,6 +12,9 @@ Attribute VB_Name = "Specs_OAuth2Authenticator"
 Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "OAuth2Authenticator"
+    
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
         
     Dim Client As New WebClient
     Dim Request As New WebRequest
@@ -23,7 +26,5 @@ Public Function Specs() As SpecSuite
     Dim Password As String
     
     ' TODO
-    
-    InlineRunner.RunSuite Specs
 End Function
 

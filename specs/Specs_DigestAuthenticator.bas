@@ -13,6 +13,9 @@ Public Function Specs() As SpecSuite
     Set Specs = New SpecSuite
     Specs.Description = "DigestAuthenticator"
     
+    Dim Reporter As New ImmediateReporter
+    Reporter.ListenTo Specs
+    
     Dim web_CrLf As String
     web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)
     
@@ -71,8 +74,6 @@ Public Function Specs() As SpecSuite
         .Expect(Auth.ServerNonce).ToEqual "dcd98b7102dd2f0e8b11d0f600bfb0c093"
         .Expect(Auth.Opaque).ToEqual "5ccc069c403ebaf9f0171e9517f40e41"
     End With
-    
-    InlineRunner.RunSuite Specs
 End Function
 
 
