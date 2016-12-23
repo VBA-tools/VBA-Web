@@ -12,7 +12,7 @@ VBA-Web has a strong, stable core that is supported across all platforms, but it
 
 # Detailed design
 
-Feature flags will be compiler constants that are `False` by default. The should start with "Enable" and then the feature name. Compatibility details should not be included in the feature name as this may change during development. Each flag should be isolated from all other feature flags. Behavior that depends on more than a single feature flag should be strongly discouraged and turning on one feature should not require turning on/off another.
+Feature flags will be compiler constants that are `False` by default. The should start with "Enable" and then the feature name. Compatibility details should not be included in the feature name as this may change during development. Each flag should be isolated from all other feature flags. Behavior that depends on more than a single feature flag should be strongly discouraged and turning on one feature should not require turning on/off another. Generally, public functionality related to the feature should be put _inside_ compiler directives so that using disabled features causes compilation errors (rather than runtime errors).
 
 ```vb
 ' WebHelpers.bas
@@ -38,8 +38,8 @@ Feature flags will be compiler constants that are `False` by default. The should
 ''
 #Const EnableFeatureB = False
 
-' -> Use feature flags in compiler directives
-#If EnableA Then
+' -> Use feature flags with compiler directives
+#If EnableFeatureA Then
 Public Sub DoA()
 
 End Sub
