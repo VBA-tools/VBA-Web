@@ -62,28 +62,4 @@ Currently, `WebAsyncWrapper` is a separate class that is only compatible with Wi
 
 # Unresolved questions
 
-Should the public API stay the same across features?
-
-Approach A, add methods, properties, etc. to public API:
-
-```vb
-' Method isn't even available without feature
-#If EnableFeatureA Then
-Public Function DoA()
-
-End Function
-#End If
-```
-
-Approach B, enable methods, properties, etc.:
-
-```vb
-' Method is disabled without feature
-Public Function DoA()
-#If EnableFeatureA Then
-
-#End If
-End Function
-```
-
-Approach A would lead to compiler errors if a method/property is used when the flag is turned off, which I think is a good thing since it would allow errors to be caught earlier.
+None.
