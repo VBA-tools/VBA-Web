@@ -1,5 +1,5 @@
 - Start Date: 2016-12-15
-- RFC PR: (leave this empty)
+- RFC PR: https://github.com/VBA-tools/VBA-Web/pull/267
 - VBA-Web Issue: (leave this empty)
 
 # Summary
