@@ -1,6 +1,6 @@
 VBA-Web
 =======
-myvba
+myvba in readme brach
 
 VBA-Web (formerly Excel-REST) makes working with complex webservices and APIs easy with VBA on Windows and Mac. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
 
