@@ -2563,6 +2563,16 @@ Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
 
         json_StringIsLargeNumber = True
 
+        ' In the fisrt char is 0 the second must be . to be a large number
+        ' otherwise it's a string
+        Dim first_Char, second_Char As Integer
+        first_Char = VBA.Asc(VBA.Mid$(json_String, 1, 1))
+        second_Char = VBA.Asc(VBA.Mid$(json_String, 2, 1))
+        If first_Char = 48 And second_Char <> 46 Then
+            json_StringIsLargeNumber = False
+            Exit Function
+        End If
+                
         For json_CharIndex = 1 To json_Length
             json_CharCode = VBA.Asc(VBA.Mid$(json_String, json_CharIndex, 1))
             Select Case json_CharCode
