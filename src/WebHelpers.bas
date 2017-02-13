@@ -237,10 +237,17 @@ Public JsonOptions As json_Options
 ' === End VBA-JSON
 
 #If Mac Then
-Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal Command As String, ByVal mode As String) As Long
-Private Declare Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal File As Long) As Long
-Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal outStr As String, ByVal size As Long, ByVal Items As Long, ByVal stream As Long) As Long
-Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal File As Long) As Long
+#If VBA7 Then
+Private Declare PtrSafe Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As LongPtr
+Private Declare PtrSafe Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_fread Lib "libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As LongPtr, ByVal web_Items As LongPtr, ByVal web_Stream As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_feof Lib "libc.dylib" Alias "feof" (ByVal web_File As LongPtr) As LongPtr
+#Else
+Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As Long
+Private Declare Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As Long) As Long
+Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As Long, ByVal web_Items As Long, ByVal web_Stream As Long) As Long
+Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal web_File As Long) As Long
+#End If
 #End If
 
 Public Const WebUserAgent As String = "VBA-Web v4.1.1 (https://github.com/VBA-tools/VBA-Web)"
@@ -1592,7 +1599,12 @@ End Sub
 ''
 Public Function ExecuteInShell(web_Command As String) As ShellResult
 #If Mac Then
+#If VBA7 Then
+    Dim web_File As LongPtr
+#Else
     Dim web_File As Long
+#End If
+
     Dim web_Chunk As String
     Dim web_Read As Long
 
