@@ -1625,7 +1625,7 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
 
     Do While web_feof(web_File) = 0
         web_Chunk = VBA.Space$(50)
-        web_Read = CInt(web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File))
+        web_Read = CLng(web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File))
         If web_Read > 0 Then
             web_Chunk = VBA.Left$(web_Chunk, web_Read)
             ExecuteInShell.Output = ExecuteInShell.Output & web_Chunk
@@ -1634,7 +1634,7 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
 
 web_Cleanup:
 
-    ExecuteInShell.ExitCode = CInt(web_pclose(web_File))
+    ExecuteInShell.ExitCode = CLng(web_pclose(web_File))
 #End If
 End Function
 
@@ -2944,7 +2944,7 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
 
     Do While utc_feof(utc_File) = 0
         utc_Chunk = VBA.Space$(50)
-        utc_Read = CInt(utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File))
+        utc_Read = CLng(utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File))
         If utc_Read > 0 Then
             utc_Chunk = VBA.Left$(utc_Chunk, utc_Read)
             utc_ExecuteInShell.utc_Output = utc_ExecuteInShell.utc_Output & utc_Chunk
@@ -2952,7 +2952,7 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
     Loop
 
 utc_ErrorHandling:
-    utc_ExecuteInShell.utc_ExitCode = CInt(utc_pclose(utc_File))
+    utc_ExecuteInShell.utc_ExitCode = CLng(utc_pclose(utc_File))
 #End If
 End Function
 
