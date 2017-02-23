@@ -143,11 +143,17 @@ Const AUTOPROXY_DETECT_TYPE_DNS = 2
 ' === VBA-JSON Headers
 ' === VBA-UTC Headers
 #If Mac Then
-
+#If VBA7 Then
+Private Declare PtrSafe Function utc_popen Lib "libc.dylib" Alias "popen" (ByVal utc_Command As String, ByVal utc_Mode As String) As LongPtr
+Private Declare PtrSafe Function utc_pclose Lib "libc.dylib" Alias "pclose" (ByVal utc_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function utc_fread Lib "libc.dylib" Alias "fread" (ByVal utc_OutStr As String, ByVal utc_Size As LongPtr, ByVal utc_Items As LongPtr, ByVal utc_Stream As LongPtr) As LongPtr
+Private Declare PtrSafe Function utc_feof Lib "libc.dylib" Alias "feof" (ByVal utc_File As LongPtr) As LongPtr
+#Else
 Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
 Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" (ByVal utc_File As Long) As Long
 Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
 Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" (ByVal utc_File As Long) As Long
+#End If
 
 #ElseIf VBA7 Then
 
@@ -1619,7 +1625,7 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
 
     Do While web_feof(web_File) = 0
         web_Chunk = VBA.Space$(50)
-        web_Read = web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File)
+        web_Read = CInt(web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File))
         If web_Read > 0 Then
             web_Chunk = VBA.Left$(web_Chunk, web_Read)
             ExecuteInShell.Output = ExecuteInShell.Output & web_Chunk
@@ -1628,7 +1634,7 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
 
 web_Cleanup:
 
-    ExecuteInShell.ExitCode = web_pclose(web_File)
+    ExecuteInShell.ExitCode = CInt(web_pclose(web_File))
 #End If
 End Function
 
@@ -2921,7 +2927,13 @@ Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As
 End Function
 
 Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResult
+#If Mac Then
+#If VBA7 Then
+    Dim utc_File As LongPtr
+#Else
     Dim utc_File As Long
+#End If
+
     Dim utc_Chunk As String
     Dim utc_Read As Long
 
@@ -2932,7 +2944,7 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
 
     Do While utc_feof(utc_File) = 0
         utc_Chunk = VBA.Space$(50)
-        utc_Read = utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File)
+        utc_Read = CInt(utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File))
         If utc_Read > 0 Then
             utc_Chunk = VBA.Left$(utc_Chunk, utc_Read)
             utc_ExecuteInShell.utc_Output = utc_ExecuteInShell.utc_Output & utc_Chunk
@@ -2940,7 +2952,8 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
     Loop
 
 utc_ErrorHandling:
-    utc_ExecuteInShell.utc_ExitCode = utc_pclose(utc_File)
+    utc_ExecuteInShell.utc_ExitCode = CInt(utc_pclose(utc_File))
+#End If
 End Function
 
 #Else
