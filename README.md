@@ -10,6 +10,10 @@ Getting started
 - To install/upgrade in an existing file, use `VBA-Web - Installer.xlsm`
 - To start from scratch in Excel, `VBA-Web - Blank.xlsm` has everything setup and ready to go
 
+Using `VBA-Web - Installer.xlsm` on macOS Sierra and later versions of macOS requires the following
+command be run once from Terminal:
+```ditto "macOS/Application Scripts/com.microsoft.Excel/" "$HOME/Library/Application Scripts/com.microsoft.Excel"```
+
 For more details see the [Wiki](https://github.com/VBA-tools/VBA-Web/wiki)
 
 Upgrading
