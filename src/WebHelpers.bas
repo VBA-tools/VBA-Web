@@ -2978,7 +2978,6 @@ Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResu
 
 utc_ErrorHandling:
     utc_ExecuteInShell.utc_ExitCode = CLng(utc_pclose(utc_File))
-#End If
 End Function
 
 #Else
