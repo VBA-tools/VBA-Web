@@ -1080,7 +1080,7 @@ End Function
 Public Function Base64Encode(Text As String) As String
 #If Mac Then
     Dim web_Command As String
-    web_Command = "printf " & PrepareTextForShell(Text) & " | openssl base64"
+    web_Command = "printf " & PrepareTextForPrintf(Text) & " | openssl base64"
     Base64Encode = ExecuteInShell(web_Command).Output
 #Else
     Dim web_Bytes() As Byte
@@ -1699,6 +1699,43 @@ Public Function PrepareTextForShell(ByVal web_Text As String) As String
     PrepareTextForShell = web_Text
 End Function
 
+''
+' Prepare text for using with printf command
+' - Wrap in "..."
+' - Replace ! with '!' (reserved in bash)
+' - Escape \, `, $, and "
+' - Replace % with %% (used as an argument marker in printf)
+'
+' @internal
+' @method PrepareTextForPrintf
+' @param {String} Text
+' @return {String}
+''
+Public Function PrepareTextForPrintf(ByVal web_Text As String) As String
+    ' Escape special characters (except for !)
+    web_Text = VBA.Replace(web_Text, "\", "\\")
+    web_Text = VBA.Replace(web_Text, "`", "\`")
+    web_Text = VBA.Replace(web_Text, "$", "\$")
+    web_Text = VBA.Replace(web_Text, "%", "%%")
+    web_Text = VBA.Replace(web_Text, """", "\""")
+
+    ' Wrap in quotes
+    web_Text = """" & web_Text & """"
+
+    ' Escape !
+    web_Text = VBA.Replace(web_Text, "!", """'!'""")
+
+    ' Guard for ! at beginning or end (""'!'"..." or "..."'!'"" -> '!'"..." or "..."'!')
+    If VBA.Left$(web_Text, 3) = """""'" Then
+        web_Text = VBA.Right$(web_Text, VBA.Len(web_Text) - 2)
+    End If
+    If VBA.Right$(web_Text, 3) = "'""""" Then
+        web_Text = VBA.Left$(web_Text, VBA.Len(web_Text) - 2)
+    End If
+
+    PrepareTextForPrintf = web_Text
+End Function
+
 ' ============================================= '
 ' 8. Cryptography
 ' ============================================= '
@@ -1724,7 +1761,7 @@ End Function
 Public Function HMACSHA1(Text As String, Secret As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
-    web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
+    web_Command = "printf " & PrepareTextForPrintf(Text) & " | openssl dgst -sha1 -hmac " & PrepareTextForShell(Secret)
 
     If Format = "Base64" Then
         web_Command = web_Command & " -binary | openssl enc -base64"
@@ -1771,7 +1808,7 @@ End Function
 Public Function HMACSHA256(Text As String, Secret As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
-    web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
+    web_Command = "printf " & PrepareTextForPrintf(Text) & " | openssl dgst -sha256 -hmac " & PrepareTextForShell(Secret)
 
     If Format = "Base64" Then
         web_Command = web_Command & " -binary | openssl enc -base64"
@@ -1820,7 +1857,7 @@ End Function
 Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
     Dim web_Command As String
-    web_Command = "printf " & PrepareTextForShell(Text) & " | openssl dgst -md5"
+    web_Command = "printf " & PrepareTextForPrintf(Text) & " | openssl dgst -md5"
 
     If Format = "Base64" Then
         web_Command = web_Command & " -binary | openssl enc -base64"
