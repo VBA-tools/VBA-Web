@@ -2918,12 +2918,15 @@ Public Function ParseIso(utc_IsoString As String) As Date
             ' VBA.Val does not use regional settings, use for seconds to avoid decimal/comma issues
             ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), VBA.CInt(utc_TimeParts(1)), Int(VBA.Val(utc_TimeParts(2))))
         End Select
-
-        ParseIso = ParseUtc(ParseIso)
-
+        
         If utc_HasOffset Then
-            ParseIso = ParseIso + utc_Offset
+            ' if an Offset exists, then compensate for it (by substracting)
+            ParseIso = ParseUtc(ParseIso - utc_Offset)
+        Else
+            ' no Offset => date already in UTC
+            ParseIso = ParseUtc(ParseIso)
         End If
+
     End If
 
     Exit Function
