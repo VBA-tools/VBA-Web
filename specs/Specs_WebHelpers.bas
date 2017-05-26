@@ -25,6 +25,7 @@ Public Function Specs() As SpecSuite
     ' 6. Timing
     ' 7. Mac
     ' 8. Cryptography
+    ' 9. Date/Time conversion
     ' Errors
     ' --------------------------------------------- '
     
@@ -680,6 +681,29 @@ Public Function Specs() As SpecSuite
         .Expect(Len(WebHelpers.CreateNonce)).ToEqual 32
         .Expect(Len(WebHelpers.CreateNonce(20))).ToEqual 20
     End With
+    
+    
+    ' ============================================= '
+    ' 9. Date/Time conversion
+    ' ============================================= '
+    
+    ' ISO to UTC (all ISO dates in daylight saving time)
+    ' --------------------------------------------- '
+    With Specs.It("should handle offset in ISO date")
+        .Expect(WebHelpers.ConvertToUtc(WebHelpers.ParseIso("2017-05-01T02:00:00.000+02:00"))).ToEqual DateValue("2017-05-01") + TimeValue("00:00:00") ' 02:00:00 in Berlin => 00:00 (same day) UTC
+        .Expect(WebHelpers.ConvertToUtc(WebHelpers.ParseIso("2017-05-01T00:00:00.000+02:00"))).ToEqual DateValue("2017-04-30") + TimeValue("22:00:00") ' 00:00:00 in Berlin => 22:00 (prev. day) UTC
+        .Expect(WebHelpers.ConvertToUtc(WebHelpers.ParseIso("2017-04-30T20:00:00.000-04:00"))).ToEqual DateValue("2017-05-01") + TimeValue("00:00:00") ' 20:00:00 in New York => 00:00 (next day) UTC
+    End With
+    
+    ' ISO to UTC
+    ' --------------------------------------------- '
+    With Specs.It("should convert ISO dates in UTC to UTC")
+        .Expect(WebHelpers.ConvertToUtc(WebHelpers.ParseIso("2017-05-01T00:00:00.000Z"))).ToEqual DateValue("2017-05-01 00:00:00") + TimeValue("00:00:00")
+        .Expect(WebHelpers.ConvertToUtc(WebHelpers.ParseIso("2017-05-01T00:00:00.000+00:00"))).ToEqual DateValue("2017-05-01 00:00:00") + TimeValue("00:00:00")
+    End With
+    
+    
+    
     
     ' ============================================= '
     ' Errors
