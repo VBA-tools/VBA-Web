@@ -57,6 +57,7 @@ Private web_pCustomRequestFormat As String
 Private web_pCustomResponseFormat As String
 Private web_pBody As Variant
 Private web_pConvertedBody As Variant
+Private web_pUserAgent As String
 Private web_pContentType As String
 Private web_pAccept As String
 Private web_pContentLength As Long
@@ -357,6 +358,29 @@ Public Property Let CustomResponseFormat(Value As String)
             ResponseFormat = WebFormat.Custom
         End If
     End If
+End Property
+
+''
+' Defaults to a VBA-Web specific User-Agent, but can be set to
+' but can be overriden to set `User-Agent` header for request.
+'
+' @example
+' ```VB.net
+' Dim Request As New WebRequest
+' Request.UserAgent = "Mozilla/5.0"
+'
+' ' -> (Header) User-Agent: Mozilla/5.0
+' ```
+'
+' @property ContentType
+' @type String
+' @default Media-type of request format
+''
+Public Property Get UserAgent() As String
+    UserAgent = web_pUserAgent
+End Property
+Public Property Let UserAgent(Value As String)
+    web_pUserAgent = Value
 End Property
 
 ''
@@ -760,6 +784,7 @@ Public Function Clone() As WebRequest
     Clone.Method = Me.Method
     Clone.UserAgent = Me.UserAgent
     Clone.Accept = web_pAccept
+    Clone.UserAgent = web_pUserAgent
     Clone.ContentType = web_pContentType
     Clone.ContentLength = web_pContentLength
     Clone.RequestFormat = Me.RequestFormat
