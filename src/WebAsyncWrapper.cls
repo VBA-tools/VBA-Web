@@ -246,8 +246,31 @@ Private Sub Http_OnResponseFinished()
     web_RunCallback web_Response
 End Sub
 
+' Abort asynchronous request
+Public Sub Abort(Optional Reason As String = "")
+    If Reason <> "" Then Reason = ": " & Reason
+    If Not WebHelpers.AsyncRequests Is Nothing And Not Me.Request Is Nothing Then
+        If WebHelpers.AsyncRequests.Exists(Me.Request.Id) Then
+            Me.Http.Abort
+            WebHelpers.AsyncRequests.Remove Me.Request.Id
+            WebHelpers.LogDebug "Aborted" & Reason, "WebAsyncWrapper.Abort"
+        Else
+            WebHelpers.LogDebug "Not running" & Reason, "WebAsyncWrapper.Abort"
+        End If
+    Else
+        WebHelpers.LogDebug "Not running" & Reason, "WebAsyncWrapper.Abort"
+    End If
+End Sub
+
 Private Sub Class_Terminate()
+    ' Remove requests before terminating class instance
+    If Not WebHelpers.AsyncRequests Is Nothing And Not Me.Request Is Nothing Then
+        If WebHelpers.AsyncRequests.Exists(Me.Request.Id) Then
+            Me.Http.Abort
+            WebHelpers.AsyncRequests.Remove Me.Request.Id
+            WebHelpers.LogDebug "Aborted - Class Terminated", "WebAsyncWrapper.Cancel"
+        End If
+    End If
     Set Me.Client = Nothing
     Set Me.Request = Nothing
 End Sub
-
