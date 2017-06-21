@@ -162,7 +162,8 @@ Public Sub ExtractAuthenticateInformation(Response As WebResponse)
     Dim web_CrLf As String
     
     auth_Header = WebHelpers.FindInKeyValues(Response.Headers, "WWW-Authenticate")
-    web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)
+    'web_CrLf = VBA.Chr$(13) & VBA.Chr$(10)    'original code(cr)(lf)
+    web_CrLf = VBA.Chr$(44)                    'new code (,)
     
     If auth_Header <> "" And VBA.Left$(auth_Header, 6) = "Digest" Then
         Dim auth_Lines As Variant
