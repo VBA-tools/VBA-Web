@@ -38,6 +38,13 @@ Attribute VB_Exposed = True
 '' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
+Private Const CP_UTF8 = 65001
+
+Private Declare Function MultiByteToWideChar Lib "KERNEL32" ( _
+   ByVal CodePage As Long, ByVal dwFlags As Long, _
+   ByVal lpMultiByteStr As Long, ByVal cchMultiByte As Long, _
+   ByVal lpWideCharStr As Long, ByVal cchWideChar As Long) As Long
+
 Private web_CrLf As String
 
 ' --------------------------------------------- '
@@ -134,11 +141,16 @@ End Sub
 ' @throws 11030 / 80042b16 / -2147210474 - Error creating from http
 ''
 Public Sub CreateFromHttp(Client As WebClient, Request As WebRequest, Http As Object)
+    Dim bodyBytes() As Byte
     On Error GoTo web_ErrorHandling
 
     Me.StatusCode = Http.Status
     Me.StatusDescription = Http.StatusText
-    Me.Content = Http.ResponseText
+    ' WinHttpRequest.ResponseText has been decoded with the users code page (CP_ACP)
+    ' This is completely useless. Assume UTF8 here.
+    ' TODO: detect from response headers, allow override by caller
+    bodyBytes = Http.ResponseBody
+    Me.Content = web_UTF8ToUni(bodyBytes)
     Me.Body = Http.ResponseBody
 
     web_LoadValues Http.GetAllResponseHeaders, Me.Content, Me.Body, Request
@@ -399,6 +411,23 @@ Private Function web_FindBlankLine(web_CurlResponseLines() As String) As Long
             Exit Function
         End If
     Next web_FindBlankLine
+End Function
+
+' Converts a UTF-8 byte array to a Unicode string
+Private Function web_UTF8ToUni(bySrc() As Byte) As String
+   Dim lBytes As Long, lNC As Long, lRet As Long
+
+   ' Size of bytes array, return null string if less than 2
+   lBytes = UBound(bySrc) - LBound(bySrc) + 1
+   If lBytes < 2 Then
+    web_UTF8ToUni = vbNullString
+    Exit Function
+   End If
+   
+   ' Get the length of the data, create array big enough, and convert
+   lRet = MultiByteToWideChar(CP_UTF8, 0, VarPtr(bySrc(0)), lBytes, 0, 0)
+   web_UTF8ToUni = String$(lRet, 0)
+   MultiByteToWideChar CP_UTF8, 0, VarPtr(bySrc(0)), lBytes, StrPtr(web_UTF8ToUni), lRet
 End Function
 
 Private Sub Class_Initialize()
