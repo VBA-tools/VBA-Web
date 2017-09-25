@@ -740,9 +740,11 @@ End Sub
 Public Sub Prepare()
     ' Add/replace general headers for request
     SetHeader "User-Agent", Me.UserAgent
-    SetHeader "Content-Type", Me.ContentType
     SetHeader "Accept", Me.Accept
-    SetHeader "Content-Length", VBA.CStr(Me.ContentLength)
+    If Me.Method <> WebMethod.HttpGet Then
+        SetHeader "Content-Type", Me.ContentType
+        SetHeader "Content-Length", VBA.CStr(Me.ContentLength)
+    End If
 End Sub
 
 ''
