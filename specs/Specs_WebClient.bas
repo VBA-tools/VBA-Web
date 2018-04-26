@@ -331,7 +331,7 @@ Public Function Specs() As SpecSuite
         
         Set Request = New WebRequest
         Request.Resource = "delay/{seconds}"
-        Request.AddUrlSegment "seconds", "2"
+        Request.AddUrlSegment "seconds", "5"
         
         Set Response = Client.Execute(Request)
         .Expect(Response.StatusCode).ToEqual 408
