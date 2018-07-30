@@ -192,7 +192,7 @@ Private Sub web_RunCallback(web_Response As WebResponse)
     '     Next i
     ' End Function
 
-    WebHelpers.LogResponse Me.Client, Me.Request, web_Response
+    WebHelpers.LogResponse web_Response
 
     If Not Me.Client.Authenticator Is Nothing Then
         Me.Client.Authenticator.AfterExecute Me.Client, Me.Request, web_Response
