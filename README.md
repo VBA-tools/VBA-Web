@@ -3,7 +3,9 @@ VBA-Web
 
 VBA-Web (formerly Excel-REST) makes working with complex webservices and APIs easy with VBA on Windows and Mac. It includes support for authentication, automatically converting and parsing JSON, working with cookies and headers, and much more.
 
-[![Donate](https://timhall.github.io/assets/donate-patreon.png)](https://www.patreon.com/timhall)
+<a href="https://www.patreon.com/timhall">
+  <img src="https://timhall.github.io/assets/donate-patreon@2x.png" width="217" alt="Donate">
+</a>
 
 Getting started
 ---------------
