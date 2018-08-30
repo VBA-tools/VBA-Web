@@ -1,12 +1,13 @@
 name: VBA-Web
-baseurl: "/VBA-Web"
+title: VBA-Web
+url: https://VBA-tools.github.io/VBA-Web
+baseurl: /VBA-Web
 repository: VBA-tools/VBA-Web
 
-url: http://vba-tools.github.io/VBA-Web/
 github_url: https://github.com/VBA-tools/VBA-Web
 download: https://github.com/VBA-tools/VBA-Web/releases
 description: "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web"
-version: 4.1.1
+version: 4.1.5
 
 defaults:
 - scope:
@@ -45,12 +46,14 @@ sass:
   sass_dir: _css
 
 # Default github-pages configuation
+encoding: UTF-8
 kramdown:
   input: GFM
   hard_wrap: false
-gems:
-  - jekyll-coffeescript
-  - jekyll-paginate
+future: true
+jailed: false
+theme: jekyll-theme-primer
+gfm_quirks: paragraph_end
 
 # Unchangable github-pages configuration
 lsi: false
@@ -60,3 +63,4 @@ gist:
   noscript: false
 kramdown:
   math_engine: mathjax
+  syntax_highlighter: rouge
