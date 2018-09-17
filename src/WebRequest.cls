@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
-' WebRequest v4.1.3
+' WebRequest v4.1.5
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
 ' `WebRequest` is used to create detailed requests
@@ -740,9 +740,11 @@ End Sub
 Public Sub Prepare()
     ' Add/replace general headers for request
     SetHeader "User-Agent", Me.UserAgent
-    SetHeader "Content-Type", Me.ContentType
     SetHeader "Accept", Me.Accept
-    SetHeader "Content-Length", VBA.CStr(Me.ContentLength)
+    If Me.Method <> WebMethod.HttpGet Then
+        SetHeader "Content-Type", Me.ContentType
+        SetHeader "Content-Length", VBA.CStr(Me.ContentLength)
+    End If
 End Sub
 
 ''

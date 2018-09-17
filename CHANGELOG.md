@@ -11,6 +11,8 @@
 - __4.1.1__ Adjust `CookieUrlEncoding` mode to match value encoding in RFC 6265 (rather than name encoding)
 - __4.1.2__ Compatibility with 64-bit Mac
 - __4.1.3__ Mac bugfix for % encoding
+- __4.1.4__ Fix compilation issues for 64-bit Mac
+- __4.1.5__ Update VBA-JSON to v2.3.0 (fixes JSON slowdown on Windows)
 
 # 4.0.0
 

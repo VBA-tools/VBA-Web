@@ -499,6 +499,7 @@ Public Function Specs() As SpecSuite
     With Specs.It("Prepare should add ContentType, Accept, and ContentLength headers")
         Set Request = New WebRequest
         
+        Request.Method = WebMethod.HttpPost
         Request.ContentType = "text/plain"
         Request.Accept = "text/csv"
         Request.ContentLength = 100
