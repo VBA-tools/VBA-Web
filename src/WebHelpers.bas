@@ -577,7 +577,7 @@ End Sub
 ''
 Public Sub LogWithTime(Message As String, Optional NewLine As Boolean = False)
     If EnableLogging Then
-        Debug.Print Message & " - " & Format(Now, "yyyy-mm-dd hh:nn:ss.") & Right(Format(Timer, "#0.000"), 3)
+        Debug.Print Format(Now, "yyyy-mm-dd hh:nn:ss.") & Right(Format(Timer, "#0.000"), 3) & " - " & Message
 
         If NewLine Then
             Debug.Print vbNewLine
