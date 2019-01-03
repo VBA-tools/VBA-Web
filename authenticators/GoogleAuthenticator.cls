@@ -384,7 +384,7 @@ Private Function auth_LoginIsApproval(auth_IE As Object) As Boolean
     Dim auth_UrlParts As Dictionary
     Set auth_UrlParts = WebHelpers.GetUrlParts(auth_IE.LocationURL)
     
-    auth_LoginIsApproval = auth_UrlParts("Path") = "/o/oauth2/approval"
+    auth_LoginIsApproval = auth_UrlParts("Path") = "/o/oauth2/approval/v2/approvalnativeapp"
 End Function
 
 Private Function auth_LoginIsDenied(auth_IE As Object) As Boolean
@@ -411,7 +411,7 @@ Private Function auth_LoginExtractCode(auth_IE As Object) As String
     If auth_LoginIsApproval(auth_IE) Then
         ' Extract authorization code
         For Each auth_Element In auth_IE.Document.Body.All
-            If VBA.UCase(auth_Element.NodeName) = "INPUT" Then
+            If VBA.UCase(auth_Element.NodeName) = "TEXTAREA" Then
                 auth_LoginExtractCode = auth_Element.DefaultValue
                 Exit Function
             End If
