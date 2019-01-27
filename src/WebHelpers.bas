@@ -147,25 +147,25 @@ Const AUTOPROXY_DETECT_TYPE_DNS = 2
 #If VBA7 Then
 
 ' 64-bit Mac (2016)
-Private Declare PtrSafe Function utc_popen Lib "libc.dylib" Alias "popen" _
+Private Declare PtrSafe Function utc_popen Lib "/usr/lib/libc.dylib" Alias "popen" _
     (ByVal utc_Command As String, ByVal utc_Mode As String) As LongPtr
-Private Declare PtrSafe Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+Private Declare PtrSafe Function utc_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" _
     (ByVal utc_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function utc_fread Lib "libc.dylib" Alias "fread" _
+Private Declare PtrSafe Function utc_fread Lib "/usr/lib/libc.dylib" Alias "fread" _
     (ByVal utc_Buffer As String, ByVal utc_Size As LongPtr, ByVal utc_Number As LongPtr, ByVal utc_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function utc_feof Lib "libc.dylib" Alias "feof" _
+Private Declare PtrSafe Function utc_feof Lib "/usr/lib/libc.dylib" Alias "feof" _
     (ByVal utc_File As LongPtr) As LongPtr
 
 #Else
 
 ' 32-bit Mac
-Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" _
+Private Declare Function utc_popen Lib "/usr/lib/libc.dylib" Alias "popen" _
     (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
-Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+Private Declare Function utc_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" _
     (ByVal utc_File As Long) As Long
-Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" _
+Private Declare Function utc_fread Lib "/usr/lib/libc.dylib" Alias "fread" _
     (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
-Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" _
+Private Declare Function utc_feof Lib "/usr/lib/libc.dylib" Alias "feof" _
     (ByVal utc_File As Long) As Long
 
 #End If
@@ -256,15 +256,15 @@ Public JsonOptions As json_Options
 
 #If Mac Then
 #If VBA7 Then
-Private Declare PtrSafe Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As LongPtr
-Private Declare PtrSafe Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function web_fread Lib "libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As LongPtr, ByVal web_Items As LongPtr, ByVal web_Stream As LongPtr) As LongPtr
-Private Declare PtrSafe Function web_feof Lib "libc.dylib" Alias "feof" (ByVal web_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_popen Lib "/usr/lib/libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As LongPtr
+Private Declare PtrSafe Function web_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" (ByVal web_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_fread Lib "/usr/lib/libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As LongPtr, ByVal web_Items As LongPtr, ByVal web_Stream As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_feof Lib "/usr/lib/libc.dylib" Alias "feof" (ByVal web_File As LongPtr) As LongPtr
 #Else
-Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As Long
-Private Declare Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As Long) As Long
-Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As Long, ByVal web_Items As Long, ByVal web_Stream As Long) As Long
-Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal web_File As Long) As Long
+Private Declare Function web_popen Lib "/usr/lib/libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As Long
+Private Declare Function web_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" (ByVal web_File As Long) As Long
+Private Declare Function web_fread Lib "/usr/lib/libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As Long, ByVal web_Items As Long, ByVal web_Stream As Long) As Long
+Private Declare Function web_feof Lib "/usr/lib/libc.dylib" Alias "feof" (ByVal web_File As Long) As Long
 #End If
 #End If
 
