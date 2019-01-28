@@ -1,3 +1,9 @@
+# 4.2.0
+
+- Add `Accept-Encoding` header ("identity" by default)
+- Include `Content-Type` and `Content-Length` for GET requests with non-empty `Body`
+- Allow async timeouts >60 seconds
+
 # 4.1.0
 
 - Update `UrlEncode` behavior to target different encoding RFCs based on `UrlEncodingMode`
