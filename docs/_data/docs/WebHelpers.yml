@@ -161,11 +161,18 @@ Methods:
 
   # LogResponse
   - name: LogResponse
-    code: "LogResponse(Client, Request, Response)"
+    code: "LogResponse(Response)"
     details:
-      Client: "`{WebClient}`"
-      Request: "`{WebRequest}`"
       Response: "`{WebResponse}`"
+    description: |
+      Log the given string along with the current time specified to the millisecond.  Optionally log a newline immediately following. 
+
+  # LogWithTime
+  - name: LogWithTime
+    code: "LogWithTime(Message, [NewLine])"
+    details:
+      Message: "`{String}`"
+      NewLine: "`{Boolean}` _Optional_"
     description: |
       Log details of the response (Status, headers, content, etc.).
 

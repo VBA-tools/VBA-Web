@@ -324,7 +324,7 @@ Public Function Execute(Request As WebRequest) As WebResponse
 
 #End If
 
-    WebHelpers.LogResponse Me, Request, web_Response
+    WebHelpers.LogResponse web_Response
 
     If Not Me.Authenticator Is Nothing Then
         Me.Authenticator.AfterExecute Me, Request, web_Response
@@ -347,7 +347,7 @@ web_ErrorHandling:
         web_Response.StatusCode = WebStatusCode.RequestTimeout
         web_Response.StatusDescription = "Request Timeout: " & Err.Description
 
-        WebHelpers.LogResponse Me, Request, web_Response
+        WebHelpers.LogResponse web_Response
         Set Execute = web_Response
         Err.Clear
     Case Else

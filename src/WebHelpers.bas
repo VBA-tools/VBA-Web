@@ -523,7 +523,7 @@ End Sub
 ''
 Public Sub LogRequest(Client As WebClient, Request As WebRequest)
     If EnableLogging Then
-        Debug.Print "--> Request - " & Format(Now, "Long Time")
+        LogWithTime "--> Request"
         Debug.Print MethodToName(Request.Method) & " " & Client.GetFullUrl(Request)
 
         Dim web_KeyValue As Dictionary
@@ -547,15 +547,13 @@ End Sub
 ' Log details of the response (Status, headers, content, etc.).
 '
 ' @method LogResponse
-' @param {WebClient} Client
-' @param {WebRequest} Request
 ' @param {WebResponse} Response
 ''
-Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As WebResponse)
+Public Sub LogResponse(Response As WebResponse)
     If EnableLogging Then
         Dim web_KeyValue As Dictionary
 
-        Debug.Print "<-- Response - " & Format(Now, "Long Time")
+        LogWithTime "<-- Response"
         Debug.Print Response.StatusCode & " " & Response.StatusDescription
 
         For Each web_KeyValue In Response.Headers
@@ -567,6 +565,23 @@ Public Sub LogResponse(Client As WebClient, Request As WebRequest, Response As W
         Next web_KeyValue
 
         Debug.Print vbNewLine & Response.Content & vbNewLine
+    End If
+End Sub
+
+''
+' Log the given string along with the current time specified to the millisecond.  Optionally log a newline immediately following.
+'
+' @method LogWithTime
+' @param {String} Message
+' @param {Boolean} NewLine
+''
+Public Sub LogWithTime(Message As String, Optional NewLine As Boolean = False)
+    If EnableLogging Then
+        Debug.Print Format(Now, "yyyy-mm-dd hh:nn:ss.") & Right(Format(Timer, "#0.000"), 3) & " - " & Message
+
+        If NewLine Then
+            Debug.Print vbNewLine
+        End If
     End If
 End Sub
 

@@ -1,3 +1,7 @@
+# 4.1.1
+- Added millisecond output to request and response logging using a new helper function, LogWithTime
+- Removed extraneous parameters from LogResponse
+
 # 4.1.0
 
 - Update `UrlEncode` behavior to target different encoding RFCs based on `UrlEncodingMode`
