@@ -530,6 +530,25 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Headers.Count).ToEqual NumHeaders
     End With
     
+    With Specs.It("Prepare should add ContentType headers for GET requests with non-empty body")
+        Set Request = New WebRequest
+        
+        Request.Method = WebMethod.HttpGet
+        Request.ContentType = "text/plain"
+        
+        Request.Prepare
+        
+        .Expect(Request.Headers.Count).ToEqual 2
+        
+        Request.Body = "non-empty"
+        Request.Prepare
+        
+        .Expect(Request.Headers.Count).ToEqual 4
+        
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "9"
+    End With
+    
     ' ============================================= '
     ' Errors
     ' ============================================= '
