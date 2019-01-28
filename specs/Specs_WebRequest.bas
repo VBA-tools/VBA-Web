@@ -191,6 +191,22 @@ Public Function Specs() As SpecSuite
         .Expect(Request.Accept).ToEqual "x-custom/text"
     End With
     
+    ' AcceptEncoding
+    ' --------------------------------------------- '
+    With Specs.It("AcceptEncoding should be set to identity by default")
+        Set Request = New WebRequest
+        
+        .Expect(Request.AcceptEncoding).ToEqual "identity"
+    End With
+    
+    With Specs.It("AcceptEncoding should allow override")
+        Set Request = New WebRequest
+        
+        Request.AcceptEncoding = "gzip"
+        
+        .Expect(Request.AcceptEncoding).ToEqual "gzip"
+    End With
+    
     ' ContentLength
     ' --------------------------------------------- '
     With Specs.It("ContentLength should be set from length of Body")
@@ -502,15 +518,17 @@ Public Function Specs() As SpecSuite
         Request.Method = WebMethod.HttpPost
         Request.ContentType = "text/plain"
         Request.Accept = "text/csv"
+        Request.AcceptEncoding = "gzip"
         Request.ContentLength = 100
         
         .Expect(Request.Headers.Count).ToEqual 0
          
         Request.Prepare
         
-        .Expect(Request.Headers.Count).ToBeGTE 3
+        .Expect(Request.Headers.Count).ToBeGTE 4
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Accept")).ToEqual "text/csv"
+        .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Accept-Encoding")).ToEqual "gzip"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "100"
     End With
     
@@ -538,12 +556,12 @@ Public Function Specs() As SpecSuite
         
         Request.Prepare
         
-        .Expect(Request.Headers.Count).ToEqual 2
+        .Expect(Request.Headers.Count).ToEqual 3
         
         Request.Body = "non-empty"
         Request.Prepare
         
-        .Expect(Request.Headers.Count).ToEqual 4
+        .Expect(Request.Headers.Count).ToEqual 5
         
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Type")).ToEqual "text/plain"
         .Expect(WebHelpers.FindInKeyValues(Request.Headers, "Content-Length")).ToEqual "9"

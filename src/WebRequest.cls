@@ -59,6 +59,7 @@ Private web_pBody As Variant
 Private web_pConvertedBody As Variant
 Private web_pContentType As String
 Private web_pAccept As String
+Private web_pAcceptEncoding As String
 Private web_pContentLength As Long
 Private web_pId As String
 
@@ -414,6 +415,26 @@ Public Property Let Accept(Value As String)
 End Property
 
 ''
+' WinHTTP does not support decompression at this time (Jan. 2019).
+' If not Accept-Encoding is passed to the server, [RFC 7231](https://tools.ietf.org/html/rfc7231#section-5.3.4)
+' states that "any content-coding is considered acceptable by the user agent"
+' -> Explicitly set Accept-Encoding
+'
+' cURL supports --compressed, which automatically decompresses gzip and other compressed responses
+' -> If AcceptEncoding != "identity", enable --compressed flag
+''
+Public Property Get AcceptEncoding() As String
+    If web_pAcceptEncoding <> "" Then
+        AcceptEncoding = web_pAcceptEncoding
+    Else
+        AcceptEncoding = "identity"
+    End If
+End Property
+Public Property Let AcceptEncoding(Value As String)
+    web_pAcceptEncoding = Value
+End Property
+
+''
 ' Set automatically by length of `Body`,
 ' but can be overriden to set `Content-Length` header for request.
 '
@@ -741,6 +762,7 @@ Public Sub Prepare()
     ' Add/replace general headers for request
     SetHeader "User-Agent", Me.UserAgent
     SetHeader "Accept", Me.Accept
+    SetHeader "Accept-Encoding", Me.AcceptEncoding
     If Me.Method <> WebMethod.HttpGet Or Me.ContentLength > 0 Then
         SetHeader "Content-Type", Me.ContentType
         SetHeader "Content-Length", VBA.CStr(Me.ContentLength)

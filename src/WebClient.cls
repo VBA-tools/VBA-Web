@@ -642,6 +642,11 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     If Me.FollowRedirects Then
         web_Curl = web_Curl & " --location"
     End If
+    
+    ' Enable compressed if Accept-Encoding != "identity"
+    If Request.AcceptEncoding <> "identity" Then
+        web_Curl = web_Curl & " --compressed"
+    End If
 
     ' Set headers and cookies
     For Each web_KeyValue In Request.Headers
