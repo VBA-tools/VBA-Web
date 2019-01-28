@@ -1642,6 +1642,8 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
             web_Chunk = VBA.Left$(web_Chunk, web_Read)
             ExecuteInShell.Output = ExecuteInShell.Output & web_Chunk
         End If
+        
+        VBA.DoEvents
     Loop
 
 web_Cleanup:
