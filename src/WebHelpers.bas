@@ -147,13 +147,13 @@ Const AUTOPROXY_DETECT_TYPE_DNS = 2
 #If VBA7 Then
 
 ' 64-bit Mac (2016)
-Private Declare PtrSafe Function utc_popen Lib "libc.dylib" Alias "popen" _
+Private Declare PtrSafe Function utc_popen Lib "/usr/lib/libc.dylib" Alias "popen" _
     (ByVal utc_Command As String, ByVal utc_Mode As String) As LongPtr
-Private Declare PtrSafe Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+Private Declare PtrSafe Function utc_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" _
     (ByVal utc_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function utc_fread Lib "libc.dylib" Alias "fread" _
+Private Declare PtrSafe Function utc_fread Lib "/usr/lib/libc.dylib" Alias "fread" _
     (ByVal utc_Buffer As String, ByVal utc_Size As LongPtr, ByVal utc_Number As LongPtr, ByVal utc_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function utc_feof Lib "libc.dylib" Alias "feof" _
+Private Declare PtrSafe Function utc_feof Lib "/usr/lib/libc.dylib" Alias "feof" _
     (ByVal utc_File As LongPtr) As LongPtr
 
 #Else
@@ -256,10 +256,10 @@ Public JsonOptions As json_Options
 
 #If Mac Then
 #If VBA7 Then
-Private Declare PtrSafe Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As LongPtr
-Private Declare PtrSafe Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function web_fread Lib "libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As LongPtr, ByVal web_Items As LongPtr, ByVal web_Stream As LongPtr) As LongPtr
-Private Declare PtrSafe Function web_feof Lib "libc.dylib" Alias "feof" (ByVal web_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_popen Lib "/usr/lib/libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As LongPtr
+Private Declare PtrSafe Function web_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" (ByVal web_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_fread Lib "/usr/lib/libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As LongPtr, ByVal web_Items As LongPtr, ByVal web_Stream As LongPtr) As LongPtr
+Private Declare PtrSafe Function web_feof Lib "/usr/lib/libc.dylib" Alias "feof" (ByVal web_File As LongPtr) As LongPtr
 #Else
 Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As Long
 Private Declare Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As Long) As Long
@@ -1977,7 +1977,7 @@ Private Function web_GetUrlEncodedKeyValue(Key As Variant, Value As Variant, Opt
 End Function
 
 ''
-' VBA-JSON v2.3.0
+' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
 '
 ' JSON Converter for VBA
@@ -2726,7 +2726,7 @@ Private Function json_BufferToString(ByRef json_Buffer As String, ByVal json_Buf
 End Function
 
 ''
-' VBA-UTC v1.0.5
+' VBA-UTC v1.0.6
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-UtcConverter
 '
 ' UTC/ISO 8601 Converter for VBA
