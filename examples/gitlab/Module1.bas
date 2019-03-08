@@ -1,9 +1,5 @@
-Public Const Project_CoreGrid = 6452557
-Public Const Project_Jhipster = 6822181
-Public Const Project_Audit = 7277583
-
+Attribute VB_Name = "Module1"
 Sub Button1_Click()
-    
     
     Dim PrevUpdating As Boolean
     Dim LastIndex As Integer
@@ -12,15 +8,25 @@ Sub Button1_Click()
     Application.ScreenUpdating = False
     
     LastIndex = 1
-    GetIssues Project_CoreGrid, LastIndex
-    GetIssues Project_Jhipster, LastIndex
-    GetIssues Project_Audit, LastIndex
-    FindStartDates
-    'GetEvents
-    'ActiveSheet.Cells(5, 1) = "Yukleniyor
-    'ActiveSheet.Cells(5, 1) = gitlab.GetIssiues
+    GetIssues ActiveSheet.Cells(1, 2), LastIndex
     
     Application.ScreenUpdating = PrevUpdating
+    
+End Sub
+
+Sub Button2_Click()
+    
+    Dim PrevUpdating As Boolean
+    Dim LastIndex As Integer
+    
+    PrevUpdating = Application.ScreenUpdating
+    Application.ScreenUpdating = False
+    
+    LastIndex = 1
+    GetProjects
+    
+    Application.ScreenUpdating = PrevUpdating
+    
 End Sub
 
 Sub GetIssues(ProjectId As Long, Optional ByRef LastIndex As Integer = 1, Optional LastPage As Integer = 1)
@@ -62,35 +68,25 @@ Sub GetIssues(ProjectId As Long, Optional ByRef LastIndex As Integer = 1, Option
     End If
 End Sub
 
-Sub FindStartDates()
-    Dim Notes As Object
+Sub GetProjects()
+    Dim Projects As Object
     Dim Assignee As Object
     Dim Sheet As Worksheet
-    Dim ProjectId As Long
-    Dim IssueId As Integer
+    Dim LastIndex As Integer
     
-    Set Sheet = Worksheets("issues")
-    Sheet.Cells(1, 9) = "started_at"
-    For Each Row In Sheet.Rows
-        'Bos satira gelince duralim
-        If IsEmpty(Sheet.Cells(Row.Row, 1).value) Then
-          Exit For
-        End If
-        'ilk satırı geçelim
-        If Row.Row > 1 Then
-            ProjectId = Sheet.Cells(Row.Row, 1).value
-            IssueId = Sheet.Cells(Row.Row, 3).value
-            Set Notes = gitlab.GetNotes(ProjectId, IssueId)
-            If Not Notes Is Nothing Then
-                For Each Note In Notes
-                    If InStrRev(Note("body"), "added ~4112781 label", -1, vbTextCompare) > 0 Then
-                        Sheet.Cells(Row.Row, 9) = FormatDate(Note("created_at"))
-                        Exit For
-                    End If
-                Next Note
-            End If
-        End If
-    Next Row
+    Set Projects = gitlab.GetProjects()
+    
+    Set Sheet = Worksheets("projects")
+    Sheet.UsedRange.Clear
+    Sheet.Cells(1, 1) = "id"
+    Sheet.Cells(1, 2) = "name"
+
+   LastIndex = 2
+    For Each Project In Projects
+        Sheet.Cells(LastIndex, 1) = Project("id")
+        Sheet.Cells(LastIndex, 2) = Project("name")
+        LastIndex = LastIndex + 1
+    Next Project
 End Sub
 
 Sub GetEvents()
@@ -116,6 +112,13 @@ Sub GetEvents()
     
 End Sub
 
+Function Decode(value As String) As String
+    value = Replace(value, "ş", "s")
+    value = Replace(value, "ı", "i")
+    value = Replace(value, "İ", "I")
+    Decode = value
+End Function
+
 Function FormatDate(value As Variant) As String
     If IsNull(value) Or IsEmpty(value) Then
         FormatDate = ""
@@ -123,3 +126,6 @@ Function FormatDate(value As Variant) As String
         FormatDate = Mid(value, 9, 2) & "." & Mid(value, 6, 2) & ". " & Mid(value, 1, 4) & " " & Mid(value, 12, 8)
     End If
 End Function
+
+
+

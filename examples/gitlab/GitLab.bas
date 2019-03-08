@@ -1,3 +1,4 @@
+Attribute VB_Name = "gitlab"
 Private pGitLabClient As WebClient
 Private pToken As String
 
@@ -28,12 +29,12 @@ Private Property Get GitLabClient() As WebClient
     Set GitLabClient = pGitLabClient
 End Property
 
-Function GetSample() As String
+Function GetProjects() As Object
     'On Error GoTo ErrorHandler
     
     Dim Request As New WebRequest
     Dim Response As WebResponse
-    Request.Resource = "Invoice.svc/sample"
+    Request.Resource = "/projects?membership=true"
     
     ' Set the request format (Set {format} segment, content-types, and parse the response)
     Request.Format = WebFormat.Json
@@ -46,7 +47,8 @@ Function GetSample() As String
     If Response.StatusCode <> WebStatusCode.Ok Then
         Button = MsgBox(Response.StatusDescription, vbAbortRetryIgnore + vbCritical, "Hata olustu")
     Else
-        GetSample = WebHelpers.ConvertToJson(Response.Data, " ", 2)
+        Set GetProjects = Response.Data
+        'GetIssiues = WebHelpers.ConvertToJson(Response.Data, " ", 2)
         'MsgBox WebHelpers.ConvertToJson(Response.Data, " ", 2)
     End If
     
@@ -83,12 +85,12 @@ Function GetIssiues(ProjectId As Long, Start As Integer) As Object
     
 End Function
 
-Function GetEvents() As Object
+Function GetEvents(ProjectId As Long) As Object
     'On Error GoTo ErrorHandler
     
     Dim Request As New WebRequest
     Dim Response As WebResponse
-    Request.Resource = "/events?project=6452557&target_type=issue&action=closed&per_page=100"
+    Request.Resource = "/events?project=" & ProjectId & "&target_type=issue&action=closed&per_page=100"
     
     ' Set the request format (Set {format} segment, content-types, and parse the response)
     Request.Format = WebFormat.Json
@@ -130,3 +132,5 @@ Function GetNotes(ProjectId As Long, IssueId As Integer) As Object
     End If
     
 End Function
+
+
