@@ -128,7 +128,7 @@ Methods:
       Set Response = Client.GetJson(Url)
       
       Dim Headers As New Collection
-      Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+      Headers.Add WebHelpers.CreateKeyValue("Authorization", "Bearer ...")
       
       Dim Options As New Dictionary
       Options.Add "Headers", Headers
@@ -163,7 +163,7 @@ Methods:
       Set Response = Client.PostJson(Url, Body)
       
       Dim Headers As New Collection
-      Headers.Add RestHelpers.CreateKeyValue("Authorization", "Bearer ...")
+      Headers.Add WebHelpers.CreateKeyValue("Authorization", "Bearer ...")
       
       Dim Options As New Dictionary
       Options.Add "Headers", Headers
@@ -181,7 +181,7 @@ Methods:
     description: |
       Helper for setting proxy values.
     example: |
-      Dim Client As New RestClient
+      Dim Client As New WebClient
 
       ' Just Server
       Client.SetProxy "proxy_server:80"

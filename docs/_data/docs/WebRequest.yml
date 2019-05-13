@@ -125,7 +125,7 @@ Properties:
 
       (Automatically sets `RequestFormat` to `WebFormat.Custom`)
     example: |
-      RestHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+      WebHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
 
       Dim Request As New WebRequest
       Request.CustomRequestFormat = "csv"
@@ -142,7 +142,7 @@ Properties:
 
       (Automatically sets `ResponseFormat` to `WebFormat.Custom`)
     example: |
-      RestHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
+      WebHelpers.RegisterConverter "csv", "text/csv", "Module.ConvertToCSV", "Module.ParseCSV"
 
       Dim Request As New WebRequest
       Request.CustomResponseFormat = "csv"
