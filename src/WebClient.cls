@@ -458,7 +458,7 @@ End Function
 '
 ' @example
 ' ```VB.net
-' Dim Client As New RestClient
+' Dim Client As New WebClient
 '
 ' ' Just Server
 ' Client.SetProxy "proxy_server:80"
