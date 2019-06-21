@@ -36,9 +36,11 @@ Function Load() As Dictionary
     Dim Value As String
     
     Set pCredentials = New Dictionary
+                        
+    On Error GoTo ErrorHandling
+
     Open CredentialsPath For Input As #1
     
-    On Error GoTo ErrorHandling
     Do While Not VBA.EOF(1)
         Line Input #1, Line
         Line = VBA.Replace(Line, vbNewLine, "")
