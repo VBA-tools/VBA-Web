@@ -29,7 +29,7 @@ Public Function CreateProject(Project As Dictionary) As Long
     '    ...
     '    {"data":{"id":3,"name":"new Project"}}
 
-    If Response.StatusCode <> WebStatus.Created Then
+    If Response.StatusCode <> WebStatusCode.Created Then
         Err.Raise Response.StatusCode, "CreateProject", _
             "Failed to create project: " & Response.Content
     Else

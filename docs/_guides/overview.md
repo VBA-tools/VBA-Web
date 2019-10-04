@@ -48,7 +48,7 @@ Public Function GetProjects() As Collection
     '    ...
     '    {"data":[{"id":1,"name":"Project 1"},{"id":2,"name":"Project 2"}]}
 
-    If Response.StatusCode <> WebStatus.Ok Then
+    If Response.StatusCode <> WebStatusCode.Ok Then
         Err.Raise Response.StatusCode, "GetProjects", Response.Content
     Else
         ' Response is automatically converted to Dictionary/Collection by Request.Format
