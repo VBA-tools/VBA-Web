@@ -35,7 +35,7 @@ Public Function GetProject(Id As Long) As Dictionary
     '    ...
     '    {"data":{"id":1,"name":"Project 1"}}
 
-    If Response.StatusCode = WebStatus.Ok Then
+    If Response.StatusCode = WebStatusCode.Ok Then
         ' json response is automatically parsed based Request.Format
         Set GetProject = Response.Data("data")
     End If
@@ -47,7 +47,7 @@ Public Function GetProject2(Id As Long) As Dictionary
     Dim Response As WebResponse
     Set Response = Client.GetJson("projects/" & Id)
 
-    If Response.StatusCode = WebStatus.Ok Then
+    If Response.StatusCode = WebStatusCode.Ok Then
         Set GetProject2 = Response.Data("data")
     End If
 End Function
