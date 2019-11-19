@@ -416,6 +416,11 @@ Public Function Specs() As SpecSuite
     ' --------------------------------------------- '
     With Specs.It("should Base64 encode string")
         .Expect(WebHelpers.Base64Encode("Howdy!")).ToEqual "SG93ZHkh"
+
+        .Expect(WebHelpers.Base64Encode("üöäÄÜÖß", "Windows-1250")).ToEqual "/PbkxNzW3w=="
+        .Expect(WebHelpers.Base64Encode("üöäÄÜÖß", "UTF-8")).ToEqual "77u/w7zDtsOkw4TDnMOWw58="
+        .Expect(WebHelpers.Base64Encode("üöäÄÜÖß", "UTF-16")).ToEqual "//78APYA5ADEANwA1gDfAA=="
+
     End With
     
     ' Base64Decode
@@ -425,6 +430,11 @@ Public Function Specs() As SpecSuite
         
         ' The following implicitly has padding of "=" and "==" at end, base-64 decoding should handle this
         .Expect(WebHelpers.Base64Decode("SG93ZHk")).ToEqual "Howdy"
+
+        .Expect(WebHelpers.Base64Decode("/PbkxNzW3w==", "Windows-1250")).ToEqual "üöäÄÜÖß"
+        .Expect(WebHelpers.Base64Decode("77u/w7zDtsOkw4TDnMOWw58=", "UTF-8")).ToEqual "üöäÄÜÖß"
+        .Expect(WebHelpers.Base64Decode("//78APYA5ADEANwA1gDfAA==", "UTF-16")).ToEqual "üöäÄÜÖß"
+
         .Expect(WebHelpers.Base64Decode("eyJzdWIiOjEyMzQ1Njc4OTAsIm5hbWUiOiJKb2huIERvZSIsImFkbWluIjp0cnVlfQ")).ToEqual _
             "{""sub"":1234567890,""name"":""John Doe"",""admin"":true}"
     End With

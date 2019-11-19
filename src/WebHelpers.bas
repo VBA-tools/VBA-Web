@@ -1062,9 +1062,10 @@ End Function
 ' Base64-encode text.
 '
 ' @param {Variant} Text Text to encode
+' @param {String} [Charset=Windows-1250] - Charset for encoding (UTF-8, UTF-16, Windows-1250)
 ' @return {String} Encoded string
 ''
-Public Function Base64Encode(Text As String) As String
+Public Function Base64Encode(Text As String, Optional Charset As String = "Windows-1250") As String
 #If Mac Then
     Dim web_Command As String
     web_Command = "printf " & PrepareTextForPrintf(Text) & " | openssl base64"
@@ -1072,10 +1073,22 @@ Public Function Base64Encode(Text As String) As String
 #Else
     Dim web_Bytes() As Byte
 
-    web_Bytes = VBA.StrConv(Text, vbFromUnicode)
+    With CreateObject("ADODB.Stream")
+        .Type = 2 ' adTypeText
+        .Open
+        ' For a list of the character set names that are known by a system, 
+        ' see the subkeys of HKEY_CLASSES_ROOT\MIME\Database\Charset in the Windows Registry.
+        .Charset = Charset
+        .WriteText Text
+        .Position = 0
+        .Type = 1 ' adTypeBinary
+        web_Bytes = .Read
+        .Close
+    End With
+    
     Base64Encode = web_AnsiBytesToBase64(web_Bytes)
 #End If
-
+    
     Base64Encode = VBA.Replace$(Base64Encode, vbLf, "")
 End Function
 
@@ -1083,9 +1096,10 @@ End Function
 ' Decode Base64-encoded text
 '
 ' @param {Variant} Encoded Text to decode
+' @param {String} [Charset=Windows-1250] - Charset for decoding (UTF-8, UTF-16, Windows-1250)
 ' @return {String} Decoded string
 ''
-Public Function Base64Decode(Encoded As Variant) As String
+Public Function Base64Decode(Encoded As Variant, Optional Charset As String = "Windows-1250") As String
     ' Add trailing padding, if necessary
     If (VBA.Len(Encoded) Mod 4 > 0) Then
         Encoded = Encoded & VBA.Left("====", 4 - (VBA.Len(Encoded) Mod 4))
@@ -1106,10 +1120,24 @@ Public Function Base64Decode(Encoded As Variant) As String
     web_Node.Text = Encoded
     Base64Decode = VBA.StrConv(web_Node.nodeTypedValue, vbUnicode)
 
+    With CreateObject("ADODB.Stream")
+        .Type = 1 ' adTypeBinary
+        .Open
+        .Write web_Node.nodeTypedValue
+        .Position = 0
+        .Type = 2 ' adTypeText
+        ' For a list of the character set names that are known by a system, 
+        ' see the subkeys of HKEY_CLASSES_ROOT\MIME\Database\Charset in the Windows Registry.        
+        .Charset = Charset
+        Base64Decode = .ReadText
+        .Close
+    End With
+    
     Set web_Node = Nothing
     Set web_XmlObj = Nothing
 #End If
 End Function
+
 
 ''
 ' Register custom converter for converting request `Body` and response `Content`.
