@@ -2565,11 +2565,15 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
         End If
 
         ' From spec, ", \, and control characters must be escaped (solidus is optional)
-
+        ' To avoid problems with quoting the payload on the command line in single quotes, need to escape ' also
+        
         Select Case json_AscCode
         Case 34
             ' " -> 34 -> \"
             json_Char = "\"""
+        Case 39
+            ' ' -> 39 -> \u0027  (decimal 39 is 27 in hex)
+            json_Char = "\u0027"
         Case 92
             ' \ -> 92 -> \\
             json_Char = "\\"
