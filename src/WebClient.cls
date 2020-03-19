@@ -80,6 +80,14 @@ Private Enum web_WinHttpRequestOption
     web_WinHttpRequestOption_EnableCertificateRevocationCheck = 18
 End Enum
 
+Private Enum web_ServerXmlHttpRequestOption
+    web_ServerXmlHttpRequestOption_Sxh_Option_Url_Codepage = 0
+    web_ServerXmlHttpRequestOption_Sxh_Option_Escape_Percent_In_Url = 1
+    web_Serverxmlhttprequestoption_Sxh_Option_Ignore_Server_Ssl_Cert_Error_Flags = 2
+    web_ServerXmlHttpRequestOption_Sxh_Option_Select_Client_Ssl_Cert = 3
+End Enum
+
+
 Private web_pProxyServer As String
 Private web_pAutoProxyDomain As String
 
@@ -191,6 +199,16 @@ Public Insecure As Boolean
 ' @default True
 ''
 Public FollowRedirects As Boolean
+
+''
+' Use `Msxml2.ServerXMLHTTP` instead of `WinHttp.WinHttpRequest.5.1`
+' Prevents appending encoding string to Content-Type header.
+'
+' @property UseXmlClient
+' @type Boolean
+' @default False
+''
+Public UseXmlClient As Boolean
 
 ''
 ' Proxy server to pass requests through (except for those that match `ProxyBypassList`).
@@ -511,7 +529,12 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
 
     On Error GoTo web_ErrorHandling
 
-    Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+    ' Prepare client object
+    If Me.UseXmlClient Then
+        Set web_Http = CreateObject("Msxml2.ServerXMLHTTP")
+    Else
+        Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+    End If
 
     ' Prepare request (before open)
     web_BeforeExecute Request
@@ -543,30 +566,42 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     End If
 
     ' Setup security
-    If Me.Insecure Then
-        ' - Disable certifcate revocation check
-        ' - Ignore all SSL errors
-        '   Unknown certification authority (CA) or untrusted root, 0x0100
-        '   Wrong usage, 0x0200
-        '   Invalid common name (CN), 0x1000
-        '   Invalid date or certificate expired, 0x2000
-        '   = 0x3300 = 13056
-        ' - Enable https-to-http redirects
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = False
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 13056
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = True
+    If Me.UseXmlClient Then
+        If Me.Insecure Then
+            ' - Ignore all SSL errors
+            web_Http.SetOption(web_ServerXmlHttpRequestOption.web_Serverxmlhttprequestoption_Sxh_Option_Ignore_Server_Ssl_Cert_Error_Flags) = 13056
+        Else
+            ' By default:
+            ' - Ignore no SLL erros
+            web_Http.SetOption(web_ServerXmlHttpRequestOption.web_Serverxmlhttprequestoption_Sxh_Option_Ignore_Server_Ssl_Cert_Error_Flags) = 0
+        End If
     Else
-        ' By default:
-        ' - Enable certificate revocation check (especially useful after HeartBleed)
-        ' - Ignore no SLL erros
-        ' - Disable https-to-http redirects
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = True
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 0
-        web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = False
+        ' Settings for WinHttpClient
+        If Me.Insecure Then
+            ' - Disable certifcate revocation check
+            ' - Ignore all SSL errors
+            '   Unknown certification authority (CA) or untrusted root, 0x0100
+            '   Wrong usage, 0x0200
+            '   Invalid common name (CN), 0x1000
+            '   Invalid date or certificate expired, 0x2000
+            '   = 0x3300 = 13056
+            ' - Enable https-to-http redirects
+            web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = False
+            web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 13056
+            web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = True
+        Else
+            ' By default:
+            ' - Enable certificate revocation check (especially useful after HeartBleed)
+            ' - Ignore no SLL erros
+            ' - Disable https-to-http redirects
+            web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableCertificateRevocationCheck) = True
+            web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_SslErrorIgnoreFlags) = 0
+            web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableHttpsToHttpRedirects) = False
+        End If
     End If
-
+    
     ' Setup redirects
-    web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = Me.FollowRedirects
+    If Not Me.UseXmlClient Then web_Http.Option(web_WinHttpRequestOption.web_WinHttpRequestOption_EnableRedirects) = Me.FollowRedirects
 
     ' Set headers on http request (after open)
     For Each web_KeyValue In Request.Headers
@@ -760,4 +795,5 @@ Private Sub Class_Initialize()
     Me.EnableAutoProxy = False
     Me.Insecure = False
     Me.FollowRedirects = True
+    Me.UseXmlClient = False
 End Sub
