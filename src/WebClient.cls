@@ -531,7 +531,7 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
 
     ' Prepare client object
     If Me.UseXmlClient Then
-        Set web_Http = CreateObject("Msxml2.ServerXMLHTTP")
+        Set web_Http = CreateObject("Msxml2.ServerXMLHTTP.6.0")
     Else
         Set web_Http = CreateObject("WinHttp.WinHttpRequest.5.1")
     End If
