@@ -313,8 +313,8 @@ Private Sub web_LoadValues(web_Headers As String, web_Content As String, web_Bod
     
     ' Handle GZIP compressed data
     For Each SingleHeader In Me.Headers
-        If SingleHeader("Key") = "Content-Encoding" Then
-            If SingleHeader("Value") = "gzip" Then
+        If SingleHeader("Key") = "Content-Encoding" Or SingleHeader("Key") = "content-encoding" Then
+            If SingleHeader("Value") = "gzip" Or SingleHeader("Value") = "GZIP" Then
                 
                     ByteArray = Me.Body
                     Call Inflate.Inflate(ByteArray) 'decode data
