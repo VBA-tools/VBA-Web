@@ -301,6 +301,34 @@ End Function
 ' ============================================= '
 
 Private Sub web_LoadValues(web_Headers As String, web_Content As String, web_Body As Variant, web_Request As WebRequest)
+    
+    Dim SingleHeader As Variant
+    Dim ByteArray() As Byte
+    
+    ' Extract headers
+    Set Me.Headers = ExtractHeaders(web_Headers)
+
+    ' Extract cookies
+    Set Me.Cookies = ExtractCookies(Me.Headers)
+    
+    ' Handle GZIP compressed data
+    For Each SingleHeader In Me.Headers
+        If SingleHeader("Key") = "Content-Encoding" Or SingleHeader("Key") = "content-encoding" Then
+            If SingleHeader("Value") = "gzip" Or SingleHeader("Value") = "GZIP" Then
+                
+                    ByteArray = Me.Body
+                    Call Inflate.Inflate(ByteArray) 'decode data
+                    Me.Body = ByteArray
+                    Me.Content = StrConv(ByteArray, vbUnicode)
+					web_Content = Me.Content
+                                               
+                Exit For
+            End If
+            
+        End If
+    
+    Next SingleHeader
+    
     ' Convert content to data by format
     If web_Request.ResponseFormat <> WebFormat.PlainText Then
         On Error Resume Next
@@ -314,11 +342,7 @@ Private Sub web_LoadValues(web_Headers As String, web_Content As String, web_Bod
         On Error GoTo 0
     End If
 
-    ' Extract headers
-    Set Me.Headers = ExtractHeaders(web_Headers)
 
-    ' Extract cookies
-    Set Me.Cookies = ExtractCookies(Me.Headers)
 End Sub
 
 Private Function web_ExtractStatusFromCurlResponse(web_CurlResponseLines() As String) As Long
