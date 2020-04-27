@@ -320,6 +320,7 @@ Private Sub web_LoadValues(web_Headers As String, web_Content As String, web_Bod
                     Call Inflate.Inflate(ByteArray) 'decode data
                     Me.Body = ByteArray
                     Me.Content = StrConv(ByteArray, vbUnicode)
+					web_Content = Me.Content
                                                
                 Exit For
             End If
