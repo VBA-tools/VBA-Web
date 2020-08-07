@@ -1636,7 +1636,7 @@ Public Function ExecuteInShell(web_Command As String) As ShellResult
     End If
 
     Do While web_feof(web_File) = 0
-        web_Chunk = VBA.Space$(50)
+        web_Chunk = VBA.Space$(268435456)
         web_Read = CLng(web_fread(web_Chunk, 1, Len(web_Chunk) - 1, web_File))
         If web_Read > 0 Then
             web_Chunk = VBA.Left$(web_Chunk, web_Read)
