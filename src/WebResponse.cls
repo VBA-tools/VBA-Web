@@ -167,6 +167,11 @@ End Sub
 ''
 Public Sub CreateFromCurl(Client As WebClient, Request As WebRequest, Result As String)
     On Error GoTo web_ErrorHandling
+    
+    ' Shengjun 2021/02/19 https://github.com/VBA-tools/VBA-Web/issues/319
+    If Client.ProxyServer <> "" Then
+        Result = CleanOutput(Result)
+    End If
 
     Dim web_Lines() As String
 
@@ -191,6 +196,36 @@ web_ErrorHandling:
     Err.Raise 11031 + vbObjectError, "WebResponse.CreateFromCurl", web_ErrorDescription
 End Sub
 
+' Shengjun 2021/02/19 https://github.com/VBA-tools/VBA-Web/issues/319
+
+' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+''
+' CleanOutput
+' Removes Proxy Server output before actual HTTP output from server, to fix parsing error
+'
+' @param {String} Output
+' @param[out] {String} CleanOutput
+''
+
+Public Function CleanOutput(Original As String) As String
+
+' Find the first empty line
+
+Dim PosEmptyLine As Integer
+
+CleanOutput = Original ' Set the output in case we don't start changing it
+
+PosEmptyLine = InStr(1, Original, Chr(13) & Chr(10) & Chr(13) & Chr(10))
+If (PosEmptyLine > 0) Then
+    ' First empty line found
+    If (StrComp(Mid(Original, PosEmptyLine + 4, 4), "http", vbTextCompare) = 0) Then
+        ' Line right after First empty line starts with HTTP. Remove everything before that
+        CleanOutput = Mid(Original, PosEmptyLine + 4)
+    End If
+
+End If
+
+End Function
 ''
 ' Extract headers from response headers
 '
