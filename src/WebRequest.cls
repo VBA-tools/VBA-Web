@@ -499,6 +499,8 @@ Public Property Get Body() As Variant
     If Not VBA.IsEmpty(web_pBody) Then
         If VBA.VarType(web_pBody) = vbString Then
             Body = web_pBody
+        ElseIf VBA.VarType(web_pBody) = vbArray Or vbByte Then
+            Body = web_pBody
         ElseIf IsEmpty(web_pConvertedBody) Then
             ' Convert body and cache
             Body = WebHelpers.ConvertToFormat(web_pBody, Me.RequestFormat, Me.CustomRequestFormat)
