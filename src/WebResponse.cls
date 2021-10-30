@@ -138,7 +138,7 @@ Public Sub CreateFromHttp(Client As WebClient, Request As WebRequest, Http As Ob
 
     Me.StatusCode = Http.Status
     Me.StatusDescription = Http.StatusText
-    Me.Content = Http.ResponseText
+	If Request.ResponseFormat <> WebFormat.Raw Then Me.Content = Http.ResponseText
     Me.Body = Http.ResponseBody
 
     web_LoadValues Http.GetAllResponseHeaders, Me.Content, Me.Body, Request
@@ -302,7 +302,7 @@ End Function
 
 Private Sub web_LoadValues(web_Headers As String, web_Content As String, web_Body As Variant, web_Request As WebRequest)
     ' Convert content to data by format
-    If web_Request.ResponseFormat <> WebFormat.PlainText Then
+	If web_Request.ResponseFormat <> WebFormat.PlainText And web_Request.ResponseFormat <> WebFormat.Raw Then
         On Error Resume Next
         Set Me.Data = _
             WebHelpers.ParseByFormat(web_Content, web_Request.ResponseFormat, web_Request.CustomResponseFormat, web_Body)

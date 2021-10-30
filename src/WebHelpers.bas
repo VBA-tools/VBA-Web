@@ -356,6 +356,7 @@ End Enum
 ' @param FormUrlEncoded
 ' @param Xml
 ' @param Custom
+' @param Raw
 ' @default PlainText
 ''
 Public Enum WebFormat
@@ -363,6 +364,7 @@ Public Enum WebFormat
     Json = 1
     FormUrlEncoded = 2
     Xml = 3
+	Raw = 4
     Custom = 9
 End Enum
 
