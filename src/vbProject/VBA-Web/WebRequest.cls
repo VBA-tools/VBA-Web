@@ -40,6 +40,7 @@ Attribute VB_Exposed = False
 '
 ' Errors:
 ' 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
+' 11021 / 80042b0d / -2147210483 - Cannot add body node to non-XML body
 '
 ' @class WebRequest
 ' @author tim.hall.engr@gmail.com
@@ -713,6 +714,74 @@ Public Sub AddCookie(Key As String, Value As Variant)
         web_EncodeCookieName(Key), _
         WebHelpers.UrlEncode(Value, EncodingMode:=UrlEncodingMode.CookieUrlEncoding) _
     )
+End Sub
+
+''
+' Add XML Node to `Body`.
+'
+' `Body` must be a `Dictionary` (if it's an `Array` or `Collection` an error is thrown).
+' `WebFormat` must be `XML`.
+'
+' @example
+' ```VB.net
+' Dim Request as New WebRequest
+' Request.Format = WebFormat.XML
+'
+' Request.AddBodyParameter "a", 123, "alphabet"
+' Request.AddBodyParameter "b", 456, "alphabet"
+'
+' Debug.Print Request.Body ' -> "<alphabet><a>123</a><b>456</b></alphabet>"
+' ```
+'
+' @method AddBodyNode
+' @param {String} Name
+' @param {Variant} Value
+' @param {ParentNodeName} String
+' @throws 11020 / 80042b0c / -2147210484 - Cannot add body parameter to non-Dictionary
+'         11021 / 80042b0d / -2147210483 - Cannot add body node to non-XML body
+''
+Public Sub AddBodyNode(ByVal Name As String, Optional ByVal Value As Variant = Null, _
+                       Optional ByVal ParentNode As String, _
+                       Optional ByVal AttributeName As String, Optional ByVal AttributeValue As String)
+    Dim web_Attributes As Collection
+    Dim web_ErrorDescription As String
+    
+    If Not Me.Format = WebFormat.Xml Then
+        web_ErrorDescription = "Can only add body node to an XML body. Set Format = `WebFormat.XML` and try again."
+        
+        WebHelpers.LogError web_ErrorDescription, "WebRequest.AddBodyNode", 11021 + vbObjectError
+        Err.Raise 11021 + vbObjectError, "WebRequest.AddBodyNode", web_ErrorDescription
+    Else
+        If VBA.IsEmpty(web_pBody) Then
+            Set web_pBody = CreateNode(vbNullString)
+        ElseIf Not TypeOf web_pBody Is Dictionary Then
+            web_ErrorDescription = "Cannot add body parameter to non-Dictionary Body (existing Body must be of type Dictionary)"
+    
+            WebHelpers.LogError web_ErrorDescription, "WebRequest.AddBodyNode", 11020 + vbObjectError
+            Err.Raise 11020 + vbObjectError, "WebRequest.AddBodyNode", web_ErrorDescription
+        End If
+        
+        ' Validate required dictionary keys exist (they won't be present if the body was created before Format = `WebFormat.XML`).
+        If Not web_pBody.Exists("nodeName") Or Not web_pBody.Exists("childNodes") Then
+            web_ErrorDescription = "Can only add body node to an XML body. Set Format = `WebFormat.XML`, clear the existing body (Body = Empty) and try again."
+            
+            WebHelpers.LogError web_ErrorDescription, "WebRequest.AddBodyNode", 11021 + vbObjectError
+            Err.Raise 11021 + vbObjectError, "WebRequest.AddBodyNode", web_ErrorDescription
+        End If
+        
+        ' Set Parent Node name if given.
+        If Not ParentNode = vbNullString Then web_pBody.Item("nodeName") = ParentNode
+        
+        ' Add node to 'childNodes' collection.
+        If Not AttributeName = vbNullString Then
+            Set web_Attributes = New Collection
+            web_Attributes.Add CreateAttribute(AttributeName, AttributeValue)
+        End If
+        web_pBody.Item("childNodes").Add CreateNode(Name, Value, , web_Attributes)
+        
+        ' Clear cached converted body
+        web_pConvertedBody = Empty
+    End If
 End Sub
 
 ''
