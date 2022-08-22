@@ -221,6 +221,17 @@ Public FollowRedirects As Boolean
 Public UseXmlClient As Boolean
 
 ''
+' Loop every 2.5ms so Excel can stay responsive during request. Set to
+' False if VBA.DoEvents is causing performance issues. This will mean Excel goes
+' unresponsive if timeout is long.
+'
+' @property WaitLoop
+' @type Boolean
+' @default True
+''
+Public WaitLoop As Boolean
+
+''
 ' Proxy server to pass requests through (except for those that match `ProxyBypassList`).
 '
 ' @property ProxyServer
@@ -342,12 +353,16 @@ Public Function Execute(Request As WebRequest) As WebResponse
 
 #Else
     Set web_Http = Me.PrepareHttpRequest(Request)
-
     web_Http.Send Request.Body
-    Do While Not web_Http.WaitForResponse(0.025)
-        VBA.DoEvents
-    Loop
 
+    If Me.WaitLoop Then
+        Do While Not web_Http.WaitForResponse(0.025)
+            VBA.DoEvents
+        Loop
+    Else
+        web_Http.WaitForResponse
+    End If
+    
     web_Response.CreateFromHttp Me, Request, web_Http
 
 #End If
