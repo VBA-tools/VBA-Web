@@ -1,0 +1,66 @@
+{
+	"project": {
+		"name": "VBA-Web",
+		"target": "xlam",
+		"authors": "Tim Hall, RadiusCore",
+		"version": "5.0.0",
+		"description": "Connect VBA, Excel, Access, and Office for Windows and Mac to web services and the web."
+	},
+	"components": {
+		"vba": true,
+		"ribbon": false,
+		"worksheet": false,
+		"customxml": false
+	},
+	"structure": {
+		"root": "..\\"
+		"src": "..\\src\\",
+		"build": "..\\build\\"
+	},
+	"references": {
+		"WinHttp": {
+			"guid": "{662901FC-6951-4854-9EB2-D9A2570F2B2E}",
+			"major": 5,
+			"minor": 1
+		}
+	},
+	"dependencies": {
+		"VBA-Scripting": {
+			"git": "https://github.com/VBA-Tools-v2/vba-scripting/",
+			"tag": "v0.2.2",
+			"key": "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",
+			"src": ["Dictionary.cls"]
+		}
+	},
+	"release": {
+		"readonly": false,
+		"hackdetection": false,
+		"vbatamper": false,
+		"obfuscate": {
+			"enabled": false,
+			"backup": true,
+			"noiselength": 50
+		},
+		"unviewable": {
+			"enabled": false,
+			"backup": true,
+			"type": 2,
+			"level": 4,
+			"clean": true,
+			"stamp": true,
+			"copyright": true,
+			"multilayer": true,
+			"codeshield": true,
+			"vbehidden": false
+		},
+		"customcompression": false,
+		"digitalsignature": {
+			"enabled": false,
+			"certname": ""
+		},
+		"encryption": {
+			"enabled": false,
+			"password": "VelvetSweatshop"
+		}
+	}
+}
