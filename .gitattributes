@@ -1,16 +1,7 @@
-# CRLF -> LF by default, but not for modules or classes (especially classes)
+# CRLF -> LF by default. Ensure all Excel components have CRLF.
 * text=auto
 *.bas text eol=crlf
 *.cls text eol=crlf
-
-# Standard to msysgit
-*.doc	 diff=astextplain
-*.DOC	 diff=astextplain
-*.docx diff=astextplain
-*.DOCX diff=astextplain
-*.dot  diff=astextplain
-*.DOT  diff=astextplain
-*.pdf  diff=astextplain
-*.PDF	 diff=astextplain
-*.rtf	 diff=astextplain
-*.RTF	 diff=astextplain
+*.doccls text eol=crlf
+*.frm text eol=crlf
+*.frx text eol=crlf
