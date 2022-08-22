@@ -1241,6 +1241,31 @@ web_ErrorHandling:
     Err.Raise 11003, "WebHelpers.GetUrlParts", web_ErrorDescription
 End Function
 
+''
+' Converts url formatted querystring (i.e. as retrived from GetUrlParts) to dictionary.
+'
+' @method QuerystringToDictionary
+' @param {String} Querystring
+' @retun {Dictionary}
+''
+Public Function QuerystringToDictionary(ByVal QueryString As String) As Dictionary
+    Dim web_Parts As New Dictionary
+    Dim web_Queries As Variant
+    Dim web_QueryParts As Variant
+    
+    web_Queries = VBA.Split(QueryString, "&")
+    
+    For Each web_QueryParts In web_Queries
+        web_Parts.Add VBA.Split(web_QueryParts, "=")(0), VBA.Split(web_QueryParts, "=")(1)
+    Next web_QueryParts
+
+    Set QuerystringToDictionary = web_Parts
+    
+    Set web_Parts = Nothing
+    Set web_Queries = Nothing
+    Set web_QueryParts = Nothing
+End Function
+
 ' ============================================= '
 ' 4. Object/Dictionary/Collection/Array helpers
 ' ============================================= '
