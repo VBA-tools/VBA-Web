@@ -26,6 +26,17 @@ Attribute VB_Name = "WebHelpers"
 ' @author tim.hall.engr@gmail.com
 ' @license MIT (http://www.opensource.org/licenses/mit-license.php)
 '' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' VBA-Git Annotations
+' https://github.com/VBA-Tools-v2/VBA-Git | https://radiuscore.co.nz
+'
+' @excludeobfuscation
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' RubberDuck Annotations
+' https://rubberduckvba.com/ | https://github.com/rubberduck-vba/Rubberduck/
+'
+'@folder VBA-Web
+'@ignoremodule
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
 ' Contents:

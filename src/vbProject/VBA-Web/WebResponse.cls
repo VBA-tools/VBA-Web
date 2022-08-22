@@ -6,7 +6,7 @@ Attribute VB_Name = "WebResponse"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = True
+Attribute VB_Exposed = False
 ''
 ' WebResponse v4.1.6
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
@@ -35,6 +35,17 @@ Attribute VB_Exposed = True
 ' @class WebResponse
 ' @author tim.hall.engr@gmail.com
 ' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' VBA-Git Annotations
+' https://github.com/VBA-Tools-v2/VBA-Git | https://radiuscore.co.nz
+'
+' @excludeobfuscation
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+' RubberDuck Annotations
+' https://rubberduckvba.com/ | https://github.com/rubberduck-vba/Rubberduck/
+'
+'@folder VBA-Web
+'@ignoremodule
 '' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
 Option Explicit
 
