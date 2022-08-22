@@ -1864,7 +1864,14 @@ End Function
 ''
 Public Function SHA256(Text As String, Optional Format As String = "Hex") As String
 #If Mac Then
-    ' TODO - Add Mac support.
+    Dim web_Command As String
+    web_Command = "printf " & PrepareTextForPrintf(Text) & " | openssl dgst -sha256"
+    
+    If Format = "Base64" Then
+        web_Command = web_Command & " -binary | openssl enc -base64"
+    End If
+    
+    SHA256 = VBA.Replace(ExecuteInShell(web_Command).Output, vbLf, vbNullString)
 #Else
     Dim web_Crypto As Object
     Dim web_TextBytes() As Byte
