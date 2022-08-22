@@ -1394,6 +1394,62 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
     KeyValues.Add web_NewKeyValue
 End Sub
 
+''
+' Method to join collection.
+'
+' @method JoinCollection
+' @param {Collection} SourceCollection
+' @param {Variant} Delimiter
+' @return {String}
+''
+Public Function JoinCollection(ByVal SourceCollection As Collection, Optional ByVal Delimiter As Variant = ",") As String
+    Dim web_Item As Variant
+    
+    For Each web_Item In SourceCollection
+        JoinCollection = JoinCollection & Delimiter & web_Item
+    Next web_Item
+    
+    If VBA.Len(JoinCollection) >= VBA.Len(Delimiter) And Not Delimiter = vbNullString Then
+        JoinCollection = VBA.Right$(JoinCollection, VBA.Len(JoinCollection) - VBA.Len(Delimiter))
+    End If
+End Function
+
+''
+' Convert string to a collection.
+'
+' @method StringToCollection
+' @param {String} SourceString
+' @param {Variant} Delimiter
+' @return {Collection}
+''
+Public Function StringToCollection(ByVal SourceString As String, Optional ByVal Delimiter As Variant = ",") As Collection
+    Dim web_Item As Variant
+    Dim web_Collection As Collection
+    Set web_Collection = New Collection
+
+    For Each web_Item In VBA.Split(SourceString, Delimiter)
+        web_Collection.Add web_Item
+    Next web_Item
+    
+    Set StringToCollection = web_Collection
+End Function
+
+''
+' Check if given Key exists in Collection.
+'
+' @param {Collection} TargetCollection
+' @param {Variant} Key
+' @return {Boolean}
+''
+Public Function ExistsInCollection(ByVal TargetCollection As Collection, ByVal Key As Variant) As Boolean
+    Dim web_Item As Variant
+    
+    On Error Resume Next
+    web_Item = VBA.IsObject(TargetCollection.Item(Key))
+    ExistsInCollection = Not VBA.IsEmpty(web_Item)
+    
+End Function
+
 ' ============================================= '
 ' 5. Request preparation / handling
 ' ============================================= '
