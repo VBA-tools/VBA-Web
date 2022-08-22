@@ -160,7 +160,7 @@ web_ErrorHandling:
 
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred while creating response from http" & vbNewLine & _
-        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", vbNullString) & ": " & Err.Description
 
     WebHelpers.LogError web_ErrorDescription, "WebResponse.CreateFromHttp", 11030 + vbObjectError
     Err.Raise 11030 + vbObjectError, "WebResponse.CreateFromHttp", web_ErrorDescription
@@ -196,7 +196,7 @@ web_ErrorHandling:
 
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred while creating response from cURL" & vbNewLine & _
-        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", vbNullString) & ": " & Err.Description
 
     WebHelpers.LogError web_ErrorDescription, "WebResponse.CreateFromCurl", 11031 + vbObjectError
     Err.Raise 11031 + vbObjectError, "WebResponse.CreateFromCurl", web_ErrorDescription
@@ -226,7 +226,7 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
     For web_i = LBound(web_Lines) To (UBound(web_Lines) + 1)
         If web_i > UBound(web_Lines) Then
             web_Headers.Add web_Header
-        ElseIf web_Lines(web_i) <> "" Then
+        ElseIf web_Lines(web_i) <> vbNullString Then
             web_ColonPosition = VBA.InStr(1, web_Lines(web_i), ":")
             If web_ColonPosition = 0 And Not web_Header Is Nothing Then
                 ' Assume part of multi-line header
@@ -242,8 +242,8 @@ Public Function ExtractHeaders(ResponseHeaders As String) As Collection
 
             If Not web_Multiline Then
                 Set web_Header = WebHelpers.CreateKeyValue( _
-                    Key:=VBA.Trim(VBA.Mid$(web_Lines(web_i), 1, web_ColonPosition - 1)), _
-                    Value:=VBA.Trim(VBA.Mid$(web_Lines(web_i), web_ColonPosition + 1, VBA.Len(web_Lines(web_i)))) _
+                    Key:=VBA.Trim$(VBA.Mid$(web_Lines(web_i), 1, web_ColonPosition - 1)), _
+                    Value:=VBA.Trim$(VBA.Mid$(web_Lines(web_i), web_ColonPosition + 1, VBA.Len(web_Lines(web_i)))) _
                 )
             Else
                 web_Header("Value") = web_Header("Value") & web_CrLf & web_Lines(web_i)
@@ -258,7 +258,7 @@ web_ErrorHandling:
 
     Dim web_ErrorDescription As String
     web_ErrorDescription = "An error occurred while extracting headers" & vbNewLine & _
-        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", "") & ": " & Err.Description
+        Err.Number & VBA.IIf(Err.Number < 0, " (" & VBA.LCase$(VBA.Hex$(Err.Number)) & ")", vbNullString) & ": " & Err.Description
 
     WebHelpers.LogError web_ErrorDescription, "WebResponse.CreateFromCurl", 11032 + vbObjectError
     Err.Raise 11032 + vbObjectError, "WebResponse.CreateFromCurl", web_ErrorDescription
@@ -396,8 +396,8 @@ Private Function web_FindStatusLine(web_CurlResponseLines() As String) As Long
     ' Special case for cURL: 100 Continue is included before final status code
     ' -> ignore 100 and find final status code (next non-100 status code)
     For web_FindStatusLine = LBound(web_CurlResponseLines) To UBound(web_CurlResponseLines)
-        If VBA.Trim$(web_CurlResponseLines(web_FindStatusLine)) <> "" Then
-            If VBA.Split(web_CurlResponseLines(web_FindStatusLine), " ")(1) <> "100" Then
+        If Not VBA.Trim$(web_CurlResponseLines(web_FindStatusLine)) = vbNullString Then
+            If Not VBA.Split(web_CurlResponseLines(web_FindStatusLine), " ")(1) = "100" Then
                 Exit Function
             End If
         End If
@@ -406,7 +406,7 @@ End Function
 
 Private Function web_FindBlankLine(web_CurlResponseLines() As String) As Long
     For web_FindBlankLine = (web_FindStatusLine(web_CurlResponseLines) + 1) To UBound(web_CurlResponseLines)
-        If VBA.Trim$(web_CurlResponseLines(web_FindBlankLine)) = "" Then
+        If VBA.Trim$(web_CurlResponseLines(web_FindBlankLine)) = vbNullString Then
             Exit Function
         End If
     Next web_FindBlankLine

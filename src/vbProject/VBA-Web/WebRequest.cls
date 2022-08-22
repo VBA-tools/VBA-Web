@@ -323,13 +323,13 @@ Public Property Get CustomRequestFormat() As String
     CustomRequestFormat = web_pCustomRequestFormat
 End Property
 Public Property Let CustomRequestFormat(Value As String)
-    If Value <> web_pCustomRequestFormat Then
+    If Not Value = web_pCustomRequestFormat Then
         web_pCustomRequestFormat = Value
 
         ' Clear cached converted body
         web_pConvertedBody = Empty
 
-        If Value <> "" Then
+        If Not Value = vbNullString Then
             web_pRequestFormat = WebFormat.Custom
         End If
     End If
@@ -359,13 +359,13 @@ Public Property Get CustomResponseFormat() As String
     CustomResponseFormat = web_pCustomResponseFormat
 End Property
 Public Property Let CustomResponseFormat(Value As String)
-    If Value <> web_pCustomResponseFormat Then
+    If Not Value = web_pCustomResponseFormat Then
         web_pCustomResponseFormat = Value
 
         ' Clear cached converted body
         web_pConvertedBody = Empty
 
-        If Value <> "" Then
+        If Not Value = vbNullString Then
             ResponseFormat = WebFormat.Custom
         End If
     End If
@@ -388,7 +388,7 @@ End Property
 ' @default Media-type of request format
 ''
 Public Property Get ContentType() As String
-    If web_pContentType <> "" Then
+    If Not web_pContentType = vbNullString Then
         ContentType = web_pContentType
     Else
         ContentType = WebHelpers.FormatToMediaType(Me.RequestFormat, Me.CustomRequestFormat)
@@ -415,7 +415,7 @@ End Property
 ' @default Media-type of response format
 ''
 Public Property Get Accept() As String
-    If web_pAccept <> "" Then
+    If Not web_pAccept = vbNullString Then
         Accept = web_pAccept
     Else
         Accept = WebHelpers.FormatToMediaType(Me.ResponseFormat, Me.CustomResponseFormat)
@@ -435,7 +435,7 @@ End Property
 ' -> If AcceptEncoding != "identity", enable --compressed flag
 ''
 Public Property Get AcceptEncoding() As String
-    If web_pAcceptEncoding <> "" Then
+    If Not web_pAcceptEncoding = vbNullString Then
         AcceptEncoding = web_pAcceptEncoding
     Else
         AcceptEncoding = "identity"
@@ -583,7 +583,7 @@ End Property
 ' @type String
 ''
 Public Property Get Id() As String
-    If web_pId = "" Then: web_pId = WebHelpers.CreateNonce
+    If web_pId = vbNullString Then: web_pId = WebHelpers.CreateNonce
     Id = web_pId
 End Property
 
@@ -754,9 +754,9 @@ Public Sub AddBodyParameter(Key As Variant, Value As Variant)
     End If
 
     If VBA.IsObject(Value) Then
-        Set web_pBody(Key) = Value
+        Set web_pBody.Item(Key) = Value
     Else
-        web_pBody(Key) = Value
+        web_pBody.Item(Key) = Value
     End If
 
     ' Clear cached converted body
@@ -884,13 +884,13 @@ Private Function web_EncodeCookieName(web_CookieName As Variant) As String
                     web_Result(web_i) = web_Char
 
                 Case 0 To 15
-                    web_Result(web_i) = "%0" & VBA.Hex(web_CharCode)
+                    web_Result(web_i) = "%0" & VBA.Hex$(web_CharCode)
                 Case Else
-                    web_Result(web_i) = "%" & VBA.Hex(web_CharCode)
+                    web_Result(web_i) = "%" & VBA.Hex$(web_CharCode)
             End Select
         Next web_i
 
-        web_EncodeCookieName = VBA.Join$(web_Result, "")
+        web_EncodeCookieName = VBA.Join$(web_Result, vbNullString)
     End If
 End Function
 
