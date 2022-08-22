@@ -450,7 +450,7 @@ Public Function ConvertToXml(ByVal XmlValue As Variant, Optional ByVal Whitespac
                         xml_BufferAppend xml_Buffer, xml_Converted, xml_BufferPosition, xml_BufferLength
                     Case "IXMLDOMCDATASection"
                         ' CDATA node doesn't pass through converter, as it does not need escaping.
-                        xml_BufferAppend xml_Buffer, XmlValue.ChildNodes.Item(0).XML, xml_BufferPosition, xml_BufferLength
+                        xml_BufferAppend xml_Buffer, XmlValue.ChildNodes.Item(0).Xml, xml_BufferPosition, xml_BufferLength
                     End Select
                 Else
                     If xml_PrettyPrint Then

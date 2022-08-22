@@ -173,7 +173,7 @@ Public Function ConvertXmlToJson(ByVal XmlValue As Variant, Optional ByVal White
             Dim xml_Object As Dictionary
             xml_ForceVBA = XmlConverter.XmlOptions.ForceVbaXml
             XmlConverter.XmlOptions.ForceVbaXml = True
-                Set xml_Object = XmlConverter.ParseXml(XmlValue.XML)
+                Set xml_Object = XmlConverter.ParseXml(XmlValue.Xml)
             XmlConverter.XmlOptions.ForceVbaXml = xml_ForceVBA
             Set xml_ReturnObject = ConvertXmlToJson(xml_Object, Whitespace, vbObject)
             ' <--- End TEMP
