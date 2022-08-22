@@ -1855,6 +1855,46 @@ Public Function MD5(Text As String, Optional Format As String = "Hex") As String
 End Function
 
 ''
+' Determine the SHA256 hash of the given text.
+'
+' @method SHA256
+' @param {String} Text
+' @param {String} [Format="Hex"] "Hex" or "Base64" encoding for result
+' @return {String} SHA256 Hash
+''
+Public Function SHA256(Text As String, Optional Format As String = "Hex") As String
+#If Mac Then
+    ' TODO - Add Mac support.
+#Else
+    Dim web_Crypto As Object
+    Dim web_TextBytes() As Byte
+    Dim web_Bytes() As Byte
+
+    web_TextBytes = VBA.StrConv(Text, vbFromUnicode)
+
+    ' Attempt to create system object. This will error if .NET Framework 3.5 is not available.
+    On Error Resume Next
+        'Set web_Crypto = CreateObject("System.Security.Cryptography.SHA256Managed")
+    On Error GoTo 0
+    
+    If web_Crypto Is Nothing Then
+        ' If .NET Framework is unavailable, use WebCrypto class to perform hash.
+        Set web_Crypto = New WebCrypto
+        web_Bytes = web_Crypto.SHA256(web_TextBytes)
+    Else
+        web_Bytes = web_Crypto.ComputeHash_2(web_TextBytes)
+    End If
+
+    Select Case Format
+    Case "Base64"
+        SHA256 = web_AnsiBytesToBase64(web_Bytes)
+    Case Else
+        SHA256 = web_AnsiBytesToHex(web_Bytes)
+    End Select
+#End If
+End Function
+
+''
 ' Create random alphanumeric nonce (0-9a-zA-Z)
 '
 ' @method CreateNonce
