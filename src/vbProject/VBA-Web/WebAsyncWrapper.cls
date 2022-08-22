@@ -228,8 +228,8 @@ Private Sub web_StartTimeoutTimer()
     If WebHelpers.AsyncRequests Is Nothing Then: Set WebHelpers.AsyncRequests = New Dictionary
 
     ' Round ms to seconds with minimum of 1 second if ms > 0
-    web_TimeoutS = Round(Me.Client.TimeoutMs / 1000, 0)
-    If Me.Client.TimeoutMs > 0 And web_TimeoutS = 0 Then
+    web_TimeoutS = Round(Me.Client.TimeoutMS / 1000, 0)
+    If Me.Client.TimeoutMS > 0 And web_TimeoutS = 0 Then
         web_TimeoutS = 1
     End If
 
