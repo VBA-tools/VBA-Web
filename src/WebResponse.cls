@@ -269,7 +269,7 @@ Public Function ExtractCookies(Headers As Collection) As Collection
     Dim web_Cookies As New Collection
 
     For Each web_Header In Headers
-        If web_Header("Key") = "Set-Cookie" Then
+        If LCase(web_Header("Key")) = "set-cookie" Then
             web_Cookie = web_Header("Value")
             If VBA.InStr(1, web_Cookie, "=") > 0 Then
                 web_Key = VBA.Mid$(web_Cookie, 1, VBA.InStr(1, web_Cookie, "=") - 1)
