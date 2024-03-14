@@ -572,7 +572,7 @@ End Property
 ' @type String
 ''
 Public Property Get Id() As String
-    If web_pId = "" Then: web_pId = WebHelpers.CreateNonce
+    If web_pId = "" Then web_pId = WebHelpers.CreateNonce
     Id = web_pId
 End Property
 
